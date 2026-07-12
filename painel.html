@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel | Edilaine Santos</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<style>
+  /* ===================== VARIÁVEIS DO DESIGN SYSTEM ===================== */
+  :root{
+    --coral: #D4572A;
+    --coral-escuro: #B8461F;
+    --creme: #F5F3EF;
+    --branco: #FFFFFF;
+    --grafite: #1A1816;
+    --texto-suave: #6B645C;
+    --borda: #DDD8D0;
+    --verde: #2D7A4F;
+    --vermelho: #C4453C;
+  }
+
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+
+  body{
+    background: var(--creme);
+    color: var(--grafite);
+    font-family: 'Outfit', sans-serif;
+    /* Começa invisível: só aparece depois que o guarda de login confirmar a sessão */
+    visibility: hidden;
+  }
+
+  h1, h2{ font-family: 'Fraunces', serif; font-weight: 600; }
+
+  a{ color: inherit; }
+
+  .oculto{ display: none !important; }
+
+  /* ===================== LAYOUT GERAL ===================== */
+  .app{
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ===================== SIDEBAR ===================== */
+  .sidebar{
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--branco);
+    border-right: 1px solid var(--borda);
+    display: flex;
+    flex-direction: column;
+    padding: 28px 20px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+  .sidebar-topo .logo{
+    font-family: 'Fraunces', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 36px;
+  }
+  .sidebar-topo .logo .ponto{ color: var(--coral); }
+
+  .menu{ display: flex; flex-direction: column; gap: 6px; flex-grow: 1; }
+  .menu-item{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: none;
+    background: transparent;
+    color: var(--texto-suave);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: .95rem;
+    cursor: pointer;
+    text-align: left;
+    transition: background .2s ease, color .2s ease;
+  }
+  .menu-item svg{ width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+  .menu-item:hover{ background: var(--creme); color: var(--grafite); }
+  .menu-item.ativo{ background: var(--coral); color: var(--branco); }
+
+  .sidebar-rodape{
+    border-top: 1px solid var(--borda);
+    padding-top: 16px;
+    margin-top: 16px;
+  }
+  .usuario-email{
+    font-size: .8rem;
+    color: var(--texto-suave);
+    margin-bottom: 10px;
+    word-break: break-all;
+  }
+  .botao-sair{
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--borda);
+    background: var(--branco);
+    color: var(--grafite);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: .85rem;
+    cursor: pointer;
+    transition: border-color .2s ease, color .2s ease;
+  }
+  .botao-sair:hover{ border-color: var(--vermelho); color: var(--vermelho); }
+
+  /* Overlay para fechar a gaveta no celular */
+  .overlay-mobile{
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,24,22,.4);
+    z-index: 900;
+  }
+  .overlay-mobile.visivel{ display: block; }
+
+  /* ===================== ÁREA DE CONTEÚDO ===================== */
+  .conteudo{
+    flex-grow: 1;
+    padding: 32px 40px 60px;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .topo-conteudo{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .topo-conteudo h1{ font-size: 1.6rem; }
+
+  .botao-menu-mobile{
+    display: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--borda);
+    background: var(--branco);
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-right: 12px;
+  }
+
+  .filtro-periodo{
+    display: flex;
+    gap: 8px;
+    background: var(--branco);
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    padding: 4px;
+  }
+  .periodo-btn{
+    padding: 8px 16px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: var(--texto-suave);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: .85rem;
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+  }
+  .periodo-btn:hover{ color: var(--grafite); }
+  .periodo-btn.ativo{ background: var(--coral); color: var(--branco); }
+
+  .carregando{
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--texto-suave);
+  }
+
+  .erro-geral{
+    background: rgba(196,69,60,.1);
+    color: var(--vermelho);
+    padding: 16px 20px;
+    border-radius: 14px;
+    margin-bottom: 24px;
+  }
+
+  .saudacao{
+    font-size: 1.05rem;
+    color: var(--texto-suave);
+    margin-bottom: 24px;
+  }
+
+  /* ===================== CARTÕES GENÉRICOS ===================== */
+  .cartao{
+    background: var(--branco);
+    border: 1px solid var(--borda);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(26,24,22,.04);
+  }
+  .cartao h2{
+    font-size: 1.1rem;
+    margin-bottom: 18px;
+  }
+
+  /* ===================== CARTÕES DE NÚMERO (Menu Principal) ===================== */
+  .cartoes-numeros{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .cartao-numero{ padding: 22px; }
+  .cartao-numero.destaque{
+    background: var(--coral);
+    border-color: var(--coral);
+  }
+  .cartao-numero.destaque .numero-grande,
+  .cartao-numero.destaque .numero-rotulo{ color: var(--branco); }
+
+  .numero-grande{
+    font-family: 'Fraunces', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .numero-rotulo{
+    font-size: .9rem;
+    color: var(--texto-suave);
+  }
+
+  .destaque-contato{
+    background: var(--grafite);
+    margin-bottom: 24px;
+  }
+  .destaque-contato .numero-grande,
+  .destaque-contato .numero-rotulo{ color: var(--branco); }
+  .texto-explicativo{
+    font-size: .82rem;
+    color: rgba(255,255,255,.65);
+    margin-top: 8px;
+    max-width: 460px;
+    line-height: 1.5;
+  }
+
+  /* ===================== GRÁFICO DE BARRAS (CSS puro) ===================== */
+  .grafico-cartao{ margin-bottom: 24px; }
+  .grafico-barras{
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 160px;
+    padding-top: 10px;
+  }
+  .barra-coluna{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+  }
+  .barra{
+    width: 100%;
+    max-width: 26px;
+    background: var(--coral);
+    border-radius: 6px 6px 0 0;
+    transition: background .2s ease, opacity .2s ease;
+    cursor: default;
+  }
+  .barra:hover{ opacity: .75; }
+  .barra-legenda{
+    font-size: .68rem;
+    color: var(--texto-suave);
+    margin-top: 6px;
+  }
+
+  /* ===================== BARRAS HORIZONTAIS (Portfólio) ===================== */
+  .item-barra{ margin-bottom: 16px; }
+  .item-barra:last-child{ margin-bottom: 0; }
+  .item-barra-topo{
+    display: flex;
+    justify-content: space-between;
+    font-size: .88rem;
+    margin-bottom: 6px;
+  }
+  .item-barra-topo span:first-child{ font-weight: 500; }
+  .item-barra-topo span:last-child{ color: var(--texto-suave); }
+  .barra-fundo{
+    width: 100%;
+    height: 8px;
+    background: var(--creme);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .barra-preenchida{
+    height: 100%;
+    background: var(--coral);
+    border-radius: 6px;
+  }
+  .barra-preenchida.cor-verde{ background: var(--verde); }
+
+  /* ===================== LISTA DE VÍDEOS ===================== */
+  .item-video{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--borda);
+    text-decoration: none;
+    color: inherit;
+  }
+  .item-video:last-child{ border-bottom: none; }
+  .item-video img{
+    width: 72px;
+    height: 54px;
+    object-fit: cover;
+    border-radius: 10px;
+    flex-shrink: 0;
+    background: var(--creme);
+  }
+  .item-video-info{ flex-grow: 1; min-width: 0; }
+  .item-video-titulo{
+    font-size: .88rem;
+    font-weight: 500;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-video-contagem{
+    font-size: .85rem;
+    color: var(--texto-suave);
+    flex-shrink: 0;
+  }
+
+  /* ===================== MENSAGENS RECEBIDAS ===================== */
+  .cartao-mensagem{
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .cartao-mensagem:last-child{ margin-bottom: 0; }
+  .cartao-mensagem-topo{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--branco);
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: 'Outfit', sans-serif;
+  }
+  .selo-origem{
+    font-size: .7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    background: var(--creme);
+    color: var(--texto-suave);
+    padding: 4px 10px;
+    border-radius: 50px;
+    flex-shrink: 0;
+  }
+  .cartao-mensagem-principal{ flex-grow: 1; min-width: 0; }
+  .cartao-mensagem-nome{
+    display: block;
+    font-weight: 600;
+    font-size: .92rem;
+  }
+  .cartao-mensagem-email{
+    display: block;
+    font-size: .8rem;
+    color: var(--texto-suave);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cartao-mensagem-data{
+    font-size: .78rem;
+    color: var(--texto-suave);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .cartao-mensagem-seta{
+    font-size: 1.2rem;
+    color: var(--texto-suave);
+    transition: transform .2s ease;
+    flex-shrink: 0;
+  }
+  .cartao-mensagem-topo.aberto .cartao-mensagem-seta{ transform: rotate(90deg); }
+  .cartao-mensagem-corpo{
+    padding: 4px 16px 18px;
+    font-size: .9rem;
+    line-height: 1.6;
+    border-top: 1px solid var(--borda);
+  }
+  .cartao-mensagem-corpo p{ margin-top: 10px; }
+  .cartao-mensagem-acoes{
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .botao-pequeno{
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 10px;
+    background: var(--coral);
+    color: var(--branco);
+    text-decoration: none;
+    font-size: .82rem;
+    font-weight: 500;
+  }
+  .botao-pequeno.botao-whats{ background: var(--verde); }
+
+  .texto-vazio{
+    color: var(--texto-suave);
+    font-size: .9rem;
+    padding: 12px 0;
+  }
+
+  /* Espaço entre os cartões do painel Portfólio */
+  .grade-portfolio{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ===================== RESPONSIVO ===================== */
+  @media (max-width: 900px){
+    .sidebar{
+      position: fixed;
+      left: -280px;
+      top: 0;
+      z-index: 1000;
+      transition: left .25s ease;
+      box-shadow: 0 0 40px rgba(0,0,0,.2);
+    }
+    .sidebar.aberta{ left: 0; }
+    .botao-menu-mobile{ display: block; }
+    .conteudo{ padding: 24px 20px 50px; }
+    .topo-conteudo{ flex-direction: row; }
+    .topo-conteudo h1{ font-size: 1.3rem; }
+  }
+
+  @media (max-width: 480px){
+    .filtro-periodo{ width: 100%; justify-content: space-between; }
+    .periodo-btn{ flex: 1; padding: 8px 6px; }
+    .cartoes-numeros{ grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-topo">
+      <p class="logo">meu<span class="ponto">.</span>painel</p>
+    </div>
+
+    <nav class="menu">
+      <button class="menu-item ativo" data-tab="principal">
+        <svg viewBox="0 0 16 16"><path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 6.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z"/></svg>
+        Menu Principal
+      </button>
+      <button class="menu-item" data-tab="portfolio">
+        <svg viewBox="0 0 16 16"><path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/></svg>
+        Portfólio
+      </button>
+    </nav>
+
+    <div class="sidebar-rodape">
+      <p class="usuario-email" id="usuarioEmail"></p>
+      <button class="botao-sair" id="botaoSair">Sair</button>
+    </div>
+  </aside>
+
+  <div class="overlay-mobile" id="overlayMobile"></div>
+
+  <!-- ===================== CONTEÚDO ===================== -->
+  <main class="conteudo">
+    <div class="topo-conteudo">
+      <div style="display:flex; align-items:center;">
+        <button class="botao-menu-mobile" id="botaoMenuMobile" aria-label="Abrir menu">&#9776;</button>
+        <h1 id="tituloTopo">Menu Principal</h1>
+      </div>
+      <div class="filtro-periodo" id="filtroPeriodo">
+        <button class="periodo-btn ativo" data-periodo="tudo">Tudo</button>
+        <button class="periodo-btn" data-periodo="7">7d</button>
+        <button class="periodo-btn" data-periodo="30">30d</button>
+        <button class="periodo-btn" data-periodo="90">90d</button>
+      </div>
+    </div>
+
+    <div class="carregando" id="areaCarregando">Carregando dados...</div>
+    <div class="erro-geral oculto" id="areaErro"></div>
+
+    <!-- ===================== ABA: MENU PRINCIPAL ===================== -->
+    <section id="painelPrincipal" class="painel-tab oculto">
+      <p class="saudacao">Olá! Aqui estão os números do seu portfólio.</p>
+
+      <div class="cartoes-numeros" id="cartoesNumeros"></div>
+
+      <div class="cartao destaque-contato" id="cartaoContato"></div>
+
+      <div class="cartao grafico-cartao">
+        <h2>Visitas nos últimos 14 dias</h2>
+        <div class="grafico-barras" id="graficoBarras"></div>
+      </div>
+    </section>
+
+    <!-- ===================== ABA: PORTFÓLIO ===================== -->
+    <section id="painelPortfolio" class="painel-tab oculto">
+      <div class="grade-portfolio">
+        <div class="cartao">
+          <h2>Vídeos mais vistos</h2>
+          <div id="listaVideos"></div>
+        </div>
+
+        <div class="cartao">
+          <h2>Botões mais clicados</h2>
+          <div id="listaBotoes"></div>
+        </div>
+
+        <div class="cartao">
+          <h2>Cliques para contato</h2>
+          <div id="listaContatoCliques"></div>
+        </div>
+
+        <div class="cartao">
+          <h2>Mensagens recebidas</h2>
+          <div id="listaMensagens"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="js/auth.js"></script>
+<script>
+  /* =========================================================================
+     ESTADO EM MEMÓRIA
+     Os dados são buscados uma única vez e guardados aqui. Trocar de aba ou
+     de período só refiltra e redesenha, sem buscar de novo no banco.
+     ========================================================================= */
+  let eventosCache = [];
+  let leadsCache = [];
+  let periodoAtual = "tudo";
+
+  /* =========================================================================
+     INICIALIZAÇÃO
+     ========================================================================= */
+  (async function iniciar(){
+    // Guarda de autenticação: se não houver sessão, checkAuth já redireciona
+    const usuario = await Auth.checkAuth();
+    if (!usuario) return;
+
+    document.getElementById("usuarioEmail").textContent = usuario.email;
+    document.body.style.visibility = "visible";
+
+    configurarEventosDeInterface();
+
+    try {
+      const [eventos, leads] = await Promise.all([
+        buscarTudo("portfolio_events"),
+        buscarTudo("portfolio_leads")
+      ]);
+      eventosCache = eventos;
+      leadsCache = leads;
+
+      document.getElementById("areaCarregando").classList.add("oculto");
+      renderizarTudo();
+    } catch (erro) {
+      console.error(erro);
+      document.getElementById("areaCarregando").classList.add("oculto");
+      const areaErro = document.getElementById("areaErro");
+      areaErro.textContent = "Não foi possível carregar os dados agora. Tente recarregar a página.";
+      areaErro.classList.remove("oculto");
+    }
+  })();
+
+  // Busca todas as linhas de uma tabela em blocos de 1000 (limite do Supabase)
+  async function buscarTudo(tabela){
+    let tudo = [];
+    let inicio = 0;
+    const TAMANHO_BLOCO = 1000;
+
+    while (true) {
+      const { data, error } = await Auth.client
+        .from(tabela)
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(inicio, inicio + TAMANHO_BLOCO - 1);
+
+      if (error) throw error;
+
+      tudo = tudo.concat(data);
+
+      if (!data || data.length < TAMANHO_BLOCO) break;
+      inicio += TAMANHO_BLOCO;
+    }
+
+    return tudo;
+  }
+
+  /* =========================================================================
+     INTERFACE: ABAS, PERÍODO, MENU MOBILE, SAIR
+     ========================================================================= */
+  function configurarEventosDeInterface(){
+    document.querySelectorAll(".menu-item").forEach(btn => {
+      btn.addEventListener("click", () => trocarAba(btn.dataset.tab));
+    });
+
+    document.querySelectorAll(".periodo-btn").forEach(btn => {
+      btn.addEventListener("click", () => trocarPeriodo(btn.dataset.periodo));
+    });
+
+    document.getElementById("botaoSair").addEventListener("click", () => Auth.logout());
+
+    document.getElementById("botaoMenuMobile").addEventListener("click", () => {
+      document.getElementById("sidebar").classList.add("aberta");
+      document.getElementById("overlayMobile").classList.add("visivel");
+    });
+
+    document.getElementById("overlayMobile").addEventListener("click", fecharGaveta);
+  }
+
+  function fecharGaveta(){
+    document.getElementById("sidebar").classList.remove("aberta");
+    document.getElementById("overlayMobile").classList.remove("visivel");
+  }
+
+  function trocarAba(aba){
+    document.querySelectorAll(".menu-item").forEach(b => b.classList.toggle("ativo", b.dataset.tab === aba));
+    document.getElementById("painelPrincipal").classList.toggle("oculto", aba !== "principal");
+    document.getElementById("painelPortfolio").classList.toggle("oculto", aba !== "portfolio");
+    document.getElementById("tituloTopo").textContent = aba === "principal" ? "Menu Principal" : "Portfólio";
+    fecharGaveta();
+  }
+
+  function trocarPeriodo(periodo){
+    periodoAtual = periodo;
+    document.querySelectorAll(".periodo-btn").forEach(b => b.classList.toggle("ativo", b.dataset.periodo === periodo));
+    renderizarTudo();
+  }
+
+  function filtrarPorPeriodo(lista){
+    if (periodoAtual === "tudo") return lista;
+    const dias = parseInt(periodoAtual, 10);
+    const limite = new Date();
+    limite.setDate(limite.getDate() - dias);
+    return lista.filter(item => new Date(item.created_at) >= limite);
+  }
+
+  function renderizarTudo(){
+    const eventos = filtrarPorPeriodo(eventosCache);
+    const leads = filtrarPorPeriodo(leadsCache);
+    renderizarMenuPrincipal(eventos, leads);
+    renderizarPortfolio(eventos, leads);
+  }
+
+  /* =========================================================================
+     ABA: MENU PRINCIPAL
+     ========================================================================= */
+  function renderizarMenuPrincipal(eventos, leads){
+    const visitas = eventos.filter(e => e.event_type === "page_view");
+    const cliques = eventos.filter(e => e.event_type === "button_click");
+    const videos = eventos.filter(e => e.event_type === "video_view");
+    const visitantesUnicos = new Set(visitas.map(e => e.session_id)).size;
+    const cliquesContato = cliques.filter(e => e.event_name && e.event_name.startsWith("contact_"));
+
+    const cartoes = [
+      { numero: visitas.length, rotulo: "Visitas", destaque: true },
+      { numero: visitantesUnicos, rotulo: "Visitantes únicos" },
+      { numero: cliques.length, rotulo: "Cliques em botões" },
+      { numero: videos.length, rotulo: "Vídeos vistos" },
+      { numero: leads.length, rotulo: "Mensagens" }
+    ];
+
+    document.getElementById("cartoesNumeros").innerHTML = cartoes.map(c => `
+      <div class="cartao cartao-numero ${c.destaque ? "destaque" : ""}">
+        <p class="numero-grande">${c.numero.toLocaleString("pt-BR")}</p>
+        <p class="numero-rotulo">${c.rotulo}</p>
+      </div>
+    `).join("");
+
+    document.getElementById("cartaoContato").innerHTML = `
+      <p class="numero-grande">${cliquesContato.length.toLocaleString("pt-BR")}</p>
+      <p class="numero-rotulo">Clicaram para entrar em contato</p>
+      <p class="texto-explicativo">Conta quem clicou em WhatsApp, e-mail, Instagram ou no botão de enviar o formulário.</p>
+    `;
+
+    renderizarGrafico(visitas);
+  }
+
+  function renderizarGrafico(visitas){
+    const grafico = document.getElementById("graficoBarras");
+
+    if (visitas.length === 0){
+      grafico.innerHTML = '<p class="texto-vazio">Nenhuma visita registrada ainda.</p>';
+      return;
+    }
+
+    // Monta os últimos 14 dias (do mais antigo para o mais recente)
+    const dias = [];
+    for (let i = 13; i >= 0; i--){
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - i);
+      dias.push(d);
+    }
+
+    const contagens = dias.map(dia => {
+      const proximoDia = new Date(dia);
+      proximoDia.setDate(proximoDia.getDate() + 1);
+      return visitas.filter(e => {
+        const dataEvento = new Date(e.created_at);
+        return dataEvento >= dia && dataEvento < proximoDia;
+      }).length;
+    });
+
+    const maximo = Math.max(...contagens, 1);
+
+    grafico.innerHTML = dias.map((dia, i) => {
+      const altura = Math.max((contagens[i] / maximo) * 100, contagens[i] > 0 ? 4 : 1);
+      const dataFormatada = dia.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+      return `
+        <div class="barra-coluna">
+          <div class="barra" style="height:${altura}%" title="${dataFormatada}: ${contagens[i]} visitas"></div>
+          <span class="barra-legenda">${dia.getDate()}</span>
+        </div>
+      `;
+    }).join("");
+  }
+
+  /* =========================================================================
+     ABA: PORTFÓLIO
+     ========================================================================= */
+  function renderizarPortfolio(eventos, leads){
+    const videos = eventos.filter(e => e.event_type === "video_view");
+    const cliques = eventos.filter(e => e.event_type === "button_click");
+
+    renderizarVideos(videos);
+    renderizarBotoes(cliques);
+    renderizarCliquesContato(cliques);
+    renderizarMensagens(leads);
+  }
+
+  // Agrupa uma lista de eventos contando quantas vezes cada valor de "chave" aparece
+  function agrupar(lista, chave){
+    const mapa = {};
+    lista.forEach(item => {
+      const valor = item[chave] || "outro";
+      mapa[valor] = (mapa[valor] || 0) + 1;
+    });
+    return mapa;
+  }
+
+  function nomeLegivel(texto){
+    return texto.replace(/_/g, " ").replace(/\b\w/g, letra => letra.toUpperCase());
+  }
+
+  function renderizarVideos(videos){
+    const container = document.getElementById("listaVideos");
+
+    if (videos.length === 0){
+      container.innerHTML = '<p class="texto-vazio">Nenhum vídeo assistido ainda.</p>';
+      return;
+    }
+
+    const contagens = {};
+    const titulos = {};
+    videos.forEach(v => {
+      const id = v.event_name || "video";
+      contagens[id] = (contagens[id] || 0) + 1;
+      if (v.metadata && v.metadata.title) titulos[id] = v.metadata.title;
+    });
+
+    const ordenados = Object.entries(contagens).sort((a, b) => b[1] - a[1]);
+    const maximo = ordenados[0][1];
+
+    container.innerHTML = ordenados.map(([id, contagem]) => {
+      const titulo = titulos[id] || id;
+      const largura = (contagem / maximo) * 100;
+      return `
+        <a class="item-video" href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">
+          <img src="https://i.ytimg.com/vi/${id}/mqdefault.jpg" alt="Miniatura de ${titulo}" loading="lazy">
+          <div class="item-video-info">
+            <p class="item-video-titulo">${titulo}</p>
+            <div class="barra-fundo"><div class="barra-preenchida" style="width:${largura}%"></div></div>
+          </div>
+          <span class="item-video-contagem">${contagem}</span>
+        </a>
+      `;
+    }).join("");
+  }
+
+  function renderizarBotoes(cliques){
+    const container = document.getElementById("listaBotoes");
+
+    if (cliques.length === 0){
+      container.innerHTML = '<p class="texto-vazio">Nenhum clique registrado ainda.</p>';
+      return;
+    }
+
+    const mapa = agrupar(cliques, "event_name");
+    const ordenados = Object.entries(mapa).sort((a, b) => b[1] - a[1]);
+    const maximo = ordenados[0][1];
+
+    container.innerHTML = ordenados.map(([nome, contagem]) => {
+      const largura = (contagem / maximo) * 100;
+      return `
+        <div class="item-barra">
+          <div class="item-barra-topo">
+            <span>${nomeLegivel(nome)}</span>
+            <span>${contagem}</span>
+          </div>
+          <div class="barra-fundo"><div class="barra-preenchida" style="width:${largura}%"></div></div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderizarCliquesContato(cliques){
+    const container = document.getElementById("listaContatoCliques");
+    const contato = cliques.filter(c => c.event_name && c.event_name.startsWith("contact_"));
+
+    if (contato.length === 0){
+      container.innerHTML = '<p class="texto-vazio">Nenhum clique de contato ainda.</p>';
+      return;
+    }
+
+    const mapa = agrupar(contato, "event_name");
+    const ordenados = Object.entries(mapa).sort((a, b) => b[1] - a[1]);
+    const maximo = ordenados[0][1];
+
+    container.innerHTML = ordenados.map(([nome, contagem]) => {
+      const largura = (contagem / maximo) * 100;
+      const nomeFormatado = nomeLegivel(nome.replace("contact_", ""));
+      return `
+        <div class="item-barra">
+          <div class="item-barra-topo">
+            <span>${nomeFormatado}</span>
+            <span>${contagem}</span>
+          </div>
+          <div class="barra-fundo"><div class="barra-preenchida cor-verde" style="width:${largura}%"></div></div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderizarMensagens(leads){
+    const container = document.getElementById("listaMensagens");
+
+    if (leads.length === 0){
+      container.innerHTML = '<p class="texto-vazio">Nenhuma mensagem por enquanto.</p>';
+      return;
+    }
+
+    const ordenados = [...leads].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    container.innerHTML = ordenados.map((lead, i) => {
+      const data = new Date(lead.created_at).toLocaleDateString("pt-BR", {
+        day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
+      });
+      const origem = lead.source === "popup" ? "Popup" : "Contato";
+      const numeroWhats = lead.phone ? lead.phone.replace(/\D/g, "") : null;
+
+      return `
+        <div class="cartao-mensagem">
+          <button class="cartao-mensagem-topo" data-idx="${i}">
+            <span class="selo-origem">${origem}</span>
+            <span class="cartao-mensagem-principal">
+              <span class="cartao-mensagem-nome">${lead.name || "Sem nome"}</span>
+              <span class="cartao-mensagem-email">${lead.email || "e-mail não informado"}</span>
+            </span>
+            <span class="cartao-mensagem-data">${data}</span>
+            <span class="cartao-mensagem-seta">&#8250;</span>
+          </button>
+          <div class="cartao-mensagem-corpo oculto" id="mensagem-${i}">
+            ${lead.phone ? `<p><strong>Telefone:</strong> ${lead.phone}</p>` : ""}
+            ${lead.brand ? `<p><strong>Marca:</strong> ${lead.brand}</p>` : ""}
+            ${lead.budget ? `<p><strong>Orçamento:</strong> ${lead.budget}</p>` : ""}
+            ${lead.message ? `<p><strong>Mensagem:</strong> ${lead.message}</p>` : ""}
+            <div class="cartao-mensagem-acoes">
+              ${lead.email ? `<a class="botao-pequeno" href="mailto:${lead.email}">Responder por e-mail</a>` : ""}
+              ${numeroWhats ? `<a class="botao-pequeno botao-whats" href="https://wa.me/${numeroWhats}" target="_blank" rel="noopener">WhatsApp</a>` : ""}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    container.querySelectorAll(".cartao-mensagem-topo").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const corpo = document.getElementById("mensagem-" + btn.dataset.idx);
+        corpo.classList.toggle("oculto");
+        btn.classList.toggle("aberto");
+      });
+    });
+  }
+</script>
+</body>
+</html>
