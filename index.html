@@ -364,7 +364,7 @@
   .marquee{
     display: flex;
     width: max-content;
-    animation: rolar 26s linear infinite;
+    animation: rolar 170s linear infinite;
   }
   .marquee-grupo{
     display: flex;
@@ -1226,11 +1226,26 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("heroStat").textContent = CONFIG.hero.estatistica;
   document.getElementById("heroCta").textContent = CONFIG.hero.textoCta;
 
-  // ---------- Faixa de marcas (duplicada para rolagem contínua) ----------
+  // ---------- Faixa de marcas (duplicada para rolagem contínua e infinita) ----------
+  // Repete a lista de marcas até passar de uma largura mínima bem generosa
+  // (cobre até telas ultrawide) ANTES de duplicar o grupo para a animação.
+  // Sem isso, em telas largas com poucas marcas cadastradas, a rolagem chega
+  // ao fim da lista e mostra um vazio antes de reiniciar — é esse vazio que
+  // NÃO pode acontecer.
   const marqueeEl = document.getElementById("marqueeMarcas");
   const iconeCheck = '<svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.2 11.5L13 4.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const iniciaisMarca = nome => nome.split(" ").slice(0, 2).map(p => p[0]).join("").toUpperCase();
-  const grupoHtml = CONFIG.marcas.map(m => `
+  const LARGURA_MINIMA_GRUPO_PX = 4000;
+  const LARGURA_ESTIMADA_POR_ITEM_PX = 80;
+  const itensPorGrupo = Math.max(
+    CONFIG.marcas.length,
+    Math.ceil(LARGURA_MINIMA_GRUPO_PX / LARGURA_ESTIMADA_POR_ITEM_PX)
+  );
+  const marcasRepetidas = Array.from(
+    { length: itensPorGrupo },
+    (_, i) => CONFIG.marcas[i % CONFIG.marcas.length]
+  );
+  const grupoHtml = marcasRepetidas.map(m => `
     <div class="marca-bolha" title="${m}">
       <div class="logo-circulo">${iniciaisMarca(m)}</div>
       <div class="selo-verificado">${iconeCheck}</div>
