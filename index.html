@@ -406,30 +406,117 @@
   }
   .galeria{
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 26px;
   }
   .item-portfolio{
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 9 / 16;
+    width: 100%;
     display: flex;
     align-items: flex-end;
     padding: 18px;
+    margin: 0;
+    cursor: pointer;
+    appearance: none;
+    text-align: left;
+    font: inherit;
+    color: inherit;
     transition: transform .3s ease, opacity .3s ease;
   }
   .item-portfolio.escondido{ display: none; }
-  .item-portfolio:hover{ transform: translateY(-6px) rotate(-1deg); }
+  .item-portfolio:hover, .item-portfolio:focus-visible{ transform: translateY(-6px) rotate(-1deg); }
   .item-info{
     background: rgba(42,38,34,.75);
     border-radius: 12px;
     padding: 10px 14px;
     color: var(--branco);
+    position: relative;
+    z-index: 2;
+    display: block;
   }
   .item-info .categoria{
+    display: block;
     font-family: 'Permanent Marker', cursive;
     font-size: .78rem;
     color: var(--rosa);
   }
-  .item-info .titulo-item{ font-family: 'Fredoka', sans-serif; font-weight: 600; }
+  .item-info .titulo-item{ display: block; font-family: 'Fredoka', sans-serif; font-weight: 600; }
+
+  /* Botão de play sobre a miniatura do vídeo */
+  .play-botao{
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    background: var(--vermelho);
+    border: 3px solid var(--branco);
+    box-shadow: var(--sombra-dura-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: transform .2s ease;
+  }
+  .item-portfolio:hover .play-botao, .item-portfolio:focus-visible .play-botao{ transform: translate(-50%, -50%) scale(1.1); }
+  .play-botao::after{
+    content: "";
+    border-style: solid;
+    border-width: 10px 0 10px 16px;
+    border-color: transparent transparent transparent var(--branco);
+    margin-left: 4px;
+  }
+  .item-portfolio::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(42,38,34,.65), transparent 55%);
+    z-index: 1;
+  }
+
+  /* ===================== MODAL DE VÍDEO ===================== */
+  .modal-video{
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(42,38,34,.92);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-video.aberto{ display: flex; }
+  .modal-conteudo{
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    aspect-ratio: 9 / 16;
+    border: 4px solid var(--branco);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--sombra-dura);
+    background: var(--tinta);
+  }
+  .modal-conteudo iframe{
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .modal-fechar{
+    position: absolute;
+    top: -18px;
+    right: -18px;
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: var(--vermelho);
+    color: var(--branco);
+    border: 3px solid var(--branco);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: var(--sombra-dura-sm);
+    z-index: 3;
+  }
 
   /* ===================== SERVIÇOS ===================== */
   .servicos-grid{
@@ -765,13 +852,21 @@
     <div class="container">
       <p class="tag-secao reveal">Portfólio</p>
       <h2 class="titulo-secao reveal">Trabalhos que já viraram resultado para as marcas</h2>
-      <p class="sub-secao reveal">Filtre por nicho e veja exemplos do tipo de conteúdo que eu produzo para cada segmento.</p>
+      <p class="sub-secao reveal">Filtre por nicho e assista aos vídeos reais que eu já produzi para cada segmento.</p>
 
       <div class="filtros reveal" id="filtrosPortfolio" role="group" aria-label="Filtrar portfólio por categoria"></div>
 
       <div class="galeria" id="galeriaPortfolio"></div>
     </div>
   </section>
+
+  <!-- Modal que abre o vídeo do YouTube ao clicar em um card do portfólio -->
+  <div class="modal-video" id="modalVideo" role="dialog" aria-modal="true" aria-label="Reprodução de vídeo do portfólio">
+    <div class="modal-conteudo">
+      <button type="button" class="modal-fechar" id="modalFechar" aria-label="Fechar vídeo">&times;</button>
+      <div id="modalPlayer"></div>
+    </div>
+  </div>
 
   <!-- ===================== 6. SERVIÇOS ===================== -->
   <section class="servicos" id="servicos">
@@ -899,22 +994,26 @@ const CONFIG = {
   },
 
   // EDITE AQUI: categorias do filtro de portfólio
-  categoriasPortfolio: ["Todos", "Beleza", "Moda", "Comida", "Fitness", "Viagem"],
+  categoriasPortfolio: ["Todos", "Saúde e Bem-estar", "Beleza e Autocuidado", "Moda e Acessórios"],
 
-  // EDITE AQUI: trabalhos do portfólio (cada item usa uma classe de gradiente: grad-1 até grad-6)
-  // O campo "imagem" aponta para um arquivo dentro da pasta "imagens". Coloque ali um
-  // arquivo com esse nome exato para a foto ou print do trabalho aparecer no lugar do gradiente.
+  // EDITE AQUI: trabalhos do portfólio, com vídeos reais hospedados no YouTube (modo não listado).
+  // O campo "videoId" é o código que vem depois de "youtube.com/shorts/" no link do vídeo.
+  // Exemplo: no link "https://youtube.com/shorts/Zd0B7ttQZJQ" o videoId é "Zd0B7ttQZJQ".
+  // Para adicionar um novo vídeo, copie um bloco { ... } abaixo e troque marca, titulo, categoria e videoId.
+  // A miniatura do card é gerada automaticamente a partir do próprio vídeo do YouTube.
   portfolio: [
-    { titulo: "Rotina de skincare noturna", categoria: "Beleza", gradiente: "grad-1", imagem: "imagens/portfolio-1.jpg" },
-    { titulo: "Resenha de base líquida", categoria: "Beleza", gradiente: "grad-4", imagem: "imagens/portfolio-2.jpg" },
-    { titulo: "Look de festa com peças da loja", categoria: "Moda", gradiente: "grad-2", imagem: "imagens/portfolio-3.jpg" },
-    { titulo: "Try on de coleção de verão", categoria: "Moda", gradiente: "grad-5", imagem: "imagens/portfolio-4.jpg" },
-    { titulo: "Receita rápida com produto patrocinado", categoria: "Comida", gradiente: "grad-3", imagem: "imagens/portfolio-5.jpg" },
-    { titulo: "Degustação e resenha de tempero", categoria: "Comida", gradiente: "grad-6", imagem: "imagens/portfolio-6.jpg" },
-    { titulo: "Treino de pernas com suplemento", categoria: "Fitness", gradiente: "grad-1", imagem: "imagens/portfolio-7.jpg" },
-    { titulo: "Unboxing de roupa de academia", categoria: "Fitness", gradiente: "grad-4", imagem: "imagens/portfolio-8.jpg" },
-    { titulo: "Diário de viagem com mala patrocinada", categoria: "Viagem", gradiente: "grad-2", imagem: "imagens/portfolio-9.jpg" },
-    { titulo: "Dicas de pele para o verão na praia", categoria: "Viagem", gradiente: "grad-5", imagem: "imagens/portfolio-10.jpg" }
+    { marca: "Max Titanium", titulo: "Vídeo UGC de suplemento", categoria: "Saúde e Bem-estar", gradiente: "grad-1", videoId: "Zd0B7ttQZJQ" },
+    { marca: "Dreams Burn", titulo: "Vídeo UGC de suplemento", categoria: "Saúde e Bem-estar", gradiente: "grad-2", videoId: "3pbXGVEFaog" },
+    { marca: "Max Titanium", titulo: "Vídeo UGC de suplemento", categoria: "Saúde e Bem-estar", gradiente: "grad-3", videoId: "KbJBIB5RHCI" },
+    { marca: "Rap10", titulo: "Vídeo UGC de suplemento", categoria: "Saúde e Bem-estar", gradiente: "grad-4", videoId: "Jme4EkWP1oY" },
+    { marca: "Alva", titulo: "Vídeo UGC de beleza", categoria: "Beleza e Autocuidado", gradiente: "grad-5", videoId: "IqmYv5KHu5I" },
+    { marca: "Mayara Cristina", titulo: "Vídeo UGC de beleza", categoria: "Beleza e Autocuidado", gradiente: "grad-6", videoId: "8K0wrl9mf0U" },
+    { marca: "Alva", titulo: "Vídeo UGC de beleza", categoria: "Beleza e Autocuidado", gradiente: "grad-1", videoId: "vOmNzVuLXJw" },
+    { marca: "Dermacyd", titulo: "Vídeo UGC de higiene íntima", categoria: "Beleza e Autocuidado", gradiente: "grad-2", videoId: "KMh3cYekKEM" },
+    { marca: "Vans", titulo: "Vídeo UGC de calçado", categoria: "Moda e Acessórios", gradiente: "grad-3", videoId: "80XKBvwlWfU" },
+    { marca: "Ótica Mega Opção", titulo: "Vídeo UGC de óculos", categoria: "Moda e Acessórios", gradiente: "grad-4", videoId: "_qhaRoUB1b0" },
+    { marca: "Shein", titulo: "Vídeo UGC de moda", categoria: "Moda e Acessórios", gradiente: "grad-5", videoId: "Ycp2cp5_ps0" },
+    { marca: "Saint Germain", titulo: "Vídeo UGC de acessórios", categoria: "Moda e Acessórios", gradiente: "grad-6", videoId: "di5b_sg4_M8" }
   ],
 
   // EDITE AQUI: cards de serviços oferecidos (o campo "icone" aceita um emoji)
@@ -983,21 +1082,20 @@ document.addEventListener("DOMContentLoaded", () => {
     `<button type="button" class="filtro-btn ${i === 0 ? "ativo" : ""}" data-categoria="${cat}" aria-pressed="${i === 0}">${cat}</button>`
   ).join("");
 
-  // ---------- Portfólio: galeria ----------
+  // ---------- Portfólio: galeria (vídeos reais do YouTube, modo não listado) ----------
   const galeriaEl = document.getElementById("galeriaPortfolio");
   galeriaEl.innerHTML = CONFIG.portfolio.map(item => `
-    <div class="item-portfolio foto-bloco ${item.gradiente} reveal" data-categoria="${item.categoria}">
-      <div class="foto-real" style="background-image:url('${item.imagem}');"></div>
-      <div class="item-info">
-        <p class="categoria">${item.categoria}</p>
-        <p class="titulo-item">${item.titulo}</p>
-      </div>
-    </div>
+    <button type="button" class="item-portfolio foto-bloco ${item.gradiente} reveal" data-categoria="${item.categoria}" data-video-id="${item.videoId}" aria-label="Assistir vídeo UGC para a marca ${item.marca}">
+      <span class="foto-real" style="background-image:url('https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg');"></span>
+      <span class="play-botao" aria-hidden="true"></span>
+      <span class="item-info">
+        <span class="categoria">${item.categoria}</span>
+        <span class="titulo-item">${item.marca}</span>
+      </span>
+    </button>
   `).join("");
-  // Bloco em gradiente simulando cada trabalho do portfólio.
-  // PARA USAR FOTOS OU PRINTS REAIS: coloque os arquivos dentro da pasta "imagens" com os
-  // nomes indicados no campo "imagem" de cada item do CONFIG.portfolio (portfolio-1.jpg, portfolio-2.jpg...).
-  // Se o arquivo não existir, o gradiente continua aparecendo no lugar.
+  // Cada card puxa automaticamente a miniatura do próprio vídeo do YouTube.
+  // Para adicionar, remover ou trocar vídeos, edite a lista CONFIG.portfolio lá em cima.
 
   // Filtro por clique
   filtrosEl.addEventListener("click", (e) => {
@@ -1015,6 +1113,41 @@ document.addEventListener("DOMContentLoaded", () => {
       const mostrar = categoria === "Todos" || item.dataset.categoria === categoria;
       item.classList.toggle("escondido", !mostrar);
     });
+  });
+
+  // ---------- Modal de vídeo do portfólio ----------
+  const modalVideo = document.getElementById("modalVideo");
+  const modalPlayer = document.getElementById("modalPlayer");
+  const modalFechar = document.getElementById("modalFechar");
+  let elementoComFoco = null;
+
+  function abrirModalVideo(videoId, gatilho){
+    elementoComFoco = gatilho;
+    modalPlayer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" title="Vídeo do portfólio" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    modalVideo.classList.add("aberto");
+    modalFechar.focus();
+    document.body.style.overflow = "hidden";
+  }
+
+  function fecharModalVideo(){
+    modalVideo.classList.remove("aberto");
+    modalPlayer.innerHTML = "";
+    document.body.style.overflow = "";
+    if (elementoComFoco) elementoComFoco.focus();
+  }
+
+  galeriaEl.addEventListener("click", (e) => {
+    const item = e.target.closest(".item-portfolio");
+    if (!item) return;
+    abrirModalVideo(item.dataset.videoId, item);
+  });
+
+  modalFechar.addEventListener("click", fecharModalVideo);
+  modalVideo.addEventListener("click", (e) => {
+    if (e.target === modalVideo) fecharModalVideo();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modalVideo.classList.contains("aberto")) fecharModalVideo();
   });
 
   // ---------- Serviços ----------
