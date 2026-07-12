@@ -144,6 +144,17 @@
   .grad-5{ background: linear-gradient(135deg, var(--tinta), var(--rosa)); }
   .grad-6{ background: linear-gradient(135deg, var(--vermelho), var(--rosa), var(--creme)); }
 
+  /* Camada de foto real: fica por cima do gradiente. Se o arquivo de imagem
+     não existir ainda, ela fica invisível e o gradiente continua aparecendo
+     por baixo, sem quebrar o layout. */
+  .foto-real{
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
   /* Adesivo decorativo (sticker) */
   .adesivo{
     position: absolute;
@@ -713,9 +724,12 @@
 
       <div class="hero-foto-wrap reveal">
         <!-- Bloco em gradiente simulando a foto principal.
-             PARA TROCAR POR FOTO REAL: substitua esta div por
-             <img src="sua-foto.jpg" alt="Edilaine Santos sorrindo"> e reaproveite a classe "foto-bloco". -->
-        <div class="foto-bloco hero-foto grad-1" role="img" aria-label="Foto de Edilaine Santos, criadora de conteúdo UGC"></div>
+             PARA USAR SUA FOTO REAL: coloque um arquivo chamado "hero.jpg"
+             dentro da pasta "imagens" (na mesma pasta do index.html). O site
+             troca automaticamente. Se o arquivo não existir, o gradiente aparece no lugar. -->
+        <div class="foto-bloco hero-foto grad-1" role="img" aria-label="Foto de Edilaine Santos, criadora de conteúdo UGC">
+          <div class="foto-real" style="background-image:url('imagens/hero.jpg');"></div>
+        </div>
         <div class="adesivo hero-adesivo-1">100% autêntico</div>
         <div class="adesivo hero-adesivo-2">Vende mais!</div>
       </div>
@@ -733,8 +747,9 @@
     <div class="container">
       <div class="sobre-foto foto-bloco grad-2 reveal" role="img" aria-label="Foto de Edilaine Santos gravando conteúdo">
         <!-- Bloco em gradiente simulando a foto da seção Sobre.
-             PARA TROCAR POR FOTO REAL: troque esta div por uma tag <img>
-             com o src da foto e mantenha a classe "foto-bloco" para herdar a borda e a sombra. -->
+             PARA USAR SUA FOTO REAL: coloque um arquivo chamado "sobre.jpg"
+             dentro da pasta "imagens". Se o arquivo não existir, o gradiente aparece no lugar. -->
+        <div class="foto-real" style="background-image:url('imagens/sobre.jpg');"></div>
       </div>
       <div class="sobre-texto reveal">
         <p class="tag-secao">Sobre mim</p>
@@ -887,17 +902,19 @@ const CONFIG = {
   categoriasPortfolio: ["Todos", "Beleza", "Moda", "Comida", "Fitness", "Viagem"],
 
   // EDITE AQUI: trabalhos do portfólio (cada item usa uma classe de gradiente: grad-1 até grad-6)
+  // O campo "imagem" aponta para um arquivo dentro da pasta "imagens". Coloque ali um
+  // arquivo com esse nome exato para a foto ou print do trabalho aparecer no lugar do gradiente.
   portfolio: [
-    { titulo: "Rotina de skincare noturna", categoria: "Beleza", gradiente: "grad-1" },
-    { titulo: "Resenha de base líquida", categoria: "Beleza", gradiente: "grad-4" },
-    { titulo: "Look de festa com peças da loja", categoria: "Moda", gradiente: "grad-2" },
-    { titulo: "Try on de coleção de verão", categoria: "Moda", gradiente: "grad-5" },
-    { titulo: "Receita rápida com produto patrocinado", categoria: "Comida", gradiente: "grad-3" },
-    { titulo: "Degustação e resenha de tempero", categoria: "Comida", gradiente: "grad-6" },
-    { titulo: "Treino de pernas com suplemento", categoria: "Fitness", gradiente: "grad-1" },
-    { titulo: "Unboxing de roupa de academia", categoria: "Fitness", gradiente: "grad-4" },
-    { titulo: "Diário de viagem com mala patrocinada", categoria: "Viagem", gradiente: "grad-2" },
-    { titulo: "Dicas de pele para o verão na praia", categoria: "Viagem", gradiente: "grad-5" }
+    { titulo: "Rotina de skincare noturna", categoria: "Beleza", gradiente: "grad-1", imagem: "imagens/portfolio-1.jpg" },
+    { titulo: "Resenha de base líquida", categoria: "Beleza", gradiente: "grad-4", imagem: "imagens/portfolio-2.jpg" },
+    { titulo: "Look de festa com peças da loja", categoria: "Moda", gradiente: "grad-2", imagem: "imagens/portfolio-3.jpg" },
+    { titulo: "Try on de coleção de verão", categoria: "Moda", gradiente: "grad-5", imagem: "imagens/portfolio-4.jpg" },
+    { titulo: "Receita rápida com produto patrocinado", categoria: "Comida", gradiente: "grad-3", imagem: "imagens/portfolio-5.jpg" },
+    { titulo: "Degustação e resenha de tempero", categoria: "Comida", gradiente: "grad-6", imagem: "imagens/portfolio-6.jpg" },
+    { titulo: "Treino de pernas com suplemento", categoria: "Fitness", gradiente: "grad-1", imagem: "imagens/portfolio-7.jpg" },
+    { titulo: "Unboxing de roupa de academia", categoria: "Fitness", gradiente: "grad-4", imagem: "imagens/portfolio-8.jpg" },
+    { titulo: "Diário de viagem com mala patrocinada", categoria: "Viagem", gradiente: "grad-2", imagem: "imagens/portfolio-9.jpg" },
+    { titulo: "Dicas de pele para o verão na praia", categoria: "Viagem", gradiente: "grad-5", imagem: "imagens/portfolio-10.jpg" }
   ],
 
   // EDITE AQUI: cards de serviços oferecidos (o campo "icone" aceita um emoji)
@@ -920,11 +937,13 @@ const CONFIG = {
   ],
 
   // EDITE AQUI: depoimentos de clientes e marcas
+  // O campo "imagem" é opcional: coloque uma foto de perfil dentro da pasta "imagens"
+  // com esse nome exato para trocar o avatar em gradiente pela foto da pessoa.
   depoimentos: [
-    { texto: "A Edilaine entregou um conteúdo tão natural que viramos o vídeo com melhor desempenho do mês. Comunicação excelente do início ao fim.", nome: "Camila Rocha", empresa: "Bella Cosméticos" },
-    { texto: "Profissional, pontual e com um olhar estratégico para o que realmente converte. Já fechamos a segunda campanha com ela.", nome: "Rafael Andrade", empresa: "Viva Fit Suplementos" },
-    { texto: "O vídeo de unboxing gerou um aumento visível nas vendas naquela semana. Recomendo o trabalho da Edilaine para qualquer marca.", nome: "Juliana Prado", empresa: "Doce Lar Utilidades" },
-    { texto: "Contratamos para um teste e hoje ela é fixa nas nossas campanhas de lançamento. Conteúdo autêntico de verdade.", nome: "Bruno Lima", empresa: "Trend Moda Feminina" }
+    { texto: "A Edilaine entregou um conteúdo tão natural que viramos o vídeo com melhor desempenho do mês. Comunicação excelente do início ao fim.", nome: "Camila Rocha", empresa: "Bella Cosméticos", imagem: "imagens/depoimento-1.jpg" },
+    { texto: "Profissional, pontual e com um olhar estratégico para o que realmente converte. Já fechamos a segunda campanha com ela.", nome: "Rafael Andrade", empresa: "Viva Fit Suplementos", imagem: "imagens/depoimento-2.jpg" },
+    { texto: "O vídeo de unboxing gerou um aumento visível nas vendas naquela semana. Recomendo o trabalho da Edilaine para qualquer marca.", nome: "Juliana Prado", empresa: "Doce Lar Utilidades", imagem: "imagens/depoimento-3.jpg" },
+    { texto: "Contratamos para um teste e hoje ela é fixa nas nossas campanhas de lançamento. Conteúdo autêntico de verdade.", nome: "Bruno Lima", empresa: "Trend Moda Feminina", imagem: "imagens/depoimento-4.jpg" }
   ],
 
   // EDITE AQUI: texto do rodapé
@@ -968,6 +987,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const galeriaEl = document.getElementById("galeriaPortfolio");
   galeriaEl.innerHTML = CONFIG.portfolio.map(item => `
     <div class="item-portfolio foto-bloco ${item.gradiente} reveal" data-categoria="${item.categoria}">
+      <div class="foto-real" style="background-image:url('${item.imagem}');"></div>
       <div class="item-info">
         <p class="categoria">${item.categoria}</p>
         <p class="titulo-item">${item.titulo}</p>
@@ -975,8 +995,9 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   `).join("");
   // Bloco em gradiente simulando cada trabalho do portfólio.
-  // PARA TROCAR POR FOTO OU VÍDEO REAL: dentro do .item-portfolio, adicione uma
-  // tag <img> ou <video> antes da .item-info e remova a classe de gradiente (grad-1 a grad-6).
+  // PARA USAR FOTOS OU PRINTS REAIS: coloque os arquivos dentro da pasta "imagens" com os
+  // nomes indicados no campo "imagem" de cada item do CONFIG.portfolio (portfolio-1.jpg, portfolio-2.jpg...).
+  // Se o arquivo não existir, o gradiente continua aparecendo no lugar.
 
   // Filtro por clique
   filtrosEl.addEventListener("click", (e) => {
@@ -1019,7 +1040,9 @@ document.addEventListener("DOMContentLoaded", () => {
       <p class="aspas" aria-hidden="true">&ldquo;</p>
       <p class="fala">${d.texto}</p>
       <div class="autor-depoimento">
-        <div class="avatar-depoimento foto-bloco grad-4" aria-hidden="true"></div>
+        <div class="avatar-depoimento foto-bloco grad-4" aria-hidden="true">
+          <div class="foto-real" style="background-image:url('${d.imagem}');"></div>
+        </div>
         <div>
           <strong>${d.nome}</strong>
           <span>${d.empresa}</span>
@@ -1028,7 +1051,8 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   `).join("");
   // Bloco em gradiente simulando a foto de perfil de quem deu o depoimento.
-  // PARA TROCAR POR FOTO REAL: troque a div ".avatar-depoimento" por uma tag <img> redonda.
+  // PARA USAR FOTO REAL: coloque o arquivo dentro da pasta "imagens" com o nome indicado
+  // no campo "imagem" de cada depoimento do CONFIG (depoimento-1.jpg, depoimento-2.jpg...).
 
   // ---------- Contatos diretos ----------
   document.getElementById("contatosDiretos").innerHTML = `
