@@ -674,6 +674,11 @@
     border-radius: 20px;
     border: 3px solid var(--branco);
   }
+  .campo-linha{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
   .campo label{
     display: block;
     font-family: 'Fredoka', sans-serif;
@@ -702,6 +707,7 @@
     color: var(--tinta);
   }
   .mensagem-confirmacao.visivel{ display: block; }
+  .mensagem-confirmacao.erro{ background: #f8d7d3; color: #8a2c22; border-color: #8a2c22; }
 
   .contatos-diretos{ display: flex; flex-direction: column; gap: 16px; }
   .contato-item{
@@ -805,6 +811,7 @@
     .hero-botoes .pill-btn{ justify-content: center; }
     .filtros{ gap: 8px; }
     .filtro-btn{ padding: 8px 14px; font-size: .9rem; }
+    .campo-linha{ grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -958,17 +965,29 @@
 
       <div class="contato-grid">
         <form class="form-contato reveal" id="formContato" novalidate>
-          <div class="campo">
-            <label for="campoNome">Nome</label>
-            <input type="text" id="campoNome" name="nome" required autocomplete="name">
+          <div class="campo-linha">
+            <div class="campo">
+              <label for="campoNome">Nome</label>
+              <input type="text" id="campoNome" name="nome" required autocomplete="name" placeholder="Seu nome">
+            </div>
+            <div class="campo">
+              <label for="campoEmail">E-mail</label>
+              <input type="email" id="campoEmail" name="email" required autocomplete="email" placeholder="voce@marca.com">
+            </div>
+          </div>
+          <div class="campo-linha">
+            <div class="campo">
+              <label for="campoMarca">Marca / Empresa</label>
+              <input type="text" id="campoMarca" name="marca" autocomplete="organization" placeholder="Nome da marca">
+            </div>
+            <div class="campo">
+              <label for="campoOrcamento">Orçamento estimado</label>
+              <input type="text" id="campoOrcamento" name="orcamento" placeholder="Ex: R$ 1.000 a R$ 5.000">
+            </div>
           </div>
           <div class="campo">
-            <label for="campoEmail">E-mail</label>
-            <input type="email" id="campoEmail" name="email" required autocomplete="email">
-          </div>
-          <div class="campo">
-            <label for="campoMensagem">Mensagem</label>
-            <textarea id="campoMensagem" name="mensagem" required placeholder="Conte um pouco sobre a sua marca e o que você precisa."></textarea>
+            <label for="campoMensagem">Conta sobre o projeto</label>
+            <textarea id="campoMensagem" name="mensagem" required placeholder="Categoria, formato, prazo, objetivo da campanha..."></textarea>
           </div>
           <button type="submit" class="pill-btn">Enviar mensagem</button>
           <p class="mensagem-confirmacao" id="mensagemConfirmacao" role="status"></p>
@@ -1144,26 +1163,38 @@ function obterSessionId(){
 }
 
 // Registra um evento (page_view, button_click ou video_view). Nunca quebra o site em caso de erro.
+// Usa fetch com "keepalive" (em vez do cliente do Supabase) porque cliques em links que abrem
+// nova aba (WhatsApp, Instagram) podem fazer o navegador cancelar a requisição antes dela
+// terminar; "keepalive" garante que o registro seja enviado mesmo assim.
 function registrarEvento(eventType, eventName, metadata){
-  if (!sbRastreio) return;
   try {
-    sbRastreio.from("portfolio_events").insert({
-      event_type: eventType,
-      event_name: eventName || null,
-      session_id: obterSessionId(),
-      page_path: window.location.pathname,
-      metadata: metadata || null
-    }).then(() => {}).catch(() => {});
+    fetch(SUPABASE_URL + "/rest/v1/portfolio_events", {
+      method: "POST",
+      keepalive: true,
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify({
+        event_type: eventType,
+        event_name: eventName || null,
+        session_id: obterSessionId(),
+        page_path: window.location.pathname,
+        metadata: metadata || null
+      })
+    }).catch(() => {});
   } catch (erro) { /* rastreamento não deve travar o site */ }
 }
 
 // Registra uma mensagem de contato (formulário) na tabela de leads
 function registrarLead(dados){
-  if (!sbRastreio) return Promise.resolve();
+  if (!sbRastreio) return Promise.resolve({ error: new Error("Supabase indisponível") });
   try {
     return sbRastreio.from("portfolio_leads").insert(dados);
   } catch (erro) {
-    return Promise.resolve();
+    return Promise.resolve({ error: erro });
   }
 }
 
@@ -1435,38 +1466,51 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".numero-card .numero").forEach(el => observadorNumeros.observe(el));
 
   // =========================================================================
-  // FORMULÁRIO DE CONTATO (abre e-mail preenchido e mostra confirmação)
+  // FORMULÁRIO DE CONTATO
+  // A mensagem é salva direto no banco (aparece no painel administrativo em
+  // painel.html), sem abrir o aplicativo de e-mail de quem está enviando.
   // =========================================================================
   const formContato = document.getElementById("formContato");
   const mensagemConfirmacao = document.getElementById("mensagemConfirmacao");
+  const botaoEnviarContato = formContato.querySelector("button[type=submit]");
+  const textoOriginalBotaoContato = botaoEnviarContato.textContent;
 
-  formContato.addEventListener("submit", (e) => {
+  formContato.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const nome = document.getElementById("campoNome").value.trim();
     const email = document.getElementById("campoEmail").value.trim();
+    const marca = document.getElementById("campoMarca").value.trim();
+    const orcamento = document.getElementById("campoOrcamento").value.trim();
     const mensagem = document.getElementById("campoMensagem").value.trim();
 
-    const assunto = encodeURIComponent(`Contato pelo site, ${nome}`);
-    const corpo = encodeURIComponent(
-      `Nome: ${nome}\nE-mail: ${email}\n\nMensagem:\n${mensagem}`
-    );
+    botaoEnviarContato.disabled = true;
+    botaoEnviarContato.textContent = "Enviando...";
+    mensagemConfirmacao.classList.remove("visivel", "erro");
 
-    window.location.href = `mailto:${CONFIG.perfil.email}?subject=${assunto}&body=${corpo}`;
-
-    // Registra a mensagem no painel administrativo e o clique no botão de enviar
-    registrarLead({
+    const { error } = await registrarLead({
       name: nome,
       email: email,
+      brand: marca || null,
+      budget: orcamento || null,
       message: mensagem,
       source: "contact"
-    }).catch(() => {});
-    registrarEvento("button_click", "contact_formulario", null);
+    });
 
-    mensagemConfirmacao.textContent =
-      "Obrigada pelo contato! Seu aplicativo de e-mail deve abrir com a mensagem pronta. Se não abrir, me chame direto no WhatsApp ou envie um e-mail para " + CONFIG.perfil.email + ".";
-    mensagemConfirmacao.classList.add("visivel");
-    formContato.reset();
+    if (error) {
+      mensagemConfirmacao.textContent =
+        "Não consegui enviar sua mensagem agora. Tente novamente ou me chame direto no WhatsApp.";
+      mensagemConfirmacao.classList.add("visivel", "erro");
+    } else {
+      registrarEvento("button_click", "contact_formulario", null);
+      mensagemConfirmacao.textContent =
+        "Obrigada pelo contato! Recebi sua mensagem e vou te responder em breve.";
+      mensagemConfirmacao.classList.add("visivel");
+      formContato.reset();
+    }
+
+    botaoEnviarContato.disabled = false;
+    botaoEnviarContato.textContent = textoOriginalBotaoContato;
   });
 
 });
