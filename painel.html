@@ -460,7 +460,7 @@
   }
   .calendario-topo h2{ margin-bottom: 0; font-size: .95rem; }
   .calendario-nav{ display: flex; gap: 6px; align-items: center; }
-  .calendario-nav button{
+  .calendario-nav button:not(.calendario-botao-hoje){
     width: 26px; height: 26px;
     border-radius: 8px;
     border: 1px solid var(--borda);
@@ -469,7 +469,7 @@
     font-size: .85rem;
     color: var(--grafite);
   }
-  .calendario-nav button:hover{ border-color: var(--coral); color: var(--coral); }
+  .calendario-nav button:not(.calendario-botao-hoje):hover{ border-color: var(--coral); color: var(--coral); }
   .calendario-nav .mes-atual{
     font-weight: 600;
     min-width: 140px;
@@ -477,6 +477,9 @@
     text-transform: capitalize;
   }
   .calendario-botao-hoje{
+    width: auto;
+    height: auto;
+    white-space: nowrap;
     padding: 4px 10px;
     border-radius: 50px;
     border: 1px solid var(--coral);
@@ -542,7 +545,7 @@
     margin-bottom: 18px;
     flex-wrap: wrap;
   }
-  .form-tarefa input[type="text"]{
+  .form-tarefa input[type="text"]:not(.campo-emoji){
     flex: 1;
     min-width: 160px;
     padding: 10px 14px;
@@ -553,8 +556,28 @@
     background: var(--creme);
     color: var(--grafite);
   }
-  .form-tarefa input[type="text"]:focus{ outline: none; border-color: var(--coral); }
+  .form-tarefa input[type="text"]:not(.campo-emoji):focus{ outline: none; border-color: var(--coral); }
+  .campo-horario{
+    flex: none;
+    width: 110px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--borda);
+    font-family: 'Outfit', sans-serif;
+    font-size: .85rem;
+    background: var(--creme);
+    color: var(--grafite);
+  }
+  .campo-horario:focus{ outline: none; border-color: var(--coral); }
+  .cartao-tarefa-horario{
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--coral);
+    flex-shrink: 0;
+    min-width: 42px;
+  }
   .campo-emoji{
+    flex: none;
     width: 56px;
     text-align: center;
     padding: 10px 8px;
@@ -765,6 +788,7 @@
 
           <form class="form-tarefa" id="formTarefa">
             <input type="text" id="campoTarefaTitulo" placeholder="Nova tarefa..." required>
+            <input type="time" class="campo-horario" id="campoTarefaHorario">
             <input type="text" class="campo-emoji" id="campoTarefaEmoji" placeholder="🐾" maxlength="4">
             <button type="submit" class="botao-add-tarefa">Adicionar</button>
           </form>
@@ -1244,7 +1268,13 @@
 
     const tarefasDoDia = tarefasCache
       .filter(t => t.data === dataSelecionada)
-      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      .sort((a, b) => {
+        // Tarefas com horário aparecem primeiro, em ordem de horário; sem horário, no final por ordem de criação
+        if (a.horario && b.horario) return a.horario.localeCompare(b.horario);
+        if (a.horario && !b.horario) return -1;
+        if (!a.horario && b.horario) return 1;
+        return new Date(a.created_at) - new Date(b.created_at);
+      });
 
     const lista = document.getElementById("listaTarefas");
 
@@ -1256,6 +1286,7 @@
     lista.innerHTML = tarefasDoDia.map(t => `
       <div class="cartao-tarefa tarefa-cor-${t.cor % 5} ${t.concluida ? "concluida" : ""}" data-id="${t.id}">
         <button type="button" class="cartao-tarefa-check" data-acao="concluir" aria-label="Marcar como concluída">&#10003;</button>
+        ${t.horario ? `<span class="cartao-tarefa-horario">${t.horario.slice(0, 5)}</span>` : ""}
         <span class="cartao-tarefa-emoji">${t.emoji || "📌"}</span>
         <span class="cartao-tarefa-titulo">${t.titulo}</span>
         <button type="button" class="cartao-tarefa-excluir" data-acao="excluir" aria-label="Excluir tarefa">&times;</button>
@@ -1279,6 +1310,7 @@
   async function adicionarTarefa(e){
     e.preventDefault();
     const campoTitulo = document.getElementById("campoTarefaTitulo");
+    const campoHorario = document.getElementById("campoTarefaHorario");
     const campoEmoji = document.getElementById("campoTarefaEmoji");
     const titulo = campoTitulo.value.trim();
     if (!titulo) return;
@@ -1290,6 +1322,7 @@
       .insert({
         titulo: titulo,
         emoji: campoEmoji.value.trim() || null,
+        horario: campoHorario.value || null,
         data: dataSelecionada,
         cor: corIndice
       })
@@ -1298,6 +1331,7 @@
     if (!error && data){
       tarefasCache = tarefasCache.concat(data);
       campoTitulo.value = "";
+      campoHorario.value = "";
       campoEmoji.value = "";
       renderizarAgenda();
     }
