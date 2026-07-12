@@ -6,10 +6,12 @@
 <title>Edilaine Santos | Criadora de Conteúdo UGC</title>
 <meta name="description" content="Edilaine Santos, criadora de conteúdo UGC. Vídeos autênticos, reels, fotos de produto e unboxing para marcas que querem vender mais.">
 
-<!-- Fontes do Google Fonts: Fredoka (títulos), Jost (textos) e Permanent Marker (detalhes de marcador) -->
+<!-- Fontes do Google Fonts: Fredoka (títulos de seção), Lato (textos), Alex Brush (título do Hero
+     e detalhes de destaque, no lugar da fonte Lovera, que é paga e não está disponível no Google
+     Fonts) e Playfair Display (selos/tags das seções) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Jost:wght@300;400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Fredoka:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
 
 <style>
   /* ===================== VARIÁVEIS DE COR (PALETA) =====================
@@ -20,7 +22,7 @@
   :root{
     --creme: #f3eee9;       /* off-white: fundo principal */
     --creme-escuro: #ccc2bc; /* cinza rosado: fundos e bordas suaves */
-    --rosa: #c9a66b;        /* dourado: destaques e detalhes */
+    --rosa: #d4af37;        /* dourado brilhante: destaques e detalhes */
     --vermelho: #000080;    /* azul royal (tom enviado): cor de destaque principal (botões, links) */
     --tinta: #2a2622;
     --branco: #ffffff;
@@ -35,7 +37,7 @@
   body{
     background: var(--creme);
     color: var(--tinta);
-    font-family: 'Jost', sans-serif;
+    font-family: 'Lato', sans-serif;
     line-height: 1.6;
     overflow-x: hidden;
   }
@@ -53,7 +55,7 @@
   }
 
   .marcador{
-    font-family: 'Permanent Marker', cursive;
+    font-family: 'Alex Brush', cursive;
     font-weight: 400;
   }
 
@@ -107,7 +109,9 @@
 
   .tag-secao{
     display: inline-block;
-    font-family: 'Permanent Marker', cursive;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 600;
     font-size: 1rem;
     color: var(--vermelho);
     background: var(--branco);
@@ -162,7 +166,7 @@
   /* Adesivo decorativo (sticker) */
   .adesivo{
     position: absolute;
-    font-family: 'Permanent Marker', cursive;
+    font-family: 'Alex Brush', cursive;
     background: var(--creme);
     border: 3px solid var(--tinta);
     border-radius: 50%;
@@ -210,9 +214,9 @@
     gap: 6px;
   }
   .logo span{
-    font-family: 'Permanent Marker', cursive;
+    font-family: 'Alex Brush', cursive;
     color: var(--vermelho);
-    font-size: 1rem;
+    font-size: 1.5rem;
   }
 
   .menu-desktop{
@@ -280,19 +284,24 @@
 
   /* ===================== HERO ===================== */
   .hero{
-    padding-top: 150px;
-    padding-bottom: 80px;
+    padding-top: 88px;
+    padding-bottom: 24px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
     position: relative;
   }
+  .hero .container{ padding-top: 0; padding-bottom: 0; }
   .hero .container{
     display: grid;
     grid-template-columns: 1.1fr .9fr;
     gap: 50px;
     align-items: center;
   }
+  .hero-texto .tag-secao{ margin-bottom: 10px; }
   .hero-texto h1{
-    font-size: clamp(2.2rem, 5vw, 3.4rem);
-    margin-bottom: 18px;
+    font-size: clamp(2rem, 4.5vw, 3.1rem);
+    margin-bottom: 14px;
   }
   .hero-texto h1 .destaque{
     color: var(--vermelho);
@@ -304,6 +313,22 @@
     max-width: 520px;
     margin-bottom: 30px;
     color: #4a453e;
+  }
+  .hero-texto .hero-frase{
+    font-family: 'Lato', sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--tinta);
+    margin-bottom: 6px;
+    max-width: 520px;
+  }
+  .hero-texto .hero-stat{
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--tinta);
+    margin-bottom: 22px;
   }
   .hero-botoes{ display: flex; gap: 16px; flex-wrap: wrap; }
 
@@ -320,12 +345,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Permanent Marker', cursive;
+    font-family: 'Alex Brush', cursive;
     font-size: 3rem;
     color: rgba(255,250,240,.35);
   }
-  .hero-adesivo-1{ width: 110px; height: 110px; top: -20px; left: -20px; transform: rotate(-8deg); font-size: .85rem; padding: 10px; }
-  .hero-adesivo-2{ width: 96px; height: 96px; bottom: -18px; right: 10px; transform: rotate(10deg); font-size: .8rem; color: var(--vermelho); }
+  .hero-adesivo-1{ width: 110px; height: 110px; top: -20px; left: -20px; transform: rotate(-8deg); font-size: 1.1rem; padding: 10px; }
+  .hero-adesivo-2{ width: 96px; height: 96px; bottom: -18px; right: 10px; transform: rotate(10deg); font-size: 1rem; color: var(--vermelho); }
 
   /* ===================== FAIXA DE MARCAS ===================== */
   .faixa-marcas{
@@ -440,8 +465,8 @@
   }
   .item-info .categoria{
     display: block;
-    font-family: 'Permanent Marker', cursive;
-    font-size: .78rem;
+    font-family: 'Alex Brush', cursive;
+    font-size: 1.1rem;
     color: var(--rosa);
   }
   .item-info .titulo-item{ display: block; font-family: 'Fredoka', sans-serif; font-weight: 600; }
@@ -610,7 +635,7 @@
     position: relative;
   }
   .card-depoimento .aspas{
-    font-family: 'Permanent Marker', cursive;
+    font-family: 'Alex Brush', cursive;
     font-size: 2.2rem;
     color: var(--rosa);
     line-height: 1;
@@ -625,10 +650,10 @@
   .autor-depoimento span{ font-size: .85rem; color: #6b6459; }
 
   /* ===================== CONTATO ===================== */
-  .contato{ background: var(--tinta); color: var(--creme); }
+  .contato{ background: var(--vermelho); color: var(--creme); }
   .contato .titulo-secao{ color: var(--branco); }
-  .contato .tag-secao{ background: var(--tinta); }
-  .contato .sub-secao{ color: rgba(236,227,200,.8); }
+  .contato .tag-secao{ background: var(--branco); }
+  .contato .sub-secao{ color: rgba(255,255,255,.85); }
   .contato-grid{
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -657,7 +682,7 @@
     padding: 12px 14px;
     border-radius: 10px;
     border: 2px solid var(--tinta);
-    font-family: 'Jost', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-size: 1rem;
     background: var(--branco);
     color: var(--tinta);
@@ -665,8 +690,8 @@
   .campo textarea{ resize: vertical; min-height: 110px; }
   .mensagem-confirmacao{
     display: none;
-    background: var(--rosa);
-    border: 2px solid var(--tinta);
+    background: var(--branco);
+    border: 2px solid var(--branco);
     border-radius: 10px;
     padding: 14px;
     font-weight: 500;
@@ -679,31 +704,39 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    background: rgba(236,227,200,.06);
-    border: 2px solid rgba(236,227,200,.35);
+    background: rgba(255,255,255,.08);
+    border: 2px solid rgba(255,255,255,.35);
     border-radius: 16px;
     padding: 18px 20px;
     transition: background .2s ease, transform .2s ease;
   }
   .contato-item:hover, .contato-item:focus-visible{
-    background: var(--vermelho);
+    background: rgba(255,255,255,.18);
     transform: translateX(4px);
   }
   .contato-icone{
     width: 44px; height: 44px; border-radius: 50%;
-    background: var(--rosa); color: var(--tinta);
+    background: transparent;
+    color: var(--branco);
+    border: 2px solid var(--branco);
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.2rem; flex-shrink: 0;
+    flex-shrink: 0;
+    transition: background .2s ease, color .2s ease;
   }
-  .contato-item strong{ display: block; font-family: 'Fredoka', sans-serif; }
-  .contato-item span{ font-size: .9rem; opacity: .85; }
+  .contato-icone svg{ width: 18px; height: 18px; fill: currentColor; }
+  .contato-item:hover .contato-icone, .contato-item:focus-visible .contato-icone{
+    background: var(--branco);
+    color: var(--vermelho);
+  }
+  .contato-item strong{ display: block; font-family: 'Fredoka', sans-serif; color: var(--branco); }
+  .contato-item span{ font-size: .9rem; color: rgba(255,255,255,.8); }
 
   /* ===================== RODAPÉ ===================== */
   .rodape{
-    background: var(--tinta);
+    background: var(--vermelho);
     color: var(--creme);
     padding: 40px 0 24px;
-    border-top: 3px solid var(--vermelho);
+    border-top: 3px solid var(--tinta);
   }
   .rodape .container{
     display: flex;
@@ -717,17 +750,19 @@
   .rodape-redes a{
     width: 42px; height: 42px; border-radius: 50%;
     border: 2px solid var(--creme);
+    color: var(--creme);
     display: flex; align-items: center; justify-content: center;
-    transition: background .2s ease, color .2s ease;
+    transition: background .2s ease, color .2s ease, border-color .2s ease;
   }
-  .rodape-redes a:hover, .rodape-redes a:focus-visible{ background: var(--vermelho); border-color: var(--vermelho); }
+  .rodape-redes a svg{ width: 18px; height: 18px; fill: currentColor; }
+  .rodape-redes a:hover, .rodape-redes a:focus-visible{ background: var(--branco); border-color: var(--branco); color: var(--vermelho); }
   .rodape-copy{
     width: 100%;
     text-align: center;
     font-size: .85rem;
-    opacity: .7;
+    opacity: .8;
     margin-top: 20px;
-    border-top: 1px solid rgba(236,227,200,.2);
+    border-top: 1px solid rgba(255,255,255,.25);
     padding-top: 18px;
   }
 
@@ -812,9 +847,10 @@
   <section class="hero">
     <div class="container">
       <div class="hero-texto reveal">
-        <p class="tag-secao">Criadora de Conteúdo UGC</p>
+        <p class="tag-secao">UGC Creator &amp; Manager</p>
         <h1 id="heroTitulo"></h1>
-        <p id="heroSubtitulo"></p>
+        <p id="heroFrase" class="hero-frase"></p>
+        <p id="heroStat" class="hero-stat"></p>
         <div class="hero-botoes">
           <a href="#contato" class="pill-btn" id="heroCta"></a>
           <a href="#portfolio" class="pill-btn secundario">Ver portfólio</a>
@@ -962,7 +998,7 @@ const CONFIG = {
   perfil: {
     nome: "Edilaine Santos",
     nomeCurto: "Edilaine",
-    profissao: "Criadora de Conteúdo UGC",
+    profissao: "UGC Creator & Manager",
     instagramArroba: "@byedisantos",
     instagramUrl: "https://instagram.com/byedisantos",
     email: "edilainesantosugc@gmail.com",
@@ -972,9 +1008,13 @@ const CONFIG = {
 
   // EDITE AQUI: textos principais da primeira dobra (Hero)
   hero: {
-    tituloParte1: "Vídeos autênticos que fazem sua marca ",
-    tituloDestaque: "vender mais",
-    subtitulo: "Sou Edilaine Santos, criadora de conteúdo UGC. Transformo o seu produto em vídeos autênticos, estratégicos e prontos para performar em qualquer campanha, do orgânico ao anúncio pago.",
+    tituloParte1: "Histórias que ",
+    tituloDestaque1: "conectam",
+    tituloParte2: ". Estratégias que ",
+    tituloDestaque2: "performam",
+    tituloParte3: ".",
+    frase: "Conteúdo que atrai, engaja e converte.",
+    estatistica: "+100 marcas trabalhadas",
     textoCta: "Fale comigo"
   },
 
@@ -1066,6 +1106,14 @@ const CONFIG = {
 /* =========================================================================
    RENDERIZAÇÃO DO CONTEÚDO (não é necessário editar a partir daqui)
    ========================================================================= */
+
+// Ícones das redes/contato em SVG (não usam biblioteca externa, ficam nítidos em qualquer tamanho)
+const ICONES_SVG = {
+  whatsapp: '<svg viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.006-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.593 6.592zm3.615-4.934c-.199-.099-1.177-.581-1.36-.647-.183-.066-.315-.099-.448.099-.133.198-.513.647-.627.78-.116.133-.232.148-.43.05-.199-.1-.838-.31-1.595-.985-.59-.526-.988-1.175-1.104-1.373-.116-.198-.012-.304.087-.403.089-.088.198-.232.297-.348.1-.116.133-.198.198-.33.066-.134.033-.248-.016-.347-.05-.099-.448-1.08-.613-1.48-.16-.383-.324-.332-.448-.337-.116-.005-.248-.005-.38-.005a.729.729 0 0 0-.529.247c-.182.198-.696.68-.696 1.658 0 .978.712 1.923.813 2.056.099.133 1.393 2.129 3.376 2.983.472.204.84.326 1.126.417.473.15.904.129 1.245.078.38-.058 1.177-.48 1.343-.943.166-.464.166-.86.117-.943-.05-.083-.183-.133-.383-.232z"/></svg>',
+  email: '<svg viewBox="0 0 16 16"><path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555ZM0 4.697v7.104l5.803-3.558L0 4.697ZM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.026L8 9.586l-1.239-.757Zm3.436-.586L16 11.801V4.697l-5.803 3.546Z"/></svg>',
+  instagram: '<svg viewBox="0 0 16 16"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.27.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.27.087 3.85.048 4.703.01 5.556 0 5.829 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.942a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 8 0Zm0 1.442c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.232s-.008 2.389-.047 3.232c-.035.78-.166 1.204-.275 1.486a2.47 2.47 0 0 1-.599.92c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.275-.843.039-1.096.047-3.232.047s-2.39-.008-3.233-.047c-.78-.035-1.203-.166-1.485-.275a2.478 2.478 0 0 1-.92-.599 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.232s.008-2.389.046-3.232c.035-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.275.843-.039 1.096-.047 3.232-.047Zm0 2.451a4.107 4.107 0 1 0 0 8.214 4.107 4.107 0 0 0 0-8.214Zm0 6.771a2.664 2.664 0 1 1 0-5.328 2.664 2.664 0 0 1 0 5.328Zm5.23-6.933a1.14 1.14 0 1 1-2.279 0 1.14 1.14 0 0 1 2.279 0Z"/></svg>'
+};
+
 document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- Logo do cabeçalho ----------
@@ -1073,8 +1121,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- Hero ----------
   document.getElementById("heroTitulo").innerHTML =
-    `${CONFIG.hero.tituloParte1}<span class="destaque marcador">${CONFIG.hero.tituloDestaque}</span>`;
-  document.getElementById("heroSubtitulo").textContent = CONFIG.hero.subtitulo;
+    `${CONFIG.hero.tituloParte1}<span class="destaque">${CONFIG.hero.tituloDestaque1}</span>${CONFIG.hero.tituloParte2}<span class="destaque">${CONFIG.hero.tituloDestaque2}</span>${CONFIG.hero.tituloParte3}`;
+  document.getElementById("heroFrase").textContent = CONFIG.hero.frase;
+  document.getElementById("heroStat").textContent = CONFIG.hero.estatistica;
   document.getElementById("heroCta").textContent = CONFIG.hero.textoCta;
 
   // ---------- Faixa de marcas (duplicada para rolagem contínua) ----------
@@ -1218,15 +1267,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- Contatos diretos ----------
   document.getElementById("contatosDiretos").innerHTML = `
     <a class="contato-item" href="${CONFIG.perfil.whatsappUrl}" target="_blank" rel="noopener">
-      <span class="contato-icone" aria-hidden="true">💬</span>
+      <span class="contato-icone" aria-hidden="true">${ICONES_SVG.whatsapp}</span>
       <span><strong>WhatsApp</strong><span>${CONFIG.perfil.telefoneExibicao}</span></span>
     </a>
     <a class="contato-item" href="mailto:${CONFIG.perfil.email}">
-      <span class="contato-icone" aria-hidden="true">✉️</span>
+      <span class="contato-icone" aria-hidden="true">${ICONES_SVG.email}</span>
       <span><strong>E-mail</strong><span>${CONFIG.perfil.email}</span></span>
     </a>
     <a class="contato-item" href="${CONFIG.perfil.instagramUrl}" target="_blank" rel="noopener">
-      <span class="contato-icone" aria-hidden="true">📷</span>
+      <span class="contato-icone" aria-hidden="true">${ICONES_SVG.instagram}</span>
       <span><strong>Instagram</strong><span>${CONFIG.perfil.instagramArroba}</span></span>
     </a>
   `;
@@ -1234,9 +1283,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- Rodapé ----------
   document.getElementById("rodapeLogo").textContent = CONFIG.perfil.nome;
   document.getElementById("rodapeRedes").innerHTML = `
-    <a href="${CONFIG.perfil.instagramUrl}" target="_blank" rel="noopener" aria-label="Instagram de ${CONFIG.perfil.nome}">📷</a>
-    <a href="${CONFIG.perfil.whatsappUrl}" target="_blank" rel="noopener" aria-label="WhatsApp de ${CONFIG.perfil.nome}">💬</a>
-    <a href="mailto:${CONFIG.perfil.email}" aria-label="E-mail de ${CONFIG.perfil.nome}">✉️</a>
+    <a href="${CONFIG.perfil.instagramUrl}" target="_blank" rel="noopener" aria-label="Instagram de ${CONFIG.perfil.nome}">${ICONES_SVG.instagram}</a>
+    <a href="${CONFIG.perfil.whatsappUrl}" target="_blank" rel="noopener" aria-label="WhatsApp de ${CONFIG.perfil.nome}">${ICONES_SVG.whatsapp}</a>
+    <a href="mailto:${CONFIG.perfil.email}" aria-label="E-mail de ${CONFIG.perfil.nome}">${ICONES_SVG.email}</a>
   `;
   document.getElementById("rodapeCopy").textContent =
     `© ${new Date().getFullYear()} ${CONFIG.perfil.nome}. ${CONFIG.rodape.copyrightTexto}`;
