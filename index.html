@@ -284,24 +284,23 @@
 
   /* ===================== HERO ===================== */
   .hero{
-    padding-top: 88px;
-    padding-bottom: 24px;
+    padding-top: 76px;
+    padding-bottom: 18px;
     min-height: 100vh;
     display: flex;
     align-items: center;
     position: relative;
   }
-  .hero .container{ padding-top: 0; padding-bottom: 0; }
   .hero .container{
     display: grid;
     grid-template-columns: 1.1fr .9fr;
-    gap: 50px;
+    gap: 40px;
     align-items: center;
   }
-  .hero-texto .tag-secao{ margin-bottom: 10px; }
+  .hero-texto .tag-secao{ margin-bottom: 8px; }
   .hero-texto h1{
-    font-size: clamp(2rem, 4.5vw, 3.1rem);
-    margin-bottom: 14px;
+    font-size: clamp(1.7rem, 3.6vw, 2.6rem);
+    margin-bottom: 10px;
   }
   .hero-texto h1 .destaque{
     color: var(--vermelho);
@@ -318,21 +317,21 @@
     font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-style: italic;
-    font-size: 1.2rem;
+    font-size: 1.05rem;
     color: var(--tinta);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     max-width: 520px;
   }
   .hero-texto .hero-stat{
     font-family: 'Lato', sans-serif;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: var(--tinta);
-    margin-bottom: 22px;
+    margin-bottom: 16px;
   }
-  .hero-botoes{ display: flex; gap: 16px; flex-wrap: wrap; }
+  .hero-botoes{ display: flex; gap: 14px; flex-wrap: wrap; }
 
-  .hero-foto-wrap{ position: relative; }
+  .hero-foto-wrap{ position: relative; width: 320px; max-width: 100%; margin: 0 auto; }
   .hero-foto{
     aspect-ratio: 4 / 5;
     width: 100%;
@@ -349,8 +348,8 @@
     font-size: 3rem;
     color: rgba(255,250,240,.35);
   }
-  .hero-adesivo-1{ width: 110px; height: 110px; top: -20px; left: -20px; transform: rotate(-8deg); font-size: 1.1rem; padding: 10px; }
-  .hero-adesivo-2{ width: 96px; height: 96px; bottom: -18px; right: 10px; transform: rotate(10deg); font-size: 1rem; color: var(--vermelho); }
+  .hero-adesivo-1{ width: 84px; height: 84px; top: -14px; left: -14px; transform: rotate(-8deg); font-size: .85rem; padding: 8px; }
+  .hero-adesivo-2{ width: 74px; height: 74px; bottom: -12px; right: 8px; transform: rotate(10deg); font-size: .78rem; color: var(--vermelho); }
 
   /* ===================== FAIXA DE MARCAS ===================== */
   .faixa-marcas{
@@ -857,7 +856,7 @@
         </div>
       </div>
 
-      <div class="hero-foto-wrap reveal">
+      <div class="hero-foto-wrap">
         <!-- Bloco em gradiente simulando a foto principal.
              PARA USAR SUA FOTO REAL: coloque um arquivo chamado "hero.jpg"
              dentro da pasta "imagens" (na mesma pasta do index.html). O site
