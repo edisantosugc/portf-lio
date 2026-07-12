@@ -340,23 +340,11 @@
 
   .hero-foto-wrap{ position: relative; width: 400px; max-width: 100%; margin: 0 auto; }
   .hero-foto{
-    aspect-ratio: 4 / 5;
     width: 100%;
-    transform: rotate(3deg);
-  }
-  .hero-foto::after{
-    content: "UGC";
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Alex Brush', cursive;
-    font-size: 3rem;
-    color: rgba(255,250,240,.35);
+    display: block;
   }
   .hero-adesivo-1{ width: 84px; height: 84px; top: -14px; left: -14px; transform: rotate(-8deg); font-size: .85rem; padding: 8px; }
-  .hero-adesivo-2{ width: 74px; height: 74px; bottom: -12px; right: 8px; transform: rotate(10deg); font-size: .78rem; color: var(--vermelho); }
+  .hero-adesivo-2{ width: 74px; height: 74px; bottom: 6px; right: -4px; transform: rotate(10deg); font-size: .78rem; color: var(--vermelho); }
 
   /* ===================== FAIXA DE MARCAS ===================== */
   .faixa-marcas{
@@ -872,13 +860,8 @@
       </div>
 
       <div class="hero-foto-wrap">
-        <!-- Bloco em gradiente simulando a foto principal.
-             PARA USAR SUA FOTO REAL: coloque um arquivo chamado "hero.jpg"
-             dentro da pasta "imagens" (na mesma pasta do index.html). O site
-             troca automaticamente. Se o arquivo não existir, o gradiente aparece no lugar. -->
-        <div class="foto-bloco hero-foto grad-1" role="img" aria-label="Foto de Edilaine Santos, criadora de conteúdo UGC">
-          <div class="foto-real" style="background-image:url('imagens/hero.jpg');"></div>
-        </div>
+        <!-- Foto principal recortada (fundo removido), sem moldura, igual à capa do portfólio. -->
+        <img class="hero-foto" src="imagens/hero-sem-fundo.png" alt="Edilaine Santos, criadora de conteúdo UGC">
         <div class="adesivo hero-adesivo-1">100% autêntico</div>
         <div class="adesivo hero-adesivo-2">Vende mais!</div>
       </div>
