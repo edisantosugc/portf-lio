@@ -1094,7 +1094,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const galeriaEl = document.getElementById("galeriaPortfolio");
   galeriaEl.innerHTML = CONFIG.portfolio.map(item => `
     <button type="button" class="item-portfolio foto-bloco ${item.gradiente} reveal" data-categoria="${item.categoria}" data-video-id="${item.videoId}" aria-label="Assistir vídeo UGC para a marca ${item.marca}">
-      <span class="foto-real" style="background-image:url('https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg');"></span>
+      <span class="foto-real" data-video-id="${item.videoId}" style="background-image:url('https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg');"></span>
       <span class="play-botao" aria-hidden="true"></span>
       <span class="item-info">
         <span class="categoria">${item.categoria}</span>
@@ -1104,6 +1104,20 @@ document.addEventListener("DOMContentLoaded", () => {
   `).join("");
   // Cada card puxa automaticamente a miniatura do próprio vídeo do YouTube.
   // Para adicionar, remover ou trocar vídeos, edite a lista CONFIG.portfolio lá em cima.
+
+  // Tenta trocar cada miniatura pela versão em alta resolução (mais nítida).
+  // Se essa versão não existir para algum vídeo, a miniatura padrão (já carregada acima) continua no lugar.
+  galeriaEl.querySelectorAll(".foto-real[data-video-id]").forEach(el => {
+    const idVideo = el.dataset.videoId;
+    const imgAltaResolucao = new Image();
+    imgAltaResolucao.onload = () => {
+      // A miniatura "sem imagem disponível" do YouTube tem sempre 120x90, então ignoramos ela.
+      if (imgAltaResolucao.naturalWidth > 120){
+        el.style.backgroundImage = `url('https://i.ytimg.com/vi/${idVideo}/maxresdefault.jpg')`;
+      }
+    };
+    imgAltaResolucao.src = `https://i.ytimg.com/vi/${idVideo}/maxresdefault.jpg`;
+  });
 
   // Filtro por clique
   filtrosEl.addEventListener("click", (e) => {
