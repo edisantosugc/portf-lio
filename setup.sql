@@ -53,6 +53,14 @@ create policy "Usuarios autenticados podem ler leads"
   to authenticated
   using (true);
 
+-- As policies acima controlam QUAIS LINHAS podem ser lidas, mas o Postgres
+-- exige tambem uma permissao basica de acesso a tabela em si. Quando as
+-- tabelas sao criadas pela interface do Supabase isso e feito automatico,
+-- mas como criamos via SQL, precisamos liberar explicitamente:
+grant usage on schema public to authenticated;
+grant select on public.portfolio_events to authenticated;
+grant select on public.portfolio_leads to authenticated;
+
 -- =====================================================================
 -- IMPORTANTE:
 -- De propósito, nenhuma policy de INSERT foi criada para o papel "anon"
