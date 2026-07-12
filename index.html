@@ -293,7 +293,6 @@
   .hero{
     padding-top: 76px;
     padding-bottom: 18px;
-    min-height: 100vh;
     display: flex;
     align-items: center;
     position: relative;
@@ -304,9 +303,9 @@
     gap: 40px;
     align-items: center;
   }
-  .hero-texto .tag-secao{ margin-bottom: 8px; }
+  .hero-texto .tag-secao{ margin-bottom: 8px; font-size: 1.1rem; }
   .hero-texto h1{
-    font-size: clamp(1.7rem, 3.6vw, 2.6rem);
+    font-size: clamp(2rem, 4.2vw, 3.1rem);
     margin-bottom: 10px;
   }
   .hero-texto h1 .destaque{
@@ -315,7 +314,7 @@
     white-space: nowrap;
   }
   .hero-texto p{
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     max-width: 520px;
     margin-bottom: 30px;
     color: #4a453e;
@@ -324,7 +323,7 @@
     font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-style: italic;
-    font-size: 1.05rem;
+    font-size: 1.2rem;
     color: var(--tinta);
     margin-bottom: 4px;
     max-width: 520px;
@@ -332,24 +331,23 @@
   .hero-texto .hero-stat{
     font-family: 'Lato', sans-serif;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 1.15rem;
     color: var(--tinta);
     margin-bottom: 16px;
   }
   .hero-botoes{ display: flex; gap: 14px; flex-wrap: wrap; }
+  .hero-botoes .pill-btn{ font-size: 1.15rem; }
 
-  .hero-foto-wrap{ position: relative; width: 400px; max-width: 100%; margin: 0 auto; }
+  .hero-foto-wrap{ position: relative; width: 400px; max-width: 100%; margin: 40px auto 0; }
   .hero-foto{
     width: 100%;
     display: block;
   }
-  .hero-adesivo-1{ width: 84px; height: 84px; top: -14px; left: -14px; transform: rotate(-8deg); font-size: .85rem; padding: 8px; }
-  .hero-adesivo-2{ width: 74px; height: 74px; bottom: 6px; right: -4px; transform: rotate(10deg); font-size: .78rem; color: var(--vermelho); }
 
   /* ===================== FAIXA DE MARCAS ===================== */
   .faixa-marcas{
-    background: var(--tinta);
-    padding: 42px 0;
+    background: var(--vermelho);
+    padding: 18px 0;
     overflow: hidden;
   }
   .faixa-marcas p.rotulo{
@@ -357,11 +355,11 @@
     color: var(--creme);
     font-family: 'Oswald', sans-serif;
     font-weight: 700;
-    font-size: .95rem;
+    font-size: .8rem;
     letter-spacing: .05em;
     text-transform: uppercase;
-    margin-bottom: 22px;
-    opacity: .8;
+    margin-bottom: 14px;
+    opacity: .85;
   }
   .marquee{
     display: flex;
@@ -370,17 +368,48 @@
   }
   .marquee-grupo{
     display: flex;
-    gap: 50px;
-    padding-right: 50px;
+    gap: 26px;
+    padding-right: 26px;
   }
-  .marquee span{
+  .marca-bolha{
+    position: relative;
+    width: 54px;
+    height: 54px;
+    flex-shrink: 0;
+  }
+  .marca-bolha .logo-circulo{
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--creme);
+    border: 2px solid var(--branco);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-family: 'Oswald', sans-serif;
     font-weight: 700;
-    font-size: 1.4rem;
-    color: var(--creme);
-    white-space: nowrap;
-    opacity: .85;
+    font-size: .62rem;
+    letter-spacing: -.01em;
+    color: var(--vermelho);
+    text-align: center;
+    line-height: 1.05;
+    padding: 3px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
   }
+  .marca-bolha .selo-verificado{
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: var(--rosa);
+    border: 2px solid var(--branco);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .marca-bolha .selo-verificado svg{ width: 9px; height: 9px; }
   @keyframes rolar{
     from{ transform: translateX(0); }
     to{ transform: translateX(-50%); }
@@ -862,8 +891,6 @@
       <div class="hero-foto-wrap">
         <!-- Foto principal recortada (fundo removido), sem moldura, igual à capa do portfólio. -->
         <img class="hero-foto" src="imagens/hero-sem-fundo.png" alt="Edilaine Santos, criadora de conteúdo UGC">
-        <div class="adesivo hero-adesivo-1">100% autêntico</div>
-        <div class="adesivo hero-adesivo-2">Vende mais!</div>
       </div>
     </div>
   </section>
@@ -1201,7 +1228,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- Faixa de marcas (duplicada para rolagem contínua) ----------
   const marqueeEl = document.getElementById("marqueeMarcas");
-  const grupoHtml = CONFIG.marcas.map(m => `<span>${m}</span>`).join("");
+  const iconeCheck = '<svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.2 11.5L13 4.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const iniciaisMarca = nome => nome.split(" ").slice(0, 2).map(p => p[0]).join("").toUpperCase();
+  const grupoHtml = CONFIG.marcas.map(m => `
+    <div class="marca-bolha" title="${m}">
+      <div class="logo-circulo">${iniciaisMarca(m)}</div>
+      <div class="selo-verificado">${iconeCheck}</div>
+    </div>
+  `).join("");
   marqueeEl.innerHTML = `<div class="marquee-grupo">${grupoHtml}</div><div class="marquee-grupo" aria-hidden="true">${grupoHtml}</div>`;
 
   // ---------- Sobre ----------
