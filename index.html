@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edilaine Santos | Criadora de Conteúdo UGC</title>
+<meta name="description" content="Edilaine Santos, criadora de conteúdo UGC. Vídeos autênticos, reels, fotos de produto e unboxing para marcas que querem vender mais.">
+
+<!-- Fontes do Google Fonts: Fredoka (títulos), Jost (textos) e Permanent Marker (detalhes de marcador) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Jost:wght@300;400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+
+<style>
+  /* ===================== VARIÁVEIS DE COR (PALETA) ===================== */
+  :root{
+    --creme: #ece3c8;
+    --creme-escuro: #ddd0a0;
+    --rosa: #f48aab;
+    --vermelho: #ec4128;
+    --tinta: #2a2622;
+    --branco: #fffaf0;
+    --sombra-dura: 6px 6px 0 var(--tinta);
+    --sombra-dura-sm: 4px 4px 0 var(--tinta);
+  }
+
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    background: var(--creme);
+    color: var(--tinta);
+    font-family: 'Jost', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  img, svg{ max-width: 100%; display: block; }
+
+  a{ color: inherit; text-decoration: none; }
+
+  ul{ list-style: none; }
+
+  h1, h2, h3, h4{
+    font-family: 'Fredoka', sans-serif;
+    line-height: 1.15;
+    color: var(--tinta);
+  }
+
+  .marcador{
+    font-family: 'Permanent Marker', cursive;
+    font-weight: 400;
+  }
+
+  .container{
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  section{ position: relative; padding: 90px 0; }
+
+  /* Foco visível para navegação por teclado */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible{
+    outline: 3px dashed var(--vermelho);
+    outline-offset: 3px;
+  }
+
+  .pill-btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 14px 30px;
+    background: var(--vermelho);
+    color: var(--branco);
+    border: 3px solid var(--tinta);
+    border-radius: 50px;
+    box-shadow: var(--sombra-dura);
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .pill-btn:hover, .pill-btn:focus-visible{
+    transform: translate(-3px,-3px);
+    box-shadow: 9px 9px 0 var(--tinta);
+  }
+  .pill-btn:active{
+    transform: translate(0,0);
+    box-shadow: 2px 2px 0 var(--tinta);
+  }
+  .pill-btn.secundario{
+    background: var(--creme);
+    color: var(--tinta);
+  }
+  .pill-btn.rosa{ background: var(--rosa); color: var(--tinta); }
+
+  .tag-secao{
+    display: inline-block;
+    font-family: 'Permanent Marker', cursive;
+    font-size: 1rem;
+    color: var(--vermelho);
+    background: var(--branco);
+    border: 2px dashed var(--vermelho);
+    border-radius: 50px;
+    padding: 6px 18px;
+    transform: rotate(-3deg);
+    margin-bottom: 16px;
+  }
+
+  .titulo-secao{
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    margin-bottom: 14px;
+  }
+
+  .sub-secao{
+    max-width: 620px;
+    color: #4a453e;
+    font-size: 1.05rem;
+  }
+
+  /* ===================== BLOCOS "FOTO" EM GRADIENTE =====================
+     Estes divs simulam fotos/vídeos com gradientes na paleta do site.
+     PARA TROCAR POR UMA FOTO DE VERDADE: troque a propriedade "background"
+     do bloco (ou da classe) por: background: url('sua-foto.jpg') center/cover;
+     e, se for uma tag <img>, apenas troque o "src" pela imagem real. */
+  .foto-bloco{
+    border: 4px solid var(--tinta);
+    border-radius: 24px;
+    box-shadow: var(--sombra-dura);
+    position: relative;
+    overflow: hidden;
+  }
+  .grad-1{ background: linear-gradient(135deg, var(--rosa), var(--vermelho)); }
+  .grad-2{ background: linear-gradient(135deg, var(--creme-escuro), var(--rosa)); }
+  .grad-3{ background: linear-gradient(135deg, var(--vermelho), var(--tinta)); }
+  .grad-4{ background: linear-gradient(135deg, var(--rosa), var(--creme)); }
+  .grad-5{ background: linear-gradient(135deg, var(--tinta), var(--rosa)); }
+  .grad-6{ background: linear-gradient(135deg, var(--vermelho), var(--rosa), var(--creme)); }
+
+  /* Adesivo decorativo (sticker) */
+  .adesivo{
+    position: absolute;
+    font-family: 'Permanent Marker', cursive;
+    background: var(--creme);
+    border: 3px solid var(--tinta);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: var(--sombra-dura-sm);
+    z-index: 5;
+  }
+
+  /* ===================== ANIMAÇÃO DE ENTRADA (SCROLL REVEAL) ===================== */
+  .reveal{
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity .7s ease, transform .7s ease;
+  }
+  .reveal.visivel{
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===================== CABEÇALHO / MENU ===================== */
+  .cabecalho{
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    background: var(--creme);
+    border-bottom: 3px solid var(--tinta);
+  }
+  .barra-nav{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .logo{
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .logo span{
+    font-family: 'Permanent Marker', cursive;
+    color: var(--vermelho);
+    font-size: 1rem;
+  }
+
+  .menu-desktop{
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .menu-desktop a{
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 500;
+    padding: 10px 16px;
+    border-radius: 50px;
+    transition: background .2s ease, color .2s ease;
+  }
+  .menu-desktop a:hover, .menu-desktop a:focus-visible{
+    background: var(--vermelho);
+    color: var(--branco);
+  }
+  .menu-desktop .pill-btn{ padding: 10px 22px; font-size: .95rem; margin-left: 8px; }
+
+  .botao-hamburguer{
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 46px;
+    height: 46px;
+    background: var(--creme);
+    border: 3px solid var(--tinta);
+    border-radius: 12px;
+    box-shadow: var(--sombra-dura-sm);
+    cursor: pointer;
+  }
+  .botao-hamburguer span{
+    display: block;
+    width: 22px;
+    height: 3px;
+    background: var(--tinta);
+    border-radius: 2px;
+    transition: transform .25s ease, opacity .25s ease;
+  }
+  .botao-hamburguer.aberto span:nth-child(1){ transform: translateY(8px) rotate(45deg); }
+  .botao-hamburguer.aberto span:nth-child(2){ opacity: 0; }
+  .botao-hamburguer.aberto span:nth-child(3){ transform: translateY(-8px) rotate(-45deg); }
+
+  .menu-mobile{
+    display: none;
+    flex-direction: column;
+    background: var(--creme);
+    border-top: 3px solid var(--tinta);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .35s ease;
+  }
+  .menu-mobile.aberto{ max-height: 480px; }
+  .menu-mobile a{
+    padding: 16px 24px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 500;
+    border-bottom: 1px solid rgba(42,38,34,.15);
+  }
+  .menu-mobile a:hover, .menu-mobile a:focus-visible{ background: var(--rosa); }
+  .menu-mobile .pill-btn{ margin: 16px 24px; text-align: center; justify-content: center; }
+
+  /* ===================== HERO ===================== */
+  .hero{
+    padding-top: 150px;
+    padding-bottom: 80px;
+    position: relative;
+  }
+  .hero .container{
+    display: grid;
+    grid-template-columns: 1.1fr .9fr;
+    gap: 50px;
+    align-items: center;
+  }
+  .hero-texto h1{
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    margin-bottom: 18px;
+  }
+  .hero-texto h1 .destaque{
+    color: var(--vermelho);
+    position: relative;
+    white-space: nowrap;
+  }
+  .hero-texto p{
+    font-size: 1.15rem;
+    max-width: 520px;
+    margin-bottom: 30px;
+    color: #4a453e;
+  }
+  .hero-botoes{ display: flex; gap: 16px; flex-wrap: wrap; }
+
+  .hero-foto-wrap{ position: relative; }
+  .hero-foto{
+    aspect-ratio: 4 / 5;
+    width: 100%;
+    transform: rotate(3deg);
+  }
+  .hero-foto::after{
+    content: "UGC";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Permanent Marker', cursive;
+    font-size: 3rem;
+    color: rgba(255,250,240,.35);
+  }
+  .hero-adesivo-1{ width: 110px; height: 110px; top: -20px; left: -20px; transform: rotate(-8deg); font-size: .85rem; padding: 10px; }
+  .hero-adesivo-2{ width: 96px; height: 96px; bottom: -18px; right: 10px; transform: rotate(10deg); font-size: .8rem; color: var(--vermelho); }
+
+  /* ===================== FAIXA DE MARCAS ===================== */
+  .faixa-marcas{
+    background: var(--tinta);
+    padding: 42px 0;
+    overflow: hidden;
+  }
+  .faixa-marcas p.rotulo{
+    text-align: center;
+    color: var(--creme);
+    font-family: 'Fredoka', sans-serif;
+    font-size: .95rem;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+    opacity: .8;
+  }
+  .marquee{
+    display: flex;
+    width: max-content;
+    animation: rolar 26s linear infinite;
+  }
+  .marquee-grupo{
+    display: flex;
+    gap: 50px;
+    padding-right: 50px;
+  }
+  .marquee span{
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 1.4rem;
+    color: var(--creme);
+    white-space: nowrap;
+    opacity: .85;
+  }
+  @keyframes rolar{
+    from{ transform: translateX(0); }
+    to{ transform: translateX(-50%); }
+  }
+
+  /* ===================== SOBRE ===================== */
+  .sobre .container{
+    display: grid;
+    grid-template-columns: .8fr 1.2fr;
+    gap: 56px;
+    align-items: center;
+  }
+  .sobre-foto{ aspect-ratio: 1 / 1; transform: rotate(-2deg); }
+  .sobre-texto p{ margin-bottom: 16px; color: #4a453e; font-size: 1.05rem; }
+  .sobre-lista{ margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+  .sobre-lista li{ display: flex; align-items: center; gap: 10px; font-weight: 500; }
+  .check-bolinha{
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--vermelho); color: var(--branco);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .8rem; flex-shrink: 0; border: 2px solid var(--tinta);
+  }
+
+  /* ===================== PORTFÓLIO ===================== */
+  .portfolio{ background: var(--branco); }
+  .filtros{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 30px 0 40px;
+  }
+  .filtro-btn{
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 500;
+    padding: 9px 20px;
+    border-radius: 50px;
+    border: 3px solid var(--tinta);
+    background: var(--creme);
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease, transform .15s ease;
+  }
+  .filtro-btn:hover{ transform: translateY(-2px); }
+  .filtro-btn.ativo{
+    background: var(--vermelho);
+    color: var(--branco);
+    box-shadow: var(--sombra-dura-sm);
+  }
+  .galeria{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 26px;
+  }
+  .item-portfolio{
+    aspect-ratio: 3 / 4;
+    display: flex;
+    align-items: flex-end;
+    padding: 18px;
+    transition: transform .3s ease, opacity .3s ease;
+  }
+  .item-portfolio.escondido{ display: none; }
+  .item-portfolio:hover{ transform: translateY(-6px) rotate(-1deg); }
+  .item-info{
+    background: rgba(42,38,34,.75);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: var(--branco);
+  }
+  .item-info .categoria{
+    font-family: 'Permanent Marker', cursive;
+    font-size: .78rem;
+    color: var(--rosa);
+  }
+  .item-info .titulo-item{ font-family: 'Fredoka', sans-serif; font-weight: 600; }
+
+  /* ===================== SERVIÇOS ===================== */
+  .servicos-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 28px;
+    margin-top: 40px;
+  }
+  .card-servico{
+    background: var(--creme);
+    border: 3px solid var(--tinta);
+    border-radius: 20px;
+    box-shadow: var(--sombra-dura-sm);
+    padding: 30px 26px;
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .card-servico:hover{
+    transform: translate(-4px,-4px);
+    box-shadow: var(--sombra-dura);
+  }
+  .icone-servico{
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--rosa);
+    border: 3px solid var(--tinta);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+  }
+  .card-servico h3{ font-size: 1.2rem; margin-bottom: 8px; }
+  .card-servico p{ color: #4a453e; font-size: .98rem; }
+
+  /* ===================== RESULTADOS ===================== */
+  .resultados{
+    background: var(--vermelho);
+    color: var(--branco);
+  }
+  .resultados .titulo-secao, .resultados .tag-secao{ color: var(--branco); }
+  .resultados .tag-secao{ background: var(--vermelho); border-color: var(--branco); }
+  .resultados .sub-secao{ color: rgba(255,250,240,.85); }
+  .grid-numeros{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+    margin-top: 40px;
+  }
+  .numero-card{
+    background: var(--tinta);
+    border: 3px solid var(--branco);
+    border-radius: 20px;
+    padding: 30px 20px;
+    text-align: center;
+  }
+  .numero-card .numero{
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2.2rem, 5vw, 2.8rem);
+    color: var(--rosa);
+  }
+  .numero-card .rotulo-numero{
+    font-size: .95rem;
+    color: var(--creme);
+    margin-top: 6px;
+  }
+
+  /* ===================== DEPOIMENTOS ===================== */
+  .depoimentos-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 26px;
+    margin-top: 40px;
+  }
+  .card-depoimento{
+    background: var(--branco);
+    border: 3px solid var(--tinta);
+    border-radius: 20px;
+    padding: 28px 24px;
+    box-shadow: var(--sombra-dura-sm);
+    position: relative;
+  }
+  .card-depoimento .aspas{
+    font-family: 'Permanent Marker', cursive;
+    font-size: 2.2rem;
+    color: var(--rosa);
+    line-height: 1;
+  }
+  .card-depoimento p.fala{ margin: 10px 0 18px; color: #3a3630; }
+  .autor-depoimento{ display: flex; align-items: center; gap: 12px; }
+  .avatar-depoimento{
+    width: 46px; height: 46px; border-radius: 50%;
+    border: 2px solid var(--tinta); flex-shrink: 0;
+  }
+  .autor-depoimento strong{ display: block; font-family: 'Fredoka', sans-serif; font-size: .95rem; }
+  .autor-depoimento span{ font-size: .85rem; color: #6b6459; }
+
+  /* ===================== CONTATO ===================== */
+  .contato{ background: var(--tinta); color: var(--creme); }
+  .contato .titulo-secao{ color: var(--branco); }
+  .contato .tag-secao{ background: var(--tinta); }
+  .contato .sub-secao{ color: rgba(236,227,200,.8); }
+  .contato-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 46px;
+    margin-top: 40px;
+    align-items: start;
+  }
+  .form-contato{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--creme);
+    padding: 30px;
+    border-radius: 20px;
+    border: 3px solid var(--branco);
+  }
+  .campo label{
+    display: block;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--tinta);
+  }
+  .campo input, .campo textarea{
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 2px solid var(--tinta);
+    font-family: 'Jost', sans-serif;
+    font-size: 1rem;
+    background: var(--branco);
+    color: var(--tinta);
+  }
+  .campo textarea{ resize: vertical; min-height: 110px; }
+  .mensagem-confirmacao{
+    display: none;
+    background: var(--rosa);
+    border: 2px solid var(--tinta);
+    border-radius: 10px;
+    padding: 14px;
+    font-weight: 500;
+    color: var(--tinta);
+  }
+  .mensagem-confirmacao.visivel{ display: block; }
+
+  .contatos-diretos{ display: flex; flex-direction: column; gap: 16px; }
+  .contato-item{
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(236,227,200,.06);
+    border: 2px solid rgba(236,227,200,.35);
+    border-radius: 16px;
+    padding: 18px 20px;
+    transition: background .2s ease, transform .2s ease;
+  }
+  .contato-item:hover, .contato-item:focus-visible{
+    background: var(--vermelho);
+    transform: translateX(4px);
+  }
+  .contato-icone{
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--rosa); color: var(--tinta);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; flex-shrink: 0;
+  }
+  .contato-item strong{ display: block; font-family: 'Fredoka', sans-serif; }
+  .contato-item span{ font-size: .9rem; opacity: .85; }
+
+  /* ===================== RODAPÉ ===================== */
+  .rodape{
+    background: var(--tinta);
+    color: var(--creme);
+    padding: 40px 0 24px;
+    border-top: 3px solid var(--vermelho);
+  }
+  .rodape .container{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+  }
+  .rodape-logo{ font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 1.2rem; }
+  .rodape-redes{ display: flex; gap: 14px; }
+  .rodape-redes a{
+    width: 42px; height: 42px; border-radius: 50%;
+    border: 2px solid var(--creme);
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s ease, color .2s ease;
+  }
+  .rodape-redes a:hover, .rodape-redes a:focus-visible{ background: var(--vermelho); border-color: var(--vermelho); }
+  .rodape-copy{
+    width: 100%;
+    text-align: center;
+    font-size: .85rem;
+    opacity: .7;
+    margin-top: 20px;
+    border-top: 1px solid rgba(236,227,200,.2);
+    padding-top: 18px;
+  }
+
+  /* Link para pular para o conteúdo (acessibilidade) */
+  .pular-link{
+    position: absolute;
+    left: -999px;
+    top: 0;
+    background: var(--vermelho);
+    color: var(--branco);
+    padding: 12px 20px;
+    z-index: 2000;
+    border-radius: 0 0 10px 0;
+  }
+  .pular-link:focus{ left: 0; }
+
+  /* ===================== RESPONSIVO ===================== */
+  @media (max-width: 900px){
+    .hero .container{ grid-template-columns: 1fr; }
+    .hero-foto-wrap{ order: -1; max-width: 340px; margin: 0 auto; }
+    .sobre .container{ grid-template-columns: 1fr; }
+    .sobre-foto{ max-width: 340px; margin: 0 auto; }
+    .contato-grid{ grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 760px){
+    .menu-desktop{ display: none; }
+    .botao-hamburguer{ display: flex; }
+    .menu-mobile{ display: flex; }
+    section{ padding: 64px 0; }
+    .hero{ padding-top: 130px; }
+  }
+
+  @media (max-width: 480px){
+    .hero-botoes{ flex-direction: column; align-items: stretch; }
+    .hero-botoes .pill-btn{ justify-content: center; }
+    .filtros{ gap: 8px; }
+    .filtro-btn{ padding: 8px 14px; font-size: .9rem; }
+  }
+</style>
+</head>
+<body>
+
+<a href="#inicio" class="pular-link">Pular para o conteúdo</a>
+
+<!-- ===================== 1. CABEÇALHO / MENU ===================== -->
+<header class="cabecalho">
+  <div class="barra-nav">
+    <a href="#inicio" class="logo" aria-label="Edilaine Santos, ir para o início">
+      Edilaine <span>Santos</span>
+    </a>
+
+    <nav class="menu-desktop" aria-label="Navegação principal">
+      <a href="#inicio">Início</a>
+      <a href="#sobre">Sobre</a>
+      <a href="#portfolio">Portfólio</a>
+      <a href="#servicos">Serviços</a>
+      <a href="#resultados">Resultados</a>
+      <a href="#depoimentos">Depoimentos</a>
+      <a href="#contato" class="pill-btn">Fale comigo</a>
+    </nav>
+
+    <button class="botao-hamburguer" id="botaoHamburguer" aria-expanded="false" aria-controls="menuMobile" aria-label="Abrir menu de navegação">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <nav class="menu-mobile" id="menuMobile" aria-label="Navegação mobile">
+    <a href="#inicio">Início</a>
+    <a href="#sobre">Sobre</a>
+    <a href="#portfolio">Portfólio</a>
+    <a href="#servicos">Serviços</a>
+    <a href="#resultados">Resultados</a>
+    <a href="#depoimentos">Depoimentos</a>
+    <a href="#contato" class="pill-btn">Fale comigo</a>
+  </nav>
+</header>
+
+<main id="inicio">
+
+  <!-- ===================== 2. HERO ===================== -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-texto reveal">
+        <p class="tag-secao">Criadora de Conteúdo UGC</p>
+        <h1 id="heroTitulo"></h1>
+        <p id="heroSubtitulo"></p>
+        <div class="hero-botoes">
+          <a href="#contato" class="pill-btn" id="heroCta"></a>
+          <a href="#portfolio" class="pill-btn secundario">Ver portfólio</a>
+        </div>
+      </div>
+
+      <div class="hero-foto-wrap reveal">
+        <!-- Bloco em gradiente simulando a foto principal.
+             PARA TROCAR POR FOTO REAL: substitua esta div por
+             <img src="sua-foto.jpg" alt="Edilaine Santos sorrindo"> e reaproveite a classe "foto-bloco". -->
+        <div class="foto-bloco hero-foto grad-1" role="img" aria-label="Foto de Edilaine Santos, criadora de conteúdo UGC"></div>
+        <div class="adesivo hero-adesivo-1">100% autêntico</div>
+        <div class="adesivo hero-adesivo-2">Vende mais!</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 3. FAIXA DE MARCAS ===================== -->
+  <section class="faixa-marcas" aria-label="Marcas que já trabalharam com Edilaine Santos">
+    <p class="rotulo">Marcas que já confiaram no meu trabalho</p>
+    <div class="marquee" id="marqueeMarcas"></div>
+  </section>
+
+  <!-- ===================== 4. SOBRE ===================== -->
+  <section class="sobre" id="sobre">
+    <div class="container">
+      <div class="sobre-foto foto-bloco grad-2 reveal" role="img" aria-label="Foto de Edilaine Santos gravando conteúdo">
+        <!-- Bloco em gradiente simulando a foto da seção Sobre.
+             PARA TROCAR POR FOTO REAL: troque esta div por uma tag <img>
+             com o src da foto e mantenha a classe "foto-bloco" para herdar a borda e a sombra. -->
+      </div>
+      <div class="sobre-texto reveal">
+        <p class="tag-secao">Sobre mim</p>
+        <h2 class="titulo-secao" id="sobreTitulo"></h2>
+        <div id="sobreTexto"></div>
+        <ul class="sobre-lista" id="sobreLista"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 5. PORTFÓLIO COM FILTRO ===================== -->
+  <section class="portfolio" id="portfolio">
+    <div class="container">
+      <p class="tag-secao reveal">Portfólio</p>
+      <h2 class="titulo-secao reveal">Trabalhos que já viraram resultado para as marcas</h2>
+      <p class="sub-secao reveal">Filtre por nicho e veja exemplos do tipo de conteúdo que eu produzo para cada segmento.</p>
+
+      <div class="filtros reveal" id="filtrosPortfolio" role="group" aria-label="Filtrar portfólio por categoria"></div>
+
+      <div class="galeria" id="galeriaPortfolio"></div>
+    </div>
+  </section>
+
+  <!-- ===================== 6. SERVIÇOS ===================== -->
+  <section class="servicos" id="servicos">
+    <div class="container">
+      <p class="tag-secao reveal">Serviços</p>
+      <h2 class="titulo-secao reveal">O que eu posso criar para a sua marca</h2>
+      <p class="sub-secao reveal">Conteúdo pensado para gerar confiança, engajamento e, principalmente, vendas.</p>
+      <div class="servicos-grid" id="gridServicos"></div>
+    </div>
+  </section>
+
+  <!-- ===================== 7. RESULTADOS / NÚMEROS ===================== -->
+  <section class="resultados" id="resultados">
+    <div class="container">
+      <p class="tag-secao reveal">Resultados</p>
+      <h2 class="titulo-secao reveal">Números que mostram o meu impacto</h2>
+      <p class="sub-secao reveal">Dados reais de alcance e entrega que ajudam marcas a decidir com confiança.</p>
+      <div class="grid-numeros" id="gridNumeros"></div>
+    </div>
+  </section>
+
+  <!-- ===================== 8. DEPOIMENTOS ===================== -->
+  <section class="depoimentos" id="depoimentos">
+    <div class="container">
+      <p class="tag-secao reveal">Depoimentos</p>
+      <h2 class="titulo-secao reveal">O que as marcas dizem sobre mim</h2>
+      <div class="depoimentos-grid" id="gridDepoimentos"></div>
+    </div>
+  </section>
+
+  <!-- ===================== 9. CONTATO ===================== -->
+  <section class="contato" id="contato">
+    <div class="container">
+      <p class="tag-secao reveal">Contato</p>
+      <h2 class="titulo-secao reveal">Vamos criar o próximo conteúdo de sucesso da sua marca?</h2>
+      <p class="sub-secao reveal">Me chame agora mesmo e receba uma proposta personalizada para o seu produto.</p>
+
+      <div class="contato-grid">
+        <form class="form-contato reveal" id="formContato" novalidate>
+          <div class="campo">
+            <label for="campoNome">Nome</label>
+            <input type="text" id="campoNome" name="nome" required autocomplete="name">
+          </div>
+          <div class="campo">
+            <label for="campoEmail">E-mail</label>
+            <input type="email" id="campoEmail" name="email" required autocomplete="email">
+          </div>
+          <div class="campo">
+            <label for="campoMensagem">Mensagem</label>
+            <textarea id="campoMensagem" name="mensagem" required placeholder="Conte um pouco sobre a sua marca e o que você precisa."></textarea>
+          </div>
+          <button type="submit" class="pill-btn">Enviar mensagem</button>
+          <p class="mensagem-confirmacao" id="mensagemConfirmacao" role="status"></p>
+        </form>
+
+        <div class="contatos-diretos reveal" id="contatosDiretos"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===================== 10. RODAPÉ ===================== -->
+<footer class="rodape">
+  <div class="container">
+    <p class="rodape-logo" id="rodapeLogo"></p>
+    <div class="rodape-redes" id="rodapeRedes"></div>
+    <p class="rodape-copy" id="rodapeCopy"></p>
+  </div>
+</footer>
+
+<script>
+/* =========================================================================
+   PAINEL DE CONTEÚDO EDITÁVEL
+   Todo o texto do site vem deste objeto. Para atualizar o site, edite os
+   valores abaixo. Não é necessário mexer em nenhuma outra parte do código.
+   ========================================================================= */
+const CONFIG = {
+
+  // EDITE AQUI: dados pessoais e de contato
+  perfil: {
+    nome: "Edilaine Santos",
+    nomeCurto: "Edilaine",
+    profissao: "Criadora de Conteúdo UGC",
+    instagramArroba: "@byedisantos",
+    instagramUrl: "https://instagram.com/byedisantos",
+    email: "edilainesantosugc@gmail.com",
+    telefoneExibicao: "(19) 99384-2684",
+    whatsappUrl: "https://wa.me/5519993842684"
+  },
+
+  // EDITE AQUI: textos principais da primeira dobra (Hero)
+  hero: {
+    tituloParte1: "Vídeos autênticos que fazem sua marca ",
+    tituloDestaque: "vender mais",
+    subtitulo: "Sou Edilaine Santos, criadora de conteúdo UGC. Transformo o seu produto em vídeos autênticos, estratégicos e prontos para performar em qualquer campanha, do orgânico ao anúncio pago.",
+    textoCta: "Fale comigo"
+  },
+
+  // EDITE AQUI: nomes das marcas que já trabalharam com você (aparecem na faixa rolante)
+  marcas: [
+    "Bella Cosméticos",
+    "Viva Fit Suplementos",
+    "Doce Lar Utilidades",
+    "Trend Moda Feminina",
+    "Sabor Caseiro Alimentos",
+    "Pele de Seda Skincare",
+    "Casa Aromas",
+    "Estilo Urbano"
+  ],
+
+  // EDITE AQUI: texto e destaques da seção Sobre
+  sobre: {
+    titulo: "Quem é Edilaine Santos",
+    paragrafos: [
+      "Oi, eu sou a Edilaine! Crio conteúdo autêntico que conecta marcas de verdade com pessoas de verdade. Meu trabalho começa muito antes da câmera ligar, com pesquisa do produto, entendimento do público e um roteiro pensado para gerar resultado.",
+      "Já entreguei conteúdo para marcas de beleza, moda, alimentação, fitness e viagem, sempre com a mesma entrega: vídeos que parecem recomendação de amiga, não propaganda. É esse tipo de conteúdo que hoje mais converte nas redes sociais."
+    ],
+    destaques: [
+      "Entrega rápida e dentro do prazo combinado",
+      "Comunicação profissional do início ao fim",
+      "Direitos de uso claros para anúncios pagos",
+      "Conteúdo pensado para performar, não só para agradar"
+    ]
+  },
+
+  // EDITE AQUI: categorias do filtro de portfólio
+  categoriasPortfolio: ["Todos", "Beleza", "Moda", "Comida", "Fitness", "Viagem"],
+
+  // EDITE AQUI: trabalhos do portfólio (cada item usa uma classe de gradiente: grad-1 até grad-6)
+  portfolio: [
+    { titulo: "Rotina de skincare noturna", categoria: "Beleza", gradiente: "grad-1" },
+    { titulo: "Resenha de base líquida", categoria: "Beleza", gradiente: "grad-4" },
+    { titulo: "Look de festa com peças da loja", categoria: "Moda", gradiente: "grad-2" },
+    { titulo: "Try on de coleção de verão", categoria: "Moda", gradiente: "grad-5" },
+    { titulo: "Receita rápida com produto patrocinado", categoria: "Comida", gradiente: "grad-3" },
+    { titulo: "Degustação e resenha de tempero", categoria: "Comida", gradiente: "grad-6" },
+    { titulo: "Treino de pernas com suplemento", categoria: "Fitness", gradiente: "grad-1" },
+    { titulo: "Unboxing de roupa de academia", categoria: "Fitness", gradiente: "grad-4" },
+    { titulo: "Diário de viagem com mala patrocinada", categoria: "Viagem", gradiente: "grad-2" },
+    { titulo: "Dicas de pele para o verão na praia", categoria: "Viagem", gradiente: "grad-5" }
+  ],
+
+  // EDITE AQUI: cards de serviços oferecidos (o campo "icone" aceita um emoji)
+  servicos: [
+    { icone: "🎬", titulo: "Vídeo UGC", descricao: "Vídeos verticais autênticos, gravados como se fosse uma cliente real usando e recomendando o seu produto." },
+    { icone: "📱", titulo: "Reels e TikToks", descricao: "Conteúdo dinâmico, editado no ritmo das redes sociais e pronto para publicar ou usar em anúncios." },
+    { icone: "📸", titulo: "Fotos de Produto", descricao: "Imagens autênticas e bem iluminadas que mostram o seu produto no dia a dia real." },
+    { icone: "📦", titulo: "Unboxing", descricao: "Vídeos de abertura de caixa com reação genuína, despertando desejo de compra em quem assiste." },
+    { icone: "⭐", titulo: "Depoimentos e Reviews", descricao: "Avaliações sinceras e persuasivas que aumentam a confiança do público na sua marca." },
+    { icone: "🚀", titulo: "Conteúdo para Anúncios", descricao: "Vídeos pensados para performar como anúncio pago, com gancho forte nos primeiros segundos." }
+  ],
+
+  // EDITE AQUI: números de destaque (a contagem anima sozinha ao aparecer na tela)
+  // "decimais" define quantas casas decimais aparecem no número
+  resultados: [
+    { numero: 85, sufixo: " mil+", rotulo: "Seguidores nas redes sociais", decimais: 0 },
+    { numero: 1.5, sufixo: " mi+", rotulo: "Visualizações por mês", decimais: 1 },
+    { numero: 40, sufixo: "+", rotulo: "Marcas atendidas", decimais: 0 },
+    { numero: 8.5, sufixo: "%", rotulo: "Taxa média de engajamento", decimais: 1 }
+  ],
+
+  // EDITE AQUI: depoimentos de clientes e marcas
+  depoimentos: [
+    { texto: "A Edilaine entregou um conteúdo tão natural que viramos o vídeo com melhor desempenho do mês. Comunicação excelente do início ao fim.", nome: "Camila Rocha", empresa: "Bella Cosméticos" },
+    { texto: "Profissional, pontual e com um olhar estratégico para o que realmente converte. Já fechamos a segunda campanha com ela.", nome: "Rafael Andrade", empresa: "Viva Fit Suplementos" },
+    { texto: "O vídeo de unboxing gerou um aumento visível nas vendas naquela semana. Recomendo o trabalho da Edilaine para qualquer marca.", nome: "Juliana Prado", empresa: "Doce Lar Utilidades" },
+    { texto: "Contratamos para um teste e hoje ela é fixa nas nossas campanhas de lançamento. Conteúdo autêntico de verdade.", nome: "Bruno Lima", empresa: "Trend Moda Feminina" }
+  ],
+
+  // EDITE AQUI: texto do rodapé
+  rodape: {
+    copyrightTexto: "Todos os direitos reservados."
+  }
+};
+
+/* =========================================================================
+   RENDERIZAÇÃO DO CONTEÚDO (não é necessário editar a partir daqui)
+   ========================================================================= */
+document.addEventListener("DOMContentLoaded", () => {
+
+  // ---------- Logo do cabeçalho ----------
+  document.querySelector(".logo").innerHTML = `${CONFIG.perfil.nomeCurto} <span>${CONFIG.perfil.nome.split(" ").slice(1).join(" ")}</span>`;
+
+  // ---------- Hero ----------
+  document.getElementById("heroTitulo").innerHTML =
+    `${CONFIG.hero.tituloParte1}<span class="destaque marcador">${CONFIG.hero.tituloDestaque}</span>`;
+  document.getElementById("heroSubtitulo").textContent = CONFIG.hero.subtitulo;
+  document.getElementById("heroCta").textContent = CONFIG.hero.textoCta;
+
+  // ---------- Faixa de marcas (duplicada para rolagem contínua) ----------
+  const marqueeEl = document.getElementById("marqueeMarcas");
+  const grupoHtml = CONFIG.marcas.map(m => `<span>${m}</span>`).join("");
+  marqueeEl.innerHTML = `<div class="marquee-grupo">${grupoHtml}</div><div class="marquee-grupo" aria-hidden="true">${grupoHtml}</div>`;
+
+  // ---------- Sobre ----------
+  document.getElementById("sobreTitulo").textContent = CONFIG.sobre.titulo;
+  document.getElementById("sobreTexto").innerHTML = CONFIG.sobre.paragrafos.map(p => `<p>${p}</p>`).join("");
+  document.getElementById("sobreLista").innerHTML = CONFIG.sobre.destaques
+    .map(item => `<li><span class="check-bolinha">✓</span>${item}</li>`).join("");
+
+  // ---------- Portfólio: filtros ----------
+  const filtrosEl = document.getElementById("filtrosPortfolio");
+  filtrosEl.innerHTML = CONFIG.categoriasPortfolio.map((cat, i) =>
+    `<button type="button" class="filtro-btn ${i === 0 ? "ativo" : ""}" data-categoria="${cat}" aria-pressed="${i === 0}">${cat}</button>`
+  ).join("");
+
+  // ---------- Portfólio: galeria ----------
+  const galeriaEl = document.getElementById("galeriaPortfolio");
+  galeriaEl.innerHTML = CONFIG.portfolio.map(item => `
+    <div class="item-portfolio foto-bloco ${item.gradiente} reveal" data-categoria="${item.categoria}">
+      <div class="item-info">
+        <p class="categoria">${item.categoria}</p>
+        <p class="titulo-item">${item.titulo}</p>
+      </div>
+    </div>
+  `).join("");
+  // Bloco em gradiente simulando cada trabalho do portfólio.
+  // PARA TROCAR POR FOTO OU VÍDEO REAL: dentro do .item-portfolio, adicione uma
+  // tag <img> ou <video> antes da .item-info e remova a classe de gradiente (grad-1 a grad-6).
+
+  // Filtro por clique
+  filtrosEl.addEventListener("click", (e) => {
+    const btn = e.target.closest(".filtro-btn");
+    if (!btn) return;
+    filtrosEl.querySelectorAll(".filtro-btn").forEach(b => {
+      b.classList.remove("ativo");
+      b.setAttribute("aria-pressed", "false");
+    });
+    btn.classList.add("ativo");
+    btn.setAttribute("aria-pressed", "true");
+
+    const categoria = btn.dataset.categoria;
+    galeriaEl.querySelectorAll(".item-portfolio").forEach(item => {
+      const mostrar = categoria === "Todos" || item.dataset.categoria === categoria;
+      item.classList.toggle("escondido", !mostrar);
+    });
+  });
+
+  // ---------- Serviços ----------
+  document.getElementById("gridServicos").innerHTML = CONFIG.servicos.map(s => `
+    <div class="card-servico reveal">
+      <div class="icone-servico" aria-hidden="true">${s.icone}</div>
+      <h3>${s.titulo}</h3>
+      <p>${s.descricao}</p>
+    </div>
+  `).join("");
+
+  // ---------- Resultados ----------
+  document.getElementById("gridNumeros").innerHTML = CONFIG.resultados.map((r, i) => `
+    <div class="numero-card reveal">
+      <p class="numero" data-alvo="${r.numero}" data-sufixo="${r.sufixo}" data-decimais="${r.decimais}" id="numero-${i}">0</p>
+      <p class="rotulo-numero">${r.rotulo}</p>
+    </div>
+  `).join("");
+
+  // ---------- Depoimentos ----------
+  document.getElementById("gridDepoimentos").innerHTML = CONFIG.depoimentos.map(d => `
+    <div class="card-depoimento reveal">
+      <p class="aspas" aria-hidden="true">&ldquo;</p>
+      <p class="fala">${d.texto}</p>
+      <div class="autor-depoimento">
+        <div class="avatar-depoimento foto-bloco grad-4" aria-hidden="true"></div>
+        <div>
+          <strong>${d.nome}</strong>
+          <span>${d.empresa}</span>
+        </div>
+      </div>
+    </div>
+  `).join("");
+  // Bloco em gradiente simulando a foto de perfil de quem deu o depoimento.
+  // PARA TROCAR POR FOTO REAL: troque a div ".avatar-depoimento" por uma tag <img> redonda.
+
+  // ---------- Contatos diretos ----------
+  document.getElementById("contatosDiretos").innerHTML = `
+    <a class="contato-item" href="${CONFIG.perfil.whatsappUrl}" target="_blank" rel="noopener">
+      <span class="contato-icone" aria-hidden="true">💬</span>
+      <span><strong>WhatsApp</strong><span>${CONFIG.perfil.telefoneExibicao}</span></span>
+    </a>
+    <a class="contato-item" href="mailto:${CONFIG.perfil.email}">
+      <span class="contato-icone" aria-hidden="true">✉️</span>
+      <span><strong>E-mail</strong><span>${CONFIG.perfil.email}</span></span>
+    </a>
+    <a class="contato-item" href="${CONFIG.perfil.instagramUrl}" target="_blank" rel="noopener">
+      <span class="contato-icone" aria-hidden="true">📷</span>
+      <span><strong>Instagram</strong><span>${CONFIG.perfil.instagramArroba}</span></span>
+    </a>
+  `;
+
+  // ---------- Rodapé ----------
+  document.getElementById("rodapeLogo").textContent = CONFIG.perfil.nome;
+  document.getElementById("rodapeRedes").innerHTML = `
+    <a href="${CONFIG.perfil.instagramUrl}" target="_blank" rel="noopener" aria-label="Instagram de ${CONFIG.perfil.nome}">📷</a>
+    <a href="${CONFIG.perfil.whatsappUrl}" target="_blank" rel="noopener" aria-label="WhatsApp de ${CONFIG.perfil.nome}">💬</a>
+    <a href="mailto:${CONFIG.perfil.email}" aria-label="E-mail de ${CONFIG.perfil.nome}">✉️</a>
+  `;
+  document.getElementById("rodapeCopy").textContent =
+    `© ${new Date().getFullYear()} ${CONFIG.perfil.nome}. ${CONFIG.rodape.copyrightTexto}`;
+
+  // =========================================================================
+  // MENU HAMBÚRGUER
+  // =========================================================================
+  const botaoHamburguer = document.getElementById("botaoHamburguer");
+  const menuMobile = document.getElementById("menuMobile");
+
+  function fecharMenu(){
+    botaoHamburguer.classList.remove("aberto");
+    menuMobile.classList.remove("aberto");
+    botaoHamburguer.setAttribute("aria-expanded", "false");
+    botaoHamburguer.setAttribute("aria-label", "Abrir menu de navegação");
+  }
+
+  botaoHamburguer.addEventListener("click", () => {
+    const aberto = menuMobile.classList.toggle("aberto");
+    botaoHamburguer.classList.toggle("aberto", aberto);
+    botaoHamburguer.setAttribute("aria-expanded", String(aberto));
+    botaoHamburguer.setAttribute("aria-label", aberto ? "Fechar menu de navegação" : "Abrir menu de navegação");
+  });
+
+  menuMobile.querySelectorAll("a").forEach(a => a.addEventListener("click", fecharMenu));
+
+  // =========================================================================
+  // ANIMAÇÃO DE ENTRADA AO ROLAR A PÁGINA (IntersectionObserver)
+  // =========================================================================
+  const observadorEntrada = new IntersectionObserver((entradas) => {
+    entradas.forEach(entrada => {
+      if (entrada.isIntersecting){
+        entrada.target.classList.add("visivel");
+        observadorEntrada.unobserve(entrada.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll(".reveal").forEach(el => observadorEntrada.observe(el));
+
+  // =========================================================================
+  // CONTADOR ANIMADO DOS NÚMEROS DE RESULTADOS
+  // =========================================================================
+  function animarNumero(el){
+    const alvo = parseFloat(el.dataset.alvo);
+    const sufixo = el.dataset.sufixo;
+    const decimais = parseInt(el.dataset.decimais, 10);
+    const duracao = 1500;
+    const inicio = performance.now();
+
+    function passo(agora){
+      const progresso = Math.min((agora - inicio) / duracao, 1);
+      const valorAtual = alvo * progresso;
+      el.textContent = valorAtual.toFixed(decimais) + sufixo;
+      if (progresso < 1){
+        requestAnimationFrame(passo);
+      } else {
+        el.textContent = alvo.toFixed(decimais) + sufixo;
+      }
+    }
+    requestAnimationFrame(passo);
+  }
+
+  const observadorNumeros = new IntersectionObserver((entradas) => {
+    entradas.forEach(entrada => {
+      if (entrada.isIntersecting){
+        animarNumero(entrada.target);
+        observadorNumeros.unobserve(entrada.target);
+      }
+    });
+  }, { threshold: 0.4 });
+
+  document.querySelectorAll(".numero-card .numero").forEach(el => observadorNumeros.observe(el));
+
+  // =========================================================================
+  // FORMULÁRIO DE CONTATO (abre e-mail preenchido e mostra confirmação)
+  // =========================================================================
+  const formContato = document.getElementById("formContato");
+  const mensagemConfirmacao = document.getElementById("mensagemConfirmacao");
+
+  formContato.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const nome = document.getElementById("campoNome").value.trim();
+    const email = document.getElementById("campoEmail").value.trim();
+    const mensagem = document.getElementById("campoMensagem").value.trim();
+
+    const assunto = encodeURIComponent(`Contato pelo site, ${nome}`);
+    const corpo = encodeURIComponent(
+      `Nome: ${nome}\nE-mail: ${email}\n\nMensagem:\n${mensagem}`
+    );
+
+    window.location.href = `mailto:${CONFIG.perfil.email}?subject=${assunto}&body=${corpo}`;
+
+    mensagemConfirmacao.textContent =
+      "Obrigada pelo contato! Seu aplicativo de e-mail deve abrir com a mensagem pronta. Se não abrir, me chame direto no WhatsApp ou envie um e-mail para " + CONFIG.perfil.email + ".";
+    mensagemConfirmacao.classList.add("visivel");
+    formContato.reset();
+  });
+
+});
+</script>
+</body>
+</html>
