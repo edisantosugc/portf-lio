@@ -14,6 +14,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Fredoka:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
 
+<!-- Supabase: usado só para registrar estatísticas do site (visitas, cliques, vídeos assistidos)
+     e mensagens de contato no painel administrativo. Veja js/auth.js e painel.html. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
 <style>
   /* ===================== VARIÁVEIS DE COR (PALETA) =====================
      EDITE AQUI se quiser ajustar algum tom da paleta.
@@ -822,7 +826,7 @@
       <a href="#servicos">Serviços</a>
       <a href="#resultados">Resultados</a>
       <a href="#depoimentos">Depoimentos</a>
-      <a href="#contato" class="pill-btn">Fale comigo</a>
+      <a href="#contato" class="pill-btn" data-cta="cta_fale_comigo_menu">Fale comigo</a>
     </nav>
 
     <button class="botao-hamburguer" id="botaoHamburguer" aria-expanded="false" aria-controls="menuMobile" aria-label="Abrir menu de navegação">
@@ -837,7 +841,7 @@
     <a href="#servicos">Serviços</a>
     <a href="#resultados">Resultados</a>
     <a href="#depoimentos">Depoimentos</a>
-    <a href="#contato" class="pill-btn">Fale comigo</a>
+    <a href="#contato" class="pill-btn" data-cta="cta_fale_comigo_menu">Fale comigo</a>
   </nav>
 </header>
 
@@ -852,8 +856,8 @@
         <p id="heroFrase" class="hero-frase"></p>
         <p id="heroStat" class="hero-stat"></p>
         <div class="hero-botoes">
-          <a href="#contato" class="pill-btn" id="heroCta"></a>
-          <a href="#portfolio" class="pill-btn secundario">Ver portfólio</a>
+          <a href="#contato" class="pill-btn" id="heroCta" data-cta="cta_fale_comigo_hero"></a>
+          <a href="#portfolio" class="pill-btn secundario" data-cta="cta_ver_portfolio">Ver portfólio</a>
         </div>
       </div>
 
@@ -1114,7 +1118,59 @@ const ICONES_SVG = {
   instagram: '<svg viewBox="0 0 16 16"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.27.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.27.087 3.85.048 4.703.01 5.556 0 5.829 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.942a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 8 0Zm0 1.442c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.232s-.008 2.389-.047 3.232c-.035.78-.166 1.204-.275 1.486a2.47 2.47 0 0 1-.599.92c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.275-.843.039-1.096.047-3.232.047s-2.39-.008-3.233-.047c-.78-.035-1.203-.166-1.485-.275a2.478 2.478 0 0 1-.92-.599 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.232s.008-2.389.046-3.232c.035-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.275.843-.039 1.096-.047 3.232-.047Zm0 2.451a4.107 4.107 0 1 0 0 8.214 4.107 4.107 0 0 0 0-8.214Zm0 6.771a2.664 2.664 0 1 1 0-5.328 2.664 2.664 0 0 1 0 5.328Zm5.23-6.933a1.14 1.14 0 1 1-2.279 0 1.14 1.14 0 0 1 2.279 0Z"/></svg>'
 };
 
+/* =========================================================================
+   RASTREAMENTO (Supabase)
+   Registra visitas, cliques e vídeos assistidos para aparecer no painel
+   administrativo (painel.html). Usa a mesma chave pública ("anon") do
+   Supabase; se o Supabase não carregar por algum motivo (bloqueador de
+   anúncios, sem internet), o site continua funcionando normalmente, o
+   rastreamento só é ignorado silenciosamente.
+   ========================================================================= */
+const SUPABASE_URL = "https://dqtoxxngjqyoibdgmrjr.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc";
+const sbRastreio = (window.supabase && typeof window.supabase.createClient === "function")
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+// Cada visitante recebe um identificador de sessão (dura enquanto a aba estiver aberta)
+function obterSessionId(){
+  const chave = "portfolio_session_id";
+  let id = sessionStorage.getItem(chave);
+  if (!id){
+    id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("sess-" + Date.now() + "-" + Math.random().toString(16).slice(2));
+    sessionStorage.setItem(chave, id);
+  }
+  return id;
+}
+
+// Registra um evento (page_view, button_click ou video_view). Nunca quebra o site em caso de erro.
+function registrarEvento(eventType, eventName, metadata){
+  if (!sbRastreio) return;
+  try {
+    sbRastreio.from("portfolio_events").insert({
+      event_type: eventType,
+      event_name: eventName || null,
+      session_id: obterSessionId(),
+      page_path: window.location.pathname,
+      metadata: metadata || null
+    }).then(() => {}).catch(() => {});
+  } catch (erro) { /* rastreamento não deve travar o site */ }
+}
+
+// Registra uma mensagem de contato (formulário) na tabela de leads
+function registrarLead(dados){
+  if (!sbRastreio) return Promise.resolve();
+  try {
+    return sbRastreio.from("portfolio_leads").insert(dados);
+  } catch (erro) {
+    return Promise.resolve();
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  // Registra a visita assim que a página carrega
+  registrarEvento("page_view", null, null);
+
 
   // ---------- Logo do cabeçalho ----------
   document.querySelector(".logo").innerHTML = `${CONFIG.perfil.nomeCurto} <span>${CONFIG.perfil.nome.split(" ").slice(1).join(" ")}</span>`;
@@ -1204,6 +1260,14 @@ document.addEventListener("DOMContentLoaded", () => {
     modalVideo.classList.add("aberto");
     modalFechar.focus();
     document.body.style.overflow = "hidden";
+
+    // Registra a visualização do vídeo para aparecer no painel administrativo
+    const itemPortfolio = CONFIG.portfolio.find(p => p.videoId === videoId);
+    registrarEvento("video_view", videoId, itemPortfolio ? {
+      title: itemPortfolio.titulo,
+      brand: itemPortfolio.marca,
+      category: itemPortfolio.categoria
+    } : null);
   }
 
   function fecharModalVideo(){
@@ -1266,15 +1330,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- Contatos diretos ----------
   document.getElementById("contatosDiretos").innerHTML = `
-    <a class="contato-item" href="${CONFIG.perfil.whatsappUrl}" target="_blank" rel="noopener">
+    <a class="contato-item" href="${CONFIG.perfil.whatsappUrl}" target="_blank" rel="noopener" data-contato="contact_whatsapp">
       <span class="contato-icone" aria-hidden="true">${ICONES_SVG.whatsapp}</span>
       <span><strong>WhatsApp</strong><span>${CONFIG.perfil.telefoneExibicao}</span></span>
     </a>
-    <a class="contato-item" href="mailto:${CONFIG.perfil.email}">
+    <a class="contato-item" href="mailto:${CONFIG.perfil.email}" data-contato="contact_email">
       <span class="contato-icone" aria-hidden="true">${ICONES_SVG.email}</span>
       <span><strong>E-mail</strong><span>${CONFIG.perfil.email}</span></span>
     </a>
-    <a class="contato-item" href="${CONFIG.perfil.instagramUrl}" target="_blank" rel="noopener">
+    <a class="contato-item" href="${CONFIG.perfil.instagramUrl}" target="_blank" rel="noopener" data-contato="contact_instagram">
       <span class="contato-icone" aria-hidden="true">${ICONES_SVG.instagram}</span>
       <span><strong>Instagram</strong><span>${CONFIG.perfil.instagramArroba}</span></span>
     </a>
@@ -1283,12 +1347,22 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- Rodapé ----------
   document.getElementById("rodapeLogo").textContent = CONFIG.perfil.nome;
   document.getElementById("rodapeRedes").innerHTML = `
-    <a href="${CONFIG.perfil.instagramUrl}" target="_blank" rel="noopener" aria-label="Instagram de ${CONFIG.perfil.nome}">${ICONES_SVG.instagram}</a>
-    <a href="${CONFIG.perfil.whatsappUrl}" target="_blank" rel="noopener" aria-label="WhatsApp de ${CONFIG.perfil.nome}">${ICONES_SVG.whatsapp}</a>
-    <a href="mailto:${CONFIG.perfil.email}" aria-label="E-mail de ${CONFIG.perfil.nome}">${ICONES_SVG.email}</a>
+    <a href="${CONFIG.perfil.instagramUrl}" target="_blank" rel="noopener" aria-label="Instagram de ${CONFIG.perfil.nome}" data-contato="contact_instagram">${ICONES_SVG.instagram}</a>
+    <a href="${CONFIG.perfil.whatsappUrl}" target="_blank" rel="noopener" aria-label="WhatsApp de ${CONFIG.perfil.nome}" data-contato="contact_whatsapp">${ICONES_SVG.whatsapp}</a>
+    <a href="mailto:${CONFIG.perfil.email}" aria-label="E-mail de ${CONFIG.perfil.nome}" data-contato="contact_email">${ICONES_SVG.email}</a>
   `;
   document.getElementById("rodapeCopy").textContent =
     `© ${new Date().getFullYear()} ${CONFIG.perfil.nome}. ${CONFIG.rodape.copyrightTexto}`;
+
+  // Registra cliques nos canais de contato (cartões da seção Contato + ícones do rodapé)
+  document.querySelectorAll("[data-contato]").forEach(link => {
+    link.addEventListener("click", () => registrarEvento("button_click", link.dataset.contato, null));
+  });
+
+  // Registra cliques nos botões de chamada para ação (Fale comigo, Ver portfólio)
+  document.querySelectorAll("[data-cta]").forEach(link => {
+    link.addEventListener("click", () => registrarEvento("button_click", link.dataset.cta, null));
+  });
 
   // =========================================================================
   // MENU HAMBÚRGUER
@@ -1379,6 +1453,15 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     window.location.href = `mailto:${CONFIG.perfil.email}?subject=${assunto}&body=${corpo}`;
+
+    // Registra a mensagem no painel administrativo e o clique no botão de enviar
+    registrarLead({
+      name: nome,
+      email: email,
+      message: mensagem,
+      source: "contact"
+    }).catch(() => {});
+    registrarEvento("button_click", "contact_formulario", null);
 
     mensagemConfirmacao.textContent =
       "Obrigada pelo contato! Seu aplicativo de e-mail deve abrir com a mensagem pronta. Se não abrir, me chame direto no WhatsApp ou envie um e-mail para " + CONFIG.perfil.email + ".";
