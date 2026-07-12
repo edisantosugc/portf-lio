@@ -12,14 +12,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Jost:wght@300;400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
 
 <style>
-  /* ===================== VARIÁVEIS DE COR (PALETA) ===================== */
+  /* ===================== VARIÁVEIS DE COR (PALETA) =====================
+     EDITE AQUI se quiser ajustar algum tom da paleta.
+     A variável --rosa guarda o tom dourado da nova paleta. O valor usado (#c9a66b) é
+     uma estimativa, já que a paleta enviada não veio com o código hexadecimal exato
+     do dourado; troque o valor abaixo se você tiver o código certo. */
   :root{
-    --creme: #ece3c8;
-    --creme-escuro: #ddd0a0;
-    --rosa: #f48aab;
-    --vermelho: #ec4128;
+    --creme: #f3eee9;       /* off-white: fundo principal */
+    --creme-escuro: #ccc2bc; /* cinza rosado: fundos e bordas suaves */
+    --rosa: #c9a66b;        /* dourado: destaques e detalhes */
+    --vermelho: #000080;    /* azul royal (tom enviado): cor de destaque principal (botões, links) */
     --tinta: #2a2622;
-    --branco: #fffaf0;
+    --branco: #ffffff;
     --sombra-dura: 6px 6px 0 var(--tinta);
     --sombra-dura-sm: 4px 4px 0 var(--tinta);
   }
@@ -1002,7 +1006,7 @@ const CONFIG = {
   },
 
   // EDITE AQUI: categorias do filtro de portfólio
-  categoriasPortfolio: ["Todos", "Saúde e Bem-estar", "Beleza e Autocuidado", "Moda e Acessórios"],
+  categoriasPortfolio: ["Saúde e Bem-estar", "Beleza e Autocuidado", "Moda e Acessórios"],
 
   // EDITE AQUI: trabalhos do portfólio, com vídeos reais hospedados no YouTube (modo não listado).
   // O campo "videoId" é o código que vem depois de "youtube.com/shorts/" no link do vídeo.
@@ -1091,9 +1095,11 @@ document.addEventListener("DOMContentLoaded", () => {
   ).join("");
 
   // ---------- Portfólio: galeria (vídeos reais do YouTube, modo não listado) ----------
+  // Como não existe mais a aba "Todos", a galeria já começa filtrada no primeiro nicho da lista.
+  const categoriaInicial = CONFIG.categoriasPortfolio[0];
   const galeriaEl = document.getElementById("galeriaPortfolio");
   galeriaEl.innerHTML = CONFIG.portfolio.map(item => `
-    <button type="button" class="item-portfolio foto-bloco ${item.gradiente} reveal" data-categoria="${item.categoria}" data-video-id="${item.videoId}" aria-label="Assistir vídeo UGC para a marca ${item.marca}">
+    <button type="button" class="item-portfolio foto-bloco ${item.gradiente} reveal${item.categoria === categoriaInicial ? "" : " escondido"}" data-categoria="${item.categoria}" data-video-id="${item.videoId}" aria-label="Assistir vídeo UGC para a marca ${item.marca}">
       <span class="foto-real" data-video-id="${item.videoId}" style="background-image:url('https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg');"></span>
       <span class="play-botao" aria-hidden="true"></span>
       <span class="item-info">
@@ -1132,7 +1138,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const categoria = btn.dataset.categoria;
     galeriaEl.querySelectorAll(".item-portfolio").forEach(item => {
-      const mostrar = categoria === "Todos" || item.dataset.categoria === categoria;
+      const mostrar = item.dataset.categoria === categoria;
       item.classList.toggle("escondido", !mostrar);
     });
   });
