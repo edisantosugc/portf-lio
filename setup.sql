@@ -62,12 +62,58 @@ grant select on public.portfolio_events to authenticated;
 grant select on public.portfolio_leads to authenticated;
 
 -- =====================================================================
--- IMPORTANTE:
--- De propósito, nenhuma policy de INSERT foi criada para o papel "anon"
--- (visitantes do site, não logados). A gravacao dos eventos (visitas,
--- cliques, videos assistidos) e das mensagens de contato deve ser feita
--- pelo SEU SERVIDOR (uma function/endpoint que usa a chave "service_role",
--- que nunca fica exposta no navegador) e nao diretamente pelo navegador
--- do visitante com a chave "anon". Isso evita que qualquer pessoa envie
--- eventos ou mensagens falsas direto pelo console do navegador dela.
+-- GRAVAÇÃO DOS EVENTOS E MENSAGENS (feita pelo navegador do visitante)
+--
+-- O portfólio (index.html) é um site 100% estático, sem servidor próprio,
+-- por isso a gravação dos eventos (visitas, cliques, vídeos assistidos)
+-- e das mensagens de contato é feita direto pelo navegador do visitante,
+-- usando a mesma chave pública ("anon"). Essas policies permitem GRAVAR
+-- mas não permitem LER: com a chave anon, qualquer pessoa pode enviar um
+-- evento ou uma mensagem, mas ninguém além de você (logada) consegue ler
+-- o que já foi enviado. Isso é o equilíbrio possível para um site sem
+-- servidor; o único risco real é alguém conseguir inserir eventos falsos
+-- (poluindo as estatísticas), não vazamento de dados.
 -- =====================================================================
+create policy "Visitantes podem registrar eventos"
+  on public.portfolio_events
+  for insert
+  to anon
+  with check (true);
+
+create policy "Visitantes podem enviar mensagens"
+  on public.portfolio_leads
+  for insert
+  to anon
+  with check (true);
+
+grant usage on schema public to anon;
+grant insert on public.portfolio_events to anon;
+grant insert on public.portfolio_leads to anon;
+
+-- =====================================================================
+-- AGENDA / PLANNER DIÁRIO (aba "Agenda" do painel)
+-- Tabela de tarefas do planner. Só você (autenticada) lê e escreve aqui,
+-- é uma ferramenta pessoal de organização dentro do painel.
+-- =====================================================================
+create table if not exists public.painel_tarefas (
+  id uuid primary key default gen_random_uuid(),
+  titulo text not null,
+  emoji text,                      -- emoji solto (ex: '🐾', '💻')
+  data date not null,              -- dia da tarefa (AAAA-MM-DD)
+  concluida boolean not null default false,
+  cor integer not null default 0,  -- índice de 0 a 4 escolhendo a cor do cartão
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_tarefas_data on public.painel_tarefas (data);
+
+alter table public.painel_tarefas enable row level security;
+
+create policy "Usuaria autenticada gerencia suas tarefas"
+  on public.painel_tarefas
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_tarefas to authenticated;

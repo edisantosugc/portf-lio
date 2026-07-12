@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Painel | Edilaine Santos</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦋</text></svg>">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -441,6 +442,185 @@
     gap: 20px;
   }
 
+  /* ===================== AGENDA / PLANNER DIÁRIO ===================== */
+  .grade-agenda{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .calendario-topo{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .calendario-topo h2{ margin-bottom: 0; }
+  .calendario-nav{ display: flex; gap: 8px; align-items: center; }
+  .calendario-nav button{
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--borda);
+    background: var(--branco);
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--grafite);
+  }
+  .calendario-nav button:hover{ border-color: var(--coral); color: var(--coral); }
+  .calendario-nav .mes-atual{
+    font-weight: 600;
+    min-width: 140px;
+    text-align: center;
+    text-transform: capitalize;
+  }
+  .calendario-botao-hoje{
+    padding: 6px 14px;
+    border-radius: 50px;
+    border: 1px solid var(--coral);
+    background: transparent;
+    color: var(--coral);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: .8rem;
+    cursor: pointer;
+    margin-left: 8px;
+  }
+  .calendario-botao-hoje:hover{ background: var(--coral); color: var(--branco); }
+
+  .calendario-grade{
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .calendario-diasemana{
+    text-align: center;
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--texto-suave);
+    text-transform: uppercase;
+    padding-bottom: 6px;
+  }
+  .calendario-dia{
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: var(--creme);
+    cursor: pointer;
+    font-size: .85rem;
+    color: var(--grafite);
+    position: relative;
+    font-family: 'Outfit', sans-serif;
+  }
+  .calendario-dia:hover{ border-color: var(--coral); }
+  .calendario-dia.vazio{ background: transparent; cursor: default; pointer-events: none; }
+  .calendario-dia.hoje{ font-weight: 700; border-color: var(--rosa, var(--coral)); }
+  .calendario-dia.selecionado{ background: var(--coral); color: var(--branco); }
+  .calendario-dia .bolinha-tarefa{
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--coral);
+    margin-top: 3px;
+  }
+  .calendario-dia.selecionado .bolinha-tarefa{ background: var(--branco); }
+
+  .agenda-dia-titulo{
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 14px;
+    text-transform: capitalize;
+  }
+
+  .form-tarefa{
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .form-tarefa input[type="text"]{
+    flex: 1;
+    min-width: 160px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--borda);
+    font-family: 'Outfit', sans-serif;
+    font-size: .9rem;
+    background: var(--creme);
+    color: var(--grafite);
+  }
+  .form-tarefa input[type="text"]:focus{ outline: none; border-color: var(--coral); }
+  .campo-emoji{
+    width: 56px;
+    text-align: center;
+    padding: 10px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--borda);
+    font-size: 1rem;
+    background: var(--creme);
+  }
+  .botao-add-tarefa{
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: none;
+    background: var(--coral);
+    color: var(--branco);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: .9rem;
+    cursor: pointer;
+  }
+  .botao-add-tarefa:hover{ background: var(--coral-escuro); }
+
+  .lista-tarefas{ display: flex; flex-direction: column; gap: 10px; }
+  .cartao-tarefa{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid var(--borda);
+  }
+  .cartao-tarefa.concluida{ opacity: .55; }
+  .cartao-tarefa.concluida .cartao-tarefa-titulo{ text-decoration: line-through; }
+  .cartao-tarefa-check{
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--grafite);
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem;
+    color: transparent;
+  }
+  .cartao-tarefa.concluida .cartao-tarefa-check{
+    background: var(--verde);
+    border-color: var(--verde);
+    color: var(--branco);
+  }
+  .cartao-tarefa-emoji{ font-size: 1.2rem; flex-shrink: 0; }
+  .cartao-tarefa-titulo{ flex-grow: 1; font-size: .92rem; }
+  .cartao-tarefa-excluir{
+    background: none;
+    border: none;
+    color: var(--texto-suave);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 4px 8px;
+    flex-shrink: 0;
+  }
+  .cartao-tarefa-excluir:hover{ color: var(--vermelho); }
+
+  /* Tons pastéis para diferenciar os cartões de tarefa, na mesma paleta do painel */
+  .tarefa-cor-0{ background: #eef1e8; }
+  .tarefa-cor-1{ background: #fdf1df; }
+  .tarefa-cor-2{ background: #f7e6e6; }
+  .tarefa-cor-3{ background: #e7eef2; }
+  .tarefa-cor-4{ background: #efe6f2; }
+
   /* ===================== RESPONSIVO ===================== */
   @media (max-width: 900px){
     .sidebar{
@@ -483,6 +663,10 @@
       <button class="menu-item" data-tab="portfolio">
         <svg viewBox="0 0 16 16"><path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/></svg>
         Portfólio
+      </button>
+      <button class="menu-item" data-tab="agenda">
+        <svg viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5ZM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1Z"/></svg>
+        Agenda
       </button>
     </nav>
 
@@ -550,6 +734,35 @@
         </div>
       </div>
     </section>
+
+    <!-- ===================== ABA: AGENDA ===================== -->
+    <section id="painelAgenda" class="painel-tab oculto">
+      <div class="grade-agenda">
+        <div class="cartao">
+          <div class="calendario-topo">
+            <h2 id="calendarioMesTitulo"></h2>
+            <div class="calendario-nav">
+              <button type="button" id="calendarioMesAnterior" aria-label="Mês anterior">&#8249;</button>
+              <button type="button" id="calendarioMesProximo" aria-label="Próximo mês">&#8250;</button>
+              <button type="button" class="calendario-botao-hoje" id="calendarioBotaoHoje">Hoje</button>
+            </div>
+          </div>
+          <div class="calendario-grade" id="calendarioGrade"></div>
+        </div>
+
+        <div class="cartao">
+          <p class="agenda-dia-titulo" id="agendaDiaTitulo"></p>
+
+          <form class="form-tarefa" id="formTarefa">
+            <input type="text" id="campoTarefaTitulo" placeholder="Nova tarefa..." required>
+            <input type="text" class="campo-emoji" id="campoTarefaEmoji" placeholder="🐾" maxlength="4">
+            <button type="submit" class="botao-add-tarefa">Adicionar</button>
+          </form>
+
+          <div class="lista-tarefas" id="listaTarefas"></div>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -562,7 +775,22 @@
      ========================================================================= */
   let eventosCache = [];
   let leadsCache = [];
+  let tarefasCache = [];
   let periodoAtual = "tudo";
+
+  // Estado da aba Agenda: mês/ano exibidos no calendário e o dia selecionado no planner
+  const hojeAgenda = new Date();
+  let mesVisivel = hojeAgenda.getMonth();
+  let anoVisivel = hojeAgenda.getFullYear();
+  let dataSelecionada = formatarDataISO(hojeAgenda);
+
+  // Formata uma data como AAAA-MM-DD (mesmo formato usado na coluna "data" do Supabase)
+  function formatarDataISO(data){
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
+    const dia = String(data.getDate()).padStart(2, "0");
+    return `${ano}-${mes}-${dia}`;
+  }
 
   /* =========================================================================
      INICIALIZAÇÃO
@@ -578,15 +806,18 @@
     configurarEventosDeInterface();
 
     try {
-      const [eventos, leads] = await Promise.all([
+      const [eventos, leads, tarefas] = await Promise.all([
         buscarTudo("portfolio_events"),
-        buscarTudo("portfolio_leads")
+        buscarTudo("portfolio_leads"),
+        buscarTudo("painel_tarefas")
       ]);
       eventosCache = eventos;
       leadsCache = leads;
+      tarefasCache = tarefas;
 
       document.getElementById("areaCarregando").classList.add("oculto");
       renderizarTudo();
+      renderizarAgenda();
     } catch (erro) {
       console.error(erro);
       document.getElementById("areaCarregando").classList.add("oculto");
@@ -641,6 +872,26 @@
     });
 
     document.getElementById("overlayMobile").addEventListener("click", fecharGaveta);
+
+    // ---------- Agenda ----------
+    document.getElementById("calendarioMesAnterior").addEventListener("click", () => {
+      mesVisivel--;
+      if (mesVisivel < 0){ mesVisivel = 11; anoVisivel--; }
+      renderizarCalendario();
+    });
+    document.getElementById("calendarioMesProximo").addEventListener("click", () => {
+      mesVisivel++;
+      if (mesVisivel > 11){ mesVisivel = 0; anoVisivel++; }
+      renderizarCalendario();
+    });
+    document.getElementById("calendarioBotaoHoje").addEventListener("click", () => {
+      const hoje = new Date();
+      mesVisivel = hoje.getMonth();
+      anoVisivel = hoje.getFullYear();
+      dataSelecionada = formatarDataISO(hoje);
+      renderizarAgenda();
+    });
+    document.getElementById("formTarefa").addEventListener("submit", adicionarTarefa);
   }
 
   function fecharGaveta(){
@@ -652,7 +903,14 @@
     document.querySelectorAll(".menu-item").forEach(b => b.classList.toggle("ativo", b.dataset.tab === aba));
     document.getElementById("painelPrincipal").classList.toggle("oculto", aba !== "principal");
     document.getElementById("painelPortfolio").classList.toggle("oculto", aba !== "portfolio");
-    document.getElementById("tituloTopo").textContent = aba === "principal" ? "Menu Principal" : "Portfólio";
+    document.getElementById("painelAgenda").classList.toggle("oculto", aba !== "agenda");
+
+    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda" };
+    document.getElementById("tituloTopo").textContent = titulos[aba];
+
+    // O filtro de período (Tudo/7d/30d/90d) não se aplica à Agenda, então some nessa aba
+    document.getElementById("filtroPeriodo").classList.toggle("oculto", aba === "agenda");
+
     fecharGaveta();
   }
 
@@ -916,6 +1174,150 @@
         btn.classList.toggle("aberto");
       });
     });
+  }
+
+  /* =========================================================================
+     ABA: AGENDA (calendário + planner diário)
+     ========================================================================= */
+  const NOMES_MES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  const NOMES_DIA_SEMANA = ["dom","seg","ter","qua","qui","sex","sáb"];
+
+  function renderizarAgenda(){
+    renderizarCalendario();
+    renderizarTarefasDoDia();
+  }
+
+  function renderizarCalendario(){
+    document.getElementById("calendarioMesTitulo").textContent = `${NOMES_MES[mesVisivel]} de ${anoVisivel}`;
+
+    const hojeISO = formatarDataISO(new Date());
+    const primeiroDiaSemana = new Date(anoVisivel, mesVisivel, 1).getDay();
+    const totalDiasMes = new Date(anoVisivel, mesVisivel + 1, 0).getDate();
+
+    // Dias com pelo menos uma tarefa, para mostrar a bolinha no calendário
+    const diasComTarefa = new Set(tarefasCache.map(t => t.data));
+
+    let html = NOMES_DIA_SEMANA.map(d => `<div class="calendario-diasemana">${d}</div>`).join("");
+
+    for (let i = 0; i < primeiroDiaSemana; i++){
+      html += `<div class="calendario-dia vazio"></div>`;
+    }
+
+    for (let dia = 1; dia <= totalDiasMes; dia++){
+      const dataISO = formatarDataISO(new Date(anoVisivel, mesVisivel, dia));
+      const classes = ["calendario-dia"];
+      if (dataISO === hojeISO) classes.push("hoje");
+      if (dataISO === dataSelecionada) classes.push("selecionado");
+      const bolinha = diasComTarefa.has(dataISO) ? '<span class="bolinha-tarefa"></span>' : "";
+      html += `<button type="button" class="${classes.join(" ")}" data-data="${dataISO}">${dia}${bolinha}</button>`;
+    }
+
+    const grade = document.getElementById("calendarioGrade");
+    grade.innerHTML = html;
+
+    grade.querySelectorAll(".calendario-dia[data-data]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        dataSelecionada = btn.dataset.data;
+        renderizarAgenda();
+      });
+    });
+  }
+
+  function renderizarTarefasDoDia(){
+    const [ano, mes, dia] = dataSelecionada.split("-");
+    const dataExibicao = new Date(Number(ano), Number(mes) - 1, Number(dia));
+    const hojeISO = formatarDataISO(new Date());
+    const prefixo = dataSelecionada === hojeISO ? "Hoje, " : "";
+    document.getElementById("agendaDiaTitulo").textContent =
+      prefixo + dataExibicao.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
+
+    const tarefasDoDia = tarefasCache
+      .filter(t => t.data === dataSelecionada)
+      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+    const lista = document.getElementById("listaTarefas");
+
+    if (tarefasDoDia.length === 0){
+      lista.innerHTML = '<p class="texto-vazio">Nenhuma tarefa para esse dia ainda.</p>';
+      return;
+    }
+
+    lista.innerHTML = tarefasDoDia.map(t => `
+      <div class="cartao-tarefa tarefa-cor-${t.cor % 5} ${t.concluida ? "concluida" : ""}" data-id="${t.id}">
+        <button type="button" class="cartao-tarefa-check" data-acao="concluir" aria-label="Marcar como concluída">&#10003;</button>
+        <span class="cartao-tarefa-emoji">${t.emoji || "📌"}</span>
+        <span class="cartao-tarefa-titulo">${t.titulo}</span>
+        <button type="button" class="cartao-tarefa-excluir" data-acao="excluir" aria-label="Excluir tarefa">&times;</button>
+      </div>
+    `).join("");
+
+    lista.querySelectorAll("[data-acao='concluir']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.closest(".cartao-tarefa").dataset.id;
+        alternarConcluida(id);
+      });
+    });
+    lista.querySelectorAll("[data-acao='excluir']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.closest(".cartao-tarefa").dataset.id;
+        excluirTarefa(id);
+      });
+    });
+  }
+
+  async function adicionarTarefa(e){
+    e.preventDefault();
+    const campoTitulo = document.getElementById("campoTarefaTitulo");
+    const campoEmoji = document.getElementById("campoTarefaEmoji");
+    const titulo = campoTitulo.value.trim();
+    if (!titulo) return;
+
+    const corIndice = tarefasCache.filter(t => t.data === dataSelecionada).length % 5;
+
+    const { data, error } = await Auth.client
+      .from("painel_tarefas")
+      .insert({
+        titulo: titulo,
+        emoji: campoEmoji.value.trim() || null,
+        data: dataSelecionada,
+        cor: corIndice
+      })
+      .select();
+
+    if (!error && data){
+      tarefasCache = tarefasCache.concat(data);
+      campoTitulo.value = "";
+      campoEmoji.value = "";
+      renderizarAgenda();
+    }
+  }
+
+  async function alternarConcluida(id){
+    const tarefa = tarefasCache.find(t => t.id === id);
+    if (!tarefa) return;
+    const novoValor = !tarefa.concluida;
+
+    const { error } = await Auth.client
+      .from("painel_tarefas")
+      .update({ concluida: novoValor })
+      .eq("id", id);
+
+    if (!error){
+      tarefa.concluida = novoValor;
+      renderizarTarefasDoDia();
+    }
+  }
+
+  async function excluirTarefa(id){
+    const { error } = await Auth.client
+      .from("painel_tarefas")
+      .delete()
+      .eq("id", id);
+
+    if (!error){
+      tarefasCache = tarefasCache.filter(t => t.id !== id);
+      renderizarAgenda();
+    }
   }
 </script>
 </body>
