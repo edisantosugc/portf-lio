@@ -591,7 +591,8 @@
       console.error(erro);
       document.getElementById("areaCarregando").classList.add("oculto");
       const areaErro = document.getElementById("areaErro");
-      areaErro.textContent = "Não foi possível carregar os dados agora. Tente recarregar a página.";
+      const detalhe = (erro && (erro.message || erro.error_description || erro.details)) || String(erro);
+      areaErro.textContent = "Não foi possível carregar os dados agora. Detalhe técnico: " + detalhe;
       areaErro.classList.remove("oculto");
     }
   })();
