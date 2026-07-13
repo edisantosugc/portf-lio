@@ -12,6 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
   /* ===================== VARIÁVEIS DO DESIGN SYSTEM ===================== */
@@ -445,6 +446,34 @@
   }
 
   /* ===================== AGENDA / PLANNER DIÁRIO ===================== */
+  .linha-sincronizar-google{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .botao-sincronizar-google{
+    padding: 9px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--coral);
+    background: var(--branco);
+    color: var(--coral);
+    font-family: 'Outfit', sans-serif;
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+  }
+  .botao-sincronizar-google:hover{ background: var(--coral); color: var(--branco); }
+  .botao-sincronizar-google:disabled{ opacity: .6; cursor: not-allowed; }
+  .status-sincronizar-google{
+    font-size: .8rem;
+    color: var(--texto-suave);
+  }
+  .status-sincronizar-google.erro{ color: var(--vermelho); }
+  .status-sincronizar-google.sucesso{ color: var(--verde); }
+
   .grade-agenda{
     display: grid;
     grid-template-columns: minmax(240px, 300px) 1fr;
@@ -1201,6 +1230,10 @@
 
     <!-- ===================== ABA: AGENDA ===================== -->
     <section id="painelAgenda" class="painel-tab oculto">
+      <div class="linha-sincronizar-google">
+        <button type="button" class="botao-sincronizar-google" id="botaoSincronizarGoogle">&#8635; Sincronizar com Google</button>
+        <span class="status-sincronizar-google" id="statusSincronizarGoogle"></span>
+      </div>
       <div class="grade-agenda">
         <div class="cartao">
           <div class="calendario-topo">
@@ -1222,7 +1255,7 @@
             <input type="time" class="campo-horario" id="campoTarefaHorario">
             <input type="text" class="campo-emoji" id="campoTarefaEmoji" placeholder="🐾" maxlength="4">
             <div class="seletor-tipo-tarefa" id="seletorTipoTarefa">
-              <button type="button" class="tipo-tarefa-btn ugc ativo" data-tipo="ugc">● UGC</button>
+              <button type="button" class="tipo-tarefa-btn ugc ativo" data-tipo="ugc">● UGC / INFLU</button>
               <button type="button" class="tipo-tarefa-btn pessoal" data-tipo="pessoal">● PESSOAL</button>
               <button type="button" class="tipo-tarefa-btn instagram" data-tipo="instagram">● INSTAGRAM</button>
             </div>
@@ -1391,6 +1424,12 @@
   let anoVisivel = hojeAgenda.getFullYear();
   let dataSelecionada = formatarDataISO(hojeAgenda);
   let tipoTarefaSelecionado = "ugc";
+
+  // Sincronização manual com o Google Agenda (ver GOOGLE_SYNC mais abaixo)
+  const GOOGLE_CLIENT_ID = "773419895736-v6km29vgdjgbjnprrfkk738cp91imt0t.apps.googleusercontent.com";
+  const GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.events";
+  let googleTokenClient = null;
+  let googleSincronizando = false;
 
   // Estado da aba Finanças: mês/ano exibidos e o filtro de cartão selecionado
   let mesFinancasVisivel = hojeAgenda.getMonth();
@@ -1583,6 +1622,8 @@
         document.querySelectorAll("#seletorTipoTarefa .tipo-tarefa-btn").forEach(b => b.classList.toggle("ativo", b.dataset.tipo === tipoTarefaSelecionado));
       });
     });
+
+    document.getElementById("botaoSincronizarGoogle").addEventListener("click", iniciarSincronizacaoGoogle);
 
     // ---------- Finanças ----------
     document.getElementById("financasMesAnterior").addEventListener("click", () => {
@@ -2001,7 +2042,7 @@
     const t = normalizarTipoTarefa(tipo);
     if (t === "instagram") return "INSTAGRAM";
     if (t === "pessoal") return "PESSOAL";
-    return "UGC";
+    return "UGC / INFLU";
   }
 
   function renderizarTarefasDoDia(){
@@ -2078,7 +2119,7 @@
       <input type="time" id="edicaoTarefaHorario-${id}" value="${tarefa.horario ? tarefa.horario.slice(0, 5) : ""}">
       <input type="text" id="edicaoTarefaTitulo-${id}" value="${tarefa.titulo}" style="flex-grow: 1; min-width: 100px;">
       <div class="seletor-tipo-tarefa" id="seletorTipoEdicao-${id}">
-        <button type="button" class="tipo-tarefa-btn ugc ${tipoAtual === "ugc" ? "ativo" : ""}" data-tipo="ugc">● UGC</button>
+        <button type="button" class="tipo-tarefa-btn ugc ${tipoAtual === "ugc" ? "ativo" : ""}" data-tipo="ugc">● UGC / INFLU</button>
         <button type="button" class="tipo-tarefa-btn pessoal ${tipoAtual === "pessoal" ? "ativo" : ""}" data-tipo="pessoal">● PESSOAL</button>
         <button type="button" class="tipo-tarefa-btn instagram ${tipoAtual === "instagram" ? "ativo" : ""}" data-tipo="instagram">● INSTAGRAM</button>
       </div>
@@ -2186,6 +2227,153 @@
       tarefasCache = tarefasCache.filter(t => t.id !== id);
       renderizarAgenda();
     }
+  }
+
+  /* =========================================================================
+     SINCRONIZAÇÃO MANUAL COM O GOOGLE AGENDA
+     Botão "Sincronizar com Google" na aba Agenda. Como o site é 100% estático
+     (sem servidor), a autorização é feita direto no navegador (Google Identity
+     Services) e o token de acesso dura só ~1 hora — por isso a sincronização
+     é manual (um clique) e não automática em tempo real.
+     ========================================================================= */
+  function mostrarStatusSincronizacao(texto, tipo){
+    const status = document.getElementById("statusSincronizarGoogle");
+    status.textContent = texto;
+    status.className = "status-sincronizar-google" + (tipo ? " " + tipo : "");
+  }
+
+  function iniciarSincronizacaoGoogle(){
+    if (googleSincronizando) return;
+
+    if (!window.google || !google.accounts || !google.accounts.oauth2){
+      mostrarStatusSincronizacao("Não foi possível carregar o Google. Tente recarregar a página.", "erro");
+      return;
+    }
+
+    if (!googleTokenClient){
+      googleTokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: GOOGLE_CALENDAR_SCOPE,
+        callback: (resposta) => {
+          if (resposta.error){
+            mostrarStatusSincronizacao("Não foi possível autorizar o acesso ao Google Agenda.", "erro");
+            return;
+          }
+          sincronizarComGoogle(resposta.access_token);
+        }
+      });
+    }
+
+    googleTokenClient.requestAccessToken({ prompt: "" });
+  }
+
+  async function sincronizarComGoogle(accessToken){
+    googleSincronizando = true;
+    const botao = document.getElementById("botaoSincronizarGoogle");
+    botao.disabled = true;
+    mostrarStatusSincronizacao("Sincronizando...", "");
+
+    const fusoHorario = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    try {
+      // ---------- 1) Envia para o Google as tarefas daqui que ainda não foram enviadas ----------
+      const tarefasParaEnviar = tarefasCache.filter(t => !t.google_event_id);
+
+      for (const tarefa of tarefasParaEnviar){
+        const corpoEvento = tarefa.horario
+          ? {
+              summary: (tarefa.emoji ? tarefa.emoji + " " : "") + tarefa.titulo,
+              start: { dateTime: `${tarefa.data}T${tarefa.horario.slice(0, 5)}:00`, timeZone: fusoHorario },
+              end: { dateTime: `${tarefa.data}T${tarefa.horario.slice(0, 5)}:00`, timeZone: fusoHorario }
+            }
+          : {
+              summary: (tarefa.emoji ? tarefa.emoji + " " : "") + tarefa.titulo,
+              start: { date: tarefa.data },
+              end: { date: tarefa.data }
+            };
+
+        const resposta = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + accessToken,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(corpoEvento)
+        });
+
+        if (resposta.ok){
+          const eventoCriado = await resposta.json();
+          await Auth.client
+            .from("painel_tarefas")
+            .update({ google_event_id: eventoCriado.id })
+            .eq("id", tarefa.id);
+          tarefa.google_event_id = eventoCriado.id;
+        }
+      }
+
+      // ---------- 2) Traz do Google os eventos que ainda não existem aqui ----------
+      const agora = new Date();
+      const dataMin = new Date(agora); dataMin.setDate(dataMin.getDate() - 30);
+      const dataMax = new Date(agora); dataMax.setDate(dataMax.getDate() + 180);
+
+      const parametros = new URLSearchParams({
+        timeMin: dataMin.toISOString(),
+        timeMax: dataMax.toISOString(),
+        singleEvents: "true",
+        orderBy: "startTime",
+        maxResults: "250"
+      });
+
+      const respostaLista = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${parametros}`, {
+        headers: { "Authorization": "Bearer " + accessToken }
+      });
+
+      if (respostaLista.ok){
+        const listaEventos = await respostaLista.json();
+        const idsConhecidos = new Set(tarefasCache.map(t => t.google_event_id).filter(Boolean));
+        const novasTarefas = [];
+
+        for (const evento of (listaEventos.items || [])){
+          if (evento.status === "cancelled") continue;
+          if (idsConhecidos.has(evento.id)) continue;
+
+          const ehDiaInteiro = !!evento.start.date;
+          const dataTarefa = ehDiaInteiro ? evento.start.date : formatarDataISO(new Date(evento.start.dateTime));
+          const horarioTarefa = ehDiaInteiro ? null : new Date(evento.start.dateTime).toTimeString().slice(0, 5);
+          const corIndice = tarefasCache.filter(t => t.data === dataTarefa).length % 5;
+
+          novasTarefas.push({
+            titulo: evento.summary || "(sem título)",
+            emoji: null,
+            horario: horarioTarefa,
+            data: dataTarefa,
+            cor: corIndice,
+            tipo: "pessoal",
+            google_event_id: evento.id
+          });
+        }
+
+        if (novasTarefas.length > 0){
+          const { data: tarefasInseridas, error } = await Auth.client
+            .from("painel_tarefas")
+            .insert(novasTarefas)
+            .select();
+
+          if (!error && tarefasInseridas){
+            tarefasCache = tarefasCache.concat(tarefasInseridas);
+          }
+        }
+      }
+
+      renderizarAgenda();
+      const agoraTexto = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      mostrarStatusSincronizacao(`Sincronizado às ${agoraTexto}.`, "sucesso");
+    } catch (erro) {
+      mostrarStatusSincronizacao("Algo deu errado na sincronização. Tente novamente.", "erro");
+    }
+
+    googleSincronizando = false;
+    botao.disabled = false;
   }
 
   /* =========================================================================
