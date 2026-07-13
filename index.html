@@ -433,8 +433,22 @@
   }
   .sobre-foto{ aspect-ratio: 1 / 1; transform: rotate(-2deg); }
   .sobre-texto p{ margin-bottom: 16px; color: #4a453e; font-size: 1.05rem; }
-  .sobre-lista{ margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
-  .sobre-lista li{ display: flex; align-items: center; gap: 10px; font-weight: 500; }
+  .sobre-texto .nome-destaque{ color: var(--vermelho); }
+  .sobre-lista{ margin-top: 22px; display: flex; flex-wrap: wrap; gap: 12px; }
+  .sobre-lista li.chip-sobre{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Lato', sans-serif;
+    font-weight: 600;
+    font-size: .95rem;
+    color: var(--vermelho);
+    background: var(--branco);
+    border: 2px dashed var(--vermelho);
+    border-radius: 50px;
+    padding: 6px 18px;
+  }
+  .sobre-lista li.chip-azul{ background: rgba(0,0,128,.07); }
   .check-bolinha{
     width: 26px; height: 26px; border-radius: 50%;
     background: var(--vermelho); color: var(--branco);
@@ -1099,16 +1113,16 @@ const CONFIG = {
 
   // EDITE AQUI: texto e destaques da seção Sobre
   sobre: {
-    titulo: "Quem é Edilaine Santos",
+    titulo: "Oiee, me chamo <span class=\"nome-destaque\">Edilaine Santos</span>",
     paragrafos: [
-      "Oi, eu sou a Edilaine! Crio conteúdo autêntico que conecta marcas de verdade com pessoas de verdade. Meu trabalho começa muito antes da câmera ligar, com pesquisa do produto, entendimento do público e um roteiro pensado para gerar resultado.",
-      "Já entreguei conteúdo para marcas de beleza, moda, alimentação, fitness e viagem, sempre com a mesma entrega: vídeos que parecem recomendação de amiga, não propaganda. É esse tipo de conteúdo que hoje mais converte nas redes sociais."
+      "Tenho 30 anos, sou mineira e UGC Creator. Escrever sempre fez parte de mim. Desde pequena eu já transformava sentimento em palavra, criava história, achava sentido até nas coisas mais simples do dia a dia. Com o tempo, isso virou meu maior diferencial no UGC: pegar uma marca e transformar ela em conteúdo que gera identificação, confiança e aproxima.",
+      "<strong>Já trabalhei com mais de 100 marcas</strong>, produzindo <strong>centenas de conteúdos</strong>, transitando por vários estilos e formatos. Mas storytelling é o que faz a marca ser lembrada depois do vídeo, porque anúncio informa e história conecta.",
+      "Meu trabalho vai além de criar conteúdo: é entender a essência de cada marca e transformar isso em narrativa que <strong>fortalece a relação com o público e traz resultado</strong>.",
+      "Porque o que fica é sentimento. <strong>E sentimento vira confiança. E confiança vira resultado.</strong>"
     ],
     destaques: [
-      "Entrega rápida e dentro do prazo combinado",
-      "Comunicação profissional do início ao fim",
-      "Direitos de uso claros para anúncios pagos",
-      "Conteúdo pensado para performar, não só para agradar"
+      "+100 MARCAS TRABALHADAS",
+      "📍 HORTOLÂNDIA – SP"
     ]
   },
 
@@ -1289,10 +1303,10 @@ document.addEventListener("DOMContentLoaded", () => {
   marqueeEl.innerHTML = `<div class="marquee-grupo">${grupoHtml}</div><div class="marquee-grupo" aria-hidden="true">${grupoHtml}</div>`;
 
   // ---------- Sobre ----------
-  document.getElementById("sobreTitulo").textContent = CONFIG.sobre.titulo;
+  document.getElementById("sobreTitulo").innerHTML = CONFIG.sobre.titulo;
   document.getElementById("sobreTexto").innerHTML = CONFIG.sobre.paragrafos.map(p => `<p>${p}</p>`).join("");
   document.getElementById("sobreLista").innerHTML = CONFIG.sobre.destaques
-    .map(item => `<li><span class="check-bolinha">✓</span>${item}</li>`).join("");
+    .map((item, i) => `<li class="chip-sobre${i === 0 ? " chip-azul" : ""}">${item}</li>`).join("");
 
   // ---------- Portfólio: filtros ----------
   const filtrosEl = document.getElementById("filtrosPortfolio");
