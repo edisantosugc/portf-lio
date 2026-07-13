@@ -2218,6 +2218,17 @@
   }
 
   async function excluirTarefa(id){
+    const tarefa = tarefasCache.find(t => t.id === id);
+
+    // Se essa tarefa já tinha sido enviada pro Google, guarda o id do evento
+    // numa fila de exclusões pendentes: só na próxima sincronização o painel
+    // consegue avisar o Google que o evento deve ser apagado de lá também.
+    if (tarefa && tarefa.google_event_id){
+      await Auth.client
+        .from("painel_tarefas_google_exclusoes")
+        .upsert({ google_event_id: tarefa.google_event_id });
+    }
+
     const { error } = await Auth.client
       .from("painel_tarefas")
       .delete()
@@ -2275,21 +2286,49 @@
 
     const fusoHorario = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+    // Cores padrão do Google Agenda usadas pra marcar a categoria da tarefa nos dois sentidos:
+    // 9 = Blueberry (azul/índigo) = UGC/Influ | 5 = Banana (amarelo) = Pessoal | 11 = Tomato (vermelho) = Instagram
+    const TIPO_PARA_COR_GOOGLE = { ugc: "9", pessoal: "5", instagram: "11" };
+    const COR_GOOGLE_PARA_TIPO = { "9": "ugc", "5": "pessoal", "11": "instagram" };
+
     try {
+      // ---------- 0) Aplica no Google as exclusões feitas aqui no painel desde a última sincronização ----------
+      const { data: exclusoesPendentes } = await Auth.client
+        .from("painel_tarefas_google_exclusoes")
+        .select("*");
+
+      for (const exclusao of (exclusoesPendentes || [])){
+        const respostaExclusao = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${exclusao.google_event_id}`, {
+          method: "DELETE",
+          headers: { "Authorization": "Bearer " + accessToken }
+        });
+
+        // 204 = apagado agora | 404/410 = já não existia mais no Google, tudo bem
+        if (respostaExclusao.ok || respostaExclusao.status === 404 || respostaExclusao.status === 410){
+          await Auth.client
+            .from("painel_tarefas_google_exclusoes")
+            .delete()
+            .eq("google_event_id", exclusao.google_event_id);
+        }
+      }
+
       // ---------- 1) Envia para o Google as tarefas daqui que ainda não foram enviadas ----------
       const tarefasParaEnviar = tarefasCache.filter(t => !t.google_event_id);
 
       for (const tarefa of tarefasParaEnviar){
+        const corGoogle = TIPO_PARA_COR_GOOGLE[normalizarTipoTarefa(tarefa.tipo)];
         const corpoEvento = tarefa.horario
           ? {
               summary: (tarefa.emoji ? tarefa.emoji + " " : "") + tarefa.titulo,
               start: { dateTime: `${tarefa.data}T${tarefa.horario.slice(0, 5)}:00`, timeZone: fusoHorario },
-              end: { dateTime: `${tarefa.data}T${tarefa.horario.slice(0, 5)}:00`, timeZone: fusoHorario }
+              end: { dateTime: `${tarefa.data}T${tarefa.horario.slice(0, 5)}:00`, timeZone: fusoHorario },
+              colorId: corGoogle
             }
           : {
               summary: (tarefa.emoji ? tarefa.emoji + " " : "") + tarefa.titulo,
               start: { date: tarefa.data },
-              end: { date: tarefa.data }
+              end: { date: tarefa.data },
+              colorId: corGoogle
             };
 
         const resposta = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
@@ -2348,7 +2387,7 @@
             horario: horarioTarefa,
             data: dataTarefa,
             cor: corIndice,
-            tipo: "pessoal",
+            tipo: COR_GOOGLE_PARA_TIPO[evento.colorId] || "pessoal",
             google_event_id: evento.id
           });
         }
@@ -2362,6 +2401,24 @@
           if (!error && tarefasInseridas){
             tarefasCache = tarefasCache.concat(tarefasInseridas);
           }
+        }
+
+        // ---------- 3) Tarefas que sumiram do Google (dentro da janela consultada) também saem daqui ----------
+        const idsAtuaisNoGoogle = new Set((listaEventos.items || []).filter(e => e.status !== "cancelled").map(e => e.id));
+        const dataMinISO = formatarDataISO(dataMin);
+        const dataMaxISO = formatarDataISO(dataMax);
+        const tarefasApagadasNoGoogle = tarefasCache.filter(t =>
+          t.google_event_id &&
+          t.data >= dataMinISO && t.data <= dataMaxISO &&
+          !idsAtuaisNoGoogle.has(t.google_event_id)
+        );
+
+        for (const tarefa of tarefasApagadasNoGoogle){
+          await Auth.client.from("painel_tarefas").delete().eq("id", tarefa.id);
+        }
+        if (tarefasApagadasNoGoogle.length > 0){
+          const idsApagados = new Set(tarefasApagadasNoGoogle.map(t => t.id));
+          tarefasCache = tarefasCache.filter(t => !idsApagados.has(t.id));
         }
       }
 
