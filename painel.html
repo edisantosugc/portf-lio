@@ -62,6 +62,7 @@
     position: sticky;
     top: 0;
     height: 100vh;
+    overflow-y: auto;
   }
   .sidebar-topo .logo{
     font-family: 'Fraunces', serif;
@@ -653,6 +654,374 @@
   .tarefa-cor-3{ background: #e7eef2; }
   .tarefa-cor-4{ background: #efe6f2; }
 
+  /* ===================== FINANÇAS ===================== */
+  .financas-mes-topo{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .financas-mes-nav{ display: flex; align-items: center; gap: 8px; }
+  .financas-mes-nav button{
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--borda);
+    background: var(--branco);
+    cursor: pointer;
+    font-size: .9rem;
+    color: var(--grafite);
+  }
+  .financas-mes-nav button:hover{ border-color: var(--coral); color: var(--coral); }
+  .financas-mes-titulo{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.2rem;
+    min-width: 170px;
+    text-align: center;
+    text-transform: capitalize;
+  }
+  .financas-mes-hoje{
+    padding: 5px 12px;
+    border-radius: 50px;
+    border: 1px solid var(--coral);
+    background: transparent;
+    color: var(--coral);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: .75rem;
+    cursor: pointer;
+  }
+  .financas-mes-hoje:hover{ background: var(--coral); color: var(--branco); }
+
+  .form-lancamento{
+    display: grid;
+    grid-template-columns: 1fr 1fr 120px 130px 130px;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .form-lancamento input, .form-lancamento select{
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--borda);
+    font-family: 'Outfit', sans-serif;
+    font-size: .85rem;
+    background: var(--creme);
+    color: var(--grafite);
+    width: 100%;
+  }
+  .form-lancamento input:focus, .form-lancamento select:focus{ outline: none; border-color: var(--coral); }
+  .form-lancamento-parcelas{
+    display: none;
+    grid-column: 1 / -1;
+    gap: 10px;
+    align-items: center;
+    font-size: .82rem;
+    color: var(--texto-suave);
+    flex-wrap: wrap;
+  }
+  .form-lancamento-parcelas.visivel{ display: flex; }
+  .form-lancamento-parcelas input{
+    width: 70px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--borda);
+    background: var(--creme);
+  }
+  .form-lancamento-check{ display: flex; align-items: center; gap: 6px; grid-column: 1 / -1; font-size: .85rem; color: var(--grafite); }
+  .botao-add-lancamento{
+    grid-column: 1 / -1;
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: none;
+    background: var(--coral);
+    color: var(--branco);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: .9rem;
+    cursor: pointer;
+    justify-self: start;
+  }
+  .botao-add-lancamento:hover{ background: var(--coral-escuro); }
+
+  .financas-totais{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px;
+    margin: 20px 0;
+  }
+  .financas-total-cartao{
+    background: var(--creme);
+    border-radius: 12px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .financas-total-cartao.geral{ background: var(--coral); }
+  .financas-total-cartao.geral .financas-total-valor,
+  .financas-total-cartao.geral .financas-total-nome{ color: var(--branco); }
+  .financas-total-nome{ font-size: .72rem; color: var(--texto-suave); text-transform: uppercase; font-weight: 600; }
+  .financas-total-valor{ font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.05rem; margin-top: 2px; }
+
+  .tabela-lancamentos{ width: 100%; border-collapse: collapse; font-size: .85rem; }
+  .tabela-lancamentos th{
+    text-align: left;
+    padding: 8px 10px;
+    color: var(--texto-suave);
+    font-size: .72rem;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--borda);
+  }
+  .tabela-lancamentos td{
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--borda);
+    vertical-align: middle;
+  }
+  .tabela-lancamentos tr:last-child td{ border-bottom: none; }
+  .selo-pessoa{
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 50px;
+    background: var(--creme);
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--grafite);
+  }
+  .lancamento-excluir{
+    background: none;
+    border: none;
+    color: var(--texto-suave);
+    cursor: pointer;
+    font-size: 1.1rem;
+  }
+  .lancamento-excluir:hover{ color: var(--vermelho); }
+  .lancamento-editar{
+    background: none;
+    border: none;
+    color: var(--texto-suave);
+    cursor: pointer;
+    font-size: .95rem;
+  }
+  .lancamento-editar:hover{ color: var(--coral); }
+  .tabela-lancamentos input, .tabela-lancamentos select{
+    width: 100%;
+    padding: 5px 7px;
+    border-radius: 6px;
+    border: 1px solid var(--coral);
+    font-family: 'Outfit', sans-serif;
+    font-size: .82rem;
+    background: var(--branco);
+    color: var(--grafite);
+  }
+  .lancamento-salvar{
+    background: var(--coral);
+    color: var(--branco);
+    border: none;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: .78rem;
+    cursor: pointer;
+    margin-right: 4px;
+  }
+  .lancamento-cancelar{
+    background: none;
+    border: 1px solid var(--borda);
+    color: var(--texto-suave);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: .78rem;
+    cursor: pointer;
+  }
+
+  .filtros-cartao{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .filtro-cartao-btn{
+    padding: 6px 14px;
+    border-radius: 50px;
+    border: 1px solid var(--borda);
+    background: var(--branco);
+    color: var(--texto-suave);
+    font-family: 'Outfit', sans-serif;
+    font-size: .78rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .filtro-cartao-btn:hover{ border-color: var(--coral); color: var(--coral); }
+  .filtro-cartao-btn.ativo{ background: var(--coral); border-color: var(--coral); color: var(--branco); }
+
+  .sub-secao-financas{ font-size: .85rem; color: var(--texto-suave); margin-bottom: 16px; }
+  .resumo-total-gastos{ display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .resumo-linha{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--creme);
+    font-size: .9rem;
+  }
+  .resumo-linha.destaque{ background: var(--coral); color: var(--branco); font-weight: 600; }
+  .resumo-linha strong{ font-family: 'Fraunces', serif; font-size: 1.05rem; }
+
+  .lista-cartoes-pagar{ display: flex; flex-direction: column; gap: 10px; }
+  .linha-cartao-pagar{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--borda);
+    background: var(--branco);
+    transition: background .2s ease, border-color .2s ease;
+  }
+  .linha-cartao-pagar.pago{ background: rgba(45,122,79,.08); border-color: var(--verde); }
+  .cartao-pagar-info{ flex-grow: 1; }
+  .cartao-pagar-nome{ font-weight: 600; font-size: .95rem; }
+  .cartao-pagar-vencimento{ font-size: .78rem; color: var(--texto-suave); margin-top: 2px; }
+  .cartao-pagar-valor{ font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.05rem; flex-shrink: 0; }
+  .botao-pago{
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--borda);
+    background: var(--branco);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: transparent;
+    font-size: .85rem;
+    flex-shrink: 0;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .botao-pago.pago{ background: var(--verde); border-color: var(--verde); color: var(--branco); }
+
+  .selo-pessoa-fixa{
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 50px;
+    background: var(--creme);
+    font-size: .68rem;
+    font-weight: 600;
+    color: var(--texto-suave);
+    flex-shrink: 0;
+    margin-right: 10px;
+  }
+  .campo-valor-com-prefixo{
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-right: 10px;
+  }
+  .campo-valor-com-prefixo .prefixo-rs{
+    position: absolute;
+    left: 8px;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--grafite);
+    pointer-events: none;
+  }
+  .input-valor-fixo{
+    width: 150px;
+    padding: 4px 10px 4px 34px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    background: transparent;
+    color: var(--grafite);
+    text-align: right;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .input-valor-fixo:hover{ background: var(--creme); border-color: var(--borda); }
+  .input-valor-fixo:focus{ outline: none; background: var(--creme); border-color: var(--coral); }
+
+  /* ===================== FINANÇAS UGC (negócio) ===================== */
+  .grade-negocio{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .resumo-caixa{
+    text-align: center;
+    padding: 24px;
+    border-radius: 16px;
+    background: var(--creme);
+  }
+  .resumo-caixa .valor-caixa{
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 2.4rem;
+  }
+  .resumo-caixa .valor-caixa.lucro{ color: var(--verde); }
+  .resumo-caixa .valor-caixa.prejuizo{ color: var(--vermelho); }
+  .resumo-caixa .rotulo-caixa{ font-size: .85rem; color: var(--texto-suave); margin-top: 4px; }
+  .lista-negocio{ display: flex; flex-direction: column; gap: 8px; }
+  .linha-negocio{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--borda);
+  }
+  .linha-negocio-data{ font-size: .78rem; color: var(--texto-suave); flex-shrink: 0; width: 40px; }
+  .linha-negocio-descricao{ flex-grow: 1; font-size: .88rem; }
+  .linha-negocio-valor{ font-family: 'Fraunces', serif; font-weight: 600; font-size: .95rem; flex-shrink: 0; }
+  .linha-negocio-valor.investimento{ color: var(--vermelho); }
+  .linha-negocio-valor.ganho{ color: var(--verde); }
+
+  .sub-abas-negocio{
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: var(--branco);
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    padding: 4px;
+    width: fit-content;
+  }
+  .sub-aba-btn{
+    padding: 8px 18px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: var(--texto-suave);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: .85rem;
+    cursor: pointer;
+  }
+  .sub-aba-btn:hover{ color: var(--grafite); }
+  .sub-aba-btn.ativo{ background: var(--coral); color: var(--branco); }
+
+  .linha-ano-negocio{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--borda);
+    margin-bottom: 10px;
+  }
+  .linha-ano-negocio:last-child{ margin-bottom: 0; }
+  .linha-ano-negocio .ano-nome{
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    min-width: 70px;
+  }
+  .linha-ano-negocio .ano-dado{ font-size: .82rem; color: var(--texto-suave); }
+  .linha-ano-negocio .ano-dado strong{ display: block; font-family: 'Fraunces', serif; font-size: 1rem; color: var(--grafite); }
+  .linha-ano-negocio .ano-dado.caixa-lucro strong{ color: var(--verde); }
+  .linha-ano-negocio .ano-dado.caixa-prejuizo strong{ color: var(--vermelho); }
+
   /* ===================== RESPONSIVO ===================== */
   @media (max-width: 900px){
     .sidebar{
@@ -669,12 +1038,16 @@
     .topo-conteudo{ flex-direction: row; }
     .topo-conteudo h1{ font-size: 1.3rem; }
     .grade-agenda{ grid-template-columns: 1fr; }
+    .grade-negocio{ grid-template-columns: 1fr; }
+    .form-lancamento{ grid-template-columns: 1fr 1fr; }
+    .tabela-lancamentos{ display: block; overflow-x: auto; white-space: nowrap; }
   }
 
   @media (max-width: 480px){
     .filtro-periodo{ width: 100%; justify-content: space-between; }
     .periodo-btn{ flex: 1; padding: 8px 6px; }
     .cartoes-numeros{ grid-template-columns: repeat(2, 1fr); }
+    .form-lancamento{ grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -700,6 +1073,14 @@
       <button class="menu-item" data-tab="agenda">
         <svg viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5ZM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1Z"/></svg>
         Agenda
+      </button>
+      <button class="menu-item" data-tab="financas">
+        <svg viewBox="0 0 16 16"><path d="M12.136.326A1.5 1.5 0 0 1 14 1.78V3h.5A1.5 1.5 0 0 1 16 4.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 13.5v-9a1.5 1.5 0 0 1 1.432-1.499L12.136.326zM5.562 3H13V1.78a.5.5 0 0 0-.621-.484L5.562 3zM1.5 4a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-13z"/></svg>
+        Finanças
+      </button>
+      <button class="menu-item" data-tab="negocio">
+        <svg viewBox="0 0 16 16"><path d="M8 0a1 1 0 0 1 1 1v.5h1a.5.5 0 0 1 0 1H9v1.55c1.938.219 3.5 1.336 3.5 2.7 0 .152-.02.3-.058.443A6 6 0 0 1 14 12c0 .35-.026.694-.076 1.03A2 2 0 0 1 12 15H4a2 2 0 0 1-1.924-1.97A6 6 0 0 1 2 12a6 6 0 0 1 1.558-4.807A1.5 1.5 0 0 1 3.5 6.75c0-1.364 1.562-2.481 3.5-2.7V2.5h-1a.5.5 0 0 1 0-1h1V1a1 1 0 0 1 1-1ZM8 5c-1.44 0-2.5.79-2.5 1.75S6.56 8.5 8 8.5s2.5-.79 2.5-1.75S9.44 5 8 5Z"/></svg>
+        Finanças UGC
       </button>
     </nav>
 
@@ -797,6 +1178,142 @@
         </div>
       </div>
     </section>
+
+    <!-- ===================== ABA: FINANÇAS ===================== -->
+    <section id="painelFinancas" class="painel-tab oculto">
+      <div class="cartao">
+        <div class="financas-mes-topo">
+          <div class="financas-mes-nav">
+            <button type="button" id="financasMesAnterior" aria-label="Mês anterior">&#8249;</button>
+            <span class="financas-mes-titulo" id="financasMesTitulo"></span>
+            <button type="button" id="financasMesProximo" aria-label="Próximo mês">&#8250;</button>
+          </div>
+          <button type="button" class="financas-mes-hoje" id="financasBotaoHoje">Mês atual</button>
+        </div>
+
+        <form class="form-lancamento" id="formLancamento">
+          <input type="text" id="campoLancDescricao" placeholder="Descrição da compra" required>
+          <select id="campoLancCartao"></select>
+          <select id="campoLancPessoa"></select>
+          <input type="date" id="campoLancData" required>
+          <input type="number" id="campoLancValor" placeholder="Valor R$" step="0.01" min="0" required>
+
+          <label class="form-lancamento-check">
+            <input type="checkbox" id="campoLancParcelado">
+            É parcelado?
+          </label>
+
+          <div class="form-lancamento-parcelas" id="areaParcelas">
+            <span>Parcela</span>
+            <input type="number" id="campoParcelaAtual" min="1" value="1">
+            <span>de</span>
+            <input type="number" id="campoParcelaTotal" min="1" value="2">
+            <span id="valorParcelaCalculado" style="font-weight:600; color:var(--coral);"></span>
+            <span>(cria as parcelas seguintes nos próximos meses automaticamente)</span>
+          </div>
+
+          <button type="submit" class="botao-add-lancamento">Adicionar lançamento</button>
+        </form>
+      </div>
+
+      <div class="cartao" style="margin-top: 20px;">
+        <h2>Totais do mês</h2>
+        <div class="financas-totais" id="financasTotais"></div>
+      </div>
+
+      <div class="cartao" style="margin-top: 20px;">
+        <h2>Lançamentos do mês</h2>
+        <div class="filtros-cartao" id="filtrosCartao"></div>
+        <div id="areaTabelaLancamentos"></div>
+      </div>
+
+      <div class="cartao" style="margin-top: 20px;">
+        <h2>Total de gastos</h2>
+        <p class="sub-secao-financas">Quanto cada pessoa precisa te passar, e o que sobra depois de recolher de todo mundo.</p>
+        <div class="financas-totais" id="totalGastosPessoas"></div>
+        <div class="resumo-total-gastos" id="resumoTotalGastos"></div>
+      </div>
+
+      <div class="cartao" style="margin-top: 20px;">
+        <h2>Contas a pagar</h2>
+        <p class="sub-secao-financas">Cartões (somados automaticamente) e contas fixas (Pix, você preenche o valor), tudo junto e ordenado pelo dia de vencimento. Clique no círculo para marcar como pago.</p>
+        <div class="lista-cartoes-pagar" id="listaCartoesPagar"></div>
+        <div class="resumo-linha destaque" id="totalContasPagar" style="margin-top: 12px;"></div>
+      </div>
+    </section>
+
+    <!-- ===================== ABA: FINANÇAS UGC (negócio) ===================== -->
+    <section id="painelNegocio" class="painel-tab oculto">
+      <div class="sub-abas-negocio" id="subAbasNegocio">
+        <button type="button" class="sub-aba-btn ativo" data-subaba="mensal">Mensal</button>
+        <button type="button" class="sub-aba-btn" data-subaba="anual">Anual</button>
+        <button type="button" class="sub-aba-btn" data-subaba="geral">Total Geral</button>
+      </div>
+
+      <!-- ---------- Sub-aba: Mensal ---------- -->
+      <div id="negocioMensal">
+        <div class="cartao">
+          <div class="financas-mes-topo">
+            <div class="financas-mes-nav">
+              <button type="button" id="negocioMesAnterior" aria-label="Mês anterior">&#8249;</button>
+              <span class="financas-mes-titulo" id="negocioMesTitulo"></span>
+              <button type="button" id="negocioMesProximo" aria-label="Próximo mês">&#8250;</button>
+            </div>
+            <button type="button" class="financas-mes-hoje" id="negocioBotaoHoje">Mês atual</button>
+          </div>
+
+          <form class="form-lancamento" id="formNegocio">
+            <input type="text" id="campoNegocioDescricao" placeholder="Descrição" required>
+            <select id="campoNegocioTipo">
+              <option value="investimento">Investimento</option>
+              <option value="ganho">Ganho</option>
+            </select>
+            <input type="date" id="campoNegocioData" required>
+            <input type="number" id="campoNegocioValor" placeholder="Valor R$" step="0.01" min="0" required>
+            <button type="submit" class="botao-add-lancamento">Adicionar</button>
+          </form>
+        </div>
+
+        <div class="cartao" style="margin-top: 20px;">
+          <h2>Caixa do mês</h2>
+          <p class="sub-secao-financas">Ganhos menos investimentos. Verde é lucro, vermelho é prejuízo.</p>
+          <div class="resumo-caixa" id="resumoCaixa"></div>
+        </div>
+
+        <div class="grade-negocio" style="margin-top: 20px;">
+          <div class="cartao">
+            <h2>Investimentos UGC</h2>
+            <p class="resumo-linha" id="totalInvestimentosUGC" style="margin-bottom: 14px;"></p>
+            <div id="areaInvestimentosUGC"></div>
+          </div>
+
+          <div class="cartao">
+            <h2>Ganhos</h2>
+            <p class="resumo-linha" id="totalGanhosUGC" style="margin-bottom: 14px;"></p>
+            <div id="areaGanhosUGC"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- Sub-aba: Anual ---------- -->
+      <div id="negocioAnual" class="oculto">
+        <div class="cartao">
+          <h2>Fechamento por ano</h2>
+          <p class="sub-secao-financas">Um resumo de cada ano, do mais recente para o mais antigo.</p>
+          <div id="tabelaAnualNegocio"></div>
+        </div>
+      </div>
+
+      <!-- ---------- Sub-aba: Total Geral ---------- -->
+      <div id="negocioGeral" class="oculto">
+        <div class="cartao">
+          <h2>Total geral desde o início</h2>
+          <p class="sub-secao-financas">Somando todos os meses e anos já lançados na sua carreira UGC.</p>
+          <div class="resumo-caixa" id="resumoCaixaGeral"></div>
+          <div class="financas-totais" id="totaisGeralNegocio" style="margin-top: 16px;"></div>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -810,6 +1327,7 @@
   let eventosCache = [];
   let leadsCache = [];
   let tarefasCache = [];
+  let lancamentosCache = [];
   let periodoAtual = "tudo";
 
   // Estado da aba Agenda: mês/ano exibidos no calendário e o dia selecionado no planner
@@ -817,6 +1335,56 @@
   let mesVisivel = hojeAgenda.getMonth();
   let anoVisivel = hojeAgenda.getFullYear();
   let dataSelecionada = formatarDataISO(hojeAgenda);
+
+  // Estado da aba Finanças: mês/ano exibidos e o filtro de cartão selecionado
+  let mesFinancasVisivel = hojeAgenda.getMonth();
+  let anoFinancasVisivel = hojeAgenda.getFullYear();
+  let cartaoFiltroFinancas = "Todos";
+
+  // Estado da aba Finanças UGC (negócio): mês/ano exibidos
+  let mesNegocioVisivel = hojeAgenda.getMonth();
+  let anoNegocioVisivel = hojeAgenda.getFullYear();
+  let negocioCache = [];
+
+  // EDITE AQUI se precisar adicionar/trocar cartões ou pessoas fixas
+  const CARTOES = ["Santander", "Dígio", "Mercado Pago", "Inter", "Nubank", "Dinheiro/Outro"];
+  const PESSOAS = ["DI", "GU", "DI/GU", "FUUH", "MÃE", "EDMAR", "CASA"];
+
+  // EDITE AQUI se o dia de vencimento de algum cartão mudar (null = sem vencimento fixo)
+  const VENCIMENTO_CARTOES = {
+    "Dígio": 5,
+    "Inter": 10,
+    "Nubank": 10,
+    "Santander": 12,
+    "Mercado Pago": 20,
+    "Dinheiro/Outro": null
+  };
+
+  // Guarda se a fatura de cada cartão, num mês/ano específico, já foi marcada como paga
+  let cartoesPagosCache = {};
+
+  // EDITE AQUI se precisar adicionar/remover uma conta fixa mensal
+  // EDITE AQUI o dia de vencimento de cada conta fixa
+  const VENCIMENTO_GASTOS_FIXOS = {
+    "Aluguel": 10,
+    "Água": 15,
+    "Luz": 12,
+    "TV": 5,
+    "Fies": 5,
+    "Claro Celular": 8,
+    "Vivo Celular": 20,
+    "Vivo Internet": 20,
+    "D4S CNPJ DI": 20,
+    "D4S CNPJ GU": 20
+  };
+  const NOMES_GASTOS_FIXOS = Object.keys(VENCIMENTO_GASTOS_FIXOS);
+
+  // Essas contas variam todo mês, então NUNCA repetem o valor do mês anterior.
+  // As demais repetem o último valor preenchido automaticamente, mês após mês,
+  // até você preencher um valor novo (aí o novo valor passa a valer daí pra frente).
+  const GASTOS_FIXOS_VARIAVEIS = ["Água", "Luz"];
+
+  let gastosFixosCache = [];
 
   // Formata uma data como AAAA-MM-DD (mesmo formato usado na coluna "data" do Supabase)
   function formatarDataISO(data){
@@ -840,18 +1408,44 @@
     configurarEventosDeInterface();
 
     try {
-      const [eventos, leads, tarefas] = await Promise.all([
+      const [eventos, leads, tarefas, lancamentos, pagamentosCartao, gastosFixos, negocio] = await Promise.all([
         buscarTudo("portfolio_events"),
         buscarTudo("portfolio_leads"),
-        buscarTudo("painel_tarefas")
+        buscarTudo("painel_tarefas"),
+        buscarTudo("financas_lancamentos"),
+        buscarTudo("financas_cartoes_pagos"),
+        buscarTudo("financas_gastos_fixos"),
+        buscarTudo("negocio_lancamentos")
       ]);
       eventosCache = eventos;
       leadsCache = leads;
       tarefasCache = tarefas;
+      lancamentosCache = lancamentos;
+      gastosFixosCache = gastosFixos;
+      negocioCache = negocio;
+
+      cartoesPagosCache = {};
+      pagamentosCartao.forEach(p => {
+        cartoesPagosCache[`${p.cartao}-${p.ano}-${p.mes}`] = p.pago;
+      });
 
       document.getElementById("areaCarregando").classList.add("oculto");
       renderizarTudo();
       renderizarAgenda();
+      preencherSelectsFinancas();
+      try {
+        renderizarFinancas();
+      } catch (erroFinancas) {
+        // Isola erros da aba Finanças: o resto do painel continua funcionando normalmente
+        console.error("Erro ao renderizar Finanças:", erroFinancas);
+        document.getElementById("listaCartoesPagar").innerHTML =
+          `<p class="texto-vazio">Não foi possível carregar as contas agora (${erroFinancas.message || erroFinancas}). Recarregue a página.</p>`;
+      }
+      try {
+        renderizarTudoNegocio();
+      } catch (erroNegocio) {
+        console.error("Erro ao renderizar Finanças UGC:", erroNegocio);
+      }
     } catch (erro) {
       console.error(erro);
       document.getElementById("areaCarregando").classList.add("oculto");
@@ -926,6 +1520,79 @@
       renderizarAgenda();
     });
     document.getElementById("formTarefa").addEventListener("submit", adicionarTarefa);
+
+    // ---------- Finanças ----------
+    document.getElementById("financasMesAnterior").addEventListener("click", () => {
+      mesFinancasVisivel--;
+      if (mesFinancasVisivel < 0){ mesFinancasVisivel = 11; anoFinancasVisivel--; }
+      renderizarFinancas();
+    });
+    document.getElementById("financasMesProximo").addEventListener("click", () => {
+      mesFinancasVisivel++;
+      if (mesFinancasVisivel > 11){ mesFinancasVisivel = 0; anoFinancasVisivel++; }
+      renderizarFinancas();
+    });
+    document.getElementById("financasBotaoHoje").addEventListener("click", () => {
+      const hoje = new Date();
+      mesFinancasVisivel = hoje.getMonth();
+      anoFinancasVisivel = hoje.getFullYear();
+      renderizarFinancas();
+    });
+    document.getElementById("campoLancParcelado").addEventListener("change", (e) => {
+      const parcelado = e.target.checked;
+      document.getElementById("areaParcelas").classList.toggle("visivel", parcelado);
+      document.getElementById("campoLancValor").placeholder = parcelado ? "Valor total da compra" : "Valor R$";
+      atualizarValorParcelaCalculado();
+    });
+    document.getElementById("campoLancValor").addEventListener("input", atualizarValorParcelaCalculado);
+    document.getElementById("campoParcelaTotal").addEventListener("input", atualizarValorParcelaCalculado);
+    document.getElementById("formLancamento").addEventListener("submit", adicionarLancamento);
+
+    // ---------- Finanças UGC (negócio) ----------
+    document.getElementById("negocioMesAnterior").addEventListener("click", () => {
+      mesNegocioVisivel--;
+      if (mesNegocioVisivel < 0){ mesNegocioVisivel = 11; anoNegocioVisivel--; }
+      renderizarNegocio();
+    });
+    document.getElementById("negocioMesProximo").addEventListener("click", () => {
+      mesNegocioVisivel++;
+      if (mesNegocioVisivel > 11){ mesNegocioVisivel = 0; anoNegocioVisivel++; }
+      renderizarNegocio();
+    });
+    document.getElementById("negocioBotaoHoje").addEventListener("click", () => {
+      const hoje = new Date();
+      mesNegocioVisivel = hoje.getMonth();
+      anoNegocioVisivel = hoje.getFullYear();
+      renderizarNegocio();
+    });
+    document.getElementById("campoNegocioData").value = formatarDataISO(new Date());
+    document.getElementById("formNegocio").addEventListener("submit", adicionarLancamentoNegocio);
+
+    document.querySelectorAll("#subAbasNegocio .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => trocarSubAbaNegocio(btn.dataset.subaba));
+    });
+  }
+
+  function trocarSubAbaNegocio(sub){
+    document.querySelectorAll("#subAbasNegocio .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === sub));
+    document.getElementById("negocioMensal").classList.toggle("oculto", sub !== "mensal");
+    document.getElementById("negocioAnual").classList.toggle("oculto", sub !== "anual");
+    document.getElementById("negocioGeral").classList.toggle("oculto", sub !== "geral");
+  }
+
+  // Mostra quanto fica cada parcela (valor total ÷ número de parcelas) enquanto a pessoa digita
+  function atualizarValorParcelaCalculado(){
+    const parcelado = document.getElementById("campoLancParcelado").checked;
+    const span = document.getElementById("valorParcelaCalculado");
+    if (!parcelado){ span.textContent = ""; return; }
+
+    const valorTotal = parseFloat(document.getElementById("campoLancValor").value);
+    const total = parseInt(document.getElementById("campoParcelaTotal").value, 10);
+
+    if (!valorTotal || !total){ span.textContent = ""; return; }
+
+    const valorParcela = valorTotal / total;
+    span.textContent = `= ${formatarMoeda(valorParcela)} por parcela`;
   }
 
   function fecharGaveta(){
@@ -938,12 +1605,14 @@
     document.getElementById("painelPrincipal").classList.toggle("oculto", aba !== "principal");
     document.getElementById("painelPortfolio").classList.toggle("oculto", aba !== "portfolio");
     document.getElementById("painelAgenda").classList.toggle("oculto", aba !== "agenda");
+    document.getElementById("painelFinancas").classList.toggle("oculto", aba !== "financas");
+    document.getElementById("painelNegocio").classList.toggle("oculto", aba !== "negocio");
 
-    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda" };
+    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Finanças", negocio: "Finanças UGC" };
     document.getElementById("tituloTopo").textContent = titulos[aba];
 
-    // O filtro de período (Tudo/7d/30d/90d) não se aplica à Agenda, então some nessa aba
-    document.getElementById("filtroPeriodo").classList.toggle("oculto", aba === "agenda");
+    // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
+    document.getElementById("filtroPeriodo").classList.toggle("oculto", aba === "agenda" || aba === "financas" || aba === "negocio");
 
     fecharGaveta();
   }
@@ -1362,6 +2031,676 @@
     if (!error){
       tarefasCache = tarefasCache.filter(t => t.id !== id);
       renderizarAgenda();
+    }
+  }
+
+  /* =========================================================================
+     ABA: FINANÇAS
+     ========================================================================= */
+  function preencherSelectsFinancas(){
+    document.getElementById("campoLancCartao").innerHTML =
+      CARTOES.map(c => `<option value="${c}">${c}</option>`).join("");
+    document.getElementById("campoLancPessoa").innerHTML =
+      PESSOAS.map(p => `<option value="${p}">${p}</option>`).join("");
+    document.getElementById("campoLancData").value = formatarDataISO(new Date());
+  }
+
+  function formatarMoeda(valor){
+    return Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  function formatarDataCurta(dataISO){
+    const [, mes, dia] = dataISO.split("-");
+    return `${dia}/${mes}`;
+  }
+
+  // Soma "quantidade" de meses a uma data (AAAA-MM-DD), ajustando o dia se o mês de
+  // destino for mais curto (ex: dia 31 de janeiro + 1 mês vira dia 28/29 de fevereiro)
+  function somarMeses(dataISO, quantidade){
+    const [ano, mes, dia] = dataISO.split("-").map(Number);
+    const novaData = new Date(ano, (mes - 1) + quantidade, 1);
+    const ultimoDiaDoMesDestino = new Date(novaData.getFullYear(), novaData.getMonth() + 1, 0).getDate();
+    novaData.setDate(Math.min(dia, ultimoDiaDoMesDestino));
+    return formatarDataISO(novaData);
+  }
+
+  // Soma os lançamentos por pessoa. IMPORTANTE: todo lançamento marcado como "DI/GU" é
+  // sempre dividido ao meio, metade para "DI" e metade para "GU" (nunca fica numa
+  // categoria "DI/GU" separada nos totais).
+  function calcularTotaisPorPessoa(lista){
+    const totais = {};
+    let totalGeral = 0;
+    lista.forEach(l => {
+      const valor = Number(l.valor);
+      totalGeral += valor;
+      if (l.pessoa === "DI/GU"){
+        totais["DI"] = (totais["DI"] || 0) + valor / 2;
+        totais["GU"] = (totais["GU"] || 0) + valor / 2;
+      } else {
+        const chave = l.pessoa || "Outro";
+        totais[chave] = (totais[chave] || 0) + valor;
+      }
+    });
+    return { totais, totalGeral };
+  }
+
+  // Devolve as 10 contas fixas do mês visível, com o valor já salvo (ou null se ainda não preenchido)
+  function obterGastosFixosDoMes(){
+    const chaveAtual = anoFinancasVisivel * 12 + mesFinancasVisivel;
+
+    return NOMES_GASTOS_FIXOS.map(nome => {
+      // O status "pago" é sempre específico do mês (nunca herdado de mês anterior)
+      const registroExato = gastosFixosCache.find(g =>
+        g.nome === nome && g.ano === anoFinancasVisivel && g.mes === mesFinancasVisivel
+      );
+      const pago = registroExato ? registroExato.pago : false;
+
+      // Água e Luz variam todo mês: só mostram valor se ele foi preenchido NESSE mês
+      if (GASTOS_FIXOS_VARIAVEIS.includes(nome)){
+        return {
+          nome: nome,
+          valor: (registroExato && registroExato.valor !== null && registroExato.valor !== undefined) ? Number(registroExato.valor) : null,
+          pago: pago
+        };
+      }
+
+      // As demais contas repetem o último valor preenchido em qualquer mês anterior (ou o atual)
+      const maisRecente = gastosFixosCache
+        .filter(g => g.nome === nome && g.valor !== null && g.valor !== undefined && (g.ano * 12 + g.mes) <= chaveAtual)
+        .sort((a, b) => (b.ano * 12 + b.mes) - (a.ano * 12 + a.mes))[0];
+
+      return {
+        nome: nome,
+        valor: maisRecente ? Number(maisRecente.valor) : null,
+        pago: pago
+      };
+    });
+  }
+
+  function renderizarFinancas(){
+    document.getElementById("financasMesTitulo").textContent = `${NOMES_MES[mesFinancasVisivel]} de ${anoFinancasVisivel}`;
+
+    const lancamentosDoMes = lancamentosCache
+      .filter(l => {
+        const [ano, mes] = l.data.split("-").map(Number);
+        return ano === anoFinancasVisivel && (mes - 1) === mesFinancasVisivel;
+      })
+      .sort((a, b) => new Date(a.data) - new Date(b.data));
+
+    const gastosFixosDoMes = obterGastosFixosDoMes();
+
+    // ---------- Contas a pagar: cartões + contas fixas juntos, ordenados por vencimento ----------
+    renderizarCartoesPagar(lancamentosDoMes, gastosFixosDoMes);
+
+    // ---------- Totais do mês (cartões no topo) ----------
+    // As contas fixas (todas DI/GU) entram aqui também, divididas ao meio
+    const { totais: totaisPorPessoa, totalGeral: totalGeralLancamentos } = calcularTotaisPorPessoa(lancamentosDoMes);
+    let totalGeral = totalGeralLancamentos;
+    gastosFixosDoMes.forEach(g => {
+      if (!g.valor) return;
+      totaisPorPessoa["DI"] = (totaisPorPessoa["DI"] || 0) + g.valor / 2;
+      totaisPorPessoa["GU"] = (totaisPorPessoa["GU"] || 0) + g.valor / 2;
+      totalGeral += g.valor;
+    });
+
+    const cartoesTotais = [`
+      <div class="financas-total-cartao geral">
+        <p class="financas-total-nome">Total</p>
+        <p class="financas-total-valor">${formatarMoeda(totalGeral)}</p>
+      </div>
+    `].concat(
+      Object.keys(totaisPorPessoa).sort().map(p => `
+        <div class="financas-total-cartao">
+          <p class="financas-total-nome">${p}</p>
+          <p class="financas-total-valor">${formatarMoeda(totaisPorPessoa[p])}</p>
+        </div>
+      `)
+    );
+    document.getElementById("financasTotais").innerHTML = cartoesTotais.join("");
+
+    // ---------- Filtro por cartão ----------
+    const filtrosEl = document.getElementById("filtrosCartao");
+    const opcoesCartao = ["Todos"].concat(CARTOES);
+    filtrosEl.innerHTML = opcoesCartao.map(c => `
+      <button type="button" class="filtro-cartao-btn ${cartaoFiltroFinancas === c ? "ativo" : ""}" data-cartao="${c}">${c}</button>
+    `).join("");
+    filtrosEl.querySelectorAll(".filtro-cartao-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        cartaoFiltroFinancas = btn.dataset.cartao;
+        renderizarFinancas();
+      });
+    });
+
+    const lancamentosFiltrados = cartaoFiltroFinancas === "Todos"
+      ? lancamentosDoMes
+      : lancamentosDoMes.filter(l => l.cartao === cartaoFiltroFinancas);
+
+    // ---------- Tabela de lançamentos ----------
+    renderizarTabelaLancamentos(lancamentosFiltrados);
+
+    // ---------- Total de gastos (quem deve o quê) ----------
+    renderizarTotalGastos(lancamentosDoMes, totaisPorPessoa, totalGeral);
+  }
+
+  function renderizarTabelaLancamentos(lista){
+    const areaTabela = document.getElementById("areaTabelaLancamentos");
+
+    if (lista.length === 0){
+      areaTabela.innerHTML = '<p class="texto-vazio">Nenhum lançamento para esse filtro ainda.</p>';
+      return;
+    }
+
+    areaTabela.innerHTML = `
+      <table class="tabela-lancamentos">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Cartão</th>
+            <th>Pessoa</th>
+            <th>Valor</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lista.map(l => `
+            <tr data-id="${l.id}">
+              <td>${formatarDataCurta(l.data)}</td>
+              <td>${l.descricao}${l.parcela_atual ? ` <span style="color:var(--texto-suave);">(${l.parcela_atual}/${l.parcela_total})</span>` : ""}</td>
+              <td>${l.cartao || "-"}</td>
+              <td><span class="selo-pessoa">${l.pessoa || "-"}</span></td>
+              <td>${formatarMoeda(l.valor)}</td>
+              <td>
+                <button type="button" class="lancamento-editar" data-acao="editar" aria-label="Editar lançamento">&#9998;</button>
+                <button type="button" class="lancamento-excluir" data-acao="excluir" aria-label="Excluir lançamento">&times;</button>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+
+    areaTabela.querySelectorAll("[data-acao='excluir']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.closest("tr").dataset.id;
+        excluirLancamento(id);
+      });
+    });
+    areaTabela.querySelectorAll("[data-acao='editar']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.closest("tr").dataset.id;
+        entrarModoEdicao(id);
+      });
+    });
+  }
+
+  // Troca a linha do lançamento por campos editáveis
+  function entrarModoEdicao(id){
+    const lancamento = lancamentosCache.find(l => l.id === id);
+    if (!lancamento) return;
+
+    const linha = document.querySelector(`tr[data-id="${id}"]`);
+    if (!linha) return;
+
+    linha.innerHTML = `
+      <td><input type="date" id="edicaoData-${id}" value="${lancamento.data}"></td>
+      <td><input type="text" id="edicaoDescricao-${id}" value="${lancamento.descricao}"></td>
+      <td>
+        <select id="edicaoCartao-${id}">
+          ${CARTOES.map(c => `<option value="${c}" ${c === lancamento.cartao ? "selected" : ""}>${c}</option>`).join("")}
+        </select>
+      </td>
+      <td>
+        <select id="edicaoPessoa-${id}">
+          ${PESSOAS.map(p => `<option value="${p}" ${p === lancamento.pessoa ? "selected" : ""}>${p}</option>`).join("")}
+        </select>
+      </td>
+      <td><input type="number" step="0.01" id="edicaoValor-${id}" value="${lancamento.valor != null ? Number(lancamento.valor).toFixed(2) : ""}"></td>
+      <td>
+        <button type="button" class="lancamento-salvar" data-acao="salvar">Salvar</button>
+        <button type="button" class="lancamento-cancelar" data-acao="cancelar">Cancelar</button>
+      </td>
+    `;
+
+    linha.querySelector("[data-acao='salvar']").addEventListener("click", () => salvarEdicaoLancamento(id));
+    linha.querySelector("[data-acao='cancelar']").addEventListener("click", () => renderizarFinancas());
+  }
+
+  async function salvarEdicaoLancamento(id){
+    const dados = {
+      data: document.getElementById(`edicaoData-${id}`).value,
+      descricao: document.getElementById(`edicaoDescricao-${id}`).value.trim(),
+      cartao: document.getElementById(`edicaoCartao-${id}`).value,
+      pessoa: document.getElementById(`edicaoPessoa-${id}`).value,
+      valor: parseFloat(document.getElementById(`edicaoValor-${id}`).value)
+    };
+
+    if (!dados.descricao || isNaN(dados.valor)) return;
+
+    const { error } = await Auth.client
+      .from("financas_lancamentos")
+      .update(dados)
+      .eq("id", id);
+
+    if (!error){
+      const indice = lancamentosCache.findIndex(l => l.id === id);
+      if (indice > -1) lancamentosCache[indice] = { ...lancamentosCache[indice], ...dados };
+      renderizarFinancas();
+    }
+  }
+
+  // Nomes que aparecem no resumo "Total de gastos" (CASA fica de fora, DI/GU é sempre dividido)
+  const PESSOAS_TOTAL_GASTOS = ["DI", "GU", "EDMAR", "FUUH", "MÃE"];
+
+  function renderizarTotalGastos(lancamentosDoMes, totaisPorPessoa, totalGeral){
+    const containerPessoas = document.getElementById("totalGastosPessoas");
+
+    containerPessoas.innerHTML = PESSOAS_TOTAL_GASTOS.map(p => `
+      <div class="financas-total-cartao">
+        <p class="financas-total-nome">${p}</p>
+        <p class="financas-total-valor">${formatarMoeda(totaisPorPessoa[p] || 0)}</p>
+      </div>
+    `).join("");
+
+    const meuTotal = totaisPorPessoa["DI"] || 0;
+    const totalQueSobra = totalGeral - meuTotal;
+
+    document.getElementById("resumoTotalGastos").innerHTML = `
+      <div class="resumo-linha">
+        <span>Valor total das contas</span>
+        <strong>${formatarMoeda(totalGeral)}</strong>
+      </div>
+      <div class="resumo-linha">
+        <span>O que eu tenho que pagar (DI)</span>
+        <strong>${formatarMoeda(meuTotal)}</strong>
+      </div>
+      <div class="resumo-linha destaque">
+        <span>Total que sobra (a receber de todo mundo)</span>
+        <strong>${formatarMoeda(totalQueSobra)}</strong>
+      </div>
+    `;
+  }
+
+  // Lista única de "Contas a pagar": soma os cartões (a partir dos lançamentos) e junta
+  // com as contas fixas (Aluguel, Água, Luz...), tudo ordenado pelo dia de vencimento.
+  function renderizarCartoesPagar(lancamentosDoMes, gastosFixosDoMes){
+    const totaisPorCartao = {};
+    lancamentosDoMes.forEach(l => {
+      const chave = l.cartao || "Outro";
+      totaisPorCartao[chave] = (totaisPorCartao[chave] || 0) + Number(l.valor);
+    });
+
+    // Monta uma lista única: cada item é um cartão OU uma conta fixa
+    const itens = Object.keys(totaisPorCartao).map(cartao => ({
+      tipo: "cartao",
+      nome: cartao,
+      vencimento: VENCIMENTO_CARTOES[cartao],
+      valor: totaisPorCartao[cartao],
+      pago: !!cartoesPagosCache[`${cartao}-${anoFinancasVisivel}-${mesFinancasVisivel}`]
+    })).concat(
+      gastosFixosDoMes.map(g => ({
+        tipo: "fixo",
+        nome: g.nome,
+        vencimento: VENCIMENTO_GASTOS_FIXOS[g.nome],
+        valor: g.valor,
+        pago: g.pago
+      }))
+    );
+
+    itens.sort((a, b) => {
+      const va = (a.vencimento === undefined || a.vencimento === null) ? 99 : a.vencimento;
+      const vb = (b.vencimento === undefined || b.vencimento === null) ? 99 : b.vencimento;
+      return va - vb;
+    });
+
+    const container = document.getElementById("listaCartoesPagar");
+    const areaTotalContas = document.getElementById("totalContasPagar");
+    const totalContas = itens.reduce((soma, item) => soma + (Number(item.valor) || 0), 0);
+
+    if (itens.length === 0){
+      container.innerHTML = '<p class="texto-vazio">Nenhuma conta esse mês ainda.</p>';
+      areaTotalContas.innerHTML = "";
+      return;
+    }
+
+    areaTotalContas.innerHTML = `
+      <span>Total de contas a pagar</span>
+      <strong>${formatarMoeda(totalContas)}</strong>
+    `;
+
+    container.innerHTML = itens.map(item => {
+      const valorHtml = item.tipo === "cartao"
+        ? `<span class="cartao-pagar-valor">${formatarMoeda(item.valor)}</span>`
+        : `<span class="campo-valor-com-prefixo"><span class="prefixo-rs">R$</span><input type="number" step="0.01" min="0" class="input-valor-fixo" placeholder="0,00" value="${item.valor != null ? Number(item.valor).toFixed(2) : ""}" data-acao="valor-fixo"></span>`;
+      const selo = item.tipo === "fixo" ? `<span class="selo-pessoa-fixa">DI/GU</span>` : "";
+      return `
+        <div class="linha-cartao-pagar ${item.pago ? "pago" : ""}" data-nome="${item.nome}" data-tipo="${item.tipo}">
+          <div class="cartao-pagar-info">
+            <p class="cartao-pagar-nome">${item.nome}</p>
+            <p class="cartao-pagar-vencimento">${item.vencimento ? `Vence dia ${String(item.vencimento).padStart(2, "0")}` : "Sem vencimento fixo"}</p>
+          </div>
+          ${selo}
+          ${valorHtml}
+          <button type="button" class="botao-pago ${item.pago ? "pago" : ""}" data-acao="alternar-pago" aria-label="Marcar como pago">&#10003;</button>
+        </div>
+      `;
+    }).join("");
+
+    container.querySelectorAll("[data-acao='alternar-pago']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const linha = btn.closest(".linha-cartao-pagar");
+        if (linha.dataset.tipo === "cartao"){
+          alternarCartaoPago(linha.dataset.nome);
+        } else {
+          alternarGastoFixoPago(linha.dataset.nome);
+        }
+      });
+    });
+    container.querySelectorAll("[data-acao='valor-fixo']").forEach(input => {
+      input.addEventListener("change", () => {
+        const nome = input.closest(".linha-cartao-pagar").dataset.nome;
+        salvarValorGastoFixo(nome, input.value);
+      });
+      // Apertar Enter salva na hora (sem precisar clicar fora do campo)
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter"){
+          e.preventDefault();
+          input.blur();
+        }
+      });
+    });
+  }
+
+  async function alternarCartaoPago(cartao){
+    const chave = `${cartao}-${anoFinancasVisivel}-${mesFinancasVisivel}`;
+    const novoValor = !cartoesPagosCache[chave];
+
+    const { error } = await Auth.client
+      .from("financas_cartoes_pagos")
+      .upsert(
+        { cartao: cartao, ano: anoFinancasVisivel, mes: mesFinancasVisivel, pago: novoValor },
+        { onConflict: "cartao,ano,mes" }
+      );
+
+    if (!error){
+      cartoesPagosCache[chave] = novoValor;
+      renderizarFinancas();
+    }
+  }
+
+  /* =========================================================================
+     ABA: GASTOS FIXOS
+     ========================================================================= */
+  // Busca (ou cria) o registro em memória de uma conta fixa para o mês visível na aba Finanças
+  function obterOuCriarGastoFixo(nome){
+    let registro = gastosFixosCache.find(g =>
+      g.nome === nome && g.ano === anoFinancasVisivel && g.mes === mesFinancasVisivel
+    );
+    if (!registro){
+      registro = { nome: nome, ano: anoFinancasVisivel, mes: mesFinancasVisivel, valor: null, pago: false, pessoa: "DI/GU" };
+      gastosFixosCache.push(registro);
+    }
+    return registro;
+  }
+
+  async function salvarValorGastoFixo(nome, valorDigitado){
+    const valor = valorDigitado === "" ? null : parseFloat(valorDigitado);
+    const registroLocal = obterOuCriarGastoFixo(nome);
+    registroLocal.valor = valor;
+
+    const { error } = await Auth.client
+      .from("financas_gastos_fixos")
+      .upsert(
+        { nome: nome, ano: anoFinancasVisivel, mes: mesFinancasVisivel, valor: valor, pago: registroLocal.pago, pessoa: "DI/GU" },
+        { onConflict: "nome,ano,mes" }
+      );
+
+    if (!error) renderizarFinancas();
+  }
+
+  async function alternarGastoFixoPago(nome){
+    const registroLocal = obterOuCriarGastoFixo(nome);
+    const novoValor = !registroLocal.pago;
+    registroLocal.pago = novoValor;
+
+    const { error } = await Auth.client
+      .from("financas_gastos_fixos")
+      .upsert(
+        { nome: nome, ano: anoFinancasVisivel, mes: mesFinancasVisivel, valor: registroLocal.valor, pago: novoValor, pessoa: "DI/GU" },
+        { onConflict: "nome,ano,mes" }
+      );
+
+    if (!error) renderizarFinancas();
+  }
+
+  /* =========================================================================
+     ABA: FINANÇAS UGC (negócio)
+     ========================================================================= */
+  function renderizarNegocio(){
+    document.getElementById("negocioMesTitulo").textContent = `${NOMES_MES[mesNegocioVisivel]} de ${anoNegocioVisivel}`;
+
+    const lancamentosDoMes = negocioCache
+      .filter(n => {
+        const [ano, mes] = n.data.split("-").map(Number);
+        return ano === anoNegocioVisivel && (mes - 1) === mesNegocioVisivel;
+      })
+      .sort((a, b) => new Date(b.data) - new Date(a.data));
+
+    const investimentos = lancamentosDoMes.filter(n => n.tipo === "investimento");
+    const ganhos = lancamentosDoMes.filter(n => n.tipo === "ganho");
+
+    const totalInvestimentos = investimentos.reduce((soma, n) => soma + Number(n.valor), 0);
+    const totalGanhos = ganhos.reduce((soma, n) => soma + Number(n.valor), 0);
+    const caixa = totalGanhos - totalInvestimentos;
+
+    document.getElementById("totalInvestimentosUGC").innerHTML =
+      `<span>Total investido</span><strong>${formatarMoeda(totalInvestimentos)}</strong>`;
+    document.getElementById("totalGanhosUGC").innerHTML =
+      `<span>Total de ganhos</span><strong>${formatarMoeda(totalGanhos)}</strong>`;
+
+    document.getElementById("resumoCaixa").innerHTML = `
+      <p class="valor-caixa ${caixa >= 0 ? "lucro" : "prejuizo"}">${formatarMoeda(caixa)}</p>
+      <p class="rotulo-caixa">${caixa >= 0 ? "Lucro do mês" : "Prejuízo do mês"}</p>
+    `;
+
+    renderizarListaNegocio("areaInvestimentosUGC", investimentos, "investimento", "Nenhum investimento lançado esse mês ainda.");
+    renderizarListaNegocio("areaGanhosUGC", ganhos, "ganho", "Nenhum ganho lançado esse mês ainda.");
+  }
+
+  // Chama as três visões (mensal, anual, geral) de uma vez, usada sempre que negocioCache muda
+  function renderizarTudoNegocio(){
+    renderizarNegocio();
+    renderizarNegocioAnual();
+    renderizarNegocioGeral();
+  }
+
+  function renderizarNegocioAnual(){
+    const container = document.getElementById("tabelaAnualNegocio");
+
+    if (negocioCache.length === 0){
+      container.innerHTML = '<p class="texto-vazio">Nenhum lançamento ainda para fechar o ano.</p>';
+      return;
+    }
+
+    const totaisPorAno = {};
+    negocioCache.forEach(n => {
+      const ano = Number(n.data.split("-")[0]);
+      if (!totaisPorAno[ano]) totaisPorAno[ano] = { investido: 0, ganho: 0 };
+      if (n.tipo === "investimento") totaisPorAno[ano].investido += Number(n.valor);
+      else totaisPorAno[ano].ganho += Number(n.valor);
+    });
+
+    const anosOrdenados = Object.keys(totaisPorAno).map(Number).sort((a, b) => b - a);
+
+    container.innerHTML = anosOrdenados.map(ano => {
+      const dados = totaisPorAno[ano];
+      const caixa = dados.ganho - dados.investido;
+      return `
+        <div class="linha-ano-negocio">
+          <span class="ano-nome">${ano}</span>
+          <span class="ano-dado">Investido<strong>${formatarMoeda(dados.investido)}</strong></span>
+          <span class="ano-dado">Ganhos<strong>${formatarMoeda(dados.ganho)}</strong></span>
+          <span class="ano-dado ${caixa >= 0 ? "caixa-lucro" : "caixa-prejuizo"}">${caixa >= 0 ? "Lucro" : "Prejuízo"}<strong>${formatarMoeda(caixa)}</strong></span>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderizarNegocioGeral(){
+    const totalInvestido = negocioCache
+      .filter(n => n.tipo === "investimento")
+      .reduce((soma, n) => soma + Number(n.valor), 0);
+    const totalGanho = negocioCache
+      .filter(n => n.tipo === "ganho")
+      .reduce((soma, n) => soma + Number(n.valor), 0);
+    const caixaGeral = totalGanho - totalInvestido;
+
+    document.getElementById("resumoCaixaGeral").innerHTML = `
+      <p class="valor-caixa ${caixaGeral >= 0 ? "lucro" : "prejuizo"}">${formatarMoeda(caixaGeral)}</p>
+      <p class="rotulo-caixa">${caixaGeral >= 0 ? "Lucro acumulado" : "Prejuízo acumulado"}</p>
+    `;
+
+    document.getElementById("totaisGeralNegocio").innerHTML = `
+      <div class="financas-total-cartao">
+        <p class="financas-total-nome">Total investido</p>
+        <p class="financas-total-valor">${formatarMoeda(totalInvestido)}</p>
+      </div>
+      <div class="financas-total-cartao">
+        <p class="financas-total-nome">Total de ganhos</p>
+        <p class="financas-total-valor">${formatarMoeda(totalGanho)}</p>
+      </div>
+    `;
+  }
+
+  function renderizarListaNegocio(idContainer, lista, tipo, mensagemVazia){
+    const container = document.getElementById(idContainer);
+
+    if (lista.length === 0){
+      container.innerHTML = `<p class="texto-vazio">${mensagemVazia}</p>`;
+      return;
+    }
+
+    container.innerHTML = `<div class="lista-negocio">` + lista.map(n => `
+      <div class="linha-negocio" data-id="${n.id}">
+        <span class="linha-negocio-data">${formatarDataCurta(n.data)}</span>
+        <span class="linha-negocio-descricao">${n.descricao}</span>
+        <span class="linha-negocio-valor ${tipo}">${formatarMoeda(n.valor)}</span>
+        <button type="button" class="lancamento-excluir" data-acao="excluir-negocio" aria-label="Excluir lançamento">&times;</button>
+      </div>
+    `).join("") + `</div>`;
+
+    container.querySelectorAll("[data-acao='excluir-negocio']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.closest(".linha-negocio").dataset.id;
+        excluirLancamentoNegocio(id);
+      });
+    });
+  }
+
+  async function adicionarLancamentoNegocio(e){
+    e.preventDefault();
+
+    const descricao = document.getElementById("campoNegocioDescricao").value.trim();
+    const tipo = document.getElementById("campoNegocioTipo").value;
+    const data = document.getElementById("campoNegocioData").value;
+    const valor = parseFloat(document.getElementById("campoNegocioValor").value);
+
+    if (!descricao || !data || isNaN(valor)) return;
+
+    const { data: inserido, error } = await Auth.client
+      .from("negocio_lancamentos")
+      .insert({ descricao: descricao, tipo: tipo, data: data, valor: valor })
+      .select();
+
+    if (!error && inserido){
+      negocioCache = negocioCache.concat(inserido);
+      document.getElementById("formNegocio").reset();
+      document.getElementById("campoNegocioData").value = formatarDataISO(new Date());
+      renderizarTudoNegocio();
+    }
+  }
+
+  async function excluirLancamentoNegocio(id){
+    const { error } = await Auth.client
+      .from("negocio_lancamentos")
+      .delete()
+      .eq("id", id);
+
+    if (!error){
+      negocioCache = negocioCache.filter(n => n.id !== id);
+      renderizarTudoNegocio();
+    }
+  }
+
+  async function adicionarLancamento(e){
+    e.preventDefault();
+
+    const descricao = document.getElementById("campoLancDescricao").value.trim();
+    const cartao = document.getElementById("campoLancCartao").value;
+    const pessoa = document.getElementById("campoLancPessoa").value;
+    const dataBase = document.getElementById("campoLancData").value;
+    const valor = parseFloat(document.getElementById("campoLancValor").value);
+    const parcelado = document.getElementById("campoLancParcelado").checked;
+
+    if (!descricao || !dataBase || isNaN(valor)) return;
+
+    let entradas = [];
+
+    if (parcelado){
+      const atual = parseInt(document.getElementById("campoParcelaAtual").value, 10) || 1;
+      const total = parseInt(document.getElementById("campoParcelaTotal").value, 10) || 1;
+      const grupoId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("grupo-" + Date.now());
+
+      // "valor" aqui é o VALOR TOTAL da compra; cada parcela lançada recebe o valor dividido
+      const valorParcela = Math.round((valor / total) * 100) / 100;
+
+      for (let i = atual; i <= total; i++){
+        entradas.push({
+          data: somarMeses(dataBase, i - atual),
+          descricao: descricao,
+          valor: valorParcela,
+          cartao: cartao,
+          pessoa: pessoa,
+          parcela_atual: i,
+          parcela_total: total,
+          grupo_parcela: grupoId
+        });
+      }
+    } else {
+      entradas.push({
+        data: dataBase,
+        descricao: descricao,
+        valor: valor,
+        cartao: cartao,
+        pessoa: pessoa
+      });
+    }
+
+    const { data, error } = await Auth.client
+      .from("financas_lancamentos")
+      .insert(entradas)
+      .select();
+
+    if (!error && data){
+      lancamentosCache = lancamentosCache.concat(data);
+      document.getElementById("formLancamento").reset();
+      document.getElementById("areaParcelas").classList.remove("visivel");
+      document.getElementById("campoLancValor").placeholder = "Valor R$";
+      document.getElementById("valorParcelaCalculado").textContent = "";
+      preencherSelectsFinancas();
+      renderizarFinancas();
+    }
+  }
+
+  async function excluirLancamento(id){
+    const { error } = await Auth.client
+      .from("financas_lancamentos")
+      .delete()
+      .eq("id", id);
+
+    if (!error){
+      lancamentosCache = lancamentosCache.filter(l => l.id !== id);
+      renderizarFinancas();
     }
   }
 </script>
