@@ -26,6 +26,7 @@
     --borda: #CCC2BC;
     --verde: #2D7A4F;
     --vermelho: #C4453C;
+    --dourado: #C9A66B;
   }
 
   *{ box-sizing: border-box; margin: 0; padding: 0; }
@@ -558,6 +559,33 @@
     color: var(--grafite);
   }
   .form-tarefa input[type="text"]:not(.campo-emoji):focus{ outline: none; border-color: var(--coral); }
+
+  .seletor-tipo-tarefa{ display: flex; gap: 6px; flex-basis: 100%; }
+  .tipo-tarefa-btn{
+    padding: 7px 14px;
+    border-radius: 50px;
+    border: 1px solid var(--borda);
+    background: var(--branco);
+    color: var(--texto-suave);
+    font-family: 'Outfit', sans-serif;
+    font-size: .78rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .tipo-tarefa-btn.ugc.ativo{ background: var(--coral); border-color: var(--coral); color: var(--branco); }
+  .tipo-tarefa-btn.pessoal.ativo{ background: var(--dourado); border-color: var(--dourado); color: var(--branco); }
+  .tipo-tarefa-btn.instagram.ativo{ background: var(--vermelho); border-color: var(--vermelho); color: var(--branco); }
+
+  .bolinha-tipo-tarefa{
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .bolinha-tipo-tarefa.ugc{ background: var(--coral); }
+  .bolinha-tipo-tarefa.pessoal{ background: var(--dourado); }
+  .bolinha-tipo-tarefa.instagram{ background: var(--vermelho); }
+
   .campo-horario{
     flex: none;
     width: 110px;
@@ -604,7 +632,8 @@
   .cartao-tarefa{
     display: flex;
     align-items: center;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 8px 10px;
     padding: 8px 14px;
     border-radius: 10px;
     border: 1px solid var(--borda);
@@ -646,6 +675,27 @@
     flex-shrink: 0;
   }
   .cartao-tarefa-excluir:hover{ color: var(--vermelho); }
+  .cartao-tarefa-editar{
+    background: none;
+    border: none;
+    color: var(--texto-suave);
+    cursor: pointer;
+    font-size: .95rem;
+    padding: 4px 6px;
+    flex-shrink: 0;
+  }
+  .cartao-tarefa-editar:hover{ color: var(--coral); }
+  .cartao-tarefa input[type="date"],
+  .cartao-tarefa input[type="time"],
+  .cartao-tarefa input[type="text"]{
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--coral);
+    font-family: 'Outfit', sans-serif;
+    font-size: .8rem;
+    background: var(--branco);
+    color: var(--grafite);
+  }
 
   /* Tons pastéis para diferenciar os cartões de tarefa, na mesma paleta do painel */
   .tarefa-cor-0{ background: #eef1e8; }
@@ -1171,6 +1221,11 @@
             <input type="text" id="campoTarefaTitulo" placeholder="Nova tarefa..." required>
             <input type="time" class="campo-horario" id="campoTarefaHorario">
             <input type="text" class="campo-emoji" id="campoTarefaEmoji" placeholder="🐾" maxlength="4">
+            <div class="seletor-tipo-tarefa" id="seletorTipoTarefa">
+              <button type="button" class="tipo-tarefa-btn ugc ativo" data-tipo="ugc">● UGC</button>
+              <button type="button" class="tipo-tarefa-btn pessoal" data-tipo="pessoal">● PESSOAL</button>
+              <button type="button" class="tipo-tarefa-btn instagram" data-tipo="instagram">● INSTAGRAM</button>
+            </div>
             <button type="submit" class="botao-add-tarefa">Adicionar</button>
           </form>
 
@@ -1335,6 +1390,7 @@
   let mesVisivel = hojeAgenda.getMonth();
   let anoVisivel = hojeAgenda.getFullYear();
   let dataSelecionada = formatarDataISO(hojeAgenda);
+  let tipoTarefaSelecionado = "ugc";
 
   // Estado da aba Finanças: mês/ano exibidos e o filtro de cartão selecionado
   let mesFinancasVisivel = hojeAgenda.getMonth();
@@ -1520,6 +1576,13 @@
       renderizarAgenda();
     });
     document.getElementById("formTarefa").addEventListener("submit", adicionarTarefa);
+
+    document.querySelectorAll("#seletorTipoTarefa .tipo-tarefa-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        tipoTarefaSelecionado = btn.dataset.tipo;
+        document.querySelectorAll("#seletorTipoTarefa .tipo-tarefa-btn").forEach(b => b.classList.toggle("ativo", b.dataset.tipo === tipoTarefaSelecionado));
+      });
+    });
 
     // ---------- Finanças ----------
     document.getElementById("financasMesAnterior").addEventListener("click", () => {
@@ -1926,6 +1989,21 @@
     });
   }
 
+  // 'profissional' é o valor antigo (antes de existir a categoria Instagram); trata como UGC
+  function normalizarTipoTarefa(tipo){
+    if (tipo === "profissional") return "ugc";
+    if (tipo === "instagram") return "instagram";
+    if (tipo === "pessoal") return "pessoal";
+    return "ugc";
+  }
+
+  function rotuloTipoTarefa(tipo){
+    const t = normalizarTipoTarefa(tipo);
+    if (t === "instagram") return "INSTAGRAM";
+    if (t === "pessoal") return "PESSOAL";
+    return "UGC";
+  }
+
   function renderizarTarefasDoDia(){
     const [ano, mes, dia] = dataSelecionada.split("-");
     const dataExibicao = new Date(Number(ano), Number(mes) - 1, Number(dia));
@@ -1955,9 +2033,11 @@
     lista.innerHTML = tarefasDoDia.map(t => `
       <div class="cartao-tarefa tarefa-cor-${t.cor % 5} ${t.concluida ? "concluida" : ""}" data-id="${t.id}">
         <button type="button" class="cartao-tarefa-check" data-acao="concluir" aria-label="Marcar como concluída">&#10003;</button>
+        <span class="bolinha-tipo-tarefa ${normalizarTipoTarefa(t.tipo)}" title="${rotuloTipoTarefa(t.tipo)}"></span>
         ${t.horario ? `<span class="cartao-tarefa-horario">${t.horario.slice(0, 5)}</span>` : ""}
         <span class="cartao-tarefa-emoji">${t.emoji || "📌"}</span>
         <span class="cartao-tarefa-titulo">${t.titulo}</span>
+        <button type="button" class="cartao-tarefa-editar" data-acao="editar" aria-label="Editar tarefa">&#9998;</button>
         <button type="button" class="cartao-tarefa-excluir" data-acao="excluir" aria-label="Excluir tarefa">&times;</button>
       </div>
     `).join("");
@@ -1974,6 +2054,77 @@
         excluirTarefa(id);
       });
     });
+    lista.querySelectorAll("[data-acao='editar']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.closest(".cartao-tarefa").dataset.id;
+        entrarModoEdicaoTarefa(id);
+      });
+    });
+  }
+
+  // Troca uma linha da agenda por campos editáveis de data, horário e descrição
+  function entrarModoEdicaoTarefa(id){
+    const tarefa = tarefasCache.find(t => t.id === id);
+    if (!tarefa) return;
+
+    const linha = document.querySelector(`.cartao-tarefa[data-id="${id}"]`);
+    if (!linha) return;
+
+    const tipoAtual = normalizarTipoTarefa(tarefa.tipo);
+    linha.dataset.tipoSelecionado = tipoAtual;
+
+    linha.innerHTML = `
+      <input type="date" id="edicaoTarefaData-${id}" value="${tarefa.data}">
+      <input type="time" id="edicaoTarefaHorario-${id}" value="${tarefa.horario ? tarefa.horario.slice(0, 5) : ""}">
+      <input type="text" id="edicaoTarefaTitulo-${id}" value="${tarefa.titulo}" style="flex-grow: 1; min-width: 100px;">
+      <div class="seletor-tipo-tarefa" id="seletorTipoEdicao-${id}">
+        <button type="button" class="tipo-tarefa-btn ugc ${tipoAtual === "ugc" ? "ativo" : ""}" data-tipo="ugc">● UGC</button>
+        <button type="button" class="tipo-tarefa-btn pessoal ${tipoAtual === "pessoal" ? "ativo" : ""}" data-tipo="pessoal">● PESSOAL</button>
+        <button type="button" class="tipo-tarefa-btn instagram ${tipoAtual === "instagram" ? "ativo" : ""}" data-tipo="instagram">● INSTAGRAM</button>
+      </div>
+      <button type="button" class="lancamento-salvar" data-acao="salvar-tarefa">Salvar</button>
+      <button type="button" class="lancamento-cancelar" data-acao="cancelar-tarefa">Cancelar</button>
+    `;
+
+    linha.querySelectorAll(`#seletorTipoEdicao-${id} .tipo-tarefa-btn`).forEach(btn => {
+      btn.addEventListener("click", () => {
+        linha.dataset.tipoSelecionado = btn.dataset.tipo;
+        linha.querySelectorAll(`#seletorTipoEdicao-${id} .tipo-tarefa-btn`).forEach(b => b.classList.toggle("ativo", b.dataset.tipo === linha.dataset.tipoSelecionado));
+      });
+    });
+
+    linha.querySelector("[data-acao='salvar-tarefa']").addEventListener("click", () => salvarEdicaoTarefa(id));
+    linha.querySelector("[data-acao='cancelar-tarefa']").addEventListener("click", () => renderizarTarefasDoDia());
+  }
+
+  async function salvarEdicaoTarefa(id){
+    const linha = document.querySelector(`.cartao-tarefa[data-id="${id}"]`);
+    const novaData = document.getElementById(`edicaoTarefaData-${id}`).value;
+    const novoHorario = document.getElementById(`edicaoTarefaHorario-${id}`).value;
+    const novoTitulo = document.getElementById(`edicaoTarefaTitulo-${id}`).value.trim();
+    const novoTipo = linha?.dataset.tipoSelecionado || "pessoal";
+
+    if (!novaData || !novoTitulo) return;
+
+    const dados = {
+      data: novaData,
+      horario: novoHorario || null,
+      titulo: novoTitulo,
+      tipo: novoTipo
+    };
+
+    const { error } = await Auth.client
+      .from("painel_tarefas")
+      .update(dados)
+      .eq("id", id);
+
+    if (!error){
+      const indice = tarefasCache.findIndex(t => t.id === id);
+      if (indice > -1) tarefasCache[indice] = { ...tarefasCache[indice], ...dados };
+      // Se a data mudou, vai direto para o dia novo, assim ela já vê a tarefa no lugar certo
+      dataSelecionada = novaData;
+      renderizarAgenda();
+    }
   }
 
   async function adicionarTarefa(e){
@@ -1993,7 +2144,8 @@
         emoji: campoEmoji.value.trim() || null,
         horario: campoHorario.value || null,
         data: dataSelecionada,
-        cor: corIndice
+        cor: corIndice,
+        tipo: tipoTarefaSelecionado
       })
       .select();
 
@@ -2002,6 +2154,8 @@
       campoTitulo.value = "";
       campoHorario.value = "";
       campoEmoji.value = "";
+      tipoTarefaSelecionado = "ugc";
+      document.querySelectorAll("#seletorTipoTarefa .tipo-tarefa-btn").forEach(b => b.classList.toggle("ativo", b.dataset.tipo === tipoTarefaSelecionado));
       renderizarAgenda();
     }
   }
