@@ -384,7 +384,6 @@
     height: 100%;
     border-radius: 50%;
     background: var(--creme);
-    border: 2px solid var(--branco);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -395,8 +394,15 @@
     color: var(--vermelho);
     text-align: center;
     line-height: 1.05;
-    padding: 3px;
+    overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  }
+  .marca-bolha .logo-circulo img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 50%;
   }
   .marca-bolha .selo-verificado{
     position: absolute;
@@ -1056,16 +1062,36 @@ const CONFIG = {
     textoCta: "Fale comigo"
   },
 
-  // EDITE AQUI: nomes das marcas que já trabalharam com você (aparecem na faixa rolante)
+  // EDITE AQUI: marcas que já trabalharam com você (aparecem na faixa rolante).
+  // "logo" é o nome do arquivo dentro de imagens/marcas/. Se "logo" for null,
+  // aparece uma bolinha com as iniciais do nome no lugar.
   marcas: [
-    "Bella Cosméticos",
-    "Viva Fit Suplementos",
-    "Doce Lar Utilidades",
-    "Trend Moda Feminina",
-    "Sabor Caseiro Alimentos",
-    "Pele de Seda Skincare",
-    "Casa Aromas",
-    "Estilo Urbano"
+    { nome: "Alva", logo: "alva.jpg" },
+    { nome: "CleanNew Store", logo: "cleannew.jpg" },
+    { nome: "Coala", logo: "coala.png" },
+    { nome: "Condor", logo: "condor.jpg" },
+    { nome: "Darrow", logo: "darrow.png" },
+    { nome: "Dr. Lava Tudo", logo: "dr-lava-tudo.png" },
+    { nome: "Dreams Nutrition", logo: "dreams-nutrition.jpg" },
+    { nome: "FreePet", logo: "freepet.png" },
+    { nome: "Garnie", logo: "garnie.jpg" },
+    { nome: "Itambé", logo: "itambe.jpg" },
+    { nome: "Max Titanium", logo: "max-titanium.jpg" },
+    { nome: "Mega Ótica Opção", logo: "mega-otica-opcao.jpg" },
+    { nome: "Natuka", logo: "natuka.png" },
+    { nome: "Nivea", logo: "nivea.png" },
+    { nome: "Pantene", logo: "pantene.png" },
+    { nome: "Pibe", logo: "pibe.jpg" },
+    { nome: "Rainha Nativa", logo: "rainha-nativa.jpg" },
+    { nome: "Rituária", logo: "rituaria.jpg" },
+    { nome: "Saint Germain", logo: "saint-germain.jpg" },
+    { nome: "Seu Influencer", logo: "seu-influencer.jpg" },
+    { nome: "Shopee", logo: "shopee.png" },
+    { nome: "Show de Pizzaiolo", logo: "show-de-pizzaiolo.png" },
+    { nome: "Vhita", logo: "vhita.png" },
+    { nome: "Voga", logo: "voga.jpg" },
+    { nome: "Yool", logo: "yool.jpg" },
+    { nome: "Marca R", logo: "logo-r.png" }
   ],
 
   // EDITE AQUI: texto e destaques da seção Sobre
@@ -1248,8 +1274,12 @@ document.addEventListener("DOMContentLoaded", () => {
     (_, i) => CONFIG.marcas[i % CONFIG.marcas.length]
   );
   const grupoHtml = marcasRepetidas.map(m => `
-    <div class="marca-bolha" title="${m}">
-      <div class="logo-circulo">${iniciaisMarca(m)}</div>
+    <div class="marca-bolha" title="${m.nome}">
+      <div class="logo-circulo">${
+        m.logo
+          ? `<img src="imagens/marcas/${m.logo}" alt="${m.nome}" loading="lazy">`
+          : iniciaisMarca(m.nome)
+      }</div>
       <div class="selo-verificado">${iconeCheck}</div>
     </div>
   `).join("");
