@@ -568,18 +568,15 @@
     z-index: 2000;
     align-items: center;
     justify-content: center;
-    padding: 12px 24px;
+    padding: 24px;
   }
   .modal-video.aberto{ display: flex; }
   .modal-conteudo{
     position: relative;
     width: 100%;
     /* Largura máxima calculada para nunca passar da altura disponível na tela,
-       mantendo sempre a proporção vertical 9:16 (formato Shorts) sem sobra preta.
-       Usa "dvh" (altura real visível) quando o navegador suporta, para não
-       calcular em cima da altura "escondida" atrás da barra de endereço do celular. */
-    max-width: min(560px, calc((100vh - 24px) * 9 / 16));
-    max-width: min(560px, calc((100dvh - 24px) * 9 / 16));
+       mantendo sempre a proporção vertical 9:16 (formato Shorts) sem sobra preta. */
+    max-width: min(380px, calc((100vh - 48px) * 9 / 16));
     border: 4px solid var(--branco);
     border-radius: 20px;
     overflow: hidden;
@@ -867,8 +864,6 @@
     .hero-botoes .pill-btn{ justify-content: center; }
     .portfolio-card{ flex-basis: 165px; }
     .campo-linha{ grid-template-columns: 1fr; }
-    .modal-video{ padding: 8px; }
-    .modal-conteudo{ border-width: 2px; }
   }
 </style>
 </head>
@@ -1432,7 +1427,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function abrirModalVideo(videoId, gatilho){
     elementoComFoco = gatilho;
-    modalPlayer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0" title="Vídeo do portfólio" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    modalPlayer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" title="Vídeo do portfólio" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
     modalVideo.classList.add("aberto");
     modalFechar.focus();
     document.body.style.overflow = "hidden";
