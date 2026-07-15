@@ -577,16 +577,12 @@
     /* Largura máxima calculada para nunca passar da altura disponível na tela,
        mantendo sempre a proporção vertical 9:16 (formato Shorts) sem sobra preta. */
     max-width: min(380px, calc((100vh - 48px) * 9 / 16));
-    border: 4px solid var(--branco);
-    border-radius: 20px;
+    /* TESTE DE DIAGNÓSTICO TEMPORÁRIO: moldura removida de propósito. */
+    border: 0;
+    border-radius: 0;
     overflow: hidden;
-    box-shadow: var(--sombra-dura);
+    box-shadow: none;
     background: var(--tinta);
-    /* Força o Safari a desenhar isso numa camada própria — corrige um bug
-       conhecido do iPhone onde uma linha do fundo escuro "vaza" pela borda
-       arredondada quando tem um iframe dentro. */
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
   }
   .modal-conteudo::before{
     content: "";
