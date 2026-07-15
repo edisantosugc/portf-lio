@@ -1066,6 +1066,8 @@
   }
   .resumo-linha.destaque{ background: var(--coral); color: var(--branco); font-weight: 600; }
   .resumo-linha strong{ font-family: 'Fraunces', serif; font-size: 1.05rem; }
+  .resumo-linha.linha-a-receber{ background: rgba(201,166,107,.12); color: var(--dourado); }
+  .resumo-linha.linha-a-receber strong{ color: var(--dourado); }
 
   .lista-cartoes-pagar{ display: flex; flex-direction: column; gap: 10px; }
   .linha-cartao-pagar{
@@ -1264,6 +1266,7 @@
   .linha-ano-negocio .ano-dado strong{ display: block; font-family: 'Fraunces', serif; font-size: 1rem; color: var(--grafite); }
   .linha-ano-negocio .ano-dado.caixa-lucro strong{ color: var(--verde); }
   .linha-ano-negocio .ano-dado.caixa-prejuizo strong{ color: var(--vermelho); }
+  .linha-ano-negocio .ano-dado.ano-a-receber strong{ color: var(--dourado); }
 
   /* ===================== RESPONSIVO ===================== */
   @media (max-width: 900px){
@@ -1540,7 +1543,7 @@
 
         <div class="cartao" style="margin-top: 20px;">
           <h2>Caixa do mês</h2>
-          <p class="sub-secao-financas">Ganhos menos investimentos. Verde é lucro, vermelho é prejuízo.</p>
+          <p class="sub-secao-financas">Recebido menos investimentos. Verde é lucro, vermelho é saldo negativo.</p>
           <div class="resumo-caixa" id="resumoCaixa"></div>
         </div>
 
@@ -1553,7 +1556,8 @@
 
           <div class="cartao">
             <h2>Ganhos</h2>
-            <p class="resumo-linha" id="totalGanhosUGC" style="margin-bottom: 14px;"></p>
+            <p class="resumo-linha" id="totalGanhosUGC" style="margin-bottom: 8px;"></p>
+            <p class="resumo-linha linha-a-receber oculto" id="totalAReceberUGC" style="margin-bottom: 14px;"></p>
             <div id="areaGanhosUGC"></div>
           </div>
         </div>
@@ -3314,31 +3318,46 @@
   /* =========================================================================
      ABA: FINANÇAS UGC (negócio)
      ========================================================================= */
+  // Data usada pra decidir em qual mês/ano um lançamento entra nos totais e no "Caixa".
+  // Um ganho com recebimento previsto conta no mês em que o dinheiro deve cair, não no
+  // mês em que o trabalho foi fechado — a data original continua exibida na linha, só
+  // pra controle. Investimentos e ganhos já recebidos (sem previsão) usam a data normal.
+  function dataEfetivaNegocio(n){
+    return (n.tipo === "ganho" && n.data_prevista_recebimento) ? n.data_prevista_recebimento : n.data;
+  }
+
   function renderizarNegocio(){
     document.getElementById("negocioMesTitulo").textContent = `${NOMES_MES[mesNegocioVisivel]} de ${anoNegocioVisivel}`;
 
     const lancamentosDoMes = negocioCache
       .filter(n => {
-        const [ano, mes] = n.data.split("-").map(Number);
+        const [ano, mes] = dataEfetivaNegocio(n).split("-").map(Number);
         return ano === anoNegocioVisivel && (mes - 1) === mesNegocioVisivel;
       })
-      .sort((a, b) => new Date(b.data) - new Date(a.data));
+      .sort((a, b) => new Date(dataEfetivaNegocio(b)) - new Date(dataEfetivaNegocio(a)));
 
     const investimentos = lancamentosDoMes.filter(n => n.tipo === "investimento");
     const ganhos = lancamentosDoMes.filter(n => n.tipo === "ganho");
 
     const totalInvestimentos = investimentos.reduce((soma, n) => soma + Number(n.valor), 0);
-    const totalGanhos = ganhos.reduce((soma, n) => soma + Number(n.valor), 0);
+    const totalGanhos = ganhos.filter(n => n.recebido).reduce((soma, n) => soma + Number(n.valor), 0);
+    const totalAReceber = ganhos.filter(n => !n.recebido).reduce((soma, n) => soma + Number(n.valor), 0);
     const caixa = totalGanhos - totalInvestimentos;
 
     document.getElementById("totalInvestimentosUGC").innerHTML =
       `<span>Total investido</span><strong>${formatarMoeda(totalInvestimentos)}</strong>`;
     document.getElementById("totalGanhosUGC").innerHTML =
-      `<span>Total de ganhos</span><strong>${formatarMoeda(totalGanhos)}</strong>`;
+      `<span>Total recebido</span><strong>${formatarMoeda(totalGanhos)}</strong>`;
+
+    const areaAReceberUGC = document.getElementById("totalAReceberUGC");
+    areaAReceberUGC.classList.toggle("oculto", totalAReceber === 0);
+    if (totalAReceber > 0){
+      areaAReceberUGC.innerHTML = `<span>A receber</span><strong>${formatarMoeda(totalAReceber)}</strong>`;
+    }
 
     document.getElementById("resumoCaixa").innerHTML = `
       <p class="valor-caixa ${caixa >= 0 ? "lucro" : "prejuizo"}">${formatarMoeda(caixa)}</p>
-      <p class="rotulo-caixa">${caixa >= 0 ? "Lucro do mês" : "Prejuízo do mês"}</p>
+      <p class="rotulo-caixa">${caixa >= 0 ? "Lucro do mês" : "Saldo negativo do mês"}</p>
     `;
 
     renderizarListaNegocio("areaInvestimentosUGC", investimentos, "investimento", "Nenhum investimento lançado esse mês ainda.");
@@ -3362,10 +3381,15 @@
 
     const totaisPorAno = {};
     negocioCache.forEach(n => {
-      const ano = Number(n.data.split("-")[0]);
-      if (!totaisPorAno[ano]) totaisPorAno[ano] = { investido: 0, ganho: 0, itens: [] };
-      if (n.tipo === "investimento") totaisPorAno[ano].investido += Number(n.valor);
-      else totaisPorAno[ano].ganho += Number(n.valor);
+      const ano = Number(dataEfetivaNegocio(n).split("-")[0]);
+      if (!totaisPorAno[ano]) totaisPorAno[ano] = { investido: 0, ganho: 0, aReceber: 0, itens: [] };
+      if (n.tipo === "investimento"){
+        totaisPorAno[ano].investido += Number(n.valor);
+      } else if (n.recebido){
+        totaisPorAno[ano].ganho += Number(n.valor);
+      } else {
+        totaisPorAno[ano].aReceber += Number(n.valor);
+      }
       totaisPorAno[ano].itens.push(n);
     });
 
@@ -3374,7 +3398,7 @@
     container.innerHTML = anosOrdenados.map(ano => {
       const dados = totaisPorAno[ano];
       const caixa = dados.ganho - dados.investido;
-      const itensOrdenados = dados.itens.slice().sort((a, b) => new Date(b.data) - new Date(a.data));
+      const itensOrdenados = dados.itens.slice().sort((a, b) => new Date(dataEfetivaNegocio(b)) - new Date(dataEfetivaNegocio(a)));
 
       const listaHtml = itensOrdenados.map(n => linhaNegocioHtml(n)).join("");
 
@@ -3385,8 +3409,9 @@
           <div class="linha-ano-negocio">
             <span class="ano-nome">${ano}</span>
             <span class="ano-dado">Investido<strong>${formatarMoeda(dados.investido)}</strong></span>
-            <span class="ano-dado">Ganhos<strong>${formatarMoeda(dados.ganho)}</strong></span>
-            <span class="ano-dado ${caixa >= 0 ? "caixa-lucro" : "caixa-prejuizo"}">${caixa >= 0 ? "Lucro" : "Prejuízo"}<strong>${formatarMoeda(caixa)}</strong></span>
+            <span class="ano-dado">Recebido<strong>${formatarMoeda(dados.ganho)}</strong></span>
+            ${dados.aReceber > 0 ? `<span class="ano-dado ano-a-receber">A receber<strong>${formatarMoeda(dados.aReceber)}</strong></span>` : ""}
+            <span class="ano-dado ${caixa >= 0 ? "caixa-lucro" : "caixa-prejuizo"}">${caixa >= 0 ? "Lucro" : "Saldo negativo"}<strong>${formatarMoeda(caixa)}</strong></span>
             <button type="button" class="ano-negocio-toggle" data-acao="toggle-ano" aria-label="Ver detalhes do ano">&#8964;</button>
           </div>
           <div class="lista-negocio lista-ano-negocio">${listaHtml}</div>
@@ -3426,13 +3451,16 @@
       .filter(n => n.tipo === "investimento")
       .reduce((soma, n) => soma + Number(n.valor), 0);
     const totalGanho = negocioCache
-      .filter(n => n.tipo === "ganho")
+      .filter(n => n.tipo === "ganho" && n.recebido)
+      .reduce((soma, n) => soma + Number(n.valor), 0);
+    const totalAReceber = negocioCache
+      .filter(n => n.tipo === "ganho" && !n.recebido)
       .reduce((soma, n) => soma + Number(n.valor), 0);
     const caixaGeral = totalGanho - totalInvestido;
 
     document.getElementById("resumoCaixaGeral").innerHTML = `
       <p class="valor-caixa ${caixaGeral >= 0 ? "lucro" : "prejuizo"}">${formatarMoeda(caixaGeral)}</p>
-      <p class="rotulo-caixa">${caixaGeral >= 0 ? "Lucro acumulado" : "Prejuízo acumulado"}</p>
+      <p class="rotulo-caixa">${caixaGeral >= 0 ? "Lucro acumulado" : "Saldo negativo acumulado"}</p>
     `;
 
     document.getElementById("totaisGeralNegocio").innerHTML = `
@@ -3441,9 +3469,14 @@
         <p class="financas-total-valor">${formatarMoeda(totalInvestido)}</p>
       </div>
       <div class="financas-total-cartao">
-        <p class="financas-total-nome">Total de ganhos</p>
+        <p class="financas-total-nome">Total recebido</p>
         <p class="financas-total-valor">${formatarMoeda(totalGanho)}</p>
       </div>
+      ${totalAReceber > 0 ? `
+      <div class="financas-total-cartao">
+        <p class="financas-total-nome">A receber</p>
+        <p class="financas-total-valor" style="color: var(--dourado);">${formatarMoeda(totalAReceber)}</p>
+      </div>` : ""}
     `;
   }
 
