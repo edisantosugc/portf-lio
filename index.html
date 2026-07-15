@@ -346,6 +346,38 @@
     display: block;
   }
 
+  /* Ícones decorativos (brilho, borboleta, patinha) */
+  .decor{
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .decor-dourado{ color: var(--rosa); }
+  .decor-azul{ color: var(--vermelho); }
+  .decor svg{ width: 100%; height: 100%; display: block; fill: currentColor; }
+
+  .decor-hero-brilho-1{ width: 34px; height: 34px; top: 90px; right: 6%; }
+  .decor-hero-brilho-2{ width: 20px; height: 20px; top: 150px; right: 13%; }
+  .decor-hero-borboleta{ width: 44px; height: 44px; top: 18%; left: 55%; }
+  .decor-sobre-brilho{ width: 26px; height: 26px; top: 18px; right: 4%; }
+  .decor-sobre-pata{ width: 40px; height: 40px; bottom: 6%; left: 4%; }
+  .decor-sobre-borboleta{ width: 34px; height: 34px; bottom: 14px; right: 2%; }
+
+  /* Flutuação suave só na borboleta, pra dar vida sem exagerar */
+  .decor-flutuar{
+    transform-origin: center;
+    animation: decor-flutuar 3.6s ease-in-out infinite;
+  }
+  .decor-sobre-borboleta .decor-flutuar{ animation-duration: 4.1s; animation-delay: -1.2s; }
+  @keyframes decor-flutuar{
+    0%, 100%{ transform: translateY(0) rotate(-6deg); }
+    50%{ transform: translateY(-10px) rotate(6deg); }
+  }
+
+  @media (max-width: 900px){
+    .decor{ display: none; }
+  }
+
   /* ===================== FAIXA DE MARCAS ===================== */
   .faixa-marcas{
     background: var(--vermelho);
@@ -908,6 +940,9 @@
 
   <!-- ===================== 2. HERO ===================== -->
   <section class="hero">
+    <span class="decor decor-dourado decor-hero-brilho-1" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 1c1 5.5 1.9 6.4 8 8-6.1 1.6-7 2.5-8 8-1-5.5-1.9-6.4-8-8 6.1-1.6 7-2.5 8-8z"/></svg></span>
+    <span class="decor decor-dourado decor-hero-brilho-2" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 1c1 5.5 1.9 6.4 8 8-6.1 1.6-7 2.5-8 8-1-5.5-1.9-6.4-8-8 6.1-1.6 7-2.5 8-8z"/></svg></span>
+    <span class="decor decor-azul decor-hero-borboleta" aria-hidden="true"><svg class="decor-flutuar" viewBox="0 0 100 100"><path d="M50,44 C58,20 82,9 94,21 C105,33 90,47 50,47 Z"/><path d="M50,44 C42,20 18,9 6,21 C-5,33 10,47 50,47 Z"/><path d="M50,50 C60,54 79,61 75,79 C71,95 55,84 50,52 Z"/><path d="M50,50 C40,54 21,61 25,79 C29,95 45,84 50,52 Z"/><ellipse cx="50" cy="50" rx="3.5" ry="20"/><circle cx="50" cy="27" r="4.5"/><path d="M47,25 C44,17 41,13 37,10 M53,25 C56,17 59,13 63,10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
     <div class="container">
       <div class="hero-texto reveal">
         <p class="tag-secao">UGC Creator &amp; Manager</p>
@@ -935,6 +970,9 @@
 
   <!-- ===================== 4. SOBRE ===================== -->
   <section class="sobre" id="sobre">
+    <span class="decor decor-dourado decor-sobre-brilho" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 1c1 5.5 1.9 6.4 8 8-6.1 1.6-7 2.5-8 8-1-5.5-1.9-6.4-8-8 6.1-1.6 7-2.5 8-8z"/></svg></span>
+    <span class="decor decor-azul decor-sobre-pata" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="16.5" rx="5.5" ry="4.5"/><circle cx="4.5" cy="9" r="2.3"/><circle cx="10" cy="4.5" r="2.3"/><circle cx="15.5" cy="4.5" r="2.3"/><circle cx="20.5" cy="9" r="2.3"/></svg></span>
+    <span class="decor decor-dourado decor-sobre-borboleta" aria-hidden="true"><svg class="decor-flutuar" viewBox="0 0 100 100"><path d="M50,44 C58,20 82,9 94,21 C105,33 90,47 50,47 Z"/><path d="M50,44 C42,20 18,9 6,21 C-5,33 10,47 50,47 Z"/><path d="M50,50 C60,54 79,61 75,79 C71,95 55,84 50,52 Z"/><path d="M50,50 C40,54 21,61 25,79 C29,95 45,84 50,52 Z"/><ellipse cx="50" cy="50" rx="3.5" ry="20"/><circle cx="50" cy="27" r="4.5"/><path d="M47,25 C44,17 41,13 37,10 M53,25 C56,17 59,13 63,10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
     <div class="container">
       <div class="sobre-foto foto-bloco grad-2 reveal" role="img" aria-label="Foto de Edilaine Santos gravando conteúdo">
         <!-- Bloco em gradiente simulando a foto da seção Sobre.
