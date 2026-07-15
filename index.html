@@ -582,6 +582,11 @@
     overflow: hidden;
     box-shadow: var(--sombra-dura);
     background: var(--tinta);
+    /* Força o Safari a desenhar isso numa camada própria — corrige um bug
+       conhecido do iPhone onde uma linha do fundo escuro "vaza" pela borda
+       arredondada quando tem um iframe dentro. */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
   }
   .modal-conteudo::before{
     content: "";
@@ -1427,7 +1432,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function abrirModalVideo(videoId, gatilho){
     elementoComFoco = gatilho;
-    modalPlayer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" title="Vídeo do portfólio" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    modalPlayer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" title="Vídeo do portfólio" scrolling="no" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
     modalVideo.classList.add("aberto");
     modalFechar.focus();
     document.body.style.overflow = "hidden";
