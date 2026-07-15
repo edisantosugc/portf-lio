@@ -593,9 +593,12 @@
   }
   .modal-conteudo iframe{
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+    /* levemente maior que a caixa (em vez de "inset:0") para nunca deixar
+       uma linha fina do fundo escuro aparecer por arredondamento de sub-pixel
+       em alguns navegadores de celular (ex: Safari no iPhone). */
+    inset: -1px;
+    width: calc(100% + 2px);
+    height: calc(100% + 2px);
     border: 0;
   }
   .modal-fechar{
