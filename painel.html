@@ -95,6 +95,18 @@
   .menu-item:hover{ background: var(--creme); color: var(--grafite); }
   .menu-item.ativo{ background: var(--coral); color: var(--branco); }
 
+  .badge-alerta-sidebar{
+    margin-left: auto;
+    background: var(--vermelho);
+    color: var(--branco);
+    font-size: .72rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 4px 7px;
+    border-radius: 50px;
+    flex-shrink: 0;
+  }
+
   .sidebar-rodape{
     border-top: 1px solid var(--borda);
     padding-top: 16px;
@@ -203,6 +215,111 @@
     color: var(--texto-suave);
     margin-bottom: 24px;
   }
+
+  /* ===================== POP-UP DE ALERTAS (aparece por cima, ao abrir o painel) ===================== */
+  .notificacoes-popup{
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(340px, calc(100vw - 40px));
+  }
+  .notificacao-popup{
+    position: relative;
+    background: var(--branco);
+    border: 1px solid var(--borda);
+    border-left: 4px solid var(--dourado);
+    border-radius: 12px;
+    padding: 14px 34px 14px 16px;
+    box-shadow: 0 12px 30px rgba(26,24,22,.15);
+    animation: entrarNotificacao .25s ease;
+  }
+  .notificacao-popup.atrasado{ border-left-color: var(--vermelho); }
+  .notificacao-popup.proximo-receber{ border-left-color: var(--verde); }
+  @keyframes entrarNotificacao{
+    from{ opacity: 0; transform: translateX(20px); }
+    to{ opacity: 1; transform: translateX(0); }
+  }
+  .notificacao-popup-fechar{
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--texto-suave);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .notificacao-popup-fechar:hover{ color: var(--grafite); }
+  .notificacao-popup-nome{ font-weight: 600; font-size: .9rem; padding-right: 10px; }
+  .notificacao-popup.atrasado .notificacao-popup-nome{ color: var(--vermelho); }
+  .notificacao-popup-mensagem{ font-size: .8rem; color: var(--texto-suave); margin-top: 3px; }
+  .notificacao-popup.atrasado .notificacao-popup-mensagem{ color: var(--vermelho); }
+  .notificacao-popup-botao-pago{
+    margin-top: 10px;
+    padding: 7px 12px;
+    border-radius: 9px;
+    border: 1px solid var(--borda);
+    background: var(--creme);
+    color: var(--grafite);
+    font-family: 'Outfit', sans-serif;
+    font-size: .78rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .notificacao-popup-botao-pago:hover{ background: var(--verde); border-color: var(--verde); color: var(--branco); }
+
+  @media (max-width: 500px){
+    .notificacoes-popup{ left: 20px; right: 20px; width: auto; }
+  }
+
+  /* ===================== ALERTAS DE CONTAS A VENCER (Menu Principal) ===================== */
+  #areaAlertasContas{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  #areaAlertasContas:not(:empty){ margin-bottom: 24px; }
+  .alerta-conta{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    border: 1px solid;
+  }
+  .alerta-conta.proximo{
+    background: rgba(201,166,107,.12);
+    border-color: var(--dourado);
+  }
+  .alerta-conta.atrasado{
+    background: rgba(196,69,60,.1);
+    border-color: var(--vermelho);
+  }
+  .alerta-conta-info{ flex-grow: 1; }
+  .alerta-conta-nome{ font-weight: 600; font-size: .92rem; }
+  .alerta-conta.atrasado .alerta-conta-nome{ color: var(--vermelho); }
+  .alerta-conta-mensagem{ font-size: .8rem; color: var(--texto-suave); margin-top: 2px; }
+  .alerta-conta.atrasado .alerta-conta-mensagem{ color: var(--vermelho); }
+  .alerta-conta-botao-pago{
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--borda);
+    background: var(--branco);
+    color: var(--grafite);
+    font-family: 'Outfit', sans-serif;
+    font-size: .8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .alerta-conta.atrasado .alerta-conta-botao-pago{ border-color: var(--vermelho); color: var(--vermelho); }
+  .alerta-conta-botao-pago:hover{ background: var(--verde); border-color: var(--verde); color: var(--branco); }
 
   /* ===================== CARTÕES GENÉRICOS ===================== */
   .cartao{
@@ -400,13 +517,17 @@
     flex-shrink: 0;
     white-space: nowrap;
   }
-  .cartao-mensagem-seta{
-    font-size: 1.2rem;
+  .cartao-mensagem-excluir{
+    background: none;
+    border: none;
     color: var(--texto-suave);
-    transition: transform .2s ease;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 6px;
     flex-shrink: 0;
   }
-  .cartao-mensagem-topo.aberto .cartao-mensagem-seta{ transform: rotate(90deg); }
+  .cartao-mensagem-excluir:hover{ color: var(--vermelho); }
   .cartao-mensagem-corpo{
     padding: 4px 16px 18px;
     font-size: .9rem;
@@ -1054,6 +1175,27 @@
   .linha-negocio-valor{ font-family: 'Fraunces', serif; font-weight: 600; font-size: .95rem; flex-shrink: 0; }
   .linha-negocio-valor.investimento{ color: var(--vermelho); }
   .linha-negocio-valor.ganho{ color: var(--verde); }
+  .linha-negocio.pendente{ background: rgba(201,166,107,.1); border-color: var(--dourado); }
+  .selo-pendente-recebimento{
+    font-size: .68rem;
+    font-weight: 600;
+    color: var(--dourado);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .botao-recebido-toggle{
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--borda);
+    background: var(--branco);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: transparent;
+    font-size: .78rem;
+    flex-shrink: 0;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .botao-recebido-toggle.recebido{ background: var(--verde); border-color: var(--verde); color: var(--branco); }
 
   .sub-abas-negocio{
     display: flex;
@@ -1079,17 +1221,39 @@
   .sub-aba-btn:hover{ color: var(--grafite); }
   .sub-aba-btn.ativo{ background: var(--coral); color: var(--branco); }
 
+  .linha-ano-negocio-wrap{
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .linha-ano-negocio-wrap:last-child{ margin-bottom: 0; }
   .linha-ano-negocio{
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 10px 20px;
     padding: 14px 16px;
-    border-radius: 12px;
-    border: 1px solid var(--borda);
-    margin-bottom: 10px;
   }
-  .linha-ano-negocio:last-child{ margin-bottom: 0; }
+  .lista-ano-negocio{
+    display: none;
+    border-top: 1px solid var(--borda);
+    padding: 10px 16px 14px;
+  }
+  .linha-ano-negocio-wrap.expandido .lista-ano-negocio{ display: block; }
+  .ano-negocio-toggle{
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--texto-suave);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px 8px;
+    flex-shrink: 0;
+    transition: transform .2s ease;
+  }
+  .ano-negocio-toggle:hover{ color: var(--coral); }
+  .linha-ano-negocio-wrap.expandido .ano-negocio-toggle{ transform: rotate(180deg); color: var(--coral); }
   .linha-ano-negocio .ano-nome{
     font-family: 'Fraunces', serif;
     font-weight: 700;
@@ -1132,6 +1296,8 @@
 </head>
 <body>
 
+<div class="notificacoes-popup" id="areaNotificacoesPopup"></div>
+
 <div class="app">
 
   <!-- ===================== SIDEBAR ===================== -->
@@ -1156,6 +1322,7 @@
       <button class="menu-item" data-tab="financas">
         <svg viewBox="0 0 16 16"><path d="M12.136.326A1.5 1.5 0 0 1 14 1.78V3h.5A1.5 1.5 0 0 1 16 4.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 13.5v-9a1.5 1.5 0 0 1 1.432-1.499L12.136.326zM5.562 3H13V1.78a.5.5 0 0 0-.621-.484L5.562 3zM1.5 4a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-13z"/></svg>
         Finanças
+        <span class="badge-alerta-sidebar oculto" id="badgeAlertaFinancas"></span>
       </button>
       <button class="menu-item" data-tab="negocio">
         <svg viewBox="0 0 16 16"><path d="M8 0a1 1 0 0 1 1 1v.5h1a.5.5 0 0 1 0 1H9v1.55c1.938.219 3.5 1.336 3.5 2.7 0 .152-.02.3-.058.443A6 6 0 0 1 14 12c0 .35-.026.694-.076 1.03A2 2 0 0 1 12 15H4a2 2 0 0 1-1.924-1.97A6 6 0 0 1 2 12a6 6 0 0 1 1.558-4.807A1.5 1.5 0 0 1 3.5 6.75c0-1.364 1.562-2.481 3.5-2.7V2.5h-1a.5.5 0 0 1 0-1h1V1a1 1 0 0 1 1-1ZM8 5c-1.44 0-2.5.79-2.5 1.75S6.56 8.5 8 8.5s2.5-.79 2.5-1.75S9.44 5 8 5Z"/></svg>
@@ -1269,6 +1436,8 @@
 
     <!-- ===================== ABA: FINANÇAS ===================== -->
     <section id="painelFinancas" class="painel-tab oculto">
+      <div id="areaAlertasContas"></div>
+
       <div class="cartao">
         <div class="financas-mes-topo">
           <div class="financas-mes-nav">
@@ -1358,6 +1527,13 @@
             </select>
             <input type="date" id="campoNegocioData" required>
             <input type="number" id="campoNegocioValor" placeholder="Valor R$" step="0.01" min="0" required>
+
+            <label class="form-lancamento-check oculto" id="labelNegocioRecebido">
+              <input type="checkbox" id="campoNegocioRecebido" checked>
+              Já recebi esse valor
+            </label>
+            <input type="date" id="campoNegocioDataPrevista" class="oculto" title="Previsto para receber">
+
             <button type="submit" class="botao-add-lancamento">Adicionar</button>
           </form>
         </div>
@@ -1458,6 +1634,13 @@
   // Guarda se a fatura de cada cartão, num mês/ano específico, já foi marcada como paga
   let cartoesPagosCache = {};
 
+  // Guarda quais notificações pop-up já foram fechadas (no X) nessa visita ao painel,
+  // pra não reaparecerem sozinhas enquanto a página não for recarregada.
+  let notificacoesPopupFechadas = new Set();
+
+  // Guarda quais anos estão com o detalhe expandido na aba Finanças UGC > Anual
+  let anosNegocioExpandidos = new Set();
+
   // EDITE AQUI se precisar adicionar/remover uma conta fixa mensal
   // EDITE AQUI o dia de vencimento de cada conta fixa
   const VENCIMENTO_GASTOS_FIXOS = {
@@ -1526,6 +1709,7 @@
 
       document.getElementById("areaCarregando").classList.add("oculto");
       renderizarTudo();
+      renderizarNotificacoesPopup();
       renderizarAgenda();
       preencherSelectsFinancas();
       try {
@@ -1672,6 +1856,15 @@
     document.getElementById("campoNegocioData").value = formatarDataISO(new Date());
     document.getElementById("formNegocio").addEventListener("submit", adicionarLancamentoNegocio);
 
+    document.getElementById("campoNegocioTipo").addEventListener("change", (e) => {
+      const ehGanho = e.target.value === "ganho";
+      document.getElementById("labelNegocioRecebido").classList.toggle("oculto", !ehGanho);
+      if (!ehGanho) document.getElementById("campoNegocioDataPrevista").classList.add("oculto");
+    });
+    document.getElementById("campoNegocioRecebido").addEventListener("change", (e) => {
+      document.getElementById("campoNegocioDataPrevista").classList.toggle("oculto", e.target.checked);
+    });
+
     document.querySelectorAll("#subAbasNegocio .sub-aba-btn").forEach(btn => {
       btn.addEventListener("click", () => trocarSubAbaNegocio(btn.dataset.subaba));
     });
@@ -1740,6 +1933,7 @@
     const leads = filtrarPorPeriodo(leadsCache);
     renderizarMenuPrincipal(eventos, leads);
     renderizarPortfolio(eventos, leads);
+    renderizarAlertasContas();
   }
 
   /* =========================================================================
@@ -1951,15 +2145,15 @@
 
       return `
         <div class="cartao-mensagem">
-          <button class="cartao-mensagem-topo" data-idx="${i}">
+          <div class="cartao-mensagem-topo" data-idx="${i}" data-id="${lead.id}">
             <span class="selo-origem">${origem}</span>
             <span class="cartao-mensagem-principal">
               <span class="cartao-mensagem-nome">${lead.name || "Sem nome"}</span>
               <span class="cartao-mensagem-email">${lead.email || "e-mail não informado"}</span>
             </span>
             <span class="cartao-mensagem-data">${data}</span>
-            <span class="cartao-mensagem-seta">&#8250;</span>
-          </button>
+            <button type="button" class="cartao-mensagem-excluir" data-acao="excluir-mensagem" aria-label="Excluir mensagem">&times;</button>
+          </div>
           <div class="cartao-mensagem-corpo oculto" id="mensagem-${i}">
             ${lead.phone ? `<p><strong>Telefone:</strong> ${lead.phone}</p>` : ""}
             ${lead.brand ? `<p><strong>Marca:</strong> ${lead.brand}</p>` : ""}
@@ -1978,9 +2172,28 @@
       btn.addEventListener("click", () => {
         const corpo = document.getElementById("mensagem-" + btn.dataset.idx);
         corpo.classList.toggle("oculto");
-        btn.classList.toggle("aberto");
       });
     });
+
+    container.querySelectorAll("[data-acao='excluir-mensagem']").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = btn.closest(".cartao-mensagem-topo").dataset.id;
+        excluirMensagem(id);
+      });
+    });
+  }
+
+  async function excluirMensagem(id){
+    const { error } = await Auth.client
+      .from("portfolio_leads")
+      .delete()
+      .eq("id", id);
+
+    if (!error){
+      leadsCache = leadsCache.filter(l => l.id !== id);
+      renderizarTudo();
+    }
   }
 
   /* =========================================================================
@@ -2484,13 +2697,15 @@
   }
 
   // Devolve as 10 contas fixas do mês visível, com o valor já salvo (ou null se ainda não preenchido)
-  function obterGastosFixosDoMes(){
-    const chaveAtual = anoFinancasVisivel * 12 + mesFinancasVisivel;
+  function obterGastosFixosDoMes(anoParam, mesParam){
+    const ano = anoParam !== undefined ? anoParam : anoFinancasVisivel;
+    const mes = mesParam !== undefined ? mesParam : mesFinancasVisivel;
+    const chaveAtual = ano * 12 + mes;
 
     return NOMES_GASTOS_FIXOS.map(nome => {
       // O status "pago" é sempre específico do mês (nunca herdado de mês anterior)
       const registroExato = gastosFixosCache.find(g =>
-        g.nome === nome && g.ano === anoFinancasVisivel && g.mes === mesFinancasVisivel
+        g.nome === nome && g.ano === ano && g.mes === mes
       );
       const pago = registroExato ? registroExato.pago : false;
 
@@ -2720,22 +2935,22 @@
     `;
   }
 
-  // Lista única de "Contas a pagar": soma os cartões (a partir dos lançamentos) e junta
-  // com as contas fixas (Aluguel, Água, Luz...), tudo ordenado pelo dia de vencimento.
-  function renderizarCartoesPagar(lancamentosDoMes, gastosFixosDoMes){
+  // Monta a lista única de "Contas a pagar" (cartões somados a partir dos lançamentos +
+  // contas fixas) pra um ano/mês qualquer. Reaproveitada tanto pela aba Finanças (mês
+  // visível) quanto pelos alertas do Menu Principal (mês real, o de hoje).
+  function montarItensContasAPagar(lancamentosDoMes, gastosFixosDoMes, ano, mes){
     const totaisPorCartao = {};
     lancamentosDoMes.forEach(l => {
       const chave = l.cartao || "Outro";
       totaisPorCartao[chave] = (totaisPorCartao[chave] || 0) + Number(l.valor);
     });
 
-    // Monta uma lista única: cada item é um cartão OU uma conta fixa
-    const itens = Object.keys(totaisPorCartao).map(cartao => ({
+    return Object.keys(totaisPorCartao).map(cartao => ({
       tipo: "cartao",
       nome: cartao,
       vencimento: VENCIMENTO_CARTOES[cartao],
       valor: totaisPorCartao[cartao],
-      pago: !!cartoesPagosCache[`${cartao}-${anoFinancasVisivel}-${mesFinancasVisivel}`]
+      pago: !!cartoesPagosCache[`${cartao}-${ano}-${mes}`]
     })).concat(
       gastosFixosDoMes.map(g => ({
         tipo: "fixo",
@@ -2745,6 +2960,11 @@
         pago: g.pago
       }))
     );
+  }
+
+  // Lista única de "Contas a pagar" na aba Finanças, ordenada pelo dia de vencimento.
+  function renderizarCartoesPagar(lancamentosDoMes, gastosFixosDoMes){
+    const itens = montarItensContasAPagar(lancamentosDoMes, gastosFixosDoMes, anoFinancasVisivel, mesFinancasVisivel);
 
     itens.sort((a, b) => {
       const va = (a.vencimento === undefined || a.vencimento === null) ? 99 : a.vencimento;
@@ -2810,33 +3030,246 @@
     });
   }
 
-  async function alternarCartaoPago(cartao){
-    const chave = `${cartao}-${anoFinancasVisivel}-${mesFinancasVisivel}`;
+  /* =========================================================================
+     ALERTAS DE CONTAS A VENCER (Menu Principal)
+     Aparecem 3 dias antes, 1 dia antes e no dia do vencimento; depois disso,
+     se a conta não foi marcada como paga, o alerta continua aparecendo em
+     vermelho toda vez que o painel é aberto, até você marcar como paga.
+     ========================================================================= */
+  function obterAlertasContas(){
+    const hoje = new Date();
+    const anoAtual = hoje.getFullYear();
+    const mesAtual = hoje.getMonth();
+    const diaAtual = hoje.getDate();
+
+    const lancamentosDoMesAtual = lancamentosCache.filter(l => {
+      const [ano, mes] = l.data.split("-").map(Number);
+      return ano === anoAtual && (mes - 1) === mesAtual;
+    });
+    const gastosFixosDoMesAtual = obterGastosFixosDoMes(anoAtual, mesAtual);
+    const itens = montarItensContasAPagar(lancamentosDoMesAtual, gastosFixosDoMesAtual, anoAtual, mesAtual);
+
+    const alertas = [];
+    itens.forEach(item => {
+      if (item.vencimento === null || item.vencimento === undefined) return;
+      if (item.pago) return;
+
+      const diasParaVencer = item.vencimento - diaAtual;
+      if (diasParaVencer < 0){
+        alertas.push({ ...item, status: "atrasado", diasParaVencer });
+      } else if (diasParaVencer === 3 || diasParaVencer === 1 || diasParaVencer === 0){
+        alertas.push({ ...item, status: "proximo", diasParaVencer });
+      }
+    });
+
+    alertas.sort((a, b) => a.diasParaVencer - b.diasParaVencer);
+    return { alertas, anoAtual, mesAtual };
+  }
+
+  function mensagemAlertaConta(item){
+    if (item.status === "atrasado"){
+      const diasAtraso = Math.abs(item.diasParaVencer);
+      return `Venceu há ${diasAtraso} dia${diasAtraso === 1 ? "" : "s"} e ainda não foi paga`;
+    }
+    if (item.diasParaVencer === 0) return "Vence hoje";
+    if (item.diasParaVencer === 1) return "Vence amanhã";
+    return `Vence em ${item.diasParaVencer} dias`;
+  }
+
+  // Alertas de "a receber": ganhos da Finanças UGC ainda não recebidos, com data prevista.
+  // Mesma janela de aviso das contas a pagar (3 dias antes, 1 dia antes, no dia, depois atrasado).
+  function obterAlertasRecebimentos(){
+    const hoje = new Date();
+    const hojeSemHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+
+    const alertas = [];
+    negocioCache.forEach(n => {
+      if (n.tipo !== "ganho" || n.recebido || !n.data_prevista_recebimento) return;
+
+      const [ano, mes, dia] = n.data_prevista_recebimento.split("-").map(Number);
+      const dataPrevista = new Date(ano, mes - 1, dia);
+      const diasParaVencer = Math.round((dataPrevista - hojeSemHora) / (1000 * 60 * 60 * 24));
+
+      if (diasParaVencer < 0){
+        alertas.push({ ...n, status: "atrasado", diasParaVencer });
+      } else if (diasParaVencer === 3 || diasParaVencer === 1 || diasParaVencer === 0){
+        alertas.push({ ...n, status: "proximo", diasParaVencer });
+      }
+    });
+
+    alertas.sort((a, b) => a.diasParaVencer - b.diasParaVencer);
+    return alertas;
+  }
+
+  function mensagemAlertaRecebimento(item){
+    if (item.status === "atrasado"){
+      const diasAtraso = Math.abs(item.diasParaVencer);
+      return `Devia ter sido recebido há ${diasAtraso} dia${diasAtraso === 1 ? "" : "s"}`;
+    }
+    if (item.diasParaVencer === 0) return "Previsto para hoje";
+    if (item.diasParaVencer === 1) return "Previsto para amanhã";
+    return `Previsto para daqui a ${item.diasParaVencer} dias`;
+  }
+
+  // Número vermelho ao lado de "Finanças" na barra lateral, com a quantidade de contas atrasadas
+  function atualizarBadgeFinancas(quantidade){
+    const badge = document.getElementById("badgeAlertaFinancas");
+    if (!badge) return;
+    badge.textContent = quantidade;
+    badge.classList.toggle("oculto", quantidade === 0);
+  }
+
+  // Só as contas atrasadas aparecem aqui (dentro da aba Finanças); as que ainda vão
+  // vencer (3 dias antes, 1 dia antes, no dia) aparecem só no pop-up flutuante.
+  function renderizarAlertasContas(){
+    const container = document.getElementById("areaAlertasContas");
+    if (!container) return;
+
+    const { alertas: todosAlertas, anoAtual, mesAtual } = obterAlertasContas();
+    const alertas = todosAlertas.filter(item => item.status === "atrasado");
+
+    atualizarBadgeFinancas(alertas.length);
+
+    if (alertas.length === 0){
+      container.innerHTML = "";
+      return;
+    }
+
+    container.innerHTML = alertas.map(item => {
+      const nomeExibicao = item.tipo === "cartao" ? `Fatura ${item.nome}` : item.nome;
+      return `
+        <div class="alerta-conta ${item.status}" data-nome="${item.nome}" data-tipo="${item.tipo}">
+          <div class="alerta-conta-info">
+            <p class="alerta-conta-nome">${nomeExibicao}</p>
+            <p class="alerta-conta-mensagem">${mensagemAlertaConta(item)}${item.valor != null ? " · " + formatarMoeda(Number(item.valor)) : ""}</p>
+          </div>
+          <button type="button" class="alerta-conta-botao-pago" data-acao="marcar-pago-alerta">Marcar como pago</button>
+        </div>
+      `;
+    }).join("");
+
+    container.querySelectorAll("[data-acao='marcar-pago-alerta']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const linha = btn.closest(".alerta-conta");
+        const nome = linha.dataset.nome;
+        if (linha.dataset.tipo === "cartao"){
+          alternarCartaoPago(nome, anoAtual, mesAtual);
+        } else {
+          alternarGastoFixoPago(nome, anoAtual, mesAtual);
+        }
+      });
+    });
+  }
+
+  // Pop-up flutuante (canto da tela) com dois tipos de aviso:
+  // - Contas a pagar que ainda vão vencer (3 dias antes, 1 dia antes, no dia) — as
+  //   atrasadas não aparecem mais aqui, só dentro da aba Finanças.
+  // - Ganhos da Finanças UGC ainda não recebidos, próximos da data prevista ou já
+  //   atrasados (esses continuam aparecendo até você marcar como recebido).
+  // Fechar no X só esconde até a próxima vez que a página for recarregada.
+  function renderizarNotificacoesPopup(){
+    const container = document.getElementById("areaNotificacoesPopup");
+    if (!container) return;
+
+    const { alertas: alertasContas, anoAtual, mesAtual } = obterAlertasContas();
+
+    const itensContas = alertasContas
+      .filter(item => item.status === "proximo")
+      .map(item => ({ ...item, categoria: "pagar", chave: `pagar-${item.tipo}-${item.nome}` }));
+
+    const itensRecebimentos = obterAlertasRecebimentos()
+      .map(item => ({ ...item, categoria: "receber", chave: `receber-${item.id}` }));
+
+    const visiveis = itensContas.concat(itensRecebimentos)
+      .filter(item => !notificacoesPopupFechadas.has(item.chave))
+      .sort((a, b) => a.diasParaVencer - b.diasParaVencer);
+
+    if (visiveis.length === 0){
+      container.innerHTML = "";
+      return;
+    }
+
+    container.innerHTML = visiveis.map(item => {
+      const ehPagar = item.categoria === "pagar";
+      const nomeExibicao = ehPagar
+        ? (item.tipo === "cartao" ? `Fatura ${item.nome}` : item.nome)
+        : item.descricao;
+      const mensagem = ehPagar ? mensagemAlertaConta(item) : mensagemAlertaRecebimento(item);
+      const classeStatus = !ehPagar && item.status === "proximo" ? "proximo-receber" : item.status;
+      const acaoBotao = ehPagar ? "marcar-pago-notificacao" : "marcar-recebido-notificacao";
+      const textoBotao = ehPagar ? "Marcar como pago" : "Marcar como recebido";
+
+      return `
+        <div class="notificacao-popup ${classeStatus}" data-chave="${item.chave}" data-categoria="${item.categoria}" data-nome="${item.nome || ""}" data-tipo="${item.tipo || ""}" data-id="${item.id || ""}">
+          <button type="button" class="notificacao-popup-fechar" data-acao="fechar-notificacao" aria-label="Fechar aviso">&times;</button>
+          <p class="notificacao-popup-nome">${nomeExibicao}</p>
+          <p class="notificacao-popup-mensagem">${mensagem}${item.valor != null ? " · " + formatarMoeda(Number(item.valor)) : ""}</p>
+          <button type="button" class="notificacao-popup-botao-pago" data-acao="${acaoBotao}">${textoBotao}</button>
+        </div>
+      `;
+    }).join("");
+
+    container.querySelectorAll("[data-acao='fechar-notificacao']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const cartaoEl = btn.closest(".notificacao-popup");
+        notificacoesPopupFechadas.add(cartaoEl.dataset.chave);
+        cartaoEl.remove();
+      });
+    });
+
+    container.querySelectorAll("[data-acao='marcar-pago-notificacao']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const cartaoEl = btn.closest(".notificacao-popup");
+        const nome = cartaoEl.dataset.nome;
+        if (cartaoEl.dataset.tipo === "cartao"){
+          alternarCartaoPago(nome, anoAtual, mesAtual);
+        } else {
+          alternarGastoFixoPago(nome, anoAtual, mesAtual);
+        }
+      });
+    });
+
+    container.querySelectorAll("[data-acao='marcar-recebido-notificacao']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const cartaoEl = btn.closest(".notificacao-popup");
+        alternarRecebidoNegocio(cartaoEl.dataset.id);
+      });
+    });
+  }
+
+  async function alternarCartaoPago(cartao, anoParam, mesParam){
+    const ano = anoParam !== undefined ? anoParam : anoFinancasVisivel;
+    const mes = mesParam !== undefined ? mesParam : mesFinancasVisivel;
+    const chave = `${cartao}-${ano}-${mes}`;
     const novoValor = !cartoesPagosCache[chave];
 
     const { error } = await Auth.client
       .from("financas_cartoes_pagos")
       .upsert(
-        { cartao: cartao, ano: anoFinancasVisivel, mes: mesFinancasVisivel, pago: novoValor },
+        { cartao: cartao, ano: ano, mes: mes, pago: novoValor },
         { onConflict: "cartao,ano,mes" }
       );
 
     if (!error){
       cartoesPagosCache[chave] = novoValor;
       renderizarFinancas();
+      renderizarAlertasContas();
+      renderizarNotificacoesPopup();
     }
   }
 
   /* =========================================================================
      ABA: GASTOS FIXOS
      ========================================================================= */
-  // Busca (ou cria) o registro em memória de uma conta fixa para o mês visível na aba Finanças
-  function obterOuCriarGastoFixo(nome){
+  // Busca (ou cria) o registro em memória de uma conta fixa para um ano/mês (por padrão, o mês visível na aba Finanças)
+  function obterOuCriarGastoFixo(nome, anoParam, mesParam){
+    const ano = anoParam !== undefined ? anoParam : anoFinancasVisivel;
+    const mes = mesParam !== undefined ? mesParam : mesFinancasVisivel;
     let registro = gastosFixosCache.find(g =>
-      g.nome === nome && g.ano === anoFinancasVisivel && g.mes === mesFinancasVisivel
+      g.nome === nome && g.ano === ano && g.mes === mes
     );
     if (!registro){
-      registro = { nome: nome, ano: anoFinancasVisivel, mes: mesFinancasVisivel, valor: null, pago: false, pessoa: "DI/GU" };
+      registro = { nome: nome, ano: ano, mes: mes, valor: null, pago: false, pessoa: "DI/GU" };
       gastosFixosCache.push(registro);
     }
     return registro;
@@ -2857,19 +3290,25 @@
     if (!error) renderizarFinancas();
   }
 
-  async function alternarGastoFixoPago(nome){
-    const registroLocal = obterOuCriarGastoFixo(nome);
+  async function alternarGastoFixoPago(nome, anoParam, mesParam){
+    const ano = anoParam !== undefined ? anoParam : anoFinancasVisivel;
+    const mes = mesParam !== undefined ? mesParam : mesFinancasVisivel;
+    const registroLocal = obterOuCriarGastoFixo(nome, ano, mes);
     const novoValor = !registroLocal.pago;
     registroLocal.pago = novoValor;
 
     const { error } = await Auth.client
       .from("financas_gastos_fixos")
       .upsert(
-        { nome: nome, ano: anoFinancasVisivel, mes: mesFinancasVisivel, valor: registroLocal.valor, pago: novoValor, pessoa: "DI/GU" },
+        { nome: nome, ano: ano, mes: mes, valor: registroLocal.valor, pago: novoValor, pessoa: "DI/GU" },
         { onConflict: "nome,ano,mes" }
       );
 
-    if (!error) renderizarFinancas();
+    if (!error){
+      renderizarFinancas();
+      renderizarAlertasContas();
+      renderizarNotificacoesPopup();
+    }
   }
 
   /* =========================================================================
@@ -2924,9 +3363,10 @@
     const totaisPorAno = {};
     negocioCache.forEach(n => {
       const ano = Number(n.data.split("-")[0]);
-      if (!totaisPorAno[ano]) totaisPorAno[ano] = { investido: 0, ganho: 0 };
+      if (!totaisPorAno[ano]) totaisPorAno[ano] = { investido: 0, ganho: 0, itens: [] };
       if (n.tipo === "investimento") totaisPorAno[ano].investido += Number(n.valor);
       else totaisPorAno[ano].ganho += Number(n.valor);
+      totaisPorAno[ano].itens.push(n);
     });
 
     const anosOrdenados = Object.keys(totaisPorAno).map(Number).sort((a, b) => b - a);
@@ -2934,15 +3374,51 @@
     container.innerHTML = anosOrdenados.map(ano => {
       const dados = totaisPorAno[ano];
       const caixa = dados.ganho - dados.investido;
+      const itensOrdenados = dados.itens.slice().sort((a, b) => new Date(b.data) - new Date(a.data));
+
+      const listaHtml = itensOrdenados.map(n => linhaNegocioHtml(n)).join("");
+
+      const expandido = anosNegocioExpandidos.has(String(ano));
+
       return `
-        <div class="linha-ano-negocio">
-          <span class="ano-nome">${ano}</span>
-          <span class="ano-dado">Investido<strong>${formatarMoeda(dados.investido)}</strong></span>
-          <span class="ano-dado">Ganhos<strong>${formatarMoeda(dados.ganho)}</strong></span>
-          <span class="ano-dado ${caixa >= 0 ? "caixa-lucro" : "caixa-prejuizo"}">${caixa >= 0 ? "Lucro" : "Prejuízo"}<strong>${formatarMoeda(caixa)}</strong></span>
+        <div class="linha-ano-negocio-wrap ${expandido ? "expandido" : ""}" data-ano="${ano}">
+          <div class="linha-ano-negocio">
+            <span class="ano-nome">${ano}</span>
+            <span class="ano-dado">Investido<strong>${formatarMoeda(dados.investido)}</strong></span>
+            <span class="ano-dado">Ganhos<strong>${formatarMoeda(dados.ganho)}</strong></span>
+            <span class="ano-dado ${caixa >= 0 ? "caixa-lucro" : "caixa-prejuizo"}">${caixa >= 0 ? "Lucro" : "Prejuízo"}<strong>${formatarMoeda(caixa)}</strong></span>
+            <button type="button" class="ano-negocio-toggle" data-acao="toggle-ano" aria-label="Ver detalhes do ano">&#8964;</button>
+          </div>
+          <div class="lista-negocio lista-ano-negocio">${listaHtml}</div>
         </div>
       `;
     }).join("");
+
+    container.querySelectorAll("[data-acao='toggle-ano']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const wrap = btn.closest(".linha-ano-negocio-wrap");
+        const ano = wrap.dataset.ano;
+        if (anosNegocioExpandidos.has(ano)){
+          anosNegocioExpandidos.delete(ano);
+        } else {
+          anosNegocioExpandidos.add(ano);
+        }
+        wrap.classList.toggle("expandido");
+      });
+    });
+
+    container.querySelectorAll("[data-acao='excluir-negocio']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.closest(".linha-negocio").dataset.id;
+        excluirLancamentoNegocio(id);
+      });
+    });
+    container.querySelectorAll("[data-acao='alternar-recebido']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.closest(".linha-negocio").dataset.id;
+        alternarRecebidoNegocio(id);
+      });
+    });
   }
 
   function renderizarNegocioGeral(){
@@ -2979,14 +3455,7 @@
       return;
     }
 
-    container.innerHTML = `<div class="lista-negocio">` + lista.map(n => `
-      <div class="linha-negocio" data-id="${n.id}">
-        <span class="linha-negocio-data">${formatarDataCurta(n.data)}</span>
-        <span class="linha-negocio-descricao">${n.descricao}</span>
-        <span class="linha-negocio-valor ${tipo}">${formatarMoeda(n.valor)}</span>
-        <button type="button" class="lancamento-excluir" data-acao="excluir-negocio" aria-label="Excluir lançamento">&times;</button>
-      </div>
-    `).join("") + `</div>`;
+    container.innerHTML = `<div class="lista-negocio">` + lista.map(n => linhaNegocioHtml(n)).join("") + `</div>`;
 
     container.querySelectorAll("[data-acao='excluir-negocio']").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -2994,6 +3463,27 @@
         excluirLancamentoNegocio(id);
       });
     });
+    container.querySelectorAll("[data-acao='alternar-recebido']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.closest(".linha-negocio").dataset.id;
+        alternarRecebidoNegocio(id);
+      });
+    });
+  }
+
+  // Linha usada tanto na lista mensal quanto na lista de cada ano expandido (Finanças UGC)
+  function linhaNegocioHtml(n){
+    const pendente = n.tipo === "ganho" && !n.recebido;
+    return `
+      <div class="linha-negocio ${pendente ? "pendente" : ""}" data-id="${n.id}">
+        <span class="linha-negocio-data">${formatarDataCurta(n.data)}</span>
+        <span class="linha-negocio-descricao">${n.descricao}</span>
+        ${pendente ? `<span class="selo-pendente-recebimento">${n.data_prevista_recebimento ? "Previsto p/ " + formatarDataCurta(n.data_prevista_recebimento) : "Pendente"}</span>` : ""}
+        <span class="linha-negocio-valor ${n.tipo}">${formatarMoeda(n.valor)}</span>
+        ${n.tipo === "ganho" ? `<button type="button" class="botao-recebido-toggle ${n.recebido ? "recebido" : ""}" data-acao="alternar-recebido" aria-label="Marcar como recebido">&#10003;</button>` : ""}
+        <button type="button" class="lancamento-excluir" data-acao="excluir-negocio" aria-label="Excluir lançamento">&times;</button>
+      </div>
+    `;
   }
 
   async function adicionarLancamentoNegocio(e){
@@ -3003,19 +3493,50 @@
     const tipo = document.getElementById("campoNegocioTipo").value;
     const data = document.getElementById("campoNegocioData").value;
     const valor = parseFloat(document.getElementById("campoNegocioValor").value);
+    const recebido = tipo === "ganho" ? document.getElementById("campoNegocioRecebido").checked : true;
+    const dataPrevistaRecebimento = (tipo === "ganho" && !recebido)
+      ? (document.getElementById("campoNegocioDataPrevista").value || null)
+      : null;
 
     if (!descricao || !data || isNaN(valor)) return;
 
     const { data: inserido, error } = await Auth.client
       .from("negocio_lancamentos")
-      .insert({ descricao: descricao, tipo: tipo, data: data, valor: valor })
+      .insert({
+        descricao: descricao,
+        tipo: tipo,
+        data: data,
+        valor: valor,
+        recebido: recebido,
+        data_prevista_recebimento: dataPrevistaRecebimento
+      })
       .select();
 
     if (!error && inserido){
       negocioCache = negocioCache.concat(inserido);
       document.getElementById("formNegocio").reset();
       document.getElementById("campoNegocioData").value = formatarDataISO(new Date());
+      document.getElementById("labelNegocioRecebido").classList.add("oculto");
+      document.getElementById("campoNegocioDataPrevista").classList.add("oculto");
       renderizarTudoNegocio();
+      renderizarNotificacoesPopup();
+    }
+  }
+
+  async function alternarRecebidoNegocio(id){
+    const registro = negocioCache.find(n => n.id === id);
+    if (!registro) return;
+    const novoValor = !registro.recebido;
+
+    const { error } = await Auth.client
+      .from("negocio_lancamentos")
+      .update({ recebido: novoValor })
+      .eq("id", id);
+
+    if (!error){
+      registro.recebido = novoValor;
+      renderizarTudoNegocio();
+      renderizarNotificacoesPopup();
     }
   }
 
