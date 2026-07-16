@@ -1086,32 +1086,21 @@
   .resumo-linha.linha-a-receber{ background: rgba(201,166,107,.12); color: var(--dourado); }
   .resumo-linha.linha-a-receber strong{ color: var(--dourado); }
 
-  .lista-cartoes-pagar{ display: flex; flex-direction: column; gap: 10px; }
-  .linha-cartao-pagar{
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px 14px;
-    padding: 12px 16px;
-    border-radius: 12px;
-    border: 1px solid var(--borda);
-    background: var(--branco);
-    transition: background .2s ease, border-color .2s ease;
-  }
-  .linha-cartao-pagar.pago{ background: rgba(45,122,79,.08); border-color: var(--verde); }
-  .cartao-pagar-info{ flex-grow: 1; }
-  .cartao-pagar-nome{ font-weight: 600; font-size: .95rem; }
-  .cartao-pagar-vencimento{ font-size: .78rem; color: var(--texto-suave); margin-top: 2px; }
-  .cartao-pagar-valor{ font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.05rem; flex-shrink: 0; }
+  .lista-cartoes-pagar{ overflow-x: auto; }
+  .tabela-contas-pagar td:first-child{ font-weight: 600; }
+  .tabela-contas-pagar tr.pago td:not(:last-child){ opacity: .5; }
+  .input-valor-fixo[readonly]{ cursor: default; }
+  .input-valor-fixo[readonly]::-webkit-inner-spin-button,
+  .input-valor-fixo[readonly]::-webkit-outer-spin-button{ -webkit-appearance: none; margin: 0; }
   .botao-pago{
-    width: 32px; height: 32px;
+    width: 26px; height: 26px;
     border-radius: 50%;
     border: 2px solid var(--borda);
     background: var(--branco);
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     color: transparent;
-    font-size: .85rem;
+    font-size: .75rem;
     flex-shrink: 0;
     transition: background .15s ease, border-color .15s ease, color .15s ease;
   }
@@ -3008,27 +2997,40 @@
       <strong>${formatarMoeda(totalContas)}</strong>
     `;
 
-    container.innerHTML = itens.map(item => {
-      const valorHtml = item.tipo === "cartao"
-        ? `<span class="cartao-pagar-valor">${formatarMoeda(item.valor)}</span>`
-        : `<span class="campo-valor-com-prefixo"><span class="prefixo-rs">R$</span><input type="number" step="0.01" min="0" class="input-valor-fixo" placeholder="0,00" value="${item.valor != null ? Number(item.valor).toFixed(2) : ""}" data-acao="valor-fixo"></span>`;
-      const selo = item.tipo === "fixo" ? `<span class="selo-pessoa-fixa">DI/GU</span>` : "";
-      return `
-        <div class="linha-cartao-pagar ${item.pago ? "pago" : ""}" data-nome="${item.nome}" data-tipo="${item.tipo}">
-          <div class="cartao-pagar-info">
-            <p class="cartao-pagar-nome">${item.nome}</p>
-            <p class="cartao-pagar-vencimento">${item.vencimento ? `Vence dia ${String(item.vencimento).padStart(2, "0")}` : "Sem vencimento fixo"}</p>
-          </div>
-          ${selo}
-          ${valorHtml}
-          <button type="button" class="botao-pago ${item.pago ? "pago" : ""}" data-acao="alternar-pago" aria-label="Marcar como pago">&#10003;</button>
-        </div>
-      `;
-    }).join("");
+    container.innerHTML = `
+      <table class="tabela-lancamentos tabela-contas-pagar">
+        <thead>
+          <tr>
+            <th>Conta</th>
+            <th>Vencimento</th>
+            <th>Pessoa</th>
+            <th>Valor</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itens.map(item => {
+            const valorHtml = item.tipo === "cartao"
+              ? `<span class="campo-valor-com-prefixo"><span class="prefixo-rs">R$</span><input type="number" step="0.01" class="input-valor-fixo" value="${Number(item.valor).toFixed(2)}" readonly tabindex="-1"></span>`
+              : `<span class="campo-valor-com-prefixo"><span class="prefixo-rs">R$</span><input type="number" step="0.01" min="0" class="input-valor-fixo" placeholder="0,00" value="${item.valor != null ? Number(item.valor).toFixed(2) : ""}" data-acao="valor-fixo"></span>`;
+            const pessoa = item.tipo === "fixo" ? `<span class="selo-pessoa">DI/GU</span>` : "-";
+            return `
+              <tr class="${item.pago ? "pago" : ""}" data-nome="${item.nome}" data-tipo="${item.tipo}">
+                <td>${item.nome}</td>
+                <td>${item.vencimento ? `Dia ${String(item.vencimento).padStart(2, "0")}` : "-"}</td>
+                <td>${pessoa}</td>
+                <td>${valorHtml}</td>
+                <td><button type="button" class="botao-pago ${item.pago ? "pago" : ""}" data-acao="alternar-pago" aria-label="Marcar como pago">&#10003;</button></td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
 
     container.querySelectorAll("[data-acao='alternar-pago']").forEach(btn => {
       btn.addEventListener("click", () => {
-        const linha = btn.closest(".linha-cartao-pagar");
+        const linha = btn.closest("tr");
         if (linha.dataset.tipo === "cartao"){
           alternarCartaoPago(linha.dataset.nome);
         } else {
@@ -3038,7 +3040,7 @@
     });
     container.querySelectorAll("[data-acao='valor-fixo']").forEach(input => {
       input.addEventListener("change", () => {
-        const nome = input.closest(".linha-cartao-pagar").dataset.nome;
+        const nome = input.closest("tr").dataset.nome;
         salvarValorGastoFixo(nome, input.value);
       });
       // Apertar Enter salva na hora (sem precisar clicar fora do campo)
