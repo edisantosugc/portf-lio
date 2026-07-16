@@ -226,6 +226,19 @@
     color: var(--vermelho);
   }
 
+  /* Borboleta decorativa colada na pontinha do "s" final de "Santos".
+     É inline (não absoluta) de propósito: assim ela sempre encosta
+     no fim do texto, não importa a fonte usada. */
+  .decor-borboleta{
+    display: inline-block;
+    vertical-align: top;
+    pointer-events: none;
+    position: relative;
+  }
+  .decor-borboleta img{ width: 100%; height: 100%; object-fit: contain; display: block; }
+  .logo .decor-borboleta{ width: 15px; height: 15px; margin-left: -5px; top: -3px; }
+  .nome-destaque .decor-borboleta{ width: 26px; height: 26px; margin-left: -9px; top: -5px; }
+
   .menu-desktop{
     display: flex;
     gap: 8px;
@@ -902,7 +915,7 @@
 <header class="cabecalho">
   <div class="barra-nav">
     <a href="#inicio" class="logo" aria-label="Edilaine Santos, ir para o início">
-      Edilaine <span>Santos</span>
+      Edilaine <span>Santos<span class="decor-borboleta" aria-hidden="true"><img src="imagens/borboleta.png" alt=""></span></span>
     </a>
 
     <nav class="menu-desktop" aria-label="Navegação principal">
@@ -1148,7 +1161,7 @@ const CONFIG = {
 
   // EDITE AQUI: texto e destaques da seção Sobre
   sobre: {
-    titulo: "Oiee, me chamo <span class=\"nome-destaque\">Edilaine Santos</span>",
+    titulo: "Oiee, me chamo <span class=\"nome-destaque\">Edilaine Santos<span class=\"decor-borboleta\" aria-hidden=\"true\"><img src=\"imagens/borboleta.png\" alt=\"\"></span></span>",
     paragrafos: [
       "Tenho 30 anos, sou mineira, mãe de pet e UGC Creator.",
       "Escrever sempre fez parte de mim. Desde pequena eu já transformava sentimento em palavra, criava história, achava sentido até nas coisas mais simples do dia a dia. Com o tempo, isso virou meu maior diferencial no UGC: pegar uma marca e transformar ela em conteúdo que gera identificação, confiança e aproxima.",
