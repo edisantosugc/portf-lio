@@ -905,6 +905,7 @@
     margin-bottom: 6px;
     color: var(--tinta);
   }
+  .campo label .obrigatorio{ color: #e02020; }
   .campo input, .campo textarea{
     width: 100%;
     padding: 12px 14px;
@@ -1219,26 +1220,26 @@
         <form class="form-contato reveal" id="formContato" novalidate>
           <div class="campo-linha">
             <div class="campo">
-              <label for="campoNome">Nome</label>
+              <label for="campoNome">Nome <span class="obrigatorio">*</span></label>
               <input type="text" id="campoNome" name="nome" required autocomplete="name" placeholder="Seu nome">
             </div>
             <div class="campo">
-              <label for="campoEmail">E-mail</label>
+              <label for="campoEmail">E-mail <span class="obrigatorio">*</span></label>
               <input type="email" id="campoEmail" name="email" required autocomplete="email" placeholder="voce@marca.com">
             </div>
           </div>
           <div class="campo-linha">
             <div class="campo">
-              <label for="campoMarca">Marca / Empresa</label>
-              <input type="text" id="campoMarca" name="marca" autocomplete="organization" placeholder="Nome da marca">
+              <label for="campoMarca">Marca / Empresa <span class="obrigatorio">*</span></label>
+              <input type="text" id="campoMarca" name="marca" required autocomplete="organization" placeholder="Nome da marca">
             </div>
             <div class="campo">
-              <label for="campoOrcamento">Orçamento estimado</label>
-              <input type="text" id="campoOrcamento" name="orcamento" placeholder="Ex: R$ 1.000 a R$ 5.000">
+              <label for="campoOrcamento">Orçamento estimado <span class="obrigatorio">*</span></label>
+              <input type="text" id="campoOrcamento" name="orcamento" required placeholder="Ex: R$ 1.000 a R$ 5.000">
             </div>
           </div>
           <div class="campo">
-            <label for="campoMensagem">Conta sobre o projeto</label>
+            <label for="campoMensagem">Conta sobre o projeto <span class="obrigatorio">*</span></label>
             <textarea id="campoMensagem" name="mensagem" required placeholder="Categoria, formato, prazo, objetivo da campanha..."></textarea>
           </div>
           <button type="submit" class="pill-btn">Enviar mensagem</button>
@@ -1922,6 +1923,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   formContato.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    if (!formContato.checkValidity()) {
+      formContato.reportValidity();
+      return;
+    }
 
     const nome = document.getElementById("campoNome").value.trim();
     const email = document.getElementById("campoEmail").value.trim();
