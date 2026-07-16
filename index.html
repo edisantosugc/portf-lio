@@ -740,6 +740,10 @@
   }
 
   /* ===================== SERVIÇOS ===================== */
+  .servicos{ background: var(--vermelho); color: var(--branco); }
+  .servicos .titulo-secao, .servicos .tag-secao{ color: var(--branco); }
+  .servicos .tag-secao{ background: var(--vermelho); border-color: var(--branco); }
+  .servicos .sub-secao{ color: rgba(255,250,240,.85); }
   .servicos-carrossel{ position: relative; margin-top: 32px; }
   .servicos-carrossel .seta-btn{
     position: absolute;
@@ -784,7 +788,7 @@
     font-size: 1.2rem;
     margin-bottom: 12px;
   }
-  .card-servico h3{ font-size: 1.05rem; margin-bottom: 6px; }
+  .card-servico h3{ font-size: 1.05rem; margin-bottom: 6px; color: var(--vermelho); }
   .card-servico p{ color: #4a453e; font-size: .88rem; line-height: 1.4; margin-bottom: 14px; }
   .card-servico .link-servico{
     margin-top: auto;
@@ -1046,7 +1050,7 @@
       <a href="#sobre">Sobre</a>
       <a href="#portfolio">Portfólio</a>
       <a href="#servicos">Serviços</a>
-      <a href="#resultados">Resultados</a>
+      <!-- <a href="#resultados">Resultados</a> removido junto com a seção -->
       <a href="#depoimentos">Depoimentos</a>
       <a href="#contato" class="pill-btn" data-cta="cta_fale_comigo_menu">Fale comigo</a>
     </nav>
@@ -1061,7 +1065,7 @@
     <a href="#sobre">Sobre</a>
     <a href="#portfolio">Portfólio</a>
     <a href="#servicos">Serviços</a>
-    <a href="#resultados">Resultados</a>
+    <!-- <a href="#resultados">Resultados</a> removido junto com a seção -->
     <a href="#depoimentos">Depoimentos</a>
     <a href="#contato" class="pill-btn" data-cta="cta_fale_comigo_menu">Fale comigo</a>
   </nav>
@@ -1177,7 +1181,9 @@
     </div>
   </section>
 
-  <!-- ===================== 7. RESULTADOS / NÚMEROS ===================== -->
+  <!-- ===================== 7. RESULTADOS / NÚMEROS =====================
+       Removida temporariamente a pedido (não será publicada por enquanto).
+       Pra reativar, é só tirar esse comentário de novo.
   <section class="resultados" id="resultados">
     <div class="container">
       <p class="tag-secao reveal">Resultados</p>
@@ -1186,6 +1192,7 @@
       <div class="grid-numeros" id="gridNumeros"></div>
     </div>
   </section>
+  -->
 
   <!-- ===================== 8. DEPOIMENTOS ===================== -->
   <section class="depoimentos" id="depoimentos">
@@ -1761,13 +1768,16 @@ document.addEventListener("DOMContentLoaded", () => {
     atualizarSetas();
   })();
 
-  // ---------- Resultados ----------
-  document.getElementById("gridNumeros").innerHTML = CONFIG.resultados.map((r, i) => `
-    <div class="numero-card reveal">
-      <p class="numero" data-alvo="${r.numero}" data-sufixo="${r.sufixo}" data-decimais="${r.decimais}" id="numero-${i}">0</p>
-      <p class="rotulo-numero">${r.rotulo}</p>
-    </div>
-  `).join("");
+  // ---------- Resultados (seção removida temporariamente; só roda se ela voltar) ----------
+  const gridNumerosEl = document.getElementById("gridNumeros");
+  if (gridNumerosEl) {
+    gridNumerosEl.innerHTML = CONFIG.resultados.map((r, i) => `
+      <div class="numero-card reveal">
+        <p class="numero" data-alvo="${r.numero}" data-sufixo="${r.sufixo}" data-decimais="${r.decimais}" id="numero-${i}">0</p>
+        <p class="rotulo-numero">${r.rotulo}</p>
+      </div>
+    `).join("");
+  }
 
   // ---------- Depoimentos ----------
   document.getElementById("gridDepoimentos").innerHTML = CONFIG.depoimentos.map(d => `
