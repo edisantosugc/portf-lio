@@ -1375,6 +1375,8 @@ const CONFIG = {
 
   // EDITE AQUI: fotos UGC (grade 6x2). Coloque o arquivo dentro de "imagens" e
   // preencha "imagem"; se o arquivo não existir, o gradiente aparece no lugar.
+  // "posicao" é opcional: ajusta o enquadramento do corte (padrão "center").
+  // Use algo como "center 25%" pra puxar o corte mais pra cima da foto.
   fotosUgc: [
     { imagem: "imagens/foto-ugc-1.jpg", gradiente: "grad-1" },
     { imagem: "imagens/foto-ugc-2.jpg", gradiente: "grad-2" },
@@ -1382,7 +1384,7 @@ const CONFIG = {
     { imagem: "imagens/foto-ugc-4.jpg", gradiente: "grad-4" },
     { imagem: "imagens/foto-ugc-5.jpg", gradiente: "grad-5" },
     { imagem: "imagens/foto-ugc-6.jpg", gradiente: "grad-6" },
-    { imagem: "imagens/foto-ugc-7.jpg", gradiente: "grad-1" },
+    { imagem: "imagens/foto-ugc-7.jpg", gradiente: "grad-1", posicao: "center 25%" },
     { imagem: "imagens/foto-ugc-8.jpg", gradiente: "grad-2" },
     { imagem: "imagens/foto-ugc-9.jpg", gradiente: "grad-3" },
     { imagem: "imagens/foto-ugc-10.jpg", gradiente: "grad-4" },
@@ -1695,7 +1697,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- Fotos UGC ----------
   document.getElementById("gridFotosUgc").innerHTML = CONFIG.fotosUgc.map(f => `
     <div class="foto-ugc foto-bloco ${f.gradiente} reveal" role="img" aria-label="Foto UGC de Edilaine Santos">
-      <div class="foto-real" style="background-image:url('${f.imagem}');"></div>
+      <div class="foto-real" style="background-image:url('${f.imagem}');background-position:${f.posicao || "center"};"></div>
     </div>
   `).join("");
 
