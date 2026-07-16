@@ -702,7 +702,14 @@
   }
 
   /* ===================== FOTOS UGC ===================== */
-  .fotos-ugc{ padding: 46px 0 36px; }
+  .fotos-ugc{
+    padding: 46px 0 36px;
+    background-color: var(--creme);
+    background-image: url("imagens/textura-hero.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+  }
   .titulo-secao .destaque-italico{
     font-family: 'Playfair Display', serif;
     font-style: italic;
@@ -711,11 +718,11 @@
   }
   .fotos-ugc-grid{
     display: grid;
-    grid-template-columns: repeat(6, 15vh);
-    grid-auto-rows: 20vh;
+    grid-template-columns: repeat(6, 22vh);
+    grid-auto-rows: 29.3vh;
     justify-content: center;
-    gap: 12px;
-    margin-top: 20px;
+    gap: 14px;
+    margin-top: 24px;
   }
   .foto-ugc{
     width: 100%;
@@ -726,10 +733,10 @@
     box-shadow: none;
   }
   @media (max-width: 900px){
-    .fotos-ugc-grid{ grid-template-columns: repeat(3, 20vh); grid-auto-rows: 26.6vh; }
+    .fotos-ugc-grid{ grid-template-columns: repeat(3, 24vh); grid-auto-rows: 32vh; }
   }
   @media (max-width: 480px){
-    .fotos-ugc-grid{ grid-template-columns: repeat(2, 24vh); grid-auto-rows: 32vh; }
+    .fotos-ugc-grid{ grid-template-columns: repeat(2, 28vh); grid-auto-rows: 37.3vh; }
   }
 
   /* ===================== SERVIÇOS ===================== */
