@@ -431,7 +431,12 @@
     gap: 56px;
     align-items: center;
   }
-  .sobre-foto{ aspect-ratio: 1 / 1; transform: rotate(-2deg); }
+  .sobre-foto{
+    aspect-ratio: 1 / 1;
+    transform: rotate(-2deg);
+    border: none;
+    box-shadow: 0 30px 60px -20px rgba(42,38,34,.45), 0 12px 24px -10px rgba(42,38,34,.3);
+  }
   .sobre-texto p{ margin-bottom: 16px; color: #4a453e; font-size: 1.05rem; }
   .sobre-texto .nome-destaque{ color: var(--vermelho); }
   .sobre-lista{ margin-top: 22px; display: flex; flex-wrap: wrap; gap: 12px; }
@@ -940,7 +945,7 @@
         <!-- Bloco em gradiente simulando a foto da seção Sobre.
              PARA USAR SUA FOTO REAL: coloque um arquivo chamado "sobre.jpg"
              dentro da pasta "imagens". Se o arquivo não existir, o gradiente aparece no lugar. -->
-        <div class="foto-real" style="background-image:url('imagens/sobre.jpg');"></div>
+        <div class="foto-real" style="background-image:url('imagens/sobre.png');"></div>
       </div>
       <div class="sobre-texto reveal">
         <p class="tag-secao">Sobre mim</p>
