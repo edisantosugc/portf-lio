@@ -1536,13 +1536,27 @@ function registrarEvento(eventType, eventName, metadata){
   } catch (erro) { /* rastreamento não deve travar o site */ }
 }
 
-// Registra uma mensagem de contato (formulário) na tabela de leads
-function registrarLead(dados){
-  if (!sbRastreio) return Promise.resolve({ error: new Error("Supabase indisponível") });
+// Registra uma mensagem de contato (formulário) na tabela de leads.
+// Usa fetch direto na API (em vez do cliente do Supabase) pra não depender do
+// script externo do CDN, que pode ser bloqueado por bloqueadores de anúncios.
+async function registrarLead(dados){
   try {
-    return sbRastreio.from("portfolio_leads").insert(dados);
+    const resposta = await fetch(SUPABASE_URL + "/rest/v1/portfolio_leads", {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify(dados)
+    });
+    if (!resposta.ok) {
+      return { error: new Error("Falha ao gravar lead: " + resposta.status) };
+    }
+    return { error: null };
   } catch (erro) {
-    return Promise.resolve({ error: erro });
+    return { error: erro };
   }
 }
 
