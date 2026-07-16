@@ -1353,7 +1353,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   // ---------- Logo do cabeçalho ----------
-  document.querySelector(".logo").innerHTML = `${CONFIG.perfil.nomeCurto} <span>${CONFIG.perfil.nome.split(" ").slice(1).join(" ")}</span>`;
+  document.querySelector(".logo").innerHTML = `${CONFIG.perfil.nomeCurto} <span>${CONFIG.perfil.nome.split(" ").slice(1).join(" ")}<span class="decor-borboleta" aria-hidden="true"><img src="imagens/borboleta.png" alt=""></span></span>`;
 
   // ---------- Hero ----------
   document.getElementById("heroTitulo").innerHTML =
