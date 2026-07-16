@@ -778,6 +778,7 @@
   .depoimentos-carrossel .seta-dir{ right: -8px; }
   .depoimentos-grid{
     display: flex;
+    align-items: flex-start;
     gap: 22px;
     overflow-x: auto;
     scroll-behavior: smooth;
@@ -790,24 +791,16 @@
     background: var(--branco);
     border: 3px solid var(--tinta);
     border-radius: 20px;
-    padding: 28px 24px;
+    padding: 8px;
     box-shadow: var(--sombra-dura-sm);
-    position: relative;
+    overflow: hidden;
   }
-  .card-depoimento .aspas{
-    font-family: 'Alex Brush', cursive;
-    font-size: 2.2rem;
-    color: var(--rosa);
-    line-height: 1;
+  .card-depoimento img{
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 14px;
   }
-  .card-depoimento p.fala{ margin: 10px 0 18px; color: #3a3630; }
-  .autor-depoimento{ display: flex; align-items: center; gap: 12px; }
-  .avatar-depoimento{
-    width: 46px; height: 46px; border-radius: 50%;
-    border: 2px solid var(--tinta); flex-shrink: 0;
-  }
-  .autor-depoimento strong{ display: block; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: .95rem; }
-  .autor-depoimento span{ font-size: .85rem; color: #6b6459; }
 
   /* ===================== CONTATO ===================== */
   .contato{ background: var(--vermelho); color: var(--creme); }
@@ -1351,14 +1344,19 @@ const CONFIG = {
     { numero: 8.5, sufixo: "%", rotulo: "Taxa média de engajamento", decimais: 1 }
   ],
 
-  // EDITE AQUI: depoimentos de clientes e marcas
-  // O campo "imagem" é opcional: coloque uma foto de perfil dentro da pasta "imagens"
-  // com esse nome exato para trocar o avatar em gradiente pela foto da pessoa.
+  // EDITE AQUI: depoimentos de clientes (prints reais de feedback).
+  // Cada depoimento é só a imagem do print; para adicionar mais, copie a linha e troque o nome do arquivo.
   depoimentos: [
-    { texto: "A Edilaine entregou um conteúdo tão natural que viramos o vídeo com melhor desempenho do mês. Comunicação excelente do início ao fim.", nome: "Camila Rocha", empresa: "Bella Cosméticos", imagem: "imagens/depoimento-1.jpg" },
-    { texto: "Profissional, pontual e com um olhar estratégico para o que realmente converte. Já fechamos a segunda campanha com ela.", nome: "Rafael Andrade", empresa: "Viva Fit Suplementos", imagem: "imagens/depoimento-2.jpg" },
-    { texto: "O vídeo de unboxing gerou um aumento visível nas vendas naquela semana. Recomendo o trabalho da Edilaine para qualquer marca.", nome: "Juliana Prado", empresa: "Doce Lar Utilidades", imagem: "imagens/depoimento-3.jpg" },
-    { texto: "Contratamos para um teste e hoje ela é fixa nas nossas campanhas de lançamento. Conteúdo autêntico de verdade.", nome: "Bruno Lima", empresa: "Trend Moda Feminina", imagem: "imagens/depoimento-4.jpg" }
+    { imagem: "imagens/depoimento-1.jpg" },
+    { imagem: "imagens/depoimento-2.jpg" },
+    { imagem: "imagens/depoimento-3.jpg" },
+    { imagem: "imagens/depoimento-4.jpg" },
+    { imagem: "imagens/depoimento-5.jpg" },
+    { imagem: "imagens/depoimento-6.jpg" },
+    { imagem: "imagens/depoimento-7.jpg" },
+    { imagem: "imagens/depoimento-8.jpg" },
+    { imagem: "imagens/depoimento-9.jpg" },
+    { imagem: "imagens/depoimento-10.jpg" }
   ],
 
   // EDITE AQUI: texto do rodapé
@@ -1649,22 +1647,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- Depoimentos ----------
   document.getElementById("gridDepoimentos").innerHTML = CONFIG.depoimentos.map(d => `
     <div class="card-depoimento reveal">
-      <p class="aspas" aria-hidden="true">&ldquo;</p>
-      <p class="fala">${d.texto}</p>
-      <div class="autor-depoimento">
-        <div class="avatar-depoimento foto-bloco grad-4" aria-hidden="true">
-          <div class="foto-real" style="background-image:url('${d.imagem}');"></div>
-        </div>
-        <div>
-          <strong>${d.nome}</strong>
-          <span>${d.empresa}</span>
-        </div>
-      </div>
+      <img src="${d.imagem}" alt="Print de depoimento de cliente" loading="lazy">
     </div>
   `).join("");
-  // Bloco em gradiente simulando a foto de perfil de quem deu o depoimento.
-  // PARA USAR FOTO REAL: coloque o arquivo dentro da pasta "imagens" com o nome indicado
-  // no campo "imagem" de cada depoimento do CONFIG (depoimento-1.jpg, depoimento-2.jpg...).
+  // Para adicionar mais depoimentos, coloque o print dentro da pasta "imagens"
+  // e adicione uma linha em CONFIG.depoimentos com o nome do arquivo.
 
   // Setas do carrossel de depoimentos: rolam a fileira e ficam desativadas no início/fim
   (() => {
