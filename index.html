@@ -463,7 +463,28 @@
 
   /* ===================== PORTFÓLIO ===================== */
   .portfolio{ background: var(--branco); }
-  .categoria-portfolio{ margin: 0 0 44px; }
+  .filtro-nichos{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 22px 0 40px;
+  }
+  .pill-nicho{
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    font-size: .92rem;
+    padding: 9px 20px;
+    border-radius: 50px;
+    border: 2px solid var(--vermelho);
+    background: var(--branco);
+    color: var(--vermelho);
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease, transform .15s ease;
+  }
+  .pill-nicho:hover{ background: rgba(0,0,128,.08); }
+  .pill-nicho:active{ transform: scale(.97); }
+  .pill-nicho.ativo{ background: var(--vermelho); color: var(--branco); }
+  .categoria-portfolio{ margin: 0 0 44px; scroll-margin-top: 100px; }
   .categoria-cabecalho{
     display: flex;
     align-items: flex-end;
@@ -963,6 +984,8 @@
       <h2 class="titulo-secao reveal">Trabalhos que já viraram resultado para as marcas</h2>
       <p class="sub-secao reveal">Assista aos vídeos reais que eu já produzi, organizados por nicho.</p>
 
+      <div class="filtro-nichos reveal" id="filtroNichos"></div>
+
       <div id="portfolioCategorias"></div>
     </div>
   </section>
@@ -1364,9 +1387,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- Portfólio: uma fileira por nicho, com setas estilo Netflix ----------
   const categoriasEl = document.getElementById("portfolioCategorias");
-  categoriasEl.innerHTML = CONFIG.categoriasPortfolio.map(cat => {
+  const categoriasComItens = CONFIG.categoriasPortfolio.filter(cat =>
+    CONFIG.portfolio.some(item => item.categoria === cat)
+  );
+
+  // Botões de filtro: um por nicho, clicando rola até a fileira correspondente
+  const filtroEl = document.getElementById("filtroNichos");
+  filtroEl.innerHTML = categoriasComItens
+    .map((cat, i) => `<button type="button" class="pill-nicho" data-alvo="nicho-${i}">${cat}</button>`)
+    .join("");
+  filtroEl.addEventListener("click", (e) => {
+    const botao = e.target.closest(".pill-nicho");
+    if (!botao) return;
+    document.getElementById(botao.dataset.alvo)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  categoriasEl.innerHTML = categoriasComItens.map((cat, i) => {
     const itens = CONFIG.portfolio.filter(item => item.categoria === cat);
-    if (!itens.length) return "";
     const cardsHtml = itens.map(item => {
       const [formato, assunto] = item.titulo.split(" – ");
       return `
@@ -1380,7 +1417,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     }).join("");
     return `
-      <div class="categoria-portfolio reveal">
+      <div class="categoria-portfolio reveal" id="nicho-${i}">
         <div class="categoria-cabecalho">
           <h3 class="categoria-titulo">${cat} <span class="categoria-contagem">${itens.length}</span></h3>
           <div class="categoria-setas">
