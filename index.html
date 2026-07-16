@@ -224,7 +224,19 @@
     font-family: 'Oswald', sans-serif;
     font-weight: 700;
     color: var(--vermelho);
+    position: relative;
+    display: inline-block;
+    line-height: 1;
   }
+
+  /* Borboleta decorativa em cima do "s" final de "Santos" */
+  .decor-borboleta{
+    position: absolute;
+    pointer-events: none;
+  }
+  .decor-borboleta img{ width: 100%; height: 100%; object-fit: contain; display: block; }
+  .logo .decor-borboleta{ width: 18px; height: 18px; top: 2px; right: -10px; }
+  .nome-destaque .decor-borboleta{ width: 30px; height: 30px; top: -9px; right: -42px; }
 
   .menu-desktop{
     display: flex;
@@ -438,7 +450,7 @@
     box-shadow: 0 45px 90px -25px rgba(42,38,34,.5), 0 18px 36px -12px rgba(42,38,34,.35), 0 8px 16px -6px rgba(42,38,34,.25);
   }
   .sobre-texto p{ margin-bottom: 16px; color: #4a453e; font-size: 1.05rem; }
-  .sobre-texto .nome-destaque{ color: var(--vermelho); }
+  .sobre-texto .nome-destaque{ color: var(--vermelho); position: relative; display: inline-block; line-height: 1; }
   .sobre-lista{ margin-top: 22px; display: flex; flex-wrap: wrap; gap: 12px; }
   .sobre-lista li.chip-sobre{
     display: inline-flex;
@@ -902,7 +914,7 @@
 <header class="cabecalho">
   <div class="barra-nav">
     <a href="#inicio" class="logo" aria-label="Edilaine Santos, ir para o início">
-      Edilaine <span>Santos</span>
+      Edilaine <span>Santos<span class="decor-borboleta" aria-hidden="true"><img src="imagens/borboleta.png" alt=""></span></span>
     </a>
 
     <nav class="menu-desktop" aria-label="Navegação principal">
@@ -1148,7 +1160,7 @@ const CONFIG = {
 
   // EDITE AQUI: texto e destaques da seção Sobre
   sobre: {
-    titulo: "Oiee, me chamo <span class=\"nome-destaque\">Edilaine Santos</span>",
+    titulo: "Oiee, me chamo <span class=\"nome-destaque\">Edilaine Santos<span class=\"decor-borboleta\" aria-hidden=\"true\"><img src=\"imagens/borboleta.png\" alt=\"\"></span></span>",
     paragrafos: [
       "Tenho 30 anos, sou mineira, mãe de pet e UGC Creator.",
       "Escrever sempre fez parte de mim. Desde pequena eu já transformava sentimento em palavra, criava história, achava sentido até nas coisas mais simples do dia a dia. Com o tempo, isso virou meu maior diferencial no UGC: pegar uma marca e transformar ela em conteúdo que gera identificação, confiança e aproxima.",
