@@ -765,13 +765,28 @@
   }
 
   /* ===================== DEPOIMENTOS ===================== */
-  .depoimentos-grid{
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-    gap: 26px;
-    margin-top: 40px;
+  .depoimentos-carrossel{ position: relative; margin-top: 40px; }
+  .depoimentos-carrossel .seta-btn{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    background: var(--branco);
+    box-shadow: var(--sombra-dura-sm);
   }
+  .depoimentos-carrossel .seta-esq{ left: -8px; }
+  .depoimentos-carrossel .seta-dir{ right: -8px; }
+  .depoimentos-grid{
+    display: flex;
+    gap: 22px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    padding: 6px 4px;
+  }
+  .depoimentos-grid::-webkit-scrollbar{ display: none; }
   .card-depoimento{
+    flex: 0 0 300px;
     background: var(--branco);
     border: 3px solid var(--tinta);
     border-radius: 20px;
@@ -1104,8 +1119,13 @@
   <section class="depoimentos" id="depoimentos">
     <div class="container">
       <p class="tag-secao reveal">Depoimentos</p>
-      <h2 class="titulo-secao reveal">O que as marcas dizem sobre mim</h2>
-      <div class="depoimentos-grid" id="gridDepoimentos"></div>
+      <h2 class="titulo-secao reveal">O que as marcas dizem sobre o meu trabalho</h2>
+      <p class="sub-secao reveal">Depoimentos de marcas que sentiram na prática o poder de um conteúdo estratégico.</p>
+      <div class="depoimentos-carrossel">
+        <button type="button" class="seta-btn seta-esq" id="depoimentosSetaEsq" aria-label="Ver depoimentos anteriores">‹</button>
+        <div class="depoimentos-grid" id="gridDepoimentos"></div>
+        <button type="button" class="seta-btn seta-dir" id="depoimentosSetaDir" aria-label="Ver próximos depoimentos">›</button>
+      </div>
     </div>
   </section>
 
@@ -1645,6 +1665,22 @@ document.addEventListener("DOMContentLoaded", () => {
   // Bloco em gradiente simulando a foto de perfil de quem deu o depoimento.
   // PARA USAR FOTO REAL: coloque o arquivo dentro da pasta "imagens" com o nome indicado
   // no campo "imagem" de cada depoimento do CONFIG (depoimento-1.jpg, depoimento-2.jpg...).
+
+  // Setas do carrossel de depoimentos: rolam a fileira e ficam desativadas no início/fim
+  (() => {
+    const linha = document.getElementById("gridDepoimentos");
+    const btnEsq = document.getElementById("depoimentosSetaEsq");
+    const btnDir = document.getElementById("depoimentosSetaDir");
+    const atualizarSetas = () => {
+      btnEsq.disabled = linha.scrollLeft <= 4;
+      btnDir.disabled = linha.scrollLeft >= linha.scrollWidth - linha.clientWidth - 4;
+    };
+    btnEsq.addEventListener("click", () => linha.scrollBy({ left: -linha.clientWidth * 0.9, behavior: "smooth" }));
+    btnDir.addEventListener("click", () => linha.scrollBy({ left: linha.clientWidth * 0.9, behavior: "smooth" }));
+    linha.addEventListener("scroll", atualizarSetas);
+    window.addEventListener("resize", atualizarSetas);
+    atualizarSetas();
+  })();
 
   // ---------- Contatos diretos ----------
   document.getElementById("contatosDiretos").innerHTML = `
