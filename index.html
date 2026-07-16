@@ -234,10 +234,19 @@
     vertical-align: top;
     pointer-events: none;
     position: relative;
+    animation: decor-flutuar-leve 3.6s ease-in-out infinite;
+    transform-origin: center;
   }
   .decor-borboleta img{ width: 100%; height: 100%; object-fit: contain; display: block; }
   .logo .decor-borboleta{ width: 15px; height: 15px; margin-left: -5px; top: -3px; }
-  .nome-destaque .decor-borboleta{ width: 26px; height: 26px; margin-left: -9px; top: -5px; }
+  .nome-destaque .decor-borboleta{ width: 26px; height: 26px; margin-left: -9px; top: -5px; animation-delay: -1.4s; }
+  @media (prefers-reduced-motion: reduce){
+    .decor-borboleta{ animation: none; }
+  }
+  @keyframes decor-flutuar-leve{
+    0%, 100%{ transform: translateY(0) rotate(-5deg); }
+    50%{ transform: translateY(-3px) rotate(5deg); }
+  }
 
   .menu-desktop{
     display: flex;
