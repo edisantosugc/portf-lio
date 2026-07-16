@@ -368,6 +368,47 @@
     display: block;
   }
 
+  /* Balõezinhos flutuantes, delicados, com emoji sobre a foto do Hero */
+  .balao-flutuante{
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(255,255,255,.92);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    border-radius: 13px;
+    padding: 7px 14px 7px 11px;
+    box-shadow: 0 10px 22px -12px rgba(42,38,34,.3), 0 2px 7px -3px rgba(42,38,34,.16);
+    white-space: nowrap;
+    z-index: 2;
+  }
+  .balao-flutuante .balao-emoji{ font-size: 1.05rem; line-height: 1; }
+  .balao-flutuante .balao-texto{
+    font-family: 'Lato', sans-serif;
+    font-weight: 600;
+    font-size: .86rem;
+    color: var(--tinta);
+  }
+  .balao-mineira{ top: 7%; right: 71%; animation: balao-flutuar-neg 4.2s ease-in-out infinite; }
+  .balao-pet{ top: 32%; left: 85%; animation: balao-flutuar-pos 4.6s ease-in-out infinite; animation-delay: -1.5s; }
+  .balao-rotina{ bottom: 16%; right: 100%; animation: balao-flutuar-pos 4s ease-in-out infinite; animation-delay: -2.7s; }
+  .balao-idade{ bottom: 9%; left: 99%; animation: balao-flutuar-neg 4.4s ease-in-out infinite; animation-delay: -.8s; }
+  @keyframes balao-flutuar-neg{
+    0%, 100%{ transform: rotate(-3deg) translateY(0); }
+    50%{ transform: rotate(-6deg) translateY(-5px); }
+  }
+  @keyframes balao-flutuar-pos{
+    0%, 100%{ transform: rotate(2deg) translateY(0); }
+    50%{ transform: rotate(5deg) translateY(-5px); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .balao-flutuante{ animation: none; }
+  }
+  @media (max-width: 900px){
+    .balao-flutuante{ display: none; }
+  }
+
   /* ===================== FAIXA DE MARCAS ===================== */
   .faixa-marcas{
     background: var(--vermelho);
@@ -972,6 +1013,26 @@
       <div class="hero-foto-wrap">
         <!-- Foto principal recortada (fundo removido), sem moldura, igual à capa do portfólio. -->
         <img class="hero-foto" src="imagens/hero-sem-fundo-v2.png" alt="Edilaine Santos, criadora de conteúdo UGC">
+
+        <span class="balao-flutuante balao-mineira" aria-hidden="true">
+          <span class="balao-emoji">🌄</span>
+          <span class="balao-texto">Mineirinha</span>
+        </span>
+
+        <span class="balao-flutuante balao-pet" aria-hidden="true">
+          <span class="balao-emoji">🐾</span>
+          <span class="balao-texto">Mãe de pet</span>
+        </span>
+
+        <span class="balao-flutuante balao-rotina" aria-hidden="true">
+          <span class="balao-emoji">💙</span>
+          <span class="balao-texto">30+</span>
+        </span>
+
+        <span class="balao-flutuante balao-idade" aria-hidden="true">
+          <span class="balao-emoji">💪🏽</span>
+          <span class="balao-texto">Rotina saudável</span>
+        </span>
       </div>
     </div>
   </section>
