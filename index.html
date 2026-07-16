@@ -617,6 +617,15 @@
     transition: transform .3s ease, opacity .3s ease;
   }
   .item-portfolio:hover, .item-portfolio:focus-visible{ transform: translateY(-6px) rotate(-1deg); }
+  .preview-video{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
 
   /* Legenda minimalista embaixo do vídeo, estilo legenda de Instagram */
   .item-legenda{
@@ -668,6 +677,7 @@
   .modal-video.aberto{ display: flex; }
   .modal-conteudo{
     position: relative;
+    outline: none;
     width: 100%;
     /* Largura máxima calculada para nunca passar da altura disponível na tela,
        mantendo sempre a proporção vertical 9:16 (formato Shorts) sem sobra preta. */
@@ -690,22 +700,6 @@
     height: 100%;
     border: 0;
   }
-  .modal-fechar{
-    position: absolute;
-    top: -18px;
-    right: -18px;
-    width: 42px; height: 42px;
-    border-radius: 50%;
-    background: var(--vermelho);
-    color: var(--branco);
-    border: 3px solid var(--branco);
-    font-size: 1.3rem;
-    line-height: 1;
-    cursor: pointer;
-    box-shadow: var(--sombra-dura-sm);
-    z-index: 3;
-  }
-
   /* ===================== SERVIÇOS ===================== */
   .servicos-grid{
     display: grid;
@@ -1081,8 +1075,7 @@
 
   <!-- Modal que abre o vídeo do YouTube ao clicar em um card do portfólio -->
   <div class="modal-video" id="modalVideo" role="dialog" aria-modal="true" aria-label="Reprodução de vídeo do portfólio">
-    <div class="modal-conteudo">
-      <button type="button" class="modal-fechar" id="modalFechar" aria-label="Fechar vídeo">&times;</button>
+    <div class="modal-conteudo" tabindex="-1">
       <div id="modalPlayer"></div>
     </div>
   </div>
@@ -1539,6 +1532,25 @@ document.addEventListener("DOMContentLoaded", () => {
     imgAltaResolucao.src = `https://i.ytimg.com/vi/${idVideo}/maxresdefault.jpg`;
   });
 
+  // Preview em hover: passou o mouse, toca um preview mudo do vídeo; saiu, para.
+  categoriasEl.querySelectorAll(".item-portfolio").forEach(item => {
+    const idVideo = item.dataset.videoId;
+    item.addEventListener("mouseenter", () => {
+      if (item.querySelector(".preview-video")) return;
+      const iframe = document.createElement("iframe");
+      iframe.className = "preview-video";
+      iframe.src = `https://www.youtube.com/embed/${idVideo}?autoplay=1&mute=1&controls=0&loop=1&playlist=${idVideo}&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&playsinline=1`;
+      iframe.setAttribute("allow", "autoplay");
+      iframe.setAttribute("tabindex", "-1");
+      iframe.setAttribute("aria-hidden", "true");
+      item.appendChild(iframe);
+    });
+    item.addEventListener("mouseleave", () => {
+      const preview = item.querySelector(".preview-video");
+      if (preview) preview.remove();
+    });
+  });
+
   // Setas: rolam a fileira e ficam desativadas no início/fim
   categoriasEl.querySelectorAll(".categoria-portfolio").forEach(bloco => {
     const linha = bloco.querySelector(".linha-scroll");
@@ -1558,14 +1570,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- Modal de vídeo do portfólio ----------
   const modalVideo = document.getElementById("modalVideo");
   const modalPlayer = document.getElementById("modalPlayer");
-  const modalFechar = document.getElementById("modalFechar");
+  const modalConteudo = document.querySelector(".modal-conteudo");
   let elementoComFoco = null;
 
   function abrirModalVideo(videoId, gatilho){
     elementoComFoco = gatilho;
     modalPlayer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" title="Vídeo do portfólio" scrolling="no" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
     modalVideo.classList.add("aberto");
-    modalFechar.focus();
+    modalConteudo.focus();
     document.body.style.overflow = "hidden";
 
     // Registra a visualização do vídeo para aparecer no painel administrativo
@@ -1590,7 +1602,6 @@ document.addEventListener("DOMContentLoaded", () => {
     abrirModalVideo(item.dataset.videoId, item);
   });
 
-  modalFechar.addEventListener("click", fecharModalVideo);
   modalVideo.addEventListener("click", (e) => {
     if (e.target === modalVideo) fecharModalVideo();
   });
