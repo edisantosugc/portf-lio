@@ -740,18 +740,35 @@
   }
 
   /* ===================== SERVIÇOS ===================== */
-  .servicos-grid{
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 28px;
-    margin-top: 40px;
+  .servicos-carrossel{ position: relative; margin-top: 32px; }
+  .servicos-carrossel .seta-btn{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    background: var(--branco);
+    box-shadow: var(--sombra-dura-sm);
   }
+  .servicos-carrossel .seta-esq{ left: -8px; }
+  .servicos-carrossel .seta-dir{ right: -8px; }
+  .servicos-grid{
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    padding: 6px 4px;
+  }
+  .servicos-grid::-webkit-scrollbar{ display: none; }
   .card-servico{
+    flex: 0 0 240px;
     background: var(--creme);
     border: 3px solid var(--tinta);
-    border-radius: 20px;
+    border-radius: 18px;
     box-shadow: var(--sombra-dura-sm);
-    padding: 30px 26px;
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
     transition: transform .2s ease, box-shadow .2s ease;
   }
   .card-servico:hover{
@@ -759,16 +776,26 @@
     box-shadow: var(--sombra-dura);
   }
   .icone-servico{
-    width: 56px; height: 56px;
+    width: 46px; height: 46px;
     border-radius: 50%;
     background: var(--rosa);
     border: 3px solid var(--tinta);
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem;
-    margin-bottom: 16px;
+    font-size: 1.2rem;
+    margin-bottom: 12px;
   }
-  .card-servico h3{ font-size: 1.2rem; margin-bottom: 8px; }
-  .card-servico p{ color: #4a453e; font-size: .98rem; }
+  .card-servico h3{ font-size: 1.05rem; margin-bottom: 6px; }
+  .card-servico p{ color: #4a453e; font-size: .88rem; line-height: 1.4; margin-bottom: 14px; }
+  .card-servico .link-servico{
+    margin-top: auto;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: var(--vermelho);
+  }
+  .card-servico .link-servico::after{ content: " →"; }
 
   /* ===================== RESULTADOS ===================== */
   .resultados{
@@ -1142,7 +1169,11 @@
       <p class="tag-secao reveal">Serviços</p>
       <h2 class="titulo-secao reveal">O que eu posso criar para a sua marca</h2>
       <p class="sub-secao reveal">Conteúdo pensado para gerar confiança, engajamento e, principalmente, vendas.</p>
-      <div class="servicos-grid" id="gridServicos"></div>
+      <div class="servicos-carrossel">
+        <button type="button" class="seta-btn seta-esq" id="servicosSetaEsq" aria-label="Ver serviços anteriores">‹</button>
+        <div class="servicos-grid" id="gridServicos"></div>
+        <button type="button" class="seta-btn seta-dir" id="servicosSetaDir" aria-label="Ver próximos serviços">›</button>
+      </div>
     </div>
   </section>
 
@@ -1395,12 +1426,12 @@ const CONFIG = {
 
   // EDITE AQUI: cards de serviços oferecidos (o campo "icone" aceita um emoji)
   servicos: [
-    { icone: "🎬", titulo: "Vídeo UGC", descricao: "Vídeos verticais autênticos, gravados como se fosse uma cliente real usando e recomendando o seu produto." },
-    { icone: "📱", titulo: "Reels e TikToks", descricao: "Conteúdo dinâmico, editado no ritmo das redes sociais e pronto para publicar ou usar em anúncios." },
-    { icone: "📸", titulo: "Fotos de Produto", descricao: "Imagens autênticas e bem iluminadas que mostram o seu produto no dia a dia real." },
-    { icone: "📦", titulo: "Unboxing", descricao: "Vídeos de abertura de caixa com reação genuína, despertando desejo de compra em quem assiste." },
-    { icone: "⭐", titulo: "Depoimentos e Reviews", descricao: "Avaliações sinceras e persuasivas que aumentam a confiança do público na sua marca." },
-    { icone: "🚀", titulo: "Conteúdo para Anúncios", descricao: "Vídeos pensados para performar como anúncio pago, com gancho forte nos primeiros segundos." }
+    { icone: "🎬", titulo: "Vídeo UGC", descricao: "Vídeos verticais autênticos, gravados como se fosse uma cliente real usando e recomendando o seu produto.", cta: "Quero UGC que converte" },
+    { icone: "📱", titulo: "Reels e TikToks", descricao: "Conteúdo dinâmico, editado no ritmo das redes sociais e pronto para publicar ou usar em anúncios.", cta: "Quero conteúdo pra redes" },
+    { icone: "📸", titulo: "Fotos de Produto", descricao: "Imagens autênticas e bem iluminadas que mostram o seu produto no dia a dia real.", cta: "Quero fotos de produto" },
+    { icone: "📦", titulo: "Unboxing", descricao: "Vídeos de abertura de caixa com reação genuína, despertando desejo de compra em quem assiste.", cta: "Quero um unboxing" },
+    { icone: "⭐", titulo: "Depoimentos e Reviews", descricao: "Avaliações sinceras e persuasivas que aumentam a confiança do público na sua marca.", cta: "Quero depoimentos reais" },
+    { icone: "🚀", titulo: "Conteúdo para Anúncios", descricao: "Vídeos pensados para performar como anúncio pago, com gancho forte nos primeiros segundos.", cta: "Quero criar anúncios" }
   ],
 
   // EDITE AQUI: números de destaque (a contagem anima sozinha ao aparecer na tela)
@@ -1708,8 +1739,25 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="icone-servico" aria-hidden="true">${s.icone}</div>
       <h3>${s.titulo}</h3>
       <p>${s.descricao}</p>
+      <a class="link-servico" href="#contato" data-cta="cta_servico_${s.titulo}">${s.cta}</a>
     </div>
   `).join("");
+
+  // Setas do carrossel de serviços: rolam a fileira e ficam desativadas no início/fim
+  (() => {
+    const linha = document.getElementById("gridServicos");
+    const btnEsq = document.getElementById("servicosSetaEsq");
+    const btnDir = document.getElementById("servicosSetaDir");
+    const atualizarSetas = () => {
+      btnEsq.disabled = linha.scrollLeft <= 4;
+      btnDir.disabled = linha.scrollLeft >= linha.scrollWidth - linha.clientWidth - 4;
+    };
+    btnEsq.addEventListener("click", () => linha.scrollBy({ left: -linha.clientWidth * 0.9, behavior: "smooth" }));
+    btnDir.addEventListener("click", () => linha.scrollBy({ left: linha.clientWidth * 0.9, behavior: "smooth" }));
+    linha.addEventListener("scroll", atualizarSetas);
+    window.addEventListener("resize", atualizarSetas);
+    atualizarSetas();
+  })();
 
   // ---------- Resultados ----------
   document.getElementById("gridNumeros").innerHTML = CONFIG.resultados.map((r, i) => `
