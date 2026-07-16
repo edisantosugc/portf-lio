@@ -700,6 +700,38 @@
     height: 100%;
     border: 0;
   }
+
+  /* ===================== FOTOS UGC ===================== */
+  .fotos-ugc{ padding: 46px 0 36px; }
+  .titulo-secao .destaque-italico{
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 600;
+    color: var(--vermelho);
+  }
+  .fotos-ugc-grid{
+    display: grid;
+    grid-template-columns: repeat(6, 15vh);
+    grid-auto-rows: 20vh;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .foto-ugc{
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid var(--vermelho);
+    box-shadow: none;
+  }
+  @media (max-width: 900px){
+    .fotos-ugc-grid{ grid-template-columns: repeat(3, 20vh); grid-auto-rows: 26.6vh; }
+  }
+  @media (max-width: 480px){
+    .fotos-ugc-grid{ grid-template-columns: repeat(2, 24vh); grid-auto-rows: 32vh; }
+  }
+
   /* ===================== SERVIÇOS ===================== */
   .servicos-grid{
     display: grid;
@@ -1088,6 +1120,15 @@
     </div>
   </div>
 
+  <!-- ===================== 5.5 FOTOS UGC ===================== -->
+  <section class="fotos-ugc" id="fotos-ugc">
+    <div class="container">
+      <p class="tag-secao reveal">Fotos UGC</p>
+      <h2 class="titulo-secao reveal">também faço <span class="destaque-italico">foto</span>.</h2>
+      <div class="fotos-ugc-grid" id="gridFotosUgc"></div>
+    </div>
+  </section>
+
   <!-- ===================== 6. SERVIÇOS ===================== -->
   <section class="servicos" id="servicos">
     <div class="container">
@@ -1323,6 +1364,23 @@ const CONFIG = {
     // Datas Comemorativas
     { marca: "Yool", titulo: "Podcast junino (criativo gêmeas) – Respondendo perguntas, saia godê", categoria: "Datas Comemorativas", gradiente: "grad-3", videoId: "bzI86bSqRDQ" },
     { marca: "Yool", titulo: "Site na parede (criativo) – Diversos produtos junino", categoria: "Datas Comemorativas", gradiente: "grad-4", videoId: "pvBmrnzCdHA" }
+  ],
+
+  // EDITE AQUI: fotos UGC (grade 6x2). Coloque o arquivo dentro de "imagens" e
+  // preencha "imagem"; se o arquivo não existir, o gradiente aparece no lugar.
+  fotosUgc: [
+    { imagem: "imagens/foto-ugc-1.jpg", gradiente: "grad-1" },
+    { imagem: "imagens/foto-ugc-2.jpg", gradiente: "grad-2" },
+    { imagem: "imagens/foto-ugc-3.jpg", gradiente: "grad-3" },
+    { imagem: "imagens/foto-ugc-4.jpg", gradiente: "grad-4" },
+    { imagem: "imagens/foto-ugc-5.jpg", gradiente: "grad-5" },
+    { imagem: "imagens/foto-ugc-6.jpg", gradiente: "grad-6" },
+    { imagem: "imagens/foto-ugc-7.jpg", gradiente: "grad-1" },
+    { imagem: "imagens/foto-ugc-8.jpg", gradiente: "grad-2" },
+    { imagem: "imagens/foto-ugc-9.jpg", gradiente: "grad-3" },
+    { imagem: "imagens/foto-ugc-10.jpg", gradiente: "grad-4" },
+    { imagem: "imagens/foto-ugc-11.jpg", gradiente: "grad-5" },
+    { imagem: "imagens/foto-ugc-12.jpg", gradiente: "grad-6" }
   ],
 
   // EDITE AQUI: cards de serviços oferecidos (o campo "icone" aceita um emoji)
@@ -1626,6 +1684,13 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && modalVideo.classList.contains("aberto")) fecharModalVideo();
   });
+
+  // ---------- Fotos UGC ----------
+  document.getElementById("gridFotosUgc").innerHTML = CONFIG.fotosUgc.map(f => `
+    <div class="foto-ugc foto-bloco ${f.gradiente} reveal" role="img" aria-label="Foto UGC de Edilaine Santos">
+      <div class="foto-real" style="background-image:url('${f.imagem}');"></div>
+    </div>
+  `).join("");
 
   // ---------- Serviços ----------
   document.getElementById("gridServicos").innerHTML = CONFIG.servicos.map(s => `
