@@ -95,6 +95,23 @@
   .menu-item:hover{ background: var(--creme); color: var(--grafite); }
   .menu-item.ativo{ background: var(--coral); color: var(--branco); }
 
+  .menu-rotulo{
+    font-size: .68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--texto-suave);
+    opacity: .55;
+    padding: 6px 14px 0;
+    margin-top: 4px;
+  }
+  .menu-divisoria{
+    height: 1px;
+    background: var(--borda);
+    opacity: .5;
+    margin: 10px 10px 0;
+  }
+
   .badge-alerta-sidebar{
     margin-left: auto;
     background: var(--vermelho);
@@ -1320,6 +1337,7 @@
         <svg viewBox="0 0 16 16"><path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 6.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z"/></svg>
         Menu Principal
       </button>
+      <p class="menu-rotulo">Empresa</p>
       <button class="menu-item" data-tab="portfolio">
         <svg viewBox="0 0 16 16"><path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/></svg>
         Portfólio
@@ -1328,26 +1346,33 @@
         <svg viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5ZM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1Z"/></svg>
         Agenda
       </button>
-      <button class="menu-item" data-tab="financas">
-        <svg viewBox="0 0 16 16"><path d="M12.136.326A1.5 1.5 0 0 1 14 1.78V3h.5A1.5 1.5 0 0 1 16 4.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 13.5v-9a1.5 1.5 0 0 1 1.432-1.499L12.136.326zM5.562 3H13V1.78a.5.5 0 0 0-.621-.484L5.562 3zM1.5 4a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-13z"/></svg>
-        Finanças
-        <span class="badge-alerta-sidebar oculto" id="badgeAlertaFinancas"></span>
-      </button>
-      <button class="menu-item" data-tab="negocio">
-        <svg viewBox="0 0 16 16"><path d="M8 0a1 1 0 0 1 1 1v.5h1a.5.5 0 0 1 0 1H9v1.55c1.938.219 3.5 1.336 3.5 2.7 0 .152-.02.3-.058.443A6 6 0 0 1 14 12c0 .35-.026.694-.076 1.03A2 2 0 0 1 12 15H4a2 2 0 0 1-1.924-1.97A6 6 0 0 1 2 12a6 6 0 0 1 1.558-4.807A1.5 1.5 0 0 1 3.5 6.75c0-1.364 1.562-2.481 3.5-2.7V2.5h-1a.5.5 0 0 1 0-1h1V1a1 1 0 0 1 1-1ZM8 5c-1.44 0-2.5.79-2.5 1.75S6.56 8.5 8 8.5s2.5-.79 2.5-1.75S9.44 5 8 5Z"/></svg>
-        Finanças UGC
-      </button>
       <button class="menu-item" data-tab="clientes">
         <svg viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
         Clientes
       </button>
+      <button class="menu-item" data-tab="ugc-creator">
+        <svg viewBox="0 0 16 16"><path d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5z"/></svg>
+        UGC Creator
+      </button>
       <button class="menu-item" data-tab="projetos">
         <svg viewBox="0 0 16 16"><path d="M13.5 1h-11a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm-11 1h3v12h-3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm4 0h3v7h-3V2zm4 0h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3V2z"/></svg>
-        Projetos
+        Manager
+      </button>
+      <button class="menu-item" data-tab="negocio">
+        <svg viewBox="0 0 16 16"><path d="M12.136.326A1.5 1.5 0 0 1 14 1.78V3h.5A1.5 1.5 0 0 1 16 4.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 13.5v-9a1.5 1.5 0 0 1 1.432-1.499L12.136.326zM5.562 3H13V1.78a.5.5 0 0 0-.621-.484L5.562 3zM1.5 4a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-13z"/></svg>
+        Financeiro UGC
       </button>
       <button class="menu-item" data-tab="banco-criativo">
-        <svg viewBox="0 0 16 16"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>
-        Banco Criativo
+        <svg viewBox="0 0 16 16"><path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13a.5.5 0 0 1 0 1 .5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1 0-1 .5.5 0 0 1 0-1 .5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6zm6-5a5 5 0 0 0-3.479 8.592c.263.254.514.564.676.941L5.83 12h4.342l.632-1.467c.162-.377.413-.687.676-.941A5 5 0 0 0 8 1z"/></svg>
+        Ideias Criativas
+      </button>
+
+      <div class="menu-divisoria"></div>
+      <p class="menu-rotulo">Pessoal</p>
+      <button class="menu-item" data-tab="financas">
+        <svg viewBox="0 0 16 16"><path d="M12.136.326A1.5 1.5 0 0 1 14 1.78V3h.5A1.5 1.5 0 0 1 16 4.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 13.5v-9a1.5 1.5 0 0 1 1.432-1.499L12.136.326zM5.562 3H13V1.78a.5.5 0 0 0-.621-.484L5.562 3zM1.5 4a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-13z"/></svg>
+        Financeiro
+        <span class="badge-alerta-sidebar oculto" id="badgeAlertaFinancas"></span>
       </button>
     </nav>
 
@@ -1609,10 +1634,18 @@
       </div>
     </section>
 
+    <!-- ===================== ABA: UGC CREATOR ===================== -->
+    <section id="painelUgcCreator" class="painel-tab oculto">
+      <div class="cartao">
+        <h2>UGC Creator</h2>
+        <p class="texto-vazio">Em construção — daqui a pouco a gente monta o conteúdo dessa aba.</p>
+      </div>
+    </section>
+
     <!-- ===================== ABA: PROJETOS ===================== -->
     <section id="painelProjetos" class="painel-tab oculto">
       <div class="cartao">
-        <h2>Projetos</h2>
+        <h2>Manager</h2>
         <p class="texto-vazio">Em construção — daqui a pouco a gente monta o conteúdo dessa aba.</p>
       </div>
     </section>
@@ -1620,7 +1653,7 @@
     <!-- ===================== ABA: BANCO CRIATIVO ===================== -->
     <section id="painelBancoCriativo" class="painel-tab oculto">
       <div class="cartao">
-        <h2>Banco Criativo</h2>
+        <h2>Ideias Criativas</h2>
         <p class="texto-vazio">Em construção — daqui a pouco a gente monta o conteúdo dessa aba.</p>
       </div>
     </section>
@@ -1951,14 +1984,15 @@
     document.getElementById("painelFinancas").classList.toggle("oculto", aba !== "financas");
     document.getElementById("painelNegocio").classList.toggle("oculto", aba !== "negocio");
     document.getElementById("painelClientes").classList.toggle("oculto", aba !== "clientes");
+    document.getElementById("painelUgcCreator").classList.toggle("oculto", aba !== "ugc-creator");
     document.getElementById("painelProjetos").classList.toggle("oculto", aba !== "projetos");
     document.getElementById("painelBancoCriativo").classList.toggle("oculto", aba !== "banco-criativo");
 
-    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Finanças", negocio: "Finanças UGC", clientes: "Clientes", projetos: "Projetos", "banco-criativo": "Banco Criativo" };
+    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Financeiro", negocio: "Financeiro UGC", clientes: "Clientes", "ugc-creator": "UGC Creator", projetos: "Manager", "banco-criativo": "Ideias Criativas" };
     document.getElementById("tituloTopo").textContent = titulos[aba];
 
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
-    const abasSemFiltroPeriodo = ["agenda", "financas", "negocio", "clientes", "projetos", "banco-criativo"];
+    const abasSemFiltroPeriodo = ["agenda", "financas", "negocio", "clientes", "ugc-creator", "projetos", "banco-criativo"];
     document.getElementById("filtroPeriodo").classList.toggle("oculto", abasSemFiltroPeriodo.includes(aba));
 
     fecharGaveta();
