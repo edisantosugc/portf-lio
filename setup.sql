@@ -117,3 +117,89 @@ create policy "Usuaria autenticada gerencia suas tarefas"
   with check (true);
 
 grant select, insert, update, delete on public.painel_tarefas to authenticated;
+
+-- =====================================================================
+-- CLIENTES (aba "Clientes" do painel)
+-- Cadastro das marcas/pessoas com quem você trabalha ou negocia.
+-- =====================================================================
+create table if not exists public.painel_clientes (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  instagram text,
+  email text,
+  telefone text,
+  status text not null default 'ativo',   -- 'lead' | 'ativo' | 'inativo'
+  observacoes text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_clientes_status on public.painel_clientes (status);
+
+alter table public.painel_clientes enable row level security;
+
+create policy "Usuaria autenticada gerencia seus clientes"
+  on public.painel_clientes
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_clientes to authenticated;
+
+-- =====================================================================
+-- PROJETOS (aba "Projetos" do painel)
+-- Cada trabalho/entrega, opcionalmente ligado a um cliente da tabela acima.
+-- =====================================================================
+create table if not exists public.painel_projetos (
+  id uuid primary key default gen_random_uuid(),
+  titulo text not null,
+  cliente_id uuid references public.painel_clientes(id) on delete set null,
+  status text not null default 'a_fazer',  -- 'a_fazer' | 'em_andamento' | 'entregue' | 'pago'
+  data_entrega date,
+  valor numeric(10,2),
+  descricao text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_projetos_status on public.painel_projetos (status);
+create index if not exists idx_painel_projetos_cliente on public.painel_projetos (cliente_id);
+
+alter table public.painel_projetos enable row level security;
+
+create policy "Usuaria autenticada gerencia seus projetos"
+  on public.painel_projetos
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_projetos to authenticated;
+
+-- =====================================================================
+-- BANCO CRIATIVO (aba "Banco Criativo" do painel)
+-- Biblioteca de referências, roteiros, briefings e materiais, opcionalmente
+-- ligados a um projeto da tabela acima.
+-- =====================================================================
+create table if not exists public.painel_banco_criativo (
+  id uuid primary key default gen_random_uuid(),
+  titulo text not null,
+  tipo text not null,              -- 'imagem' | 'video' | 'roteiro' | 'referencia' | 'brief'
+  url text,
+  projeto_id uuid references public.painel_projetos(id) on delete set null,
+  tags text[],
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_banco_criativo_tipo on public.painel_banco_criativo (tipo);
+create index if not exists idx_painel_banco_criativo_projeto on public.painel_banco_criativo (projeto_id);
+
+alter table public.painel_banco_criativo enable row level security;
+
+create policy "Usuaria autenticada gerencia seu banco criativo"
+  on public.painel_banco_criativo
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_banco_criativo to authenticated;

@@ -1337,6 +1337,18 @@
         <svg viewBox="0 0 16 16"><path d="M8 0a1 1 0 0 1 1 1v.5h1a.5.5 0 0 1 0 1H9v1.55c1.938.219 3.5 1.336 3.5 2.7 0 .152-.02.3-.058.443A6 6 0 0 1 14 12c0 .35-.026.694-.076 1.03A2 2 0 0 1 12 15H4a2 2 0 0 1-1.924-1.97A6 6 0 0 1 2 12a6 6 0 0 1 1.558-4.807A1.5 1.5 0 0 1 3.5 6.75c0-1.364 1.562-2.481 3.5-2.7V2.5h-1a.5.5 0 0 1 0-1h1V1a1 1 0 0 1 1-1ZM8 5c-1.44 0-2.5.79-2.5 1.75S6.56 8.5 8 8.5s2.5-.79 2.5-1.75S9.44 5 8 5Z"/></svg>
         Finanças UGC
       </button>
+      <button class="menu-item" data-tab="clientes">
+        <svg viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
+        Clientes
+      </button>
+      <button class="menu-item" data-tab="projetos">
+        <svg viewBox="0 0 16 16"><path d="M13.5 1h-11a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm-11 1h3v12h-3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm4 0h3v7h-3V2zm4 0h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3V2z"/></svg>
+        Projetos
+      </button>
+      <button class="menu-item" data-tab="banco-criativo">
+        <svg viewBox="0 0 16 16"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>
+        Banco Criativo
+      </button>
     </nav>
 
     <div class="sidebar-rodape">
@@ -1586,6 +1598,30 @@
           <div class="resumo-caixa" id="resumoCaixaGeral"></div>
           <div class="financas-totais" id="totaisGeralNegocio" style="margin-top: 16px;"></div>
         </div>
+      </div>
+    </section>
+
+    <!-- ===================== ABA: CLIENTES ===================== -->
+    <section id="painelClientes" class="painel-tab oculto">
+      <div class="cartao">
+        <h2>Clientes</h2>
+        <p class="texto-vazio">Em construção — daqui a pouco a gente monta o conteúdo dessa aba.</p>
+      </div>
+    </section>
+
+    <!-- ===================== ABA: PROJETOS ===================== -->
+    <section id="painelProjetos" class="painel-tab oculto">
+      <div class="cartao">
+        <h2>Projetos</h2>
+        <p class="texto-vazio">Em construção — daqui a pouco a gente monta o conteúdo dessa aba.</p>
+      </div>
+    </section>
+
+    <!-- ===================== ABA: BANCO CRIATIVO ===================== -->
+    <section id="painelBancoCriativo" class="painel-tab oculto">
+      <div class="cartao">
+        <h2>Banco Criativo</h2>
+        <p class="texto-vazio">Em construção — daqui a pouco a gente monta o conteúdo dessa aba.</p>
       </div>
     </section>
   </main>
@@ -1914,12 +1950,16 @@
     document.getElementById("painelAgenda").classList.toggle("oculto", aba !== "agenda");
     document.getElementById("painelFinancas").classList.toggle("oculto", aba !== "financas");
     document.getElementById("painelNegocio").classList.toggle("oculto", aba !== "negocio");
+    document.getElementById("painelClientes").classList.toggle("oculto", aba !== "clientes");
+    document.getElementById("painelProjetos").classList.toggle("oculto", aba !== "projetos");
+    document.getElementById("painelBancoCriativo").classList.toggle("oculto", aba !== "banco-criativo");
 
-    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Finanças", negocio: "Finanças UGC" };
+    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Finanças", negocio: "Finanças UGC", clientes: "Clientes", projetos: "Projetos", "banco-criativo": "Banco Criativo" };
     document.getElementById("tituloTopo").textContent = titulos[aba];
 
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
-    document.getElementById("filtroPeriodo").classList.toggle("oculto", aba === "agenda" || aba === "financas" || aba === "negocio");
+    const abasSemFiltroPeriodo = ["agenda", "financas", "negocio", "clientes", "projetos", "banco-criativo"];
+    document.getElementById("filtroPeriodo").classList.toggle("oculto", abasSemFiltroPeriodo.includes(aba));
 
     fecharGaveta();
   }
