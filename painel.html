@@ -1397,6 +1397,14 @@
   .ugc-chip-anexo a{ color: var(--coral); font-weight: 600; text-decoration: none; }
   .ugc-vazio{ padding: 18px 12px; font-size: .8rem; color: var(--texto-suave); text-align: center; }
 
+  .ugc-gerenciar{ display: flex; justify-content: flex-end; gap: 4px; margin-bottom: 2px; }
+  .ugc-btn-icone{
+    background: none; border: none; cursor: pointer; font-size: .74rem; font-weight: 700;
+    color: var(--texto-suave); padding: 3px 8px; border-radius: 50px;
+  }
+  .ugc-btn-icone:hover{ background: rgba(0,0,128,.06); color: var(--coral); }
+  .ugc-btn-icone.perigo:hover{ background: rgba(196,69,60,.1); color: var(--vermelho); }
+
   .ugc-quadro-scroll{ overflow-x: auto; padding-bottom: 10px; margin: 0 -4px; }
   .ugc-quadro{ display: flex; gap: 16px; padding: 4px; width: max-content; align-items: flex-start; }
   .ugc-coluna{ width: 320px; flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -1917,9 +1925,10 @@
   let anoNegocioVisivel = hojeAgenda.getFullYear();
   let negocioCache = [];
 
-  // Estado da aba UGC Creator: trabalhos, linhas abertas e origem selecionada no formulário
+  // Estado da aba UGC Creator: trabalhos, linhas abertas, linhas em edição e origem selecionada no formulário
   let ugcCache = [];
   const ugcAbertos = new Set();
+  const ugcEditando = new Set();
   let ugcOrigemSelecionada = "Inbound";
 
   const UGC_ETAPAS = [
@@ -4000,11 +4009,71 @@
     return "";
   }
 
+  // Linha com os botões de Editar/Remover, comum a todas as etapas do detalhe.
+  function renderGerenciarUgcHtml(item){
+    return `
+      <div class="ugc-gerenciar">
+        <button type="button" class="ugc-btn-icone" data-acao="ugc-editar" data-id="${item.id}" aria-label="Editar dados do trabalho">&#9998; Editar</button>
+        <button type="button" class="ugc-btn-icone perigo" data-acao="ugc-remover" data-id="${item.id}" aria-label="Remover trabalho">&times; Remover</button>
+      </div>
+    `;
+  }
+
+  // Formulário inline de edição dos dados do trabalho (marca, valor, datas, etc.).
+  // Salvar aqui também sincroniza o lançamento ligado no Financeiro UGC, se houver.
+  function renderFormEdicaoUgcHtml(item){
+    return `
+      <div class="ugc-form-grade">
+        <div class="ugc-campo largo">
+          <label>Nome da marca</label>
+          <input type="text" id="ugcEdicaoMarca-${item.id}" value="${item.marca}">
+        </div>
+        <div class="ugc-campo largo">
+          <label>Origem do lead</label>
+          <div class="ugc-origem-toggle" id="ugcEdicaoOrigem-${item.id}">
+            <span class="${item.origem === "Outbound" ? "" : "ativo"}" data-origem="Inbound">Inbound</span>
+            <span class="${item.origem === "Outbound" ? "ativo" : ""}" data-origem="Outbound">Outbound</span>
+          </div>
+        </div>
+        <div class="ugc-campo largo">
+          <label>Tipo de trabalho fechado</label>
+          <input type="text" id="ugcEdicaoTipo-${item.id}" value="${item.tipo_trabalho || ""}">
+        </div>
+        <div class="ugc-campo">
+          <label>Valor (R$)</label>
+          <input type="number" step="0.01" id="ugcEdicaoValor-${item.id}" value="${item.valor != null ? Number(item.valor) : ""}">
+        </div>
+        <div class="ugc-campo">
+          <label>Data do fechamento</label>
+          <input type="date" id="ugcEdicaoDataFechamento-${item.id}" value="${item.data_fechamento || ""}">
+        </div>
+        <div class="ugc-campo">
+          <label>Data prevista de pagamento</label>
+          <input type="date" id="ugcEdicaoDataPagamento-${item.id}" value="${item.data_pagamento_prevista || ""}">
+        </div>
+        <div class="ugc-campo">
+          <label>Data de entrega do conteúdo</label>
+          <input type="date" id="ugcEdicaoDataEntrega-${item.id}" value="${item.data_entrega || ""}">
+        </div>
+      </div>
+      <div class="ugc-branch" style="margin-top:14px;">
+        <button type="button" class="ugc-btn" data-acao="ugc-salvar-edicao" data-id="${item.id}">Salvar alterações</button>
+        <button type="button" class="ugc-btn" data-acao="ugc-cancelar-edicao" data-id="${item.id}">Cancelar</button>
+      </div>
+      ${item.negocio_lancamento_id ? `<p class="ugc-nota-mini">Marca, tipo, valor e data prevista de pagamento ficam sincronizados com o lançamento já criado no Financeiro UGC.</p>` : ""}
+    `;
+  }
+
   function renderDetalheUgcHtml(item){
+    const gerenciarHtml = renderGerenciarUgcHtml(item);
+
+    if (ugcEditando.has(item.id)) return gerenciarHtml + renderFormEdicaoUgcHtml(item);
+
     const prazoLinha = (UGC_ETAPAS_ANTES_DA_ENTREGA.includes(item.etapa) && item.data_entrega)
       ? `<div class="ugc-detalhe-linha"><span class="rotulo">Prazo de entrega</span><span class="valor">${formatarDataCurta(item.data_entrega)}</span></div>`
       : "";
 
+    return gerenciarHtml + (() => {
     switch (item.etapa){
       case "novo_lead":
         return `
@@ -4063,6 +4132,7 @@
       default:
         return "";
     }
+    })();
   }
 
   function renderLinhaUgcHtml(item, contexto){
@@ -4117,6 +4187,26 @@
     });
     container.querySelectorAll("[data-ugc-roteiro]").forEach(area => {
       area.addEventListener("blur", () => salvarRoteiroUgc(area.dataset.ugcRoteiro, area.value));
+    });
+    container.querySelectorAll("[data-acao='ugc-editar']").forEach(btn => {
+      btn.addEventListener("click", () => iniciarEdicaoUgc(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='ugc-remover']").forEach(btn => {
+      btn.addEventListener("click", () => removerTrabalhoUgc(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='ugc-salvar-edicao']").forEach(btn => {
+      btn.addEventListener("click", () => salvarEdicaoUgc(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='ugc-cancelar-edicao']").forEach(btn => {
+      btn.addEventListener("click", () => cancelarEdicaoUgc(btn.dataset.id));
+    });
+    container.querySelectorAll("[id^='ugcEdicaoOrigem-']").forEach(toggle => {
+      toggle.querySelectorAll("span").forEach(span => {
+        span.addEventListener("click", () => {
+          toggle.querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
+          span.classList.add("ativo");
+        });
+      });
     });
   }
 
@@ -4195,9 +4285,92 @@
     if (!error){
       const registro = ugcCache.find(t => t.id === id);
       if (registro) Object.assign(registro, campos);
+
+      // Se o trabalho já tem um lançamento ligado no Financeiro UGC e algum dos campos que
+      // aparecem lá foi alterado, atualiza o lançamento também pra não ficar desincronizado.
+      const camposLigadosAoNegocio = ["marca", "tipo_trabalho", "valor", "data_pagamento_prevista"];
+      if (registro && registro.negocio_lancamento_id && camposLigadosAoNegocio.some(c => c in campos)){
+        const dadosNegocio = {
+          descricao: registro.tipo_trabalho ? `${registro.marca} — ${registro.tipo_trabalho}` : registro.marca,
+          valor: registro.valor
+        };
+        if (registro.status_pagamento !== "pago"){
+          dadosNegocio.data_prevista_recebimento = registro.data_pagamento_prevista || null;
+        }
+        const { error: erroNegocio } = await Auth.client
+          .from("negocio_lancamentos")
+          .update(dadosNegocio)
+          .eq("id", registro.negocio_lancamento_id);
+        if (!erroNegocio){
+          const lancamento = negocioCache.find(n => n.id === registro.negocio_lancamento_id);
+          if (lancamento) Object.assign(lancamento, dadosNegocio);
+          renderizarTudoNegocio();
+        }
+      }
+
       renderizarUgcCreator();
     }
     return !error;
+  }
+
+  function iniciarEdicaoUgc(id){
+    ugcAbertos.add(id);
+    ugcEditando.add(id);
+    renderizarUgcCreator();
+  }
+
+  function cancelarEdicaoUgc(id){
+    ugcEditando.delete(id);
+    renderizarUgcCreator();
+  }
+
+  async function salvarEdicaoUgc(id){
+    const marca = document.getElementById(`ugcEdicaoMarca-${id}`).value.trim();
+    if (!marca) return;
+
+    const origemAtiva = document.querySelector(`#ugcEdicaoOrigem-${id} .ativo`);
+
+    const campos = {
+      marca: marca,
+      origem: origemAtiva ? origemAtiva.dataset.origem : null,
+      tipo_trabalho: document.getElementById(`ugcEdicaoTipo-${id}`).value.trim() || null,
+      valor: parseFloat(document.getElementById(`ugcEdicaoValor-${id}`).value) || null,
+      data_fechamento: document.getElementById(`ugcEdicaoDataFechamento-${id}`).value || null,
+      data_pagamento_prevista: document.getElementById(`ugcEdicaoDataPagamento-${id}`).value || null,
+      data_entrega: document.getElementById(`ugcEdicaoDataEntrega-${id}`).value || null
+    };
+
+    ugcEditando.delete(id);
+    await atualizarTrabalhoUgc(id, campos);
+  }
+
+  // Remove o trabalho e, se ele já tinha gerado um lançamento no Financeiro UGC
+  // ("A pagar"/"Pago"), remove esse lançamento também pra não sobrar cadastro órfão.
+  async function removerTrabalhoUgc(id){
+    const item = ugcCache.find(t => t.id === id);
+    if (!item) return;
+    if (!window.confirm(`Remover o trabalho de "${item.marca}"? Se ele já tiver um lançamento no Financeiro UGC, ele também será removido. Essa ação não pode ser desfeita.`)) return;
+
+    const { error } = await Auth.client
+      .from("painel_ugc_trabalhos")
+      .delete()
+      .eq("id", id);
+    if (error) return;
+
+    if (item.negocio_lancamento_id){
+      const { error: erroNegocio } = await Auth.client
+        .from("negocio_lancamentos")
+        .delete()
+        .eq("id", item.negocio_lancamento_id);
+      if (!erroNegocio) negocioCache = negocioCache.filter(n => n.id !== item.negocio_lancamento_id);
+    }
+
+    ugcCache = ugcCache.filter(t => t.id !== id);
+    ugcAbertos.delete(id);
+    ugcEditando.delete(id);
+    renderizarUgcCreator();
+    renderizarTudoNegocio();
+    renderizarNotificacoesPopup();
   }
 
   async function avancarEtapaUgc(id){
