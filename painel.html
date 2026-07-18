@@ -4335,6 +4335,7 @@
     const marca = document.getElementById(`ugcEdicaoMarca-${id}`).value.trim();
     if (!marca) return;
 
+    const registroAtual = ugcCache.find(t => t.id === id);
     const origemAtiva = document.querySelector(`#ugcEdicaoOrigem-${id} .ativo`);
     const novaEtapa = document.getElementById(`ugcEdicaoEtapa-${id}`).value;
 
@@ -4353,6 +4354,27 @@
     // etapa, é só uma troca direta de status, sem efeito no Financeiro UGC.
     const vaiParaPago = novaEtapa === "pago";
     if (!vaiParaPago) campos.etapa = novaEtapa;
+
+    // Se o trabalho estava marcado como Pago e a nova etapa não é mais "Pago", desfaz o
+    // recebimento no lançamento ligado do Financeiro UGC também — senão ele continua
+    // contabilizado como recebido lá mesmo o trabalho tendo voltado pra uma etapa anterior.
+    const estavaPago = registroAtual && registroAtual.status_pagamento === "pago";
+    if (estavaPago && !vaiParaPago){
+      campos.status_pagamento = novaEtapa === "entregue" ? "a_pagar" : null;
+      if (registroAtual.negocio_lancamento_id){
+        const dadosNegocio = { recebido: false, data_prevista_recebimento: campos.data_pagamento_prevista };
+        const { error: erroNegocio } = await Auth.client
+          .from("negocio_lancamentos")
+          .update(dadosNegocio)
+          .eq("id", registroAtual.negocio_lancamento_id);
+        if (!erroNegocio){
+          const lancamento = negocioCache.find(n => n.id === registroAtual.negocio_lancamento_id);
+          if (lancamento) Object.assign(lancamento, dadosNegocio);
+          renderizarTudoNegocio();
+          renderizarNotificacoesPopup();
+        }
+      }
+    }
 
     ugcEditando.delete(id);
     await atualizarTrabalhoUgc(id, campos);
