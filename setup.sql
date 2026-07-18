@@ -203,3 +203,44 @@ create policy "Usuaria autenticada gerencia seu banco criativo"
   with check (true);
 
 grant select, insert, update, delete on public.painel_banco_criativo to authenticated;
+
+-- =====================================================================
+-- UGC CREATOR (aba "UGC Creator" do painel)
+-- Quadro Kanban dos trabalhos fechados como criadora de conteudo, do lead
+-- ate o pagamento. Quando um trabalho e marcado como "A pagar" ou "Pago",
+-- gera/atualiza uma linha em negocio_lancamentos (mesma tabela da aba
+-- Financeiro UGC), pra nao duplicar cadastro entre as duas abas.
+-- =====================================================================
+create table if not exists public.painel_ugc_trabalhos (
+  id uuid primary key default gen_random_uuid(),
+  marca text not null,
+  origem text,                          -- 'Inbound' | 'Outbound'
+  tipo_trabalho text,
+  valor numeric(10,2),
+  data_fechamento date,
+  data_pagamento_prevista date,
+  data_entrega date,                    -- prazo de entrega do conteudo pra marca
+  etapa text not null default 'novo_lead',
+  -- 'novo_lead' | 'briefing_recebido' | 'roteiro' | 'gravar' | 'editar' | 'entregue' | 'pago' | 'arquivado'
+  briefing_url text,                    -- link do briefing (Drive, etc.)
+  roteiro_texto text,
+  roteiro_aprovado boolean not null default false,
+  edicao_aprovada boolean not null default false,
+  status_pagamento text,                -- null | 'a_pagar' | 'pago'
+  negocio_lancamento_id uuid references public.negocio_lancamentos(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_ugc_trabalhos_etapa on public.painel_ugc_trabalhos (etapa);
+create index if not exists idx_painel_ugc_trabalhos_data_entrega on public.painel_ugc_trabalhos (data_entrega);
+
+alter table public.painel_ugc_trabalhos enable row level security;
+
+create policy "Usuaria autenticada gerencia seus trabalhos UGC"
+  on public.painel_ugc_trabalhos
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_ugc_trabalhos to authenticated;

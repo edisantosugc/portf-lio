@@ -1291,6 +1291,143 @@
   .linha-ano-negocio .ano-dado.caixa-prejuizo strong{ color: var(--vermelho); }
   .linha-ano-negocio .ano-dado.ano-a-receber strong{ color: var(--dourado); }
 
+  /* ===================== UGC CREATOR ===================== */
+  .alterna-vista-ugc{
+    display: flex; gap: 8px; background: var(--branco); border: 1px solid var(--borda);
+    border-radius: 12px; padding: 4px; width: fit-content; margin-bottom: 20px;
+  }
+  .alterna-vista-ugc button{
+    padding: 8px 16px; border-radius: 9px; border: none; background: transparent;
+    color: var(--texto-suave); font-family: 'Outfit', sans-serif; font-weight: 500; font-size: .85rem; cursor: pointer;
+  }
+  .alterna-vista-ugc button:hover{ color: var(--grafite); }
+  .alterna-vista-ugc button.ativo{ background: var(--coral); color: var(--branco); }
+
+  .ugc-linha-add{
+    display: block; width: 100%; padding: 12px; border: 1.5px dashed var(--borda); border-radius: 14px;
+    background: transparent; text-align: center; font-family: 'Outfit', sans-serif; font-weight: 600;
+    font-size: .85rem; color: var(--texto-suave); cursor: pointer; margin-bottom: 14px;
+  }
+  .ugc-linha-add:hover{ color: var(--coral); border-color: var(--coral); }
+
+  .ugc-form-novo{ margin-bottom: 16px; }
+  .ugc-form-grade{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .ugc-campo{ display: flex; flex-direction: column; gap: 5px; }
+  .ugc-campo.largo{ grid-column: 1 / -1; }
+  .ugc-campo label{ font-size: .78rem; font-weight: 600; color: var(--texto-suave); }
+  .ugc-campo input{
+    font-family: 'Outfit', sans-serif; font-size: .88rem; padding: 9px 12px; border-radius: 10px;
+    border: 1px solid var(--borda); background: var(--creme); color: var(--grafite);
+  }
+  .ugc-campo input:focus{ outline: none; border-color: var(--coral); }
+  .ugc-origem-toggle{ display: flex; gap: 6px; }
+  .ugc-origem-toggle span{
+    flex: 1; text-align: center; font-size: .82rem; font-weight: 600; padding: 9px; border-radius: 10px;
+    background: var(--creme); border: 1px solid var(--borda); color: var(--texto-suave); cursor: pointer;
+  }
+  .ugc-origem-toggle span.ativo{ background: var(--coral); border-color: var(--coral); color: var(--branco); }
+
+  .ugc-lista-cartao{ padding: 0; overflow: hidden; }
+  .ugc-cabecalho-lista{ padding: 10px 20px; border-bottom: 1px solid var(--borda); }
+  .ugc-cabecalho-lista span{ font-size: .64rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--texto-suave); opacity: .75; }
+
+  .ugc-grade-lista{ display: grid; grid-template-columns: minmax(0,1.6fr) 170px 110px 90px 16px; align-items: center; gap: 14px; }
+  .ugc-grade-kanban{ display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,.95fr) 62px 58px 16px; align-items: center; gap: 8px; }
+  .ugc-grade-lista span:nth-child(3), .ugc-grade-lista span:nth-child(4),
+  .ugc-grade-kanban span:nth-child(3), .ugc-grade-kanban span:nth-child(4){ text-align: right; }
+
+  .ugc-linha + .ugc-linha{ border-top: 1px solid var(--borda); }
+  .ugc-linha.arquivado{ opacity: .55; }
+  .ugc-linha-resumo{ list-style: none; cursor: pointer; padding: 12px 20px; }
+  .ugc-linha-resumo::-webkit-details-marker{ display: none; }
+  .ugc-linha-resumo::marker{ content: ""; }
+
+  .ugc-marca{ font-size: .88rem; font-weight: 600; color: var(--grafite); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ugc-tipo{ font-size: .78rem; color: var(--texto-suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ugc-valor{ font-family: 'Fraunces', serif; font-weight: 600; font-size: .85rem; text-align: right; white-space: nowrap; }
+  .ugc-data{ font-size: .7rem; font-weight: 700; text-align: right; white-space: nowrap; color: var(--dourado); }
+  .ugc-data.vencida{ color: var(--vermelho); }
+  .ugc-data.pago{ color: var(--verde); }
+  .ugc-seta{ color: var(--texto-suave); font-size: .82rem; transition: transform .15s ease; justify-self: end; }
+  .ugc-linha[open] > .ugc-linha-resumo .ugc-seta{ transform: rotate(90deg); }
+
+  .ugc-etapa-pill{
+    font-size: .7rem; font-weight: 700; padding: 3px 11px; border-radius: 50px; text-align: center;
+    background: var(--creme); border: 1px solid var(--borda); color: var(--texto-suave);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .ugc-etapa-pill.pago{ background: rgba(45,122,79,.12); border-color: var(--verde); color: var(--verde); }
+  .ugc-etapa-pill.vencida{ background: rgba(196,69,60,.1); border-color: var(--vermelho); color: var(--vermelho); }
+
+  .ugc-detalhe{ padding: 6px 20px 18px; display: flex; flex-direction: column; gap: 12px; background: var(--creme); }
+  .ugc-detalhe-linha{ display: flex; justify-content: space-between; gap: 10px; font-size: .85rem; }
+  .ugc-detalhe-linha .rotulo{ color: var(--texto-suave); }
+  .ugc-detalhe-linha .valor{ font-weight: 600; text-align: right; }
+  .ugc-nota-mini{ margin: 0; font-size: .76rem; color: var(--texto-suave); }
+  .ugc-chip-origem{ font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: 50px; background: rgba(0,0,128,.06); color: var(--coral); width: fit-content; }
+  .ugc-roteiro{
+    width: 100%; min-height: 90px; font-family: 'Outfit', sans-serif; font-size: .85rem; color: var(--grafite);
+    background: var(--branco); border: 1px solid var(--borda); border-radius: 10px; padding: 10px 12px; resize: vertical;
+  }
+  .ugc-roteiro:focus{ outline: none; border-color: var(--coral); }
+  .ugc-status-aprovacao{ display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .ugc-badge{ font-size: .72rem; font-weight: 700; padding: 4px 10px; border-radius: 50px; }
+  .ugc-badge.aguardando{ background: rgba(201,166,107,.15); color: var(--dourado); }
+  .ugc-badge.aprovado{ background: rgba(45,122,79,.12); color: var(--verde); }
+  .ugc-btn{
+    font-family: 'Outfit', sans-serif; font-size: .78rem; font-weight: 600; padding: 7px 13px; border-radius: 9px;
+    border: 1px solid var(--coral); background: transparent; color: var(--coral); cursor: pointer;
+  }
+  .ugc-btn:hover{ background: var(--coral); color: var(--branco); }
+  .ugc-branch{ display: flex; gap: 10px; }
+  .ugc-branch button{
+    flex: 1; font-family: 'Outfit', sans-serif; font-size: .8rem; font-weight: 600; padding: 9px; border-radius: 9px;
+    border: 1px solid var(--borda); background: var(--branco); color: var(--grafite); cursor: pointer; text-align: center;
+  }
+  .ugc-branch button:hover{ border-color: var(--coral); color: var(--coral); }
+  .ugc-input-briefing{ display: flex; gap: 8px; }
+  .ugc-input-briefing input{
+    flex: 1; font-family: 'Outfit', sans-serif; font-size: .82rem; padding: 8px 10px; border-radius: 9px;
+    border: 1px solid var(--borda); background: var(--branco); color: var(--grafite);
+  }
+  .ugc-chip-anexo{
+    display: inline-flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--grafite);
+    background: var(--branco); border: 1px solid var(--borda); border-radius: 9px; padding: 8px 12px; width: fit-content;
+  }
+  .ugc-chip-anexo a{ color: var(--coral); font-weight: 600; text-decoration: none; }
+  .ugc-vazio{ padding: 18px 12px; font-size: .8rem; color: var(--texto-suave); text-align: center; }
+
+  .ugc-quadro-scroll{ overflow-x: auto; padding-bottom: 10px; margin: 0 -4px; }
+  .ugc-quadro{ display: flex; gap: 16px; padding: 4px; width: max-content; align-items: flex-start; }
+  .ugc-coluna{ width: 320px; flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; }
+  .ugc-coluna-topo{ display: flex; align-items: center; justify-content: space-between; padding: 0 4px; }
+  .ugc-coluna-nome{ font-size: .85rem; font-weight: 700; color: var(--grafite); }
+  .ugc-coluna-contagem{ font-size: .7rem; font-weight: 700; color: var(--texto-suave); background: var(--creme); border: 1px solid var(--borda); border-radius: 50px; padding: 1px 8px; }
+  .ugc-coluna-lista{ background: var(--branco); border: 1px solid var(--borda); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(26,24,22,.04); }
+
+  .ugc-legenda{ display: flex; flex-wrap: wrap; gap: 18px; font-size: .8rem; color: var(--texto-suave); margin-top: 18px; }
+  .ugc-legenda-item{ display: flex; align-items: center; gap: 8px; }
+  .ugc-ponto-legenda{ width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .ugc-modal-overlay{ position: fixed; inset: 0; background: rgba(26,24,22,.5); display: flex; align-items: center; justify-content: center; z-index: 3000; padding: 20px; }
+  .ugc-modal-cartao{ background: var(--branco); border: 2px solid var(--dourado); border-radius: 20px; padding: 28px 26px 22px; max-width: 440px; width: 100%; box-shadow: 0 24px 60px rgba(26,24,22,.25); text-align: center; }
+  .ugc-modal-icone{ font-size: 2rem; color: var(--dourado); margin-bottom: 8px; }
+  .ugc-modal-cartao h2{ font-size: 1.1rem; margin-bottom: 14px; }
+  .ugc-modal-item{
+    display: block; width: 100%; text-align: left; background: rgba(201,166,107,.12); border: 1px solid var(--dourado);
+    border-radius: 12px; padding: 13px 15px; margin-bottom: 10px; cursor: pointer; font-family: 'Outfit', sans-serif;
+    color: var(--grafite); font-size: .88rem; line-height: 1.5;
+  }
+  .ugc-modal-item:hover{ background: var(--dourado); color: var(--branco); }
+  .ugc-modal-item strong{ display: block; margin-bottom: 3px; }
+  .ugc-modal-item .ugc-cta{ display: block; margin-top: 5px; font-size: .74rem; color: var(--dourado); font-weight: 700; }
+  .ugc-modal-item:hover .ugc-cta{ color: var(--branco); }
+  .ugc-modal-nota{ font-size: .76rem; color: var(--texto-suave); margin-top: 12px; line-height: 1.5; }
+
+  .ugc-linha-flash{ animation: ugcFlash 1.4s ease; }
+  @keyframes ugcFlash{ 0%{ background: rgba(201,166,107,.25); } 100%{ background: transparent; } }
+  @media (prefers-reduced-motion: reduce){ .ugc-linha-flash{ animation: none; } }
+
   /* ===================== RESPONSIVO ===================== */
   @media (max-width: 900px){
     .sidebar{
@@ -1323,6 +1460,16 @@
 <body>
 
 <div class="notificacoes-popup" id="areaNotificacoesPopup"></div>
+
+<div class="ugc-modal-overlay oculto" id="ugcModalPrazo" role="dialog" aria-modal="true" aria-labelledby="ugcModalPrazoTitulo">
+  <div class="ugc-modal-cartao">
+    <div class="ugc-modal-icone">⚠</div>
+    <h2 id="ugcModalPrazoTitulo">Prazo de entrega chegando</h2>
+    <div id="ugcModalPrazoLista"></div>
+    <button type="button" class="ugc-btn ugc-modal-fechar" id="ugcBotaoFecharModal">Fechar por agora</button>
+    <p class="ugc-modal-nota">Isso aparece de novo toda vez que você abrir o painel, até a entrega ser marcada como concluída.</p>
+  </div>
+</div>
 
 <div class="app">
 
@@ -1636,9 +1783,71 @@
 
     <!-- ===================== ABA: UGC CREATOR ===================== -->
     <section id="painelUgcCreator" class="painel-tab oculto">
-      <div class="cartao">
-        <h2>UGC Creator</h2>
-        <p class="texto-vazio">Em construção — daqui a pouco a gente monta o conteúdo dessa aba.</p>
+      <div class="alterna-vista-ugc" id="ugcAlternaVista">
+        <button type="button" class="ativo" data-vista="lista">Visão Lista</button>
+        <button type="button" data-vista="kanban">Visão Kanban</button>
+      </div>
+
+      <!-- ---------- Visão Lista (padrão) ---------- -->
+      <div id="ugcVistaLista">
+        <button type="button" class="ugc-linha-add" id="ugcBotaoNovo">+ novo trabalho</button>
+
+        <div class="cartao ugc-form-novo oculto" id="ugcFormNovo">
+          <h2>Novo trabalho</h2>
+          <div class="ugc-form-grade">
+            <div class="ugc-campo largo">
+              <label>Nome da marca</label>
+              <input type="text" id="ugcCampoMarca" placeholder="Ex: Marca Girassol">
+            </div>
+            <div class="ugc-campo largo">
+              <label>Origem do lead</label>
+              <div class="ugc-origem-toggle" id="ugcOrigemToggle">
+                <span class="ativo" data-origem="Inbound">Inbound</span>
+                <span data-origem="Outbound">Outbound</span>
+              </div>
+            </div>
+            <div class="ugc-campo largo">
+              <label>Tipo de trabalho fechado</label>
+              <input type="text" id="ugcCampoTipo" placeholder="Ex: 2 vídeos com CTA">
+            </div>
+            <div class="ugc-campo">
+              <label>Valor (R$)</label>
+              <input type="number" step="0.01" id="ugcCampoValor" placeholder="1200">
+            </div>
+            <div class="ugc-campo">
+              <label>Data do fechamento</label>
+              <input type="date" id="ugcCampoDataFechamento">
+            </div>
+            <div class="ugc-campo">
+              <label>Data prevista de pagamento</label>
+              <input type="date" id="ugcCampoDataPagamento">
+            </div>
+            <div class="ugc-campo">
+              <label>Data de entrega do conteúdo</label>
+              <input type="date" id="ugcCampoDataEntrega">
+            </div>
+          </div>
+          <button type="button" class="botao-add-tarefa" id="ugcBotaoAdicionar" style="margin-top:14px;">Adicionar</button>
+        </div>
+
+        <div class="cartao ugc-lista-cartao">
+          <div class="ugc-cabecalho-lista ugc-grade-lista">
+            <span>Marca</span><span>Etapa atual</span><span>Valor</span><span>Pag.</span><span></span>
+          </div>
+          <div id="ugcListaCorpo"></div>
+        </div>
+      </div>
+
+      <!-- ---------- Visão Kanban ---------- -->
+      <div id="ugcVistaKanban" class="oculto">
+        <div class="ugc-quadro-scroll">
+          <div class="ugc-quadro" id="ugcQuadro"></div>
+        </div>
+        <div class="ugc-legenda">
+          <span class="ugc-legenda-item"><span class="ugc-ponto-legenda" style="background:var(--dourado)"></span>aguardando aprovação / a pagar</span>
+          <span class="ugc-legenda-item"><span class="ugc-ponto-legenda" style="background:var(--verde)"></span>aprovado / pago</span>
+          <span class="ugc-legenda-item"><span class="ugc-ponto-legenda" style="background:var(--vermelho)"></span>pagamento vencido</span>
+        </div>
       </div>
     </section>
 
@@ -1695,6 +1904,23 @@
   let mesNegocioVisivel = hojeAgenda.getMonth();
   let anoNegocioVisivel = hojeAgenda.getFullYear();
   let negocioCache = [];
+
+  // Estado da aba UGC Creator: trabalhos, linhas abertas e origem selecionada no formulário
+  let ugcCache = [];
+  const ugcAbertos = new Set();
+  let ugcOrigemSelecionada = "Inbound";
+
+  const UGC_ETAPAS = [
+    { chave: "novo_lead", nome: "Novo Lead" },
+    { chave: "briefing_recebido", nome: "Briefing Recebido" },
+    { chave: "roteiro", nome: "Roteiro" },
+    { chave: "gravar", nome: "Gravar" },
+    { chave: "editar", nome: "Editar" },
+    { chave: "entregue", nome: "Entregue" },
+    { chave: "pago", nome: "Pago" },
+    { chave: "arquivado", nome: "Arquivado" }
+  ];
+  const UGC_ETAPAS_ANTES_DA_ENTREGA = ["novo_lead", "briefing_recebido", "roteiro", "gravar", "editar"];
 
   // EDITE AQUI se precisar adicionar/trocar cartões ou pessoas fixas
   const CARTOES = ["Santander", "Dígio", "Mercado Pago", "Inter", "Nubank", "Dinheiro/Outro"];
@@ -1765,14 +1991,15 @@
     configurarEventosDeInterface();
 
     try {
-      const [eventos, leads, tarefas, lancamentos, pagamentosCartao, gastosFixos, negocio] = await Promise.all([
+      const [eventos, leads, tarefas, lancamentos, pagamentosCartao, gastosFixos, negocio, trabalhosUgc] = await Promise.all([
         buscarTudo("portfolio_events"),
         buscarTudo("portfolio_leads"),
         buscarTudo("painel_tarefas"),
         buscarTudo("financas_lancamentos"),
         buscarTudo("financas_cartoes_pagos"),
         buscarTudo("financas_gastos_fixos"),
-        buscarTudo("negocio_lancamentos")
+        buscarTudo("negocio_lancamentos"),
+        buscarTudo("painel_ugc_trabalhos")
       ]);
       eventosCache = eventos;
       leadsCache = leads;
@@ -1780,6 +2007,7 @@
       lancamentosCache = lancamentos;
       gastosFixosCache = gastosFixos;
       negocioCache = negocio;
+      ugcCache = trabalhosUgc;
 
       cartoesPagosCache = {};
       pagamentosCartao.forEach(p => {
@@ -1803,6 +2031,12 @@
         renderizarTudoNegocio();
       } catch (erroNegocio) {
         console.error("Erro ao renderizar Finanças UGC:", erroNegocio);
+      }
+      try {
+        renderizarUgcCreator();
+        abrirModalPrazoEntregaUgc();
+      } catch (erroUgc) {
+        console.error("Erro ao renderizar UGC Creator:", erroUgc);
       }
     } catch (erro) {
       console.error(erro);
@@ -1946,6 +2180,38 @@
 
     document.querySelectorAll("#subAbasNegocio .sub-aba-btn").forEach(btn => {
       btn.addEventListener("click", () => trocarSubAbaNegocio(btn.dataset.subaba));
+    });
+
+    // ---------- UGC Creator ----------
+    document.querySelectorAll("#ugcAlternaVista button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#ugcAlternaVista button").forEach(b => b.classList.toggle("ativo", b === btn));
+        const vista = btn.dataset.vista;
+        document.getElementById("ugcVistaLista").classList.toggle("oculto", vista !== "lista");
+        document.getElementById("ugcVistaKanban").classList.toggle("oculto", vista !== "kanban");
+      });
+    });
+
+    document.getElementById("ugcBotaoNovo").addEventListener("click", () => {
+      document.getElementById("ugcFormNovo").classList.toggle("oculto");
+    });
+
+    document.getElementById("ugcOrigemToggle").querySelectorAll("span").forEach(span => {
+      span.addEventListener("click", () => {
+        document.getElementById("ugcOrigemToggle").querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
+        span.classList.add("ativo");
+        ugcOrigemSelecionada = span.dataset.origem;
+      });
+    });
+
+    document.getElementById("ugcBotaoAdicionar").addEventListener("click", criarTrabalhoUgc);
+
+    document.getElementById("ugcBotaoFecharModal").addEventListener("click", fecharModalPrazoEntregaUgc);
+    document.getElementById("ugcModalPrazo").addEventListener("click", (e) => {
+      if (e.target.id === "ugcModalPrazo") fecharModalPrazoEntregaUgc();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") fecharModalPrazoEntregaUgc();
     });
   }
 
@@ -3661,6 +3927,23 @@
 
     if (!error){
       registro.recebido = novoValor;
+
+      // Se esse lançamento veio de um trabalho do UGC Creator, mantém as duas telas sincronizadas
+      const trabalhoLigado = ugcCache.find(t => t.negocio_lancamento_id === id);
+      if (trabalhoLigado){
+        const camposUgc = novoValor
+          ? { status_pagamento: "pago", etapa: "pago" }
+          : { status_pagamento: "a_pagar", etapa: "entregue" };
+        const { error: erroUgc } = await Auth.client
+          .from("painel_ugc_trabalhos")
+          .update(camposUgc)
+          .eq("id", trabalhoLigado.id);
+        if (!erroUgc){
+          Object.assign(trabalhoLigado, camposUgc);
+          renderizarUgcCreator();
+        }
+      }
+
       renderizarTudoNegocio();
       renderizarNotificacoesPopup();
     }
@@ -3676,6 +3959,374 @@
       negocioCache = negocioCache.filter(n => n.id !== id);
       renderizarTudoNegocio();
     }
+  }
+
+  /* =========================================================================
+     ABA: UGC CREATOR
+     Duas visões (Lista e Kanban) sobre o mesmo cache (ugcCache) — mudar em
+     uma reflete na outra porque ambas são só formas diferentes de exibir os
+     mesmos dados. "A pagar"/"Pago" gravam em negocio_lancamentos (Financeiro
+     UGC), e alternarRecebidoNegocio() (acima) faz o caminho de volta.
+     ========================================================================= */
+  function nomeEtapaUgc(chave){
+    const etapa = UGC_ETAPAS.find(e => e.chave === chave);
+    return etapa ? etapa.nome : chave;
+  }
+
+  function vencidoPagamentoUgc(item){
+    if (!item.data_pagamento_prevista) return false;
+    const hoje = new Date();
+    const hojeSemHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    const [ano, mes, dia] = item.data_pagamento_prevista.split("-").map(Number);
+    return new Date(ano, mes - 1, dia) < hojeSemHora;
+  }
+
+  function classeStatusUgc(item){
+    if (item.etapa === "pago" || item.etapa === "arquivado") return "pago";
+    if (item.etapa === "entregue" && item.status_pagamento !== "pago" && vencidoPagamentoUgc(item)) return "vencida";
+    return "";
+  }
+
+  function renderDetalheUgcHtml(item){
+    const prazoLinha = (UGC_ETAPAS_ANTES_DA_ENTREGA.includes(item.etapa) && item.data_entrega)
+      ? `<div class="ugc-detalhe-linha"><span class="rotulo">Prazo de entrega</span><span class="valor">${formatarDataCurta(item.data_entrega)}</span></div>`
+      : "";
+
+    switch (item.etapa){
+      case "novo_lead":
+        return `
+          <div class="ugc-detalhe-linha"><span class="rotulo">Origem</span><span class="ugc-chip-origem">${item.origem || "—"}</span></div>
+          <div class="ugc-detalhe-linha"><span class="rotulo">Fechado em</span><span class="valor">${item.data_fechamento ? formatarDataCurta(item.data_fechamento) : "—"}</span></div>
+          ${prazoLinha}
+          <button type="button" class="ugc-btn" data-acao="ugc-avancar" data-id="${item.id}">Avançar para Briefing Recebido</button>
+        `;
+      case "briefing_recebido":
+        return `
+          <div class="ugc-detalhe-linha"><span class="rotulo">Origem</span><span class="ugc-chip-origem">${item.origem || "—"}</span></div>
+          ${prazoLinha}
+          ${item.briefing_url
+            ? `<span class="ugc-chip-anexo">📎 <a href="${item.briefing_url}" target="_blank" rel="noopener">Ver briefing</a></span>`
+            : `<div class="ugc-input-briefing"><input type="text" placeholder="Cole o link do briefing" data-ugc-briefing-input="${item.id}"><button type="button" class="ugc-btn" data-acao="ugc-salvar-briefing" data-id="${item.id}">Salvar</button></div>`}
+          <button type="button" class="ugc-btn" data-acao="ugc-avancar" data-id="${item.id}">Avançar para Roteiro</button>
+        `;
+      case "roteiro":
+        return `
+          <textarea class="ugc-roteiro" placeholder="Escreva o roteiro aqui..." data-ugc-roteiro="${item.id}">${item.roteiro_texto || ""}</textarea>
+          ${prazoLinha}
+          <div class="ugc-status-aprovacao">
+            <span class="ugc-badge ${item.roteiro_aprovado ? "aprovado" : "aguardando"}">${item.roteiro_aprovado ? "Aprovado" : "Aguardando aprovação"}</span>
+            ${item.roteiro_aprovado ? "" : `<button type="button" class="ugc-btn" data-acao="ugc-aprovar-roteiro" data-id="${item.id}">Aprovar roteiro</button>`}
+          </div>
+          <p class="ugc-nota-mini">Só libera avançar pra Gravar depois de aprovado.</p>
+        `;
+      case "gravar":
+        return `
+          <div class="ugc-detalhe-linha"><span class="rotulo">Roteiro</span><span class="ugc-badge aprovado">Aprovado</span></div>
+          ${prazoLinha}
+          <button type="button" class="ugc-btn" data-acao="ugc-avancar" data-id="${item.id}">Gravação feita → Editar</button>
+        `;
+      case "editar":
+        return `
+          <div class="ugc-status-aprovacao">
+            <span class="ugc-badge ${item.edicao_aprovada ? "aprovado" : "aguardando"}">${item.edicao_aprovada ? "Aprovado" : "Edição em revisão"}</span>
+            ${item.edicao_aprovada ? "" : `<button type="button" class="ugc-btn" data-acao="ugc-aprovar-edicao" data-id="${item.id}">Aprovar edição</button>`}
+          </div>
+          ${prazoLinha}
+          <p class="ugc-nota-mini">Só libera avançar pra Entregue depois de aprovado.</p>
+        `;
+      case "entregue":
+        return `
+          <p class="ugc-nota-mini">Entregue — falta marcar o pagamento:</p>
+          <div class="ugc-branch">
+            <button type="button" data-acao="ugc-marcar-a-pagar" data-id="${item.id}">A pagar</button>
+            <button type="button" data-acao="ugc-marcar-pago" data-id="${item.id}">Pago</button>
+          </div>
+          ${item.status_pagamento === "a_pagar" ? `<p class="ugc-nota-mini">→ No Financeiro UGC como Pendente de recebimento.</p>` : ""}
+        `;
+      case "pago":
+        return `<div class="ugc-detalhe-linha"><span class="rotulo">Financeiro UGC</span><span class="valor" style="color:var(--verde)">Recebido ✓</span></div>`;
+      case "arquivado":
+        return `<div class="ugc-detalhe-linha"><span class="rotulo">Status</span><span class="valor">Concluído e arquivado</span></div>`;
+      default:
+        return "";
+    }
+  }
+
+  function renderLinhaUgcHtml(item, contexto){
+    const aberta = ugcAbertos.has(item.id) ? " open" : "";
+    const arquivadoClasse = item.etapa === "arquivado" ? " arquivado" : "";
+    const grade = contexto === "lista" ? "ugc-grade-lista" : "ugc-grade-kanban";
+    const meio = contexto === "lista"
+      ? `<span class="ugc-etapa-pill ${classeStatusUgc(item)}">${nomeEtapaUgc(item.etapa)}</span>`
+      : `<span class="ugc-tipo">${item.tipo_trabalho || "—"}</span>`;
+    const dataTexto = item.data_pagamento_prevista ? formatarDataCurta(item.data_pagamento_prevista) : "—";
+
+    return `
+      <details class="ugc-linha${arquivadoClasse}" data-id="${item.id}"${aberta}>
+        <summary class="ugc-linha-resumo ${grade}">
+          <span class="ugc-marca">${item.marca}</span>
+          ${meio}
+          <span class="ugc-valor">${item.valor != null ? formatarMoeda(Number(item.valor)) : "—"}</span>
+          <span class="ugc-data ${classeStatusUgc(item)}">${dataTexto}</span>
+          <span class="ugc-seta">›</span>
+        </summary>
+        <div class="ugc-detalhe">${renderDetalheUgcHtml(item)}</div>
+      </details>
+    `;
+  }
+
+  function reatarEventosLinhasUgc(container){
+    container.querySelectorAll("details").forEach(det => {
+      det.addEventListener("toggle", () => {
+        if (det.open) ugcAbertos.add(det.dataset.id); else ugcAbertos.delete(det.dataset.id);
+      });
+    });
+    container.querySelectorAll("[data-acao='ugc-avancar']").forEach(btn => {
+      btn.addEventListener("click", () => avancarEtapaUgc(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='ugc-aprovar-roteiro']").forEach(btn => {
+      btn.addEventListener("click", () => aprovarRoteiroUgc(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='ugc-aprovar-edicao']").forEach(btn => {
+      btn.addEventListener("click", () => aprovarEdicaoUgc(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='ugc-marcar-a-pagar']").forEach(btn => {
+      btn.addEventListener("click", () => marcarPagamentoUgc(btn.dataset.id, "a_pagar"));
+    });
+    container.querySelectorAll("[data-acao='ugc-marcar-pago']").forEach(btn => {
+      btn.addEventListener("click", () => marcarPagamentoUgc(btn.dataset.id, "pago"));
+    });
+    container.querySelectorAll("[data-acao='ugc-salvar-briefing']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const input = container.querySelector(`[data-ugc-briefing-input="${btn.dataset.id}"]`);
+        if (input && input.value.trim()) salvarBriefingUgc(btn.dataset.id, input.value.trim());
+      });
+    });
+    container.querySelectorAll("[data-ugc-roteiro]").forEach(area => {
+      area.addEventListener("blur", () => salvarRoteiroUgc(area.dataset.ugcRoteiro, area.value));
+    });
+  }
+
+  function renderListaUgc(){
+    const corpo = document.getElementById("ugcListaCorpo");
+    if (!corpo) return;
+    corpo.innerHTML = ugcCache.length
+      ? ugcCache.map(item => renderLinhaUgcHtml(item, "lista")).join("")
+      : `<p class="ugc-vazio">Nenhum trabalho cadastrado ainda.</p>`;
+    reatarEventosLinhasUgc(corpo);
+  }
+
+  function renderKanbanUgc(){
+    const quadro = document.getElementById("ugcQuadro");
+    if (!quadro) return;
+    quadro.innerHTML = UGC_ETAPAS.map(etapa => {
+      const doColuna = ugcCache.filter(t => t.etapa === etapa.chave);
+      const corpo = doColuna.length
+        ? doColuna.map(item => renderLinhaUgcHtml(item, "kanban")).join("")
+        : `<p class="ugc-vazio">Sem trabalhos aqui.</p>`;
+      return `
+        <div class="ugc-coluna">
+          <div class="ugc-coluna-topo"><span class="ugc-coluna-nome">${etapa.nome}</span><span class="ugc-coluna-contagem">${doColuna.length}</span></div>
+          <div class="ugc-coluna-lista">
+            <div class="ugc-cabecalho-lista ugc-grade-kanban"><span>Marca</span><span>Tipo</span><span>Valor</span><span>Pag.</span><span></span></div>
+            <div class="ugc-coluna-corpo">${corpo}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+    reatarEventosLinhasUgc(quadro);
+  }
+
+  function renderizarUgcCreator(){
+    renderListaUgc();
+    renderKanbanUgc();
+  }
+
+  async function criarTrabalhoUgc(){
+    const campoMarca = document.getElementById("ugcCampoMarca");
+    const marca = campoMarca.value.trim();
+    if (!marca) return;
+
+    const dados = {
+      marca: marca,
+      origem: ugcOrigemSelecionada,
+      tipo_trabalho: document.getElementById("ugcCampoTipo").value.trim() || null,
+      valor: parseFloat(document.getElementById("ugcCampoValor").value) || null,
+      data_fechamento: document.getElementById("ugcCampoDataFechamento").value || null,
+      data_pagamento_prevista: document.getElementById("ugcCampoDataPagamento").value || null,
+      data_entrega: document.getElementById("ugcCampoDataEntrega").value || null,
+      etapa: "novo_lead"
+    };
+
+    const { data: inserido, error } = await Auth.client
+      .from("painel_ugc_trabalhos")
+      .insert(dados)
+      .select();
+
+    if (!error && inserido){
+      ugcCache = ugcCache.concat(inserido);
+      ["ugcCampoMarca", "ugcCampoTipo", "ugcCampoValor", "ugcCampoDataFechamento", "ugcCampoDataPagamento", "ugcCampoDataEntrega"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+      document.getElementById("ugcFormNovo").classList.add("oculto");
+      renderizarUgcCreator();
+    }
+  }
+
+  async function atualizarTrabalhoUgc(id, campos){
+    const { error } = await Auth.client
+      .from("painel_ugc_trabalhos")
+      .update(campos)
+      .eq("id", id);
+
+    if (!error){
+      const registro = ugcCache.find(t => t.id === id);
+      if (registro) Object.assign(registro, campos);
+      renderizarUgcCreator();
+    }
+    return !error;
+  }
+
+  async function avancarEtapaUgc(id){
+    const item = ugcCache.find(t => t.id === id);
+    if (!item) return;
+    const idx = UGC_ETAPAS.findIndex(e => e.chave === item.etapa);
+    if (idx < 0 || idx >= UGC_ETAPAS.length - 1) return;
+    ugcAbertos.add(id);
+    await atualizarTrabalhoUgc(id, { etapa: UGC_ETAPAS[idx + 1].chave });
+  }
+
+  async function aprovarRoteiroUgc(id){
+    ugcAbertos.add(id);
+    await atualizarTrabalhoUgc(id, { roteiro_aprovado: true, etapa: "gravar" });
+  }
+
+  async function aprovarEdicaoUgc(id){
+    ugcAbertos.add(id);
+    await atualizarTrabalhoUgc(id, { edicao_aprovada: true, etapa: "entregue" });
+  }
+
+  async function salvarRoteiroUgc(id, texto){
+    await atualizarTrabalhoUgc(id, { roteiro_texto: texto });
+  }
+
+  async function salvarBriefingUgc(id, url){
+    ugcAbertos.add(id);
+    await atualizarTrabalhoUgc(id, { briefing_url: url });
+  }
+
+  // Garante que existe (ou atualiza) UM lançamento em negocio_lancamentos pra esse trabalho,
+  // pra "A pagar"/"Pago" nunca duplicarem cadastro entre UGC Creator e Financeiro UGC.
+  async function garantirLancamentoNegocioUgc(item, recebido){
+    const dados = {
+      descricao: item.tipo_trabalho ? `${item.marca} — ${item.tipo_trabalho}` : item.marca,
+      tipo: "ganho",
+      valor: item.valor,
+      recebido: recebido,
+      data_prevista_recebimento: recebido ? null : (item.data_pagamento_prevista || null)
+    };
+
+    if (item.negocio_lancamento_id){
+      const { error } = await Auth.client
+        .from("negocio_lancamentos")
+        .update(dados)
+        .eq("id", item.negocio_lancamento_id);
+      if (error) return null;
+      const registro = negocioCache.find(n => n.id === item.negocio_lancamento_id);
+      if (registro) Object.assign(registro, dados);
+      return item.negocio_lancamento_id;
+    }
+
+    const { data: inserido, error } = await Auth.client
+      .from("negocio_lancamentos")
+      .insert({ ...dados, data: item.data_fechamento || formatarDataISO(new Date()) })
+      .select();
+    if (error || !inserido || !inserido[0]) return null;
+    negocioCache = negocioCache.concat(inserido);
+    return inserido[0].id;
+  }
+
+  async function marcarPagamentoUgc(id, status){
+    const item = ugcCache.find(t => t.id === id);
+    if (!item) return;
+
+    ugcAbertos.add(id);
+
+    const lancamentoId = await garantirLancamentoNegocioUgc(item, status === "pago");
+    if (!lancamentoId) return;
+
+    const campos = { status_pagamento: status, negocio_lancamento_id: lancamentoId };
+    if (status === "pago") campos.etapa = "pago";
+
+    await atualizarTrabalhoUgc(id, campos);
+    renderizarTudoNegocio();
+    renderizarNotificacoesPopup();
+  }
+
+  // Pop-up de prazo de entrega: avisa 3 dias antes (ou se já venceu), separado do
+  // pop-up de cobrança (esse aparece no centro da tela, uma vez, e você fecha).
+  function diasParaEntregaUgc(item){
+    if (!item.data_entrega) return null;
+    const hoje = new Date();
+    const hojeSemHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    const [ano, mes, dia] = item.data_entrega.split("-").map(Number);
+    return Math.round((new Date(ano, mes - 1, dia) - hojeSemHora) / (1000 * 60 * 60 * 24));
+  }
+
+  function abrirModalPrazoEntregaUgc(){
+    const pendentes = ugcCache
+      .filter(item => UGC_ETAPAS_ANTES_DA_ENTREGA.includes(item.etapa))
+      .map(item => ({ item: item, dias: diasParaEntregaUgc(item) }))
+      .filter(x => x.dias !== null && x.dias <= 3)
+      .sort((a, b) => a.dias - b.dias);
+
+    if (pendentes.length === 0) return;
+
+    const lista = document.getElementById("ugcModalPrazoLista");
+    lista.innerHTML = pendentes.map(({ item, dias }) => {
+      let texto;
+      if (dias < 0) texto = `O prazo de entrega venceu há ${Math.abs(dias)} dia${Math.abs(dias) === 1 ? "" : "s"}.`;
+      else if (dias === 0) texto = "Você entrega hoje.";
+      else if (dias === 1) texto = "Você tem 1 dia para entregar.";
+      else texto = `Você tem ${dias} dias para entregar.`;
+
+      return `
+        <button type="button" class="ugc-modal-item" data-ugc-goto="${item.id}">
+          <strong>Você precisa entregar o trabalho de ${item.marca}</strong>${texto}
+          <span class="ugc-cta">Clique aqui e acesse o projeto →</span>
+        </button>
+      `;
+    }).join("");
+
+    lista.querySelectorAll("[data-ugc-goto]").forEach(btn => {
+      btn.addEventListener("click", () => irParaTrabalhoUgc(btn.dataset.ugcGoto));
+    });
+
+    document.getElementById("ugcModalPrazo").classList.remove("oculto");
+    document.getElementById("ugcBotaoFecharModal").focus();
+  }
+
+  function fecharModalPrazoEntregaUgc(){
+    const modal = document.getElementById("ugcModalPrazo");
+    if (modal) modal.classList.add("oculto");
+  }
+
+  function irParaTrabalhoUgc(id){
+    fecharModalPrazoEntregaUgc();
+    trocarAba("ugc-creator");
+    document.querySelectorAll("#ugcAlternaVista button").forEach(b => b.classList.toggle("ativo", b.dataset.vista === "lista"));
+    document.getElementById("ugcVistaLista").classList.remove("oculto");
+    document.getElementById("ugcVistaKanban").classList.add("oculto");
+    ugcAbertos.add(id);
+    renderizarUgcCreator();
+    requestAnimationFrame(() => {
+      const el = document.querySelector(`#ugcListaCorpo [data-id="${id}"]`);
+      if (el){
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ugc-linha-flash");
+        setTimeout(() => el.classList.remove("ugc-linha-flash"), 1400);
+      }
+    });
   }
 
   async function adicionarLancamento(e){
