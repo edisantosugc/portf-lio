@@ -1559,11 +1559,6 @@
   .nota-link .ugc-chip-anexo a{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; max-width: 130px; vertical-align: middle; }
   .nota-link-remover{ background: none; border: none; color: var(--texto-suave); font-size: .9rem; line-height: 1; cursor: pointer; padding: 0 2px; }
   .nota-link-remover:hover{ color: var(--vermelho); }
-  .nota-link-adicionar{
-    background: none; border: none; color: var(--texto-suave); font-size: .76rem; font-weight: 600;
-    cursor: pointer; text-align: left; padding: 0; opacity: .8;
-  }
-  .nota-link-adicionar:hover{ color: var(--coral); opacity: 1; }
   .nota-rodape{ display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .nota-cores-mini{ display: flex; gap: 5px; flex-wrap: wrap; }
   .nota-cor-mini{ width: 14px; height: 14px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(0,0,0,.1); }
@@ -2240,7 +2235,6 @@
   // Estado da aba Ideias Criativas: notas do bloco de notas e o filtro de cor selecionado
   let notasCache = [];
   let notaFiltroCor = null; // null = mostra notas de todas as cores
-  const notasLinkAbertos = new Set(); // ids das notas com o campo "+ Adicionar link" aberto no momento
   const NOTA_CORES = [
     { chave: "amarelo", nome: "Amarelo" },
     { chave: "rosa", nome: "Rosa" },
@@ -5523,13 +5517,9 @@
   }
 
   function renderNotaCartaoHtml(nota){
-    const linkAberto = notasLinkAbertos.has(nota.id);
     const linkHtml = nota.link
       ? `<span class="ugc-chip-anexo nota-link-chip">🔗 <a href="${nota.link}" target="_blank" rel="noopener">${nota.link}</a><button type="button" class="nota-link-remover" data-acao="nota-link-remover" data-id="${nota.id}" aria-label="Remover link">&times;</button></span>`
-      : `
-        <button type="button" class="nota-link-adicionar ${linkAberto ? "oculto" : ""}" data-acao="nota-link-abrir" data-id="${nota.id}">+ Adicionar link de referência</button>
-        <div class="ugc-input-briefing ${linkAberto ? "" : "oculto"}"><input type="text" placeholder="Cole o link de referência" data-nota-link-input="${nota.id}"><button type="button" class="ugc-btn" data-acao="nota-salvar-link" data-id="${nota.id}">Salvar</button></div>
-      `;
+      : `<div class="ugc-input-briefing"><input type="text" placeholder="Cole o link de referência" data-nota-link-input="${nota.id}"><button type="button" class="ugc-btn" data-acao="nota-salvar-link" data-id="${nota.id}">Salvar</button></div>`;
 
     return `
       <div class="nota-cartao cor-${nota.cor}" data-id="${nota.id}">
@@ -5555,24 +5545,10 @@
     container.querySelectorAll("[data-acao='nota-excluir']").forEach(btn => {
       btn.addEventListener("click", () => excluirNota(btn.dataset.id));
     });
-    container.querySelectorAll("[data-acao='nota-link-abrir']").forEach(btn => {
-      btn.addEventListener("click", () => {
-        notasLinkAbertos.add(btn.dataset.id);
-        const cartao = btn.closest(".nota-cartao");
-        const form = cartao ? cartao.querySelector(".ugc-input-briefing") : null;
-        btn.classList.add("oculto");
-        if (form){
-          form.classList.remove("oculto");
-          const input = form.querySelector("input");
-          if (input) input.focus();
-        }
-      });
-    });
     container.querySelectorAll("[data-acao='nota-salvar-link']").forEach(btn => {
       btn.addEventListener("click", () => {
         const input = container.querySelector(`[data-nota-link-input="${btn.dataset.id}"]`);
         const valor = input ? input.value.trim() : "";
-        notasLinkAbertos.delete(btn.dataset.id);
         salvarLinkNota(btn.dataset.id, valor || null);
       });
     });
