@@ -1553,8 +1553,11 @@
     font-family: 'Outfit', sans-serif; font-size: .85rem; color: var(--grafite); line-height: 1.5;
   }
   .nota-cartao textarea:focus{ outline: none; }
-  .nota-link .ugc-input-briefing input{ background: var(--branco); min-width: 0; }
-  .nota-link .ugc-input-briefing .ugc-btn{ flex-shrink: 0; }
+  .nota-link-input{
+    width: 100%; font-family: 'Outfit', sans-serif; font-size: .8rem; padding: 8px 10px; border-radius: 9px;
+    border: 1px solid var(--borda); background: var(--branco); color: var(--grafite);
+  }
+  .nota-link-input:focus{ outline: none; border-color: var(--coral); }
   .nota-link .ugc-chip-anexo{ max-width: 100%; padding: 6px 10px; font-size: .76rem; }
   .nota-link .ugc-chip-anexo a{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; max-width: 130px; vertical-align: middle; }
   .nota-link-remover{ background: none; border: none; color: var(--texto-suave); font-size: .9rem; line-height: 1; cursor: pointer; padding: 0 2px; }
@@ -1563,8 +1566,22 @@
   .nota-cores-mini{ display: flex; gap: 5px; flex-wrap: wrap; }
   .nota-cor-mini{ width: 14px; height: 14px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(0,0,0,.1); }
   .nota-cor-mini.ativo{ border: 2px solid var(--grafite); }
-  .nota-excluir{ background: none; border: none; color: var(--texto-suave); font-size: 1rem; line-height: 1; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+  .nota-rodape-acoes{ display: flex; align-items: center; gap: 6px; }
+  .nota-excluir{
+    background: none; border: none; color: var(--texto-suave); font-size: 1rem; line-height: 1; cursor: pointer;
+    padding: 6px 9px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
+  }
   .nota-excluir:hover{ color: var(--vermelho); background: rgba(196,69,60,.08); }
+
+  .nota-cartao.nota-fechada{
+    min-height: auto; cursor: pointer; position: relative; transition: box-shadow .15s ease, transform .15s ease;
+  }
+  .nota-cartao.nota-fechada:hover{ box-shadow: 0 8px 20px rgba(26,24,22,.14); transform: translateY(-1px); }
+  .nota-clipe{ position: absolute; top: -6px; right: 14px; font-size: 1.3rem; transform: rotate(18deg); filter: drop-shadow(0 2px 2px rgba(0,0,0,.15)); }
+  .nota-fechada-texto{
+    margin: 0; padding-right: 18px; font-size: .85rem; color: var(--grafite); line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+  }
 
   /* ===================== RESPONSIVO ===================== */
   @media (max-width: 900px){
@@ -5516,10 +5533,24 @@
     });
   }
 
-  function renderNotaCartaoHtml(nota){
+  // Nota "fechada": card compacto com clipe, só a prévia do texto — clicar reabre pra editar
+  function renderNotaFechadaHtml(nota){
+    const textoBruto = (nota.conteudo || "").trim();
+    const previa = textoBruto ? textoBruto.slice(0, 90) + (textoBruto.length > 90 ? "…" : "") : "Nota vazia";
+
+    return `
+      <div class="nota-cartao nota-fechada cor-${nota.cor}" data-id="${nota.id}" data-acao="nota-reabrir" role="button" tabindex="0" aria-label="Reabrir nota pra editar">
+        <span class="nota-clipe" title="Nota salva">📎</span>
+        <p class="nota-fechada-texto">${previa}</p>
+      </div>
+    `;
+  }
+
+  // Nota "aberta": texto e link editáveis, ainda não foi clicado em Salvar (ou foi reaberta)
+  function renderNotaAbertaHtml(nota){
     const linkHtml = nota.link
       ? `<span class="ugc-chip-anexo nota-link-chip">🔗 <a href="${nota.link}" target="_blank" rel="noopener">${nota.link}</a><button type="button" class="nota-link-remover" data-acao="nota-link-remover" data-id="${nota.id}" aria-label="Remover link">&times;</button></span>`
-      : `<div class="ugc-input-briefing"><input type="text" placeholder="Cole o link de referência (opcional)" data-nota-link-input="${nota.id}"><button type="button" class="ugc-btn" data-acao="nota-salvar-link" data-id="${nota.id}">Salvar</button></div>`;
+      : `<input type="text" class="nota-link-input" placeholder="Cole o link de referência (opcional)" data-nota-link-input="${nota.id}">`;
 
     return `
       <div class="nota-cartao cor-${nota.cor}" data-id="${nota.id}">
@@ -5529,10 +5560,17 @@
           <div class="nota-cores-mini">
             ${NOTA_CORES.map(c => `<span class="nota-cor-mini cor-${c.chave} ${nota.cor === c.chave ? "ativo" : ""}" data-acao="nota-cor" data-id="${nota.id}" data-cor="${c.chave}" title="${c.nome}"></span>`).join("")}
           </div>
-          <button type="button" class="nota-excluir" data-acao="nota-excluir" data-id="${nota.id}" aria-label="Excluir nota">&times;</button>
+          <div class="nota-rodape-acoes">
+            <button type="button" class="ugc-btn" data-acao="nota-salvar" data-id="${nota.id}">Salvar</button>
+            <button type="button" class="nota-excluir" data-acao="nota-excluir" data-id="${nota.id}" aria-label="Excluir nota">&times;</button>
+          </div>
         </div>
       </div>
     `;
+  }
+
+  function renderNotaCartaoHtml(nota){
+    return nota.fechada ? renderNotaFechadaHtml(nota) : renderNotaAbertaHtml(nota);
   }
 
   function reatarEventosNotas(container){
@@ -5545,15 +5583,16 @@
     container.querySelectorAll("[data-acao='nota-excluir']").forEach(btn => {
       btn.addEventListener("click", () => excluirNota(btn.dataset.id));
     });
-    container.querySelectorAll("[data-acao='nota-salvar-link']").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const input = container.querySelector(`[data-nota-link-input="${btn.dataset.id}"]`);
-        const valor = input ? input.value.trim() : "";
-        salvarLinkNota(btn.dataset.id, valor || null);
-      });
+    container.querySelectorAll("[data-acao='nota-salvar']").forEach(btn => {
+      btn.addEventListener("click", () => salvarNota(btn.dataset.id));
     });
     container.querySelectorAll("[data-acao='nota-link-remover']").forEach(btn => {
-      btn.addEventListener("click", () => salvarLinkNota(btn.dataset.id, null));
+      btn.addEventListener("click", () => atualizarNota(btn.dataset.id, { link: null }));
+    });
+    container.querySelectorAll("[data-acao='nota-reabrir']").forEach(cartao => {
+      const reabrir = () => reabrirNota(cartao.dataset.id);
+      cartao.addEventListener("click", reabrir);
+      cartao.addEventListener("keydown", (e) => { if (e.key === "Enter") reabrir(); });
     });
   }
 
@@ -5562,7 +5601,7 @@
     if (!corpo) return;
 
     const contagem = document.getElementById("notasContagem");
-    if (contagem) contagem.textContent = `${notasCache.length} nota${notasCache.length === 1 ? "" : "s"}`;
+    if (contagem) contagem.textContent = `${notasCache.length} ideia${notasCache.length === 1 ? "" : "s"}`;
 
     if (notasCache.length === 0){
       corpo.innerHTML = `
@@ -5597,7 +5636,7 @@
   async function criarNota(){
     const { data: inserido, error } = await Auth.client
       .from("painel_notas")
-      .insert({ conteudo: "", cor: "azul" })
+      .insert({ conteudo: "", cor: "azul", fechada: false })
       .select();
 
     if (!error && inserido){
@@ -5610,6 +5649,18 @@
     }
   }
 
+  // Atualização genérica de campos da nota (cor, link, fechada, etc.) — sempre re-renderiza
+  async function atualizarNota(id, campos){
+    const { error } = await Auth.client.from("painel_notas").update(campos).eq("id", id);
+    if (!error){
+      const nota = notasCache.find(n => n.id === id);
+      if (nota) Object.assign(nota, campos);
+      renderNotas();
+    }
+    return !error;
+  }
+
+  // O texto salva sozinho ao sair do campo, sem re-renderizar (senão perderia o foco de quem está digitando)
   async function salvarConteudoNota(id, conteudo){
     const nota = notasCache.find(n => n.id === id);
     if (nota && nota.conteudo === conteudo) return;
@@ -5619,21 +5670,21 @@
   }
 
   async function alterarCorNota(id, cor){
-    const { error } = await Auth.client.from("painel_notas").update({ cor }).eq("id", id);
-    if (!error){
-      const nota = notasCache.find(n => n.id === id);
-      if (nota) nota.cor = cor;
-      renderNotas();
-    }
+    await atualizarNota(id, { cor });
   }
 
-  async function salvarLinkNota(id, link){
-    const { error } = await Auth.client.from("painel_notas").update({ link }).eq("id", id);
-    if (!error){
-      const nota = notasCache.find(n => n.id === id);
-      if (nota) nota.link = link;
-      renderNotas();
-    }
+  // Clicar em "Salvar": grava o link (se tiver algo digitado) e fecha a nota em formato de post-it,
+  // com ou sem link preenchido — o link nunca bloqueia esse fechamento.
+  async function salvarNota(id){
+    const input = document.querySelector(`[data-nota-link-input="${id}"]`);
+    const valor = input ? input.value.trim() : "";
+    const campos = { fechada: true };
+    if (valor) campos.link = valor;
+    await atualizarNota(id, campos);
+  }
+
+  async function reabrirNota(id){
+    await atualizarNota(id, { fechada: false });
   }
 
   async function excluirNota(id){
