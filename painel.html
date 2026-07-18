@@ -1582,6 +1582,12 @@
     margin: 0; padding-right: 18px; font-size: .85rem; color: var(--grafite); line-height: 1.5;
     display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
   }
+  .nota-fechada-link{
+    display: block; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,.08);
+    font-size: .74rem; font-weight: 600; color: var(--coral); text-decoration: none;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .nota-fechada-link:hover{ text-decoration: underline; }
 
   /* ===================== RESPONSIVO ===================== */
   @media (max-width: 900px){
@@ -5537,11 +5543,15 @@
   function renderNotaFechadaHtml(nota){
     const textoBruto = (nota.conteudo || "").trim();
     const previa = textoBruto ? textoBruto.slice(0, 90) + (textoBruto.length > 90 ? "…" : "") : "Nota vazia";
+    const linkHtml = nota.link
+      ? `<a href="${nota.link}" target="_blank" rel="noopener" class="nota-fechada-link" data-acao="nota-fechada-link">🔗 ${nota.link}</a>`
+      : "";
 
     return `
       <div class="nota-cartao nota-fechada cor-${nota.cor}" data-id="${nota.id}" data-acao="nota-reabrir" role="button" tabindex="0" aria-label="Reabrir nota pra editar">
         <span class="nota-clipe" title="Nota salva">📎</span>
         <p class="nota-fechada-texto">${previa}</p>
+        ${linkHtml}
       </div>
     `;
   }
@@ -5593,6 +5603,9 @@
       const reabrir = () => reabrirNota(cartao.dataset.id);
       cartao.addEventListener("click", reabrir);
       cartao.addEventListener("keydown", (e) => { if (e.key === "Enter") reabrir(); });
+    });
+    container.querySelectorAll("[data-acao='nota-fechada-link']").forEach(a => {
+      a.addEventListener("click", (e) => e.stopPropagation());
     });
   }
 
