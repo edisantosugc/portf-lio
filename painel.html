@@ -1315,11 +1315,11 @@
   .ugc-campo{ display: flex; flex-direction: column; gap: 5px; }
   .ugc-campo.largo{ grid-column: 1 / -1; }
   .ugc-campo label{ font-size: .78rem; font-weight: 600; color: var(--texto-suave); }
-  .ugc-campo input{
+  .ugc-campo input, .ugc-campo select{
     font-family: 'Outfit', sans-serif; font-size: .88rem; padding: 9px 12px; border-radius: 10px;
     border: 1px solid var(--borda); background: var(--creme); color: var(--grafite);
   }
-  .ugc-campo input:focus{ outline: none; border-color: var(--coral); }
+  .ugc-campo input:focus, .ugc-campo select:focus{ outline: none; border-color: var(--coral); }
   .ugc-origem-toggle{ display: flex; gap: 6px; }
   .ugc-origem-toggle span{
     flex: 1; text-align: center; font-size: .82rem; font-weight: 600; padding: 9px; border-radius: 10px;
@@ -4039,6 +4039,12 @@
           <label>Tipo de trabalho fechado</label>
           <input type="text" id="ugcEdicaoTipo-${item.id}" value="${item.tipo_trabalho || ""}">
         </div>
+        <div class="ugc-campo largo">
+          <label>Etapa atual</label>
+          <select id="ugcEdicaoEtapa-${item.id}">
+            ${UGC_ETAPAS.map(e => `<option value="${e.chave}" ${e.chave === item.etapa ? "selected" : ""}>${e.nome}</option>`).join("")}
+          </select>
+        </div>
         <div class="ugc-campo">
           <label>Valor (R$)</label>
           <input type="number" step="0.01" id="ugcEdicaoValor-${item.id}" value="${item.valor != null ? Number(item.valor) : ""}">
@@ -4061,6 +4067,7 @@
         <button type="button" class="ugc-btn" data-acao="ugc-cancelar-edicao" data-id="${item.id}">Cancelar</button>
       </div>
       ${item.negocio_lancamento_id ? `<p class="ugc-nota-mini">Marca, tipo, valor e data prevista de pagamento ficam sincronizados com o lançamento já criado no Financeiro UGC.</p>` : ""}
+      <p class="ugc-nota-mini">Mudar a etapa aqui pula direto pra ela (não precisa ir passo a passo). Escolher "Pago" já lança/atualiza o recebimento no Financeiro UGC.</p>
     `;
   }
 
@@ -4329,6 +4336,7 @@
     if (!marca) return;
 
     const origemAtiva = document.querySelector(`#ugcEdicaoOrigem-${id} .ativo`);
+    const novaEtapa = document.getElementById(`ugcEdicaoEtapa-${id}`).value;
 
     const campos = {
       marca: marca,
@@ -4340,8 +4348,15 @@
       data_entrega: document.getElementById(`ugcEdicaoDataEntrega-${id}`).value || null
     };
 
+    // Pular direto pra etapa "Pago" pelo formulário passa pelo mesmo caminho do botão "Pago"
+    // (marcarPagamentoUgc), que garante o lançamento no Financeiro UGC. Pra qualquer outra
+    // etapa, é só uma troca direta de status, sem efeito no Financeiro UGC.
+    const vaiParaPago = novaEtapa === "pago";
+    if (!vaiParaPago) campos.etapa = novaEtapa;
+
     ugcEditando.delete(id);
     await atualizarTrabalhoUgc(id, campos);
+    if (vaiParaPago) await marcarPagamentoUgc(id, "pago");
   }
 
   // Remove o trabalho e, se ele já tinha gerado um lançamento no Financeiro UGC
