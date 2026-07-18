@@ -3898,11 +3898,18 @@
       `;
     }).join("");
 
+    // Remove um card e, se não sobrar nenhum, limpa o container inteiro — garante que o
+    // fundo escurecido do pop-up não fique preso na tela bloqueando o resto do painel.
+    function removerCartaoNotificacao(cartaoEl){
+      cartaoEl.remove();
+      if (!container.querySelector(".notificacao-popup")) container.innerHTML = "";
+    }
+
     container.querySelectorAll("[data-acao='fechar-notificacao']").forEach(btn => {
       btn.addEventListener("click", () => {
         const cartaoEl = btn.closest(".notificacao-popup");
         notificacoesPopupFechadas.add(cartaoEl.dataset.chave);
-        cartaoEl.remove();
+        removerCartaoNotificacao(cartaoEl);
       });
     });
 
@@ -3911,16 +3918,17 @@
         const cartaoEl = btn.closest(".notificacao-popup");
         const chave = cartaoEl.dataset.chave;
         notificacoesPopupAdiadas[chave] = Date.now() + NOTIFICACAO_ADIAR_MS;
-        cartaoEl.remove();
+        removerCartaoNotificacao(cartaoEl);
         setTimeout(renderizarNotificacoesPopup, NOTIFICACAO_ADIAR_MS + 500);
       });
     });
 
     container.querySelectorAll("[data-acao='ir-abordagem-notificacao']").forEach(el => {
       const irParaEntrada = () => {
-        const cartaoEl = el.closest(".notificacao-popup");
-        notificacoesPopupFechadas.add(cartaoEl.dataset.chave);
-        cartaoEl.remove();
+        // Fecha o pop-up inteiro (não só este card) antes de navegar — senão o fundo
+        // escurecido fica em cima da tela mesmo depois de trocar de aba.
+        container.querySelectorAll(".notificacao-popup").forEach(c => notificacoesPopupFechadas.add(c.dataset.chave));
+        container.innerHTML = "";
         irParaAbordagem(el.dataset.id);
       };
       el.addEventListener("click", irParaEntrada);
