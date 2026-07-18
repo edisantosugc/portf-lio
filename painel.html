@@ -1535,7 +1535,7 @@
   }
   .notas-vazio-botao:hover{ border-color: var(--coral); color: var(--coral); }
 
-  .notas-grade{ display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 20px; }
+  .notas-grade{ display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 20px; }
   .nota-cartao{
     border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px;
     box-shadow: 0 4px 14px rgba(26,24,22,.06); border: 1px solid rgba(0,0,0,.05); min-height: 160px;
@@ -1553,9 +1553,8 @@
     font-family: 'Outfit', sans-serif; font-size: .85rem; color: var(--grafite); line-height: 1.5;
   }
   .nota-cartao textarea:focus{ outline: none; }
-  .nota-link .ugc-input-briefing{ flex-direction: column; align-items: stretch; }
-  .nota-link .ugc-input-briefing input{ background: var(--branco); min-width: 0; width: 100%; }
-  .nota-link .ugc-input-briefing .ugc-btn{ align-self: flex-end; }
+  .nota-link .ugc-input-briefing input{ background: var(--branco); min-width: 0; }
+  .nota-link .ugc-input-briefing .ugc-btn{ flex-shrink: 0; }
   .nota-link .ugc-chip-anexo{ max-width: 100%; padding: 6px 10px; font-size: .76rem; }
   .nota-link .ugc-chip-anexo a{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; max-width: 130px; vertical-align: middle; }
   .nota-link-remover{ background: none; border: none; color: var(--texto-suave); font-size: .9rem; line-height: 1; cursor: pointer; padding: 0 2px; }
