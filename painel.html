@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Painel | Edilaine Santos</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦋</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💙</text></svg>">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1484,14 +1484,18 @@
         <svg viewBox="0 0 16 16"><path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 6.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z"/></svg>
         Menu Principal
       </button>
+      <button class="menu-item" data-tab="agenda">
+        <svg viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5ZM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1Z"/></svg>
+        Agenda
+      </button>
       <p class="menu-rotulo">Empresa</p>
       <button class="menu-item" data-tab="portfolio">
         <svg viewBox="0 0 16 16"><path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/></svg>
         Portfólio
       </button>
-      <button class="menu-item" data-tab="agenda">
-        <svg viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5ZM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1Z"/></svg>
-        Agenda
+      <button class="menu-item" data-tab="abordagem">
+        <svg viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.259.408a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg>
+        Abordagem
       </button>
       <button class="menu-item" data-tab="clientes">
         <svg viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
@@ -1770,6 +1774,14 @@
           <div class="resumo-caixa" id="resumoCaixaGeral"></div>
           <div class="financas-totais" id="totaisGeralNegocio" style="margin-top: 16px;"></div>
         </div>
+      </div>
+    </section>
+
+    <!-- ===================== ABA: ABORDAGEM ===================== -->
+    <section id="painelAbordagem" class="painel-tab oculto">
+      <div class="cartao">
+        <h2>Abordagem</h2>
+        <p class="texto-vazio">Em construção — daqui a pouco a gente monta o conteúdo dessa aba.</p>
       </div>
     </section>
 
@@ -2249,16 +2261,17 @@
     document.getElementById("painelAgenda").classList.toggle("oculto", aba !== "agenda");
     document.getElementById("painelFinancas").classList.toggle("oculto", aba !== "financas");
     document.getElementById("painelNegocio").classList.toggle("oculto", aba !== "negocio");
+    document.getElementById("painelAbordagem").classList.toggle("oculto", aba !== "abordagem");
     document.getElementById("painelClientes").classList.toggle("oculto", aba !== "clientes");
     document.getElementById("painelUgcCreator").classList.toggle("oculto", aba !== "ugc-creator");
     document.getElementById("painelProjetos").classList.toggle("oculto", aba !== "projetos");
     document.getElementById("painelBancoCriativo").classList.toggle("oculto", aba !== "banco-criativo");
 
-    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Financeiro", negocio: "Financeiro UGC", clientes: "Clientes", "ugc-creator": "UGC Creator", projetos: "Manager", "banco-criativo": "Ideias Criativas" };
+    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", "ugc-creator": "UGC Creator", projetos: "Manager", "banco-criativo": "Ideias Criativas" };
     document.getElementById("tituloTopo").textContent = titulos[aba];
 
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
-    const abasSemFiltroPeriodo = ["agenda", "financas", "negocio", "clientes", "ugc-creator", "projetos", "banco-criativo"];
+    const abasSemFiltroPeriodo = ["agenda", "financas", "negocio", "abordagem", "clientes", "ugc-creator", "projetos", "banco-criativo"];
     document.getElementById("filtroPeriodo").classList.toggle("oculto", abasSemFiltroPeriodo.includes(aba));
 
     fecharGaveta();
