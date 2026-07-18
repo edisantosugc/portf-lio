@@ -236,14 +236,18 @@
   /* ===================== POP-UP DE ALERTAS (aparece por cima, ao abrir o painel) ===================== */
   .notificacoes-popup{
     position: fixed;
-    top: 20px;
-    right: 20px;
+    inset: 0;
     z-index: 2000;
+    background: rgba(26,24,22,.5);
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     gap: 10px;
-    width: min(340px, calc(100vw - 40px));
+    padding: 20px;
+    overflow-y: auto;
   }
+  .notificacoes-popup:empty{ display: none; background: none; pointer-events: none; }
   .notificacao-popup{
     position: relative;
     background: var(--branco);
@@ -251,14 +255,15 @@
     border-left: 4px solid var(--dourado);
     border-radius: 12px;
     padding: 14px 34px 14px 16px;
-    box-shadow: 0 12px 30px rgba(26,24,22,.15);
-    animation: entrarNotificacao .25s ease;
+    box-shadow: 0 24px 60px rgba(26,24,22,.25);
+    animation: entrarNotificacao .2s ease;
+    width: min(340px, calc(100vw - 40px));
   }
   .notificacao-popup.atrasado{ border-left-color: var(--vermelho); }
   .notificacao-popup.proximo-receber{ border-left-color: var(--verde); }
   @keyframes entrarNotificacao{
-    from{ opacity: 0; transform: translateX(20px); }
-    to{ opacity: 1; transform: translateX(0); }
+    from{ opacity: 0; transform: scale(.94); }
+    to{ opacity: 1; transform: scale(1); }
   }
   .notificacao-popup-fechar{
     position: absolute;
@@ -290,10 +295,6 @@
     cursor: pointer;
   }
   .notificacao-popup-botao-pago:hover{ background: var(--verde); border-color: var(--verde); color: var(--branco); }
-
-  @media (max-width: 500px){
-    .notificacoes-popup{ left: 20px; right: 20px; width: auto; }
-  }
 
   /* ===================== ALERTAS DE CONTAS A VENCER (Menu Principal) ===================== */
   #areaAlertasContas{
@@ -4897,6 +4898,13 @@
           </div>
         </div>
         <div class="ugc-campo largo">
+          <label>Follow up feito?</label>
+          <div class="ugc-origem-toggle" id="abordagemEdicaoFollowupFeito-${item.id}">
+            <span class="${item.followup_feito ? "" : "ativo"}" data-followup="pendente">Pendente</span>
+            <span class="${item.followup_feito ? "ativo" : ""}" data-followup="feito">Feito</span>
+          </div>
+        </div>
+        <div class="ugc-campo largo">
           <label>Observação</label>
           <textarea id="abordagemEdicaoObs-${item.id}" rows="2">${item.observacao || ""}</textarea>
         </div>
@@ -4913,8 +4921,6 @@
     const gerenciarHtml = renderGerenciarAbordagemHtml(item);
     if (abordagemEditando.has(item.id)) return gerenciarHtml + renderFormEdicaoAbordagemHtml(item);
 
-    const precisaFollowup = item.status === "andamento" && !item.followup_feito;
-
     return gerenciarHtml + `
       <div class="ugc-detalhe-linha"><span class="rotulo">Produto</span><span class="valor">${item.produto || "—"}</span></div>
       <div class="ugc-detalhe-linha"><span class="rotulo">Data da abordagem</span><span class="valor">${item.data_abordagem ? formatarDataCurta(item.data_abordagem) : "—"}</span></div>
@@ -4922,12 +4928,10 @@
       <div class="ugc-detalhe-linha"><span class="rotulo">Status</span><span class="ugc-etapa-pill ${classeStatusAbordagem(item.status)}">${nomeStatusAbordagem(item.status)}</span></div>
       ${item.abordagem ? `<div class="abordagem-bloco"><span class="rotulo">Abordagem</span><p>${item.abordagem}</p></div>` : ""}
       ${item.observacao ? `<div class="abordagem-bloco"><span class="rotulo">Observação</span><p>${item.observacao}</p></div>` : ""}
-      ${precisaFollowup ? `
-        <div class="ugc-branch">
-          <button type="button" data-acao="abordagem-followup-feito" data-id="${item.id}">Marcar follow up como feito</button>
-        </div>
-      ` : ""}
-      ${item.followup_feito ? `<p class="ugc-nota-mini">Follow up já feito.</p>` : ""}
+      <div class="ugc-status-aprovacao">
+        <span class="ugc-badge ${item.followup_feito ? "aprovado" : "aguardando"}">${item.followup_feito ? "Follow up feito" : "Follow up pendente"}</span>
+        <button type="button" class="ugc-btn" data-acao="abordagem-toggle-followup" data-id="${item.id}">${item.followup_feito ? "Marcar como pendente" : "Marcar como feito"}</button>
+      </div>
     `;
   }
 
@@ -4967,10 +4971,10 @@
     container.querySelectorAll("[data-acao='abordagem-cancelar-edicao']").forEach(btn => {
       btn.addEventListener("click", () => cancelarEdicaoAbordagem(btn.dataset.id));
     });
-    container.querySelectorAll("[data-acao='abordagem-followup-feito']").forEach(btn => {
-      btn.addEventListener("click", () => marcarFollowupFeitoAbordagem(btn.dataset.id));
+    container.querySelectorAll("[data-acao='abordagem-toggle-followup']").forEach(btn => {
+      btn.addEventListener("click", () => alternarFollowupFeitoAbordagem(btn.dataset.id));
     });
-    container.querySelectorAll("[id^='abordagemEdicaoStatus-']").forEach(toggle => {
+    container.querySelectorAll("[id^='abordagemEdicaoStatus-'], [id^='abordagemEdicaoFollowupFeito-']").forEach(toggle => {
       toggle.querySelectorAll("span").forEach(span => {
         span.addEventListener("click", () => {
           toggle.querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
@@ -5069,6 +5073,7 @@
 
     const dataAbordagem = document.getElementById(`abordagemEdicaoData-${id}`).value || null;
     const statusAtivo = document.querySelector(`#abordagemEdicaoStatus-${id} .ativo`);
+    const followupAtivo = document.querySelector(`#abordagemEdicaoFollowupFeito-${id} .ativo`);
 
     const campos = {
       marca: marca,
@@ -5077,15 +5082,24 @@
       data_abordagem: dataAbordagem,
       data_followup: dataAbordagem ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null,
       observacao: document.getElementById(`abordagemEdicaoObs-${id}`).value.trim() || null,
-      status: statusAtivo ? statusAtivo.dataset.status : "andamento"
+      status: statusAtivo ? statusAtivo.dataset.status : "andamento",
+      followup_feito: followupAtivo ? followupAtivo.dataset.followup === "feito" : false
     };
 
     abordagemEditando.delete(id);
     await atualizarAbordagem(id, campos);
   }
 
+  // Usado pelo lembrete no pop-up de notificações: sempre marca como feito (dispensa o aviso)
   async function marcarFollowupFeitoAbordagem(id){
     await atualizarAbordagem(id, { followup_feito: true });
+  }
+
+  // Usado pelo botão no detalhe da abordagem: alterna feito/pendente nos dois sentidos
+  async function alternarFollowupFeitoAbordagem(id){
+    const item = abordagensCache.find(a => a.id === id);
+    if (!item) return;
+    await atualizarAbordagem(id, { followup_feito: !item.followup_feito });
   }
 
   async function removerAbordagem(id){
