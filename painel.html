@@ -2132,7 +2132,7 @@
     configurarEventosDeInterface();
 
     try {
-      const [eventos, leads, tarefas, lancamentos, pagamentosCartao, gastosFixos, negocio, trabalhosUgc, mensagensIa] = await Promise.all([
+      const [eventos, leads, tarefas, lancamentos, pagamentosCartao, gastosFixos, negocio, trabalhosUgc] = await Promise.all([
         buscarTudo("portfolio_events"),
         buscarTudo("portfolio_leads"),
         buscarTudo("painel_tarefas"),
@@ -2140,8 +2140,7 @@
         buscarTudo("financas_cartoes_pagos"),
         buscarTudo("financas_gastos_fixos"),
         buscarTudo("negocio_lancamentos"),
-        buscarTudo("painel_ugc_trabalhos"),
-        buscarTudo("painel_ia_mensagens")
+        buscarTudo("painel_ugc_trabalhos")
       ]);
       eventosCache = eventos;
       leadsCache = leads;
@@ -2150,9 +2149,6 @@
       gastosFixosCache = gastosFixos;
       negocioCache = negocio;
       ugcCache = trabalhosUgc;
-
-      // buscarTudo devolve created_at desc — inverte pra ordem cronológica antes de popular o cache
-      mensagensIa.slice().reverse().forEach(m => { if (iaCache[m.contexto]) iaCache[m.contexto].push(m); });
 
       cartoesPagosCache = {};
       pagamentosCartao.forEach(p => {
@@ -2184,9 +2180,13 @@
         console.error("Erro ao renderizar UGC Creator:", erroUgc);
       }
       try {
+        // Isolado do carregamento principal: a tabela painel_ia_mensagens só existe depois
+        // que o SQL da IA for rodado no Supabase, então essa busca pode falhar sem travar o resto do painel.
+        const mensagensIa = await buscarTudo("painel_ia_mensagens");
+        mensagensIa.slice().reverse().forEach(m => { if (iaCache[m.contexto]) iaCache[m.contexto].push(m); });
         Object.keys(iaCache).forEach(renderizarChatIa);
       } catch (erroIa) {
-        console.error("Erro ao renderizar chats de IA:", erroIa);
+        console.error("Erro ao carregar/renderizar chats de IA:", erroIa);
       }
     } catch (erro) {
       console.error(erro);
