@@ -1080,19 +1080,21 @@
     }
     .balao-flutuante .balao-emoji{ font-size: .82rem; flex-shrink: 0; }
     .balao-flutuante .balao-texto{ font-size: .68rem; line-height: 1.25; white-space: normal; }
-    /* Posicionados por FORA do contorno da foto (valores negativos), com um
-       respiro real entre o balãozinho e o corpo/cabelo. No desktop eles
-       flutuam ao lado da foto porque sobra espaço na coluna; no mobile a
-       foto ocupa quase toda a largura da tela, então não sobra respiro
-       nenhum na altura do ombro/jaqueta (ela preenche a largura toda ali).
-       Por isso os dois de baixo foram pra altura do rosto/cabelo (por volta
-       de 32% do topo), onde ainda sobra fundo visível nas laterais, em vez
-       da altura do ombro. O container ainda tem 24px de respiro nas bordas
-       da tela, então os valores negativos nunca vazam pra fora da tela. */
+    /* No mobile não sobra espaço lateral pra flutuar sem tocar a foto — e
+       pedido confirmado: pode ficar sobre a foto mesmo. Os dois de baixo
+       ficam na altura do queixo/mão (perto de 41% do topo), sem cobrir a
+       boca/bochecha (que fica mais acima, perto de 32%). */
     .balao-mineira{ top: -10px; left: -8px; right: auto; }
     .balao-rotina{ top: -10px; right: -8px; left: auto; }
-    .balao-pet{ top: 32%; bottom: auto; left: -8px; right: auto; }
-    .balao-idade{ top: 32%; bottom: auto; right: -8px; left: auto; }
+    .balao-pet{ top: 80%; bottom: auto; left: -8px; right: auto; }
+    .balao-idade{ top: 80%; bottom: auto; right: -8px; left: auto; }
+
+    /* Borboleta do título "Sobre mim": no lugar de vertical-align (que deixa
+       um vão acima da letra dependendo da fonte/linha), o nome vira um
+       flex container e a borboleta é centralizada verticalmente de verdade
+       ao lado do texto — a mesma lógica visual do cabeçalho, só que à prova
+       de variação de fonte. */
+    .nome-destaque{ display: inline-flex; align-items: center; }
   }
 
   @media (max-width: 760px){
