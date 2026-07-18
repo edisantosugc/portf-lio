@@ -1048,6 +1048,14 @@
     .sobre .container{ grid-template-columns: minmax(0, 1fr); }
     .sobre-foto{ width: 100%; max-width: 340px; margin: 0 auto; }
     .sobre-texto{ min-width: 0; }
+
+    /* A sobreposição negativa (margin-left/top) usada no título "Sobre mim"
+       depende de medir com precisão a largura exata da letra "s" na fonte
+       carregada. Isso funciona bem no desktop, mas em alguns celulares fica
+       visivelmente solta. No mobile, trocamos por um espacinho pequeno e
+       positivo — não fica "colada" no pixel exato, mas garante que ela
+       sempre apareça encostada ao lado do texto, em qualquer aparelho. */
+    .nome-destaque .decor-borboleta{ margin-left: .08em; top: 0; }
     .contato-grid{ grid-template-columns: minmax(0, 1fr); }
 
     /* Balõezinhos: reaparecem no mobile (antes ficavam escondidos), um pouco
@@ -1072,10 +1080,19 @@
     }
     .balao-flutuante .balao-emoji{ font-size: .82rem; flex-shrink: 0; }
     .balao-flutuante .balao-texto{ font-size: .68rem; line-height: 1.25; white-space: normal; }
-    .balao-mineira{ top: 3%; left: 3%; right: auto; }
-    .balao-rotina{ top: 3%; right: 3%; left: auto; }
-    .balao-pet{ top: auto; bottom: 20%; left: 3%; right: auto; }
-    .balao-idade{ top: auto; bottom: 20%; right: 3%; left: auto; }
+    /* Posicionados por FORA do contorno da foto (valores negativos), com um
+       respiro real entre o balãozinho e o corpo/cabelo. No desktop eles
+       flutuam ao lado da foto porque sobra espaço na coluna; no mobile a
+       foto ocupa quase toda a largura da tela, então não sobra respiro
+       nenhum na altura do ombro/jaqueta (ela preenche a largura toda ali).
+       Por isso os dois de baixo foram pra altura do rosto/cabelo (por volta
+       de 32% do topo), onde ainda sobra fundo visível nas laterais, em vez
+       da altura do ombro. O container ainda tem 24px de respiro nas bordas
+       da tela, então os valores negativos nunca vazam pra fora da tela. */
+    .balao-mineira{ top: -10px; left: -8px; right: auto; }
+    .balao-rotina{ top: -10px; right: -8px; left: auto; }
+    .balao-pet{ top: 32%; bottom: auto; left: -8px; right: auto; }
+    .balao-idade{ top: 32%; bottom: auto; right: -8px; left: auto; }
   }
 
   @media (max-width: 760px){
