@@ -5551,7 +5551,8 @@
     container.querySelectorAll("[data-acao='nota-salvar-link']").forEach(btn => {
       btn.addEventListener("click", () => {
         const input = container.querySelector(`[data-nota-link-input="${btn.dataset.id}"]`);
-        if (input && input.value.trim()) salvarLinkNota(btn.dataset.id, input.value.trim());
+        const valor = input ? input.value.trim() : "";
+        salvarLinkNota(btn.dataset.id, valor || null);
       });
     });
     container.querySelectorAll("[data-acao='nota-link-remover']").forEach(btn => {
