@@ -1553,8 +1553,11 @@
     font-family: 'Outfit', sans-serif; font-size: .85rem; color: var(--grafite); line-height: 1.5;
   }
   .nota-cartao textarea:focus{ outline: none; }
-  .nota-link .ugc-input-briefing input{ background: var(--branco); min-width: 0; }
-  .nota-link .ugc-input-briefing .ugc-btn{ flex-shrink: 0; }
+  .nota-link-input{
+    width: 100%; font-family: 'Outfit', sans-serif; font-size: .8rem; padding: 8px 10px; border-radius: 9px;
+    border: 1px solid var(--borda); background: var(--branco); color: var(--grafite);
+  }
+  .nota-link-input:focus{ outline: none; border-color: var(--coral); }
   .nota-link .ugc-chip-anexo{ max-width: 100%; padding: 6px 10px; font-size: .76rem; }
   .nota-link .ugc-chip-anexo a{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; max-width: 130px; vertical-align: middle; }
   .nota-link-remover{ background: none; border: none; color: var(--texto-suave); font-size: .9rem; line-height: 1; cursor: pointer; padding: 0 2px; }
@@ -2156,7 +2159,7 @@
       <div class="cartao">
         <div class="notas-cabecalho">
           <div class="notas-titulo">
-            <span class="notas-titulo-icone">📄</span>
+            <span class="notas-titulo-icone">💡</span>
             <span class="notas-contagem" id="notasContagem">0 notas</span>
           </div>
           <button type="button" class="botao-nova-nota" id="notaBotaoNova">+ Nova Nota</button>
@@ -5519,7 +5522,7 @@
   function renderNotaCartaoHtml(nota){
     const linkHtml = nota.link
       ? `<span class="ugc-chip-anexo nota-link-chip">🔗 <a href="${nota.link}" target="_blank" rel="noopener">${nota.link}</a><button type="button" class="nota-link-remover" data-acao="nota-link-remover" data-id="${nota.id}" aria-label="Remover link">&times;</button></span>`
-      : `<div class="ugc-input-briefing"><input type="text" placeholder="Cole o link de referência" data-nota-link-input="${nota.id}"><button type="button" class="ugc-btn" data-acao="nota-salvar-link" data-id="${nota.id}">Salvar</button></div>`;
+      : `<input type="text" class="nota-link-input" placeholder="Cole o link de referência (opcional)" data-nota-link-input="${nota.id}">`;
 
     return `
       <div class="nota-cartao cor-${nota.cor}" data-id="${nota.id}">
@@ -5545,11 +5548,10 @@
     container.querySelectorAll("[data-acao='nota-excluir']").forEach(btn => {
       btn.addEventListener("click", () => excluirNota(btn.dataset.id));
     });
-    container.querySelectorAll("[data-acao='nota-salvar-link']").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const input = container.querySelector(`[data-nota-link-input="${btn.dataset.id}"]`);
-        const valor = input ? input.value.trim() : "";
-        salvarLinkNota(btn.dataset.id, valor || null);
+    container.querySelectorAll("[data-nota-link-input]").forEach(input => {
+      input.addEventListener("blur", () => {
+        const valor = input.value.trim();
+        if (valor) salvarLinkNota(input.dataset.notaLinkInput, valor);
       });
     });
     container.querySelectorAll("[data-acao='nota-link-remover']").forEach(btn => {
@@ -5567,7 +5569,7 @@
     if (notasCache.length === 0){
       corpo.innerHTML = `
         <div class="notas-vazio">
-          <div class="notas-vazio-icone">📄</div>
+          <div class="notas-vazio-icone">💡</div>
           <h3>Nenhuma nota ainda</h3>
           <p>Anote ideias, rascunhos, brainstorms — tudo que vier na cabeça</p>
           <button type="button" class="notas-vazio-botao" id="notaBotaoPrimeira">+ Criar primeira nota</button>
