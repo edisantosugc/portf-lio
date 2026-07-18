@@ -278,12 +278,15 @@
     padding: 4px;
   }
   .notificacao-popup-fechar:hover{ color: var(--grafite); }
+  .notificacao-popup-corpo.clicavel{ cursor: pointer; border-radius: 8px; margin: -4px; padding: 4px; }
+  .notificacao-popup-corpo.clicavel:hover{ background: var(--creme); }
   .notificacao-popup-nome{ font-weight: 600; font-size: .9rem; padding-right: 10px; }
   .notificacao-popup.atrasado .notificacao-popup-nome{ color: var(--vermelho); }
   .notificacao-popup-mensagem{ font-size: .8rem; color: var(--texto-suave); margin-top: 3px; }
   .notificacao-popup.atrasado .notificacao-popup-mensagem{ color: var(--vermelho); }
+  .notificacao-popup-ver-mais{ font-size: .74rem; font-weight: 700; color: var(--coral); margin-top: 6px; }
+  .notificacao-popup-acoes{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
   .notificacao-popup-botao-pago{
-    margin-top: 10px;
     padding: 7px 12px;
     border-radius: 9px;
     border: 1px solid var(--borda);
@@ -295,6 +298,18 @@
     cursor: pointer;
   }
   .notificacao-popup-botao-pago:hover{ background: var(--verde); border-color: var(--verde); color: var(--branco); }
+  .notificacao-popup-botao-adiar{
+    padding: 7px 12px;
+    border-radius: 9px;
+    border: 1px solid var(--borda);
+    background: transparent;
+    color: var(--texto-suave);
+    font-family: 'Outfit', sans-serif;
+    font-size: .78rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .notificacao-popup-botao-adiar:hover{ border-color: var(--coral); color: var(--coral); }
 
   /* ===================== ALERTAS DE CONTAS A VENCER (Menu Principal) ===================== */
   #areaAlertasContas{
@@ -2151,6 +2166,11 @@
   // pra não reaparecerem sozinhas enquanto a página não for recarregada.
   let notificacoesPopupFechadas = new Set();
 
+  // Guarda até que horário (timestamp) cada notificação adiada ("lembrar mais tarde")
+  // deve continuar escondida. Passado esse horário, ela volta a aparecer sozinha.
+  const NOTIFICACAO_ADIAR_MS = 60 * 60 * 1000;
+  let notificacoesPopupAdiadas = {};
+
   // Guarda quais anos estão com o detalhe expandido na aba Finanças UGC > Anual
   let anosNegocioExpandidos = new Set();
 
@@ -3838,8 +3858,10 @@
     const itensFollowup = obterAlertasFollowupAbordagem()
       .map(item => ({ ...item, categoria: "followup", chave: `followup-${item.id}` }));
 
+    const agora = Date.now();
     const visiveis = itensContas.concat(itensRecebimentos).concat(itensFollowup)
       .filter(item => !notificacoesPopupFechadas.has(item.chave))
+      .filter(item => !(notificacoesPopupAdiadas[item.chave] && agora < notificacoesPopupAdiadas[item.chave]))
       .sort((a, b) => a.diasParaVencer - b.diasParaVencer);
 
     if (visiveis.length === 0){
@@ -3857,13 +3879,20 @@
       const classeStatus = ehFollowup ? (item.statusAlerta === "atrasado" ? "atrasado" : "") : (!ehPagar && item.status === "proximo" ? "proximo-receber" : item.status);
       const acaoBotao = ehPagar ? "marcar-pago-notificacao" : ehFollowup ? "marcar-followup-notificacao" : "marcar-recebido-notificacao";
       const textoBotao = ehPagar ? "Marcar como pago" : ehFollowup ? "Marcar follow up como feito" : "Marcar como recebido";
+      const corpoAtributos = ehFollowup ? `data-acao="ir-abordagem-notificacao" data-id="${item.id}" tabindex="0" role="button"` : "";
 
       return `
         <div class="notificacao-popup ${classeStatus}" data-chave="${item.chave}" data-categoria="${item.categoria}" data-nome="${item.nome || ""}" data-tipo="${item.tipo || ""}" data-id="${item.id || ""}">
           <button type="button" class="notificacao-popup-fechar" data-acao="fechar-notificacao" aria-label="Fechar aviso">&times;</button>
-          <p class="notificacao-popup-nome">${nomeExibicao}</p>
-          <p class="notificacao-popup-mensagem">${mensagem}${item.valor != null ? " · " + formatarMoeda(Number(item.valor)) : ""}</p>
-          <button type="button" class="notificacao-popup-botao-pago" data-acao="${acaoBotao}">${textoBotao}</button>
+          <div class="notificacao-popup-corpo${ehFollowup ? " clicavel" : ""}" ${corpoAtributos}>
+            <p class="notificacao-popup-nome">${nomeExibicao}</p>
+            <p class="notificacao-popup-mensagem">${mensagem}${item.valor != null ? " · " + formatarMoeda(Number(item.valor)) : ""}</p>
+            ${ehFollowup ? `<p class="notificacao-popup-ver-mais">Ver anotação da abordagem ›</p>` : ""}
+          </div>
+          <div class="notificacao-popup-acoes">
+            <button type="button" class="notificacao-popup-botao-pago" data-acao="${acaoBotao}">${textoBotao}</button>
+            <button type="button" class="notificacao-popup-botao-adiar" data-acao="adiar-notificacao">Lembrar em 1h</button>
+          </div>
         </div>
       `;
     }).join("");
@@ -3874,6 +3903,27 @@
         notificacoesPopupFechadas.add(cartaoEl.dataset.chave);
         cartaoEl.remove();
       });
+    });
+
+    container.querySelectorAll("[data-acao='adiar-notificacao']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const cartaoEl = btn.closest(".notificacao-popup");
+        const chave = cartaoEl.dataset.chave;
+        notificacoesPopupAdiadas[chave] = Date.now() + NOTIFICACAO_ADIAR_MS;
+        cartaoEl.remove();
+        setTimeout(renderizarNotificacoesPopup, NOTIFICACAO_ADIAR_MS + 500);
+      });
+    });
+
+    container.querySelectorAll("[data-acao='ir-abordagem-notificacao']").forEach(el => {
+      const irParaEntrada = () => {
+        const cartaoEl = el.closest(".notificacao-popup");
+        notificacoesPopupFechadas.add(cartaoEl.dataset.chave);
+        cartaoEl.remove();
+        irParaAbordagem(el.dataset.id);
+      };
+      el.addEventListener("click", irParaEntrada);
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter") irParaEntrada(); });
     });
 
     container.querySelectorAll("[data-acao='marcar-pago-notificacao']").forEach(btn => {
@@ -5002,6 +5052,22 @@
 
   function renderizarAbordagens(){
     renderListaAbordagens();
+  }
+
+  // Chamado ao clicar no lembrete de follow up: troca pra aba Abordagem, abre
+  // a anotação daquela marca e rola/realça a linha até ela ficar visível.
+  function irParaAbordagem(id){
+    trocarAba("abordagem");
+    abordagemAbertos.add(id);
+    renderizarAbordagens();
+    requestAnimationFrame(() => {
+      const el = document.querySelector(`#abordagemListaCorpo [data-id="${id}"]`);
+      if (el){
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ugc-linha-flash");
+        setTimeout(() => el.classList.remove("ugc-linha-flash"), 1400);
+      }
+    });
   }
 
   async function criarAbordagem(){
