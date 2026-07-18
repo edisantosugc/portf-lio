@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Edi Santos - UGC Creator & Manager</title>
 <meta name="description" content="Edilaine Santos, criadora de conteúdo UGC. Vídeos autênticos, reels, fotos de produto e unboxing para marcas que querem vender mais.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦋</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💙</text></svg>">
 
 <!-- Fontes do Google Fonts: Oswald Bold (nome, títulos e botões, no lugar da fonte ALPHA usada
      nas artes do Canva), Lato (textos), Alex Brush (detalhes de destaque, no lugar da fonte
@@ -1089,12 +1089,23 @@
     .balao-pet{ top: 80%; bottom: auto; left: -8px; right: auto; }
     .balao-idade{ top: 80%; bottom: auto; right: -8px; left: auto; }
 
-    /* Borboleta do título "Sobre mim": no lugar de vertical-align (que deixa
-       um vão acima da letra dependendo da fonte/linha), o nome vira um
-       flex container e a borboleta é centralizada verticalmente de verdade
-       ao lado do texto — a mesma lógica visual do cabeçalho, só que à prova
-       de variação de fonte. */
-    .nome-destaque{ display: inline-flex; align-items: center; }
+    /* Fonte um pouco menor no título "Sobre mim" pra "Edilaine Santos" ter
+       mais chance de caber numa linha só (ver regra "nome-destaque" abaixo). */
+    #sobreTitulo{ font-size: 1.5rem; }
+
+    /* "white-space: nowrap" garante que "Edilaine Santos" nunca quebre no
+       meio da frase — sem isso, a borboleta ficava "flutuando" no meio de
+       duas linhas em vez de colar na ponta do "s". A borboleta agora é
+       posicionada de forma absoluta, presa geometricamente na ponta do "s"
+       (não depende mais de vertical-align/line-height, que se comporta
+       diferente aqui do que no cabeçalho por causa do line-height do h2). */
+    .nome-destaque{ white-space: nowrap; position: relative; display: inline-block; }
+    .nome-destaque .decor-borboleta{
+      position: absolute;
+      left: 100%;
+      top: -5px;
+      margin-left: -.3em;
+    }
   }
 
   @media (max-width: 760px){
