@@ -325,10 +325,15 @@ create table if not exists public.painel_notas (
   id uuid primary key default gen_random_uuid(),
   conteudo text not null default '',
   cor text not null default 'amarelo' check (cor in ('amarelo', 'rosa', 'azul', 'verde', 'cinza', 'vermelho', 'roxo', 'laranja')),
+  link text,                            -- link de referência opcional (Pinterest, Drive, etc.)
   created_at timestamptz not null default now()
 );
 
 create index if not exists idx_painel_notas_cor on public.painel_notas (cor);
+
+-- Se a tabela já existia de uma versão anterior (sem a coluna "link"), essa linha
+-- adiciona ela sem apagar nada. Rodar de novo depois que a tabela já foi criada é seguro.
+alter table public.painel_notas add column if not exists link text;
 
 alter table public.painel_notas enable row level security;
 

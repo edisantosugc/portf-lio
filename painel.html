@@ -1491,15 +1491,15 @@
   .notas-cabecalho{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
   .notas-titulo{ display: flex; align-items: center; gap: 12px; }
   .notas-titulo-icone{
-    width: 42px; height: 42px; border-radius: 12px; background: rgba(242,153,74,.15); color: #F2994A;
+    width: 42px; height: 42px; border-radius: 12px; background: rgba(0,0,128,.08); color: var(--coral);
     display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;
   }
   .notas-contagem{ font-size: .8rem; color: var(--texto-suave); font-weight: 600; }
   .botao-nova-nota{
-    background: #F2994A; color: var(--branco); border: none; border-radius: 50px; padding: 11px 20px;
+    background: var(--coral); color: var(--branco); border: none; border-radius: 50px; padding: 11px 20px;
     font-family: 'Outfit', sans-serif; font-weight: 700; font-size: .85rem; cursor: pointer; white-space: nowrap;
   }
-  .botao-nova-nota:hover{ background: #E08535; }
+  .botao-nova-nota:hover{ background: var(--coral-escuro); }
 
   .notas-filtros{ display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 20px; }
   .notas-busca{ flex: 1; min-width: 220px; position: relative; }
@@ -1507,7 +1507,7 @@
     width: 100%; padding: 11px 14px 11px 36px; border-radius: 50px; border: 1px solid var(--borda);
     background: var(--branco); font-family: 'Outfit', sans-serif; font-size: .85rem; color: var(--grafite);
   }
-  .notas-busca input:focus{ outline: none; border-color: #F2994A; }
+  .notas-busca input:focus{ outline: none; border-color: var(--coral); }
   .notas-busca-icone{ position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: .85rem; opacity: .6; }
   .notas-swatches{ display: flex; gap: 8px; flex-wrap: wrap; }
 
@@ -1524,7 +1524,7 @@
 
   .notas-vazio{ text-align: center; padding: 60px 20px; }
   .notas-vazio-icone{
-    width: 64px; height: 64px; border-radius: 16px; background: rgba(242,153,74,.15); color: #F2994A;
+    width: 64px; height: 64px; border-radius: 16px; background: rgba(0,0,128,.08); color: var(--coral);
     display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 16px;
   }
   .notas-vazio h3{ font-family: 'Fraunces', serif; font-size: 1.1rem; margin-bottom: 6px; }
@@ -1533,7 +1533,7 @@
     background: var(--branco); border: 1px solid var(--borda); border-radius: 50px; padding: 10px 20px;
     font-family: 'Outfit', sans-serif; font-weight: 600; font-size: .85rem; cursor: pointer;
   }
-  .notas-vazio-botao:hover{ border-color: #F2994A; color: #F2994A; }
+  .notas-vazio-botao:hover{ border-color: var(--coral); color: var(--coral); }
 
   .notas-grade{ display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 20px; }
   .nota-cartao{
@@ -1553,6 +1553,11 @@
     font-family: 'Outfit', sans-serif; font-size: .85rem; color: var(--grafite); line-height: 1.5;
   }
   .nota-cartao textarea:focus{ outline: none; }
+  .nota-link .ugc-input-briefing input{ background: var(--branco); }
+  .nota-link .ugc-chip-anexo{ max-width: 100%; padding: 6px 10px; font-size: .76rem; }
+  .nota-link .ugc-chip-anexo a{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; max-width: 130px; vertical-align: middle; }
+  .nota-link-remover{ background: none; border: none; color: var(--texto-suave); font-size: .9rem; line-height: 1; cursor: pointer; padding: 0 2px; }
+  .nota-link-remover:hover{ color: var(--vermelho); }
   .nota-rodape{ display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .nota-cores-mini{ display: flex; gap: 5px; flex-wrap: wrap; }
   .nota-cor-mini{ width: 14px; height: 14px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(0,0,0,.1); }
@@ -5514,9 +5519,14 @@
   }
 
   function renderNotaCartaoHtml(nota){
+    const linkHtml = nota.link
+      ? `<span class="ugc-chip-anexo nota-link-chip">🔗 <a href="${nota.link}" target="_blank" rel="noopener">${nota.link}</a><button type="button" class="nota-link-remover" data-acao="nota-link-remover" data-id="${nota.id}" aria-label="Remover link">&times;</button></span>`
+      : `<div class="ugc-input-briefing"><input type="text" placeholder="Cole o link de referência" data-nota-link-input="${nota.id}"><button type="button" class="ugc-btn" data-acao="nota-salvar-link" data-id="${nota.id}">Salvar</button></div>`;
+
     return `
       <div class="nota-cartao cor-${nota.cor}" data-id="${nota.id}">
         <textarea data-nota-conteudo="${nota.id}" placeholder="Escreva aqui...">${nota.conteudo || ""}</textarea>
+        <div class="nota-link">${linkHtml}</div>
         <div class="nota-rodape">
           <div class="nota-cores-mini">
             ${NOTA_CORES.map(c => `<span class="nota-cor-mini cor-${c.chave} ${nota.cor === c.chave ? "ativo" : ""}" data-acao="nota-cor" data-id="${nota.id}" data-cor="${c.chave}" title="${c.nome}"></span>`).join("")}
@@ -5536,6 +5546,15 @@
     });
     container.querySelectorAll("[data-acao='nota-excluir']").forEach(btn => {
       btn.addEventListener("click", () => excluirNota(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='nota-salvar-link']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const input = container.querySelector(`[data-nota-link-input="${btn.dataset.id}"]`);
+        if (input && input.value.trim()) salvarLinkNota(btn.dataset.id, input.value.trim());
+      });
+    });
+    container.querySelectorAll("[data-acao='nota-link-remover']").forEach(btn => {
+      btn.addEventListener("click", () => salvarLinkNota(btn.dataset.id, null));
     });
   }
 
@@ -5605,6 +5624,15 @@
     if (!error){
       const nota = notasCache.find(n => n.id === id);
       if (nota) nota.cor = cor;
+      renderNotas();
+    }
+  }
+
+  async function salvarLinkNota(id, link){
+    const { error } = await Auth.client.from("painel_notas").update({ link }).eq("id", id);
+    if (!error){
+      const nota = notasCache.find(n => n.id === id);
+      if (nota) nota.link = link;
       renderNotas();
     }
   }
