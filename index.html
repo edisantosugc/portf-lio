@@ -38,7 +38,7 @@
 
   *{ box-sizing: border-box; margin: 0; padding: 0; }
 
-  html{ scroll-behavior: smooth; }
+  html{ scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
   body{
     background: var(--creme);
@@ -238,8 +238,13 @@
     transform-origin: center;
   }
   .decor-borboleta img{ width: 100%; height: 100%; object-fit: contain; display: block; }
-  .logo .decor-borboleta{ width: 15px; height: 15px; margin-left: -5px; top: -3px; }
-  .nome-destaque .decor-borboleta{ width: 26px; height: 26px; margin-left: -9px; top: -5px; animation-delay: -1.4s; }
+  /* Em vez de px fixo: usa "em" para acompanhar o tamanho da fonte do
+     nome em cada tela. Isso é o que faz a borboleta ficar coladinha na
+     ponta do "s" tanto no desktop quanto no mobile — nos títulos que
+     usam clamp() a fonte muda de tamanho conforme a tela, e um deslocamento
+     fixo em px ficava correto só no tamanho de fonte do desktop. */
+  .logo .decor-borboleta{ width: .67em; height: .67em; margin-left: -.223em; top: -.134em; }
+  .nome-destaque .decor-borboleta{ width: .625em; height: .625em; margin-left: -.216em; top: -.12em; animation-delay: -1.4s; }
   @media (prefers-reduced-motion: reduce){
     .decor-borboleta{ animation: none; }
   }
@@ -433,9 +438,6 @@
   }
   @media (prefers-reduced-motion: reduce){
     .balao-flutuante{ animation: none; }
-  }
-  @media (max-width: 900px){
-    .balao-flutuante{ display: none; }
   }
 
   /* ===================== FAIXA DE MARCAS ===================== */
@@ -756,11 +758,15 @@
     border: 2px solid var(--vermelho);
     box-shadow: none;
   }
+  /* No mobile a largura da tela é bem menor que a altura, então aqui o
+     tamanho da foto usa a LARGURA disponível (não vh) — do contrário ela
+     estoura pra fora da tela nas laterais. */
   @media (max-width: 900px){
-    .fotos-ugc-grid{ grid-template-columns: repeat(3, 24vh); grid-auto-rows: 32vh; }
+    .fotos-ugc-grid{ grid-template-columns: repeat(3, 1fr); grid-auto-rows: unset; }
+    .foto-ugc{ width: 100%; height: auto; aspect-ratio: 3 / 4; }
   }
   @media (max-width: 480px){
-    .fotos-ugc-grid{ grid-template-columns: repeat(2, 28vh); grid-auto-rows: 37.3vh; }
+    .fotos-ugc-grid{ grid-template-columns: repeat(2, 1fr); }
   }
 
   /* ===================== SERVIÇOS ===================== */
@@ -1038,9 +1044,38 @@
     .hero{ height: auto; overflow: visible; align-items: center; padding-bottom: 48px; }
     .hero .container{ grid-template-columns: minmax(0, 1fr); min-width: 0; }
     .hero-foto-wrap{ order: -1; width: 100%; max-width: 340px; margin: 0 auto; min-width: 0; }
-    .sobre .container{ grid-template-columns: 1fr; }
+    .hero-texto{ min-width: 0; }
+    .sobre .container{ grid-template-columns: minmax(0, 1fr); }
     .sobre-foto{ width: 100%; max-width: 340px; margin: 0 auto; }
-    .contato-grid{ grid-template-columns: 1fr; }
+    .sobre-texto{ min-width: 0; }
+    .contato-grid{ grid-template-columns: minmax(0, 1fr); }
+
+    /* Balõezinhos: reaparecem no mobile (antes ficavam escondidos), um pouco
+       menores pra combinar com a foto menor da tela pequena. No desktop eles
+       flutuam fora da foto porque sobra espaço nas laterais; no mobile a foto
+       quase não tem margem, então aqui eles ficam coladinhos nos cantos da
+       foto em vez de flutuar pra fora da tela. */
+    .balao-flutuante{
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 11px 5px 9px;
+      border-radius: 10px;
+      gap: 5px;
+      /* Trava de segurança pra largura: no lugar de "nowrap" (que deixa o texto
+         empurrar o balãozinho pra fora da tela em telas estreitas ou em textos
+         mais longos, como a versão em inglês), o texto agora quebra linha
+         dentro de um limite de largura relativo à própria foto. Assim o balão
+         nunca ultrapassa a lateral da tela nem invade o texto ao lado. */
+      max-width: 46%;
+      white-space: normal;
+      box-sizing: border-box;
+    }
+    .balao-flutuante .balao-emoji{ font-size: .82rem; flex-shrink: 0; }
+    .balao-flutuante .balao-texto{ font-size: .68rem; line-height: 1.25; white-space: normal; }
+    .balao-mineira{ top: 3%; left: 3%; right: auto; }
+    .balao-rotina{ top: 3%; right: 3%; left: auto; }
+    .balao-pet{ top: auto; bottom: 20%; left: 3%; right: auto; }
+    .balao-idade{ top: auto; bottom: 20%; right: 3%; left: auto; }
   }
 
   @media (max-width: 760px){
@@ -1840,7 +1875,12 @@ const ICONES_SVG = {
    "CONFIG" aponta pra CONFIG_PT ou CONFIG_EN conforme a escolha da pessoa
    (lembrada no navegador). Todo o resto do código lê sempre de "CONFIG".
    ========================================================================= */
-let idiomaAtual = localStorage.getItem("portfolio_idioma") || "pt";
+// Lê com try/catch: em navegação privada do Safari (e em alguns navegadores
+// mais restritos) o acesso ao localStorage lança um erro em vez de simplesmente
+// retornar vazio, o que travaria todo o restante deste script — incluindo a
+// renderização dos balõezinhos, portfólio, serviços etc.
+let idiomaAtual = "pt";
+try { idiomaAtual = localStorage.getItem("portfolio_idioma") || "pt"; } catch (e) {}
 let CONFIG = idiomaAtual === "en" ? CONFIG_EN : CONFIG_PT;
 
 /* =========================================================================
@@ -1860,10 +1900,11 @@ const sbRastreio = (window.supabase && typeof window.supabase.createClient === "
 // Cada visitante recebe um identificador de sessão (dura enquanto a aba estiver aberta)
 function obterSessionId(){
   const chave = "portfolio_session_id";
-  let id = sessionStorage.getItem(chave);
+  let id = null;
+  try { id = sessionStorage.getItem(chave); } catch (e) {}
   if (!id){
     id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("sess-" + Date.now() + "-" + Math.random().toString(16).slice(2));
-    sessionStorage.setItem(chave, id);
+    try { sessionStorage.setItem(chave, id); } catch (e) {}
   }
   return id;
 }
@@ -2315,7 +2356,7 @@ function atualizarBotoesIdioma(){
 function definirIdioma(idioma){
   idiomaAtual = idioma;
   CONFIG = idioma === "en" ? CONFIG_EN : CONFIG_PT;
-  localStorage.setItem("portfolio_idioma", idioma);
+  try { localStorage.setItem("portfolio_idioma", idioma); } catch (e) {}
   document.documentElement.lang = idioma === "en" ? "en" : "pt-BR";
   atualizarBotoesIdioma();
   renderizarConteudo(false);
