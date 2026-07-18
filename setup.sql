@@ -277,3 +277,37 @@ create policy "Usuaria autenticada gerencia suas mensagens de IA"
   with check (true);
 
 grant select, insert, update, delete on public.painel_ia_mensagens to authenticated;
+
+-- =====================================================================
+-- ABORDAGEM (aba "Abordagem" do painel)
+-- Registro das marcas abordadas: o que foi a abordagem, quando foi feita
+-- e a data do follow up (sempre 7 dias depois da abordagem). O painel usa
+-- data_followup pra mostrar um lembrete quando a data chegar.
+-- =====================================================================
+create table if not exists public.painel_abordagens (
+  id uuid primary key default gen_random_uuid(),
+  marca text not null,
+  produto text,
+  abordagem text,                       -- o que foi enviado/falado na abordagem
+  data_abordagem date,
+  data_followup date,                   -- calculada no app como data_abordagem + 7 dias
+  observacao text,
+  status text not null default 'andamento' check (status in ('andamento', 'fechada', 'sem_retorno')),
+  -- 'andamento' = Negociação em andamento | 'fechada' = Negociação fechada | 'sem_retorno' = Sem retorno
+  followup_feito boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_abordagens_data_followup on public.painel_abordagens (data_followup);
+create index if not exists idx_painel_abordagens_status on public.painel_abordagens (status);
+
+alter table public.painel_abordagens enable row level security;
+
+create policy "Usuaria autenticada gerencia suas abordagens"
+  on public.painel_abordagens
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_abordagens to authenticated;

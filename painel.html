@@ -1315,11 +1315,12 @@
   .ugc-campo{ display: flex; flex-direction: column; gap: 5px; }
   .ugc-campo.largo{ grid-column: 1 / -1; }
   .ugc-campo label{ font-size: .78rem; font-weight: 600; color: var(--texto-suave); }
-  .ugc-campo input, .ugc-campo select{
+  .ugc-campo input, .ugc-campo select, .ugc-campo textarea{
     font-family: 'Outfit', sans-serif; font-size: .88rem; padding: 9px 12px; border-radius: 10px;
-    border: 1px solid var(--borda); background: var(--creme); color: var(--grafite);
+    border: 1px solid var(--borda); background: var(--creme); color: var(--grafite); resize: vertical;
   }
-  .ugc-campo input:focus, .ugc-campo select:focus{ outline: none; border-color: var(--coral); }
+  .ugc-campo input:focus, .ugc-campo select:focus, .ugc-campo textarea:focus{ outline: none; border-color: var(--coral); }
+  .ugc-campo input:disabled{ opacity: .65; cursor: not-allowed; }
   .ugc-origem-toggle{ display: flex; gap: 6px; }
   .ugc-origem-toggle span{
     flex: 1; text-align: center; font-size: .82rem; font-weight: 600; padding: 9px; border-radius: 10px;
@@ -1358,6 +1359,14 @@
   }
   .ugc-etapa-pill.pago{ background: rgba(45,122,79,.12); border-color: var(--verde); color: var(--verde); }
   .ugc-etapa-pill.vencida{ background: rgba(196,69,60,.1); border-color: var(--vermelho); color: var(--vermelho); }
+  .ugc-etapa-pill.andamento{ background: rgba(201,166,107,.15); border-color: var(--dourado); color: var(--dourado); }
+  .ugc-etapa-pill.sem-retorno{ background: rgba(196,69,60,.1); border-color: var(--vermelho); color: var(--vermelho); }
+
+  .abordagem-grade-lista{ display: grid; grid-template-columns: minmax(0,1.5fr) 190px 90px 16px; align-items: center; gap: 14px; }
+  .abordagem-grade-lista span:nth-child(3){ text-align: right; }
+  .abordagem-bloco{ display: flex; flex-direction: column; gap: 4px; }
+  .abordagem-bloco .rotulo{ font-size: .78rem; font-weight: 600; color: var(--texto-suave); }
+  .abordagem-bloco p{ margin: 0; font-size: .85rem; color: var(--grafite); white-space: pre-wrap; }
 
   .ugc-detalhe{ padding: 6px 20px 18px; display: flex; flex-direction: column; gap: 12px; background: var(--creme); }
   .ugc-detalhe-linha{ display: flex; justify-content: space-between; gap: 10px; font-size: .85rem; }
@@ -1816,9 +1825,52 @@
 
     <!-- ===================== ABA: ABORDAGEM ===================== -->
     <section id="painelAbordagem" class="painel-tab oculto">
-      <div class="cartao">
-        <h2>Abordagem</h2>
-        <p class="texto-vazio">Em construção — daqui a pouco a gente monta o conteúdo dessa aba.</p>
+      <button type="button" class="ugc-linha-add" id="abordagemBotaoNovo">+ nova abordagem</button>
+
+      <div class="cartao ugc-form-novo oculto" id="abordagemFormNovo">
+        <h2>Nova abordagem</h2>
+        <div class="ugc-form-grade">
+          <div class="ugc-campo largo">
+            <label>Nome da marca</label>
+            <input type="text" id="abordagemCampoMarca" placeholder="Ex: Marca Girassol">
+          </div>
+          <div class="ugc-campo largo">
+            <label>Produto da marca</label>
+            <input type="text" id="abordagemCampoProduto" placeholder="Ex: Kit skincare facial">
+          </div>
+          <div class="ugc-campo largo">
+            <label>Abordagem</label>
+            <textarea id="abordagemCampoTexto" rows="3" placeholder="O que foi enviado/falado na abordagem"></textarea>
+          </div>
+          <div class="ugc-campo">
+            <label>Data da abordagem</label>
+            <input type="date" id="abordagemCampoData">
+          </div>
+          <div class="ugc-campo">
+            <label>Data do follow up</label>
+            <input type="text" id="abordagemCampoFollowup" placeholder="Calculada automaticamente (+7 dias)" disabled>
+          </div>
+          <div class="ugc-campo largo">
+            <label>Status</label>
+            <div class="ugc-origem-toggle" id="abordagemStatusToggle">
+              <span class="ativo" data-status="andamento">Negociação em andamento</span>
+              <span data-status="fechada">Negociação fechada</span>
+              <span data-status="sem_retorno">Sem retorno</span>
+            </div>
+          </div>
+          <div class="ugc-campo largo">
+            <label>Observação</label>
+            <textarea id="abordagemCampoObs" rows="2" placeholder="Notas adicionais"></textarea>
+          </div>
+        </div>
+        <button type="button" class="botao-add-tarefa" id="abordagemBotaoAdicionar" style="margin-top:14px;">Adicionar</button>
+      </div>
+
+      <div class="cartao ugc-lista-cartao">
+        <div class="ugc-cabecalho-lista abordagem-grade-lista">
+          <span>Marca</span><span>Status</span><span>Follow up</span><span></span>
+        </div>
+        <div id="abordagemListaCorpo"></div>
       </div>
     </section>
 
@@ -2029,6 +2081,20 @@
   const ugcEditando = new Set();
   let ugcOrigemSelecionada = "Inbound";
 
+  // Estado da aba Abordagem: registros de abordagens a marcas, linhas abertas/em edição e status selecionado no formulário
+  let abordagensCache = [];
+  const abordagemAbertos = new Set();
+  const abordagemEditando = new Set();
+  let abordagemStatusSelecionado = "andamento";
+
+  const ABORDAGEM_STATUS = [
+    { chave: "andamento", nome: "Negociação em andamento" },
+    { chave: "fechada", nome: "Negociação fechada" },
+    { chave: "sem_retorno", nome: "Sem retorno" }
+  ];
+  // EDITE AQUI se quiser mudar depois de quantos dias o follow up é sugerido
+  const DIAS_FOLLOWUP_ABORDAGEM = 7;
+
   // Estado das conversas de IA da Negociação: uma entrada por contexto, cada
   // uma é a lista de mensagens daquela conversa, em ordem cronológica.
   // (O Crô usaria esse mesmo mecanismo, mas foi deixado de fora por enquanto.)
@@ -2118,6 +2184,14 @@
     return `${ano}-${mes}-${dia}`;
   }
 
+  // Soma "quantidade" de dias a uma data (AAAA-MM-DD), devolvendo também em AAAA-MM-DD
+  function somarDias(dataISO, quantidade){
+    const [ano, mes, dia] = dataISO.split("-").map(Number);
+    const data = new Date(ano, mes - 1, dia);
+    data.setDate(data.getDate() + quantidade);
+    return formatarDataISO(data);
+  }
+
   /* =========================================================================
      INICIALIZAÇÃO
      ========================================================================= */
@@ -2187,6 +2261,15 @@
         Object.keys(iaCache).forEach(renderizarChatIa);
       } catch (erroIa) {
         console.error("Erro ao carregar/renderizar chats de IA:", erroIa);
+      }
+      try {
+        // Isolado do carregamento principal: a tabela painel_abordagens só existe depois
+        // que o SQL da aba Abordagem for rodado no Supabase, então essa busca pode falhar sem travar o resto do painel.
+        abordagensCache = await buscarTudo("painel_abordagens");
+        renderizarAbordagens();
+        renderizarNotificacoesPopup();
+      } catch (erroAbordagem) {
+        console.error("Erro ao carregar/renderizar Abordagem:", erroAbordagem);
       }
     } catch (erro) {
       console.error(erro);
@@ -2386,6 +2469,25 @@
     });
 
     document.getElementById("ugcBotaoAdicionar").addEventListener("click", criarTrabalhoUgc);
+
+    // ---------- Abordagem ----------
+    document.getElementById("abordagemBotaoNovo").addEventListener("click", () => {
+      document.getElementById("abordagemFormNovo").classList.toggle("oculto");
+    });
+
+    document.getElementById("abordagemStatusToggle").querySelectorAll("span").forEach(span => {
+      span.addEventListener("click", () => {
+        document.getElementById("abordagemStatusToggle").querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
+        span.classList.add("ativo");
+        abordagemStatusSelecionado = span.dataset.status;
+      });
+    });
+
+    document.getElementById("abordagemCampoData").addEventListener("change", (e) => {
+      atualizarPreviaFollowupAbordagem(e.target.value, "abordagemCampoFollowup");
+    });
+
+    document.getElementById("abordagemBotaoAdicionar").addEventListener("click", criarAbordagem);
 
     document.getElementById("ugcBotaoFecharModal").addEventListener("click", fecharModalPrazoEntregaUgc);
     document.getElementById("ugcModalPrazo").addEventListener("click", (e) => {
@@ -3732,7 +3834,10 @@
     const itensRecebimentos = obterAlertasRecebimentos()
       .map(item => ({ ...item, categoria: "receber", chave: `receber-${item.id}` }));
 
-    const visiveis = itensContas.concat(itensRecebimentos)
+    const itensFollowup = obterAlertasFollowupAbordagem()
+      .map(item => ({ ...item, categoria: "followup", chave: `followup-${item.id}` }));
+
+    const visiveis = itensContas.concat(itensRecebimentos).concat(itensFollowup)
       .filter(item => !notificacoesPopupFechadas.has(item.chave))
       .sort((a, b) => a.diasParaVencer - b.diasParaVencer);
 
@@ -3743,13 +3848,14 @@
 
     container.innerHTML = visiveis.map(item => {
       const ehPagar = item.categoria === "pagar";
+      const ehFollowup = item.categoria === "followup";
       const nomeExibicao = ehPagar
         ? (item.tipo === "cartao" ? `Fatura ${item.nome}` : item.nome)
-        : item.descricao;
-      const mensagem = ehPagar ? mensagemAlertaConta(item) : mensagemAlertaRecebimento(item);
-      const classeStatus = !ehPagar && item.status === "proximo" ? "proximo-receber" : item.status;
-      const acaoBotao = ehPagar ? "marcar-pago-notificacao" : "marcar-recebido-notificacao";
-      const textoBotao = ehPagar ? "Marcar como pago" : "Marcar como recebido";
+        : ehFollowup ? item.marca : item.descricao;
+      const mensagem = ehPagar ? mensagemAlertaConta(item) : ehFollowup ? mensagemAlertaFollowupAbordagem(item) : mensagemAlertaRecebimento(item);
+      const classeStatus = ehFollowup ? (item.statusAlerta === "atrasado" ? "atrasado" : "") : (!ehPagar && item.status === "proximo" ? "proximo-receber" : item.status);
+      const acaoBotao = ehPagar ? "marcar-pago-notificacao" : ehFollowup ? "marcar-followup-notificacao" : "marcar-recebido-notificacao";
+      const textoBotao = ehPagar ? "Marcar como pago" : ehFollowup ? "Marcar follow up como feito" : "Marcar como recebido";
 
       return `
         <div class="notificacao-popup ${classeStatus}" data-chave="${item.chave}" data-categoria="${item.categoria}" data-nome="${item.nome || ""}" data-tipo="${item.tipo || ""}" data-id="${item.id || ""}">
@@ -3785,6 +3891,13 @@
       btn.addEventListener("click", () => {
         const cartaoEl = btn.closest(".notificacao-popup");
         alternarRecebidoNegocio(cartaoEl.dataset.id);
+      });
+    });
+
+    container.querySelectorAll("[data-acao='marcar-followup-notificacao']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const cartaoEl = btn.closest(".notificacao-popup");
+        marcarFollowupFeitoAbordagem(cartaoEl.dataset.id);
       });
     });
   }
@@ -4717,6 +4830,314 @@
         setTimeout(() => el.classList.remove("ugc-linha-flash"), 1400);
       }
     });
+  }
+
+  /* =========================================================================
+     ABA: ABORDAGEM
+     Registro das marcas abordadas (produto, o que foi falado, data da
+     abordagem) e a data do follow up, sempre calculada como 7 dias após a
+     abordagem. O lembrete de follow up aparece no pop-up de notificações
+     (mesmo local dos avisos de contas a pagar/receber), ver
+     obterAlertasFollowupAbordagem() e renderizarNotificacoesPopup().
+     ========================================================================= */
+  function nomeStatusAbordagem(chave){
+    const status = ABORDAGEM_STATUS.find(s => s.chave === chave);
+    return status ? status.nome : chave;
+  }
+
+  function classeStatusAbordagem(chave){
+    if (chave === "fechada") return "pago";
+    if (chave === "sem_retorno") return "sem-retorno";
+    return "andamento";
+  }
+
+  // Preenche um campo de texto (desabilitado) com a data do follow up calculada a partir da data da abordagem
+  function atualizarPreviaFollowupAbordagem(dataAbordagemISO, idCampoDestino){
+    const campo = document.getElementById(idCampoDestino);
+    if (!campo) return;
+    campo.value = dataAbordagemISO ? formatarDataCurta(somarDias(dataAbordagemISO, DIAS_FOLLOWUP_ABORDAGEM)) : "";
+  }
+
+  function renderGerenciarAbordagemHtml(item){
+    return `
+      <div class="ugc-gerenciar">
+        <button type="button" class="ugc-btn-icone" data-acao="abordagem-editar" data-id="${item.id}" aria-label="Editar abordagem">&#9998; Editar</button>
+        <button type="button" class="ugc-btn-icone perigo" data-acao="abordagem-remover" data-id="${item.id}" aria-label="Remover abordagem">&times; Remover</button>
+      </div>
+    `;
+  }
+
+  function renderFormEdicaoAbordagemHtml(item){
+    return `
+      <div class="ugc-form-grade">
+        <div class="ugc-campo largo">
+          <label>Nome da marca</label>
+          <input type="text" id="abordagemEdicaoMarca-${item.id}" value="${item.marca}">
+        </div>
+        <div class="ugc-campo largo">
+          <label>Produto da marca</label>
+          <input type="text" id="abordagemEdicaoProduto-${item.id}" value="${item.produto || ""}">
+        </div>
+        <div class="ugc-campo largo">
+          <label>Abordagem</label>
+          <textarea id="abordagemEdicaoTexto-${item.id}" rows="3">${item.abordagem || ""}</textarea>
+        </div>
+        <div class="ugc-campo">
+          <label>Data da abordagem</label>
+          <input type="date" id="abordagemEdicaoData-${item.id}" value="${item.data_abordagem || ""}">
+        </div>
+        <div class="ugc-campo">
+          <label>Data do follow up</label>
+          <input type="text" id="abordagemEdicaoFollowup-${item.id}" value="${item.data_followup ? formatarDataCurta(item.data_followup) : ""}" disabled>
+        </div>
+        <div class="ugc-campo largo">
+          <label>Status</label>
+          <div class="ugc-origem-toggle" id="abordagemEdicaoStatus-${item.id}">
+            ${ABORDAGEM_STATUS.map(s => `<span class="${s.chave === item.status ? "ativo" : ""}" data-status="${s.chave}">${s.nome}</span>`).join("")}
+          </div>
+        </div>
+        <div class="ugc-campo largo">
+          <label>Observação</label>
+          <textarea id="abordagemEdicaoObs-${item.id}" rows="2">${item.observacao || ""}</textarea>
+        </div>
+      </div>
+      <div class="ugc-branch" style="margin-top:14px;">
+        <button type="button" class="ugc-btn" data-acao="abordagem-salvar-edicao" data-id="${item.id}">Salvar alterações</button>
+        <button type="button" class="ugc-btn" data-acao="abordagem-cancelar-edicao" data-id="${item.id}">Cancelar</button>
+      </div>
+      <p class="ugc-nota-mini">A data do follow up é sempre recalculada automaticamente pra ${DIAS_FOLLOWUP_ABORDAGEM} dias depois da data da abordagem.</p>
+    `;
+  }
+
+  function renderDetalheAbordagemHtml(item){
+    const gerenciarHtml = renderGerenciarAbordagemHtml(item);
+    if (abordagemEditando.has(item.id)) return gerenciarHtml + renderFormEdicaoAbordagemHtml(item);
+
+    const precisaFollowup = item.status === "andamento" && !item.followup_feito;
+
+    return gerenciarHtml + `
+      <div class="ugc-detalhe-linha"><span class="rotulo">Produto</span><span class="valor">${item.produto || "—"}</span></div>
+      <div class="ugc-detalhe-linha"><span class="rotulo">Data da abordagem</span><span class="valor">${item.data_abordagem ? formatarDataCurta(item.data_abordagem) : "—"}</span></div>
+      <div class="ugc-detalhe-linha"><span class="rotulo">Follow up</span><span class="valor">${item.data_followup ? formatarDataCurta(item.data_followup) : "—"}</span></div>
+      <div class="ugc-detalhe-linha"><span class="rotulo">Status</span><span class="ugc-etapa-pill ${classeStatusAbordagem(item.status)}">${nomeStatusAbordagem(item.status)}</span></div>
+      ${item.abordagem ? `<div class="abordagem-bloco"><span class="rotulo">Abordagem</span><p>${item.abordagem}</p></div>` : ""}
+      ${item.observacao ? `<div class="abordagem-bloco"><span class="rotulo">Observação</span><p>${item.observacao}</p></div>` : ""}
+      ${precisaFollowup ? `
+        <div class="ugc-branch">
+          <button type="button" data-acao="abordagem-followup-feito" data-id="${item.id}">Marcar follow up como feito</button>
+        </div>
+      ` : ""}
+      ${item.followup_feito ? `<p class="ugc-nota-mini">Follow up já feito.</p>` : ""}
+    `;
+  }
+
+  function renderLinhaAbordagemHtml(item){
+    const aberta = abordagemAbertos.has(item.id) ? " open" : "";
+    const dataTexto = item.data_followup ? formatarDataCurta(item.data_followup) : "—";
+    const atrasado = item.status === "andamento" && !item.followup_feito && item.data_followup && item.data_followup <= formatarDataISO(new Date());
+
+    return `
+      <details class="ugc-linha" data-id="${item.id}"${aberta}>
+        <summary class="ugc-linha-resumo abordagem-grade-lista">
+          <span class="ugc-marca">${item.marca}</span>
+          <span class="ugc-etapa-pill ${classeStatusAbordagem(item.status)}">${nomeStatusAbordagem(item.status)}</span>
+          <span class="ugc-data ${atrasado ? "vencida" : ""}">${dataTexto}</span>
+          <span class="ugc-seta">›</span>
+        </summary>
+        <div class="ugc-detalhe">${renderDetalheAbordagemHtml(item)}</div>
+      </details>
+    `;
+  }
+
+  function reatarEventosLinhasAbordagem(container){
+    container.querySelectorAll("details").forEach(det => {
+      det.addEventListener("toggle", () => {
+        if (det.open) abordagemAbertos.add(det.dataset.id); else abordagemAbertos.delete(det.dataset.id);
+      });
+    });
+    container.querySelectorAll("[data-acao='abordagem-editar']").forEach(btn => {
+      btn.addEventListener("click", () => iniciarEdicaoAbordagem(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='abordagem-remover']").forEach(btn => {
+      btn.addEventListener("click", () => removerAbordagem(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='abordagem-salvar-edicao']").forEach(btn => {
+      btn.addEventListener("click", () => salvarEdicaoAbordagem(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='abordagem-cancelar-edicao']").forEach(btn => {
+      btn.addEventListener("click", () => cancelarEdicaoAbordagem(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='abordagem-followup-feito']").forEach(btn => {
+      btn.addEventListener("click", () => marcarFollowupFeitoAbordagem(btn.dataset.id));
+    });
+    container.querySelectorAll("[id^='abordagemEdicaoStatus-']").forEach(toggle => {
+      toggle.querySelectorAll("span").forEach(span => {
+        span.addEventListener("click", () => {
+          toggle.querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
+          span.classList.add("ativo");
+        });
+      });
+    });
+    container.querySelectorAll("[id^='abordagemEdicaoData-']").forEach(input => {
+      input.addEventListener("change", () => {
+        const id = input.id.replace("abordagemEdicaoData-", "");
+        atualizarPreviaFollowupAbordagem(input.value, `abordagemEdicaoFollowup-${id}`);
+      });
+    });
+  }
+
+  function renderListaAbordagens(){
+    const corpo = document.getElementById("abordagemListaCorpo");
+    if (!corpo) return;
+    const ordenados = abordagensCache.slice().sort((a, b) => (b.data_abordagem || "").localeCompare(a.data_abordagem || ""));
+    corpo.innerHTML = ordenados.length
+      ? ordenados.map(item => renderLinhaAbordagemHtml(item)).join("")
+      : `<p class="ugc-vazio">Nenhuma abordagem cadastrada ainda.</p>`;
+    reatarEventosLinhasAbordagem(corpo);
+  }
+
+  function renderizarAbordagens(){
+    renderListaAbordagens();
+  }
+
+  async function criarAbordagem(){
+    const campoMarca = document.getElementById("abordagemCampoMarca");
+    const marca = campoMarca.value.trim();
+    if (!marca) return;
+
+    const dataAbordagem = document.getElementById("abordagemCampoData").value || null;
+
+    const dados = {
+      marca: marca,
+      produto: document.getElementById("abordagemCampoProduto").value.trim() || null,
+      abordagem: document.getElementById("abordagemCampoTexto").value.trim() || null,
+      data_abordagem: dataAbordagem,
+      data_followup: dataAbordagem ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null,
+      observacao: document.getElementById("abordagemCampoObs").value.trim() || null,
+      status: abordagemStatusSelecionado,
+      followup_feito: false
+    };
+
+    const { data: inserido, error } = await Auth.client
+      .from("painel_abordagens")
+      .insert(dados)
+      .select();
+
+    if (!error && inserido){
+      abordagensCache = abordagensCache.concat(inserido);
+      ["abordagemCampoMarca", "abordagemCampoProduto", "abordagemCampoTexto", "abordagemCampoData", "abordagemCampoFollowup", "abordagemCampoObs"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+      document.getElementById("abordagemStatusToggle").querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
+      document.getElementById("abordagemStatusToggle").querySelector("[data-status='andamento']").classList.add("ativo");
+      abordagemStatusSelecionado = "andamento";
+      document.getElementById("abordagemFormNovo").classList.add("oculto");
+      renderizarAbordagens();
+      renderizarNotificacoesPopup();
+    }
+  }
+
+  async function atualizarAbordagem(id, campos){
+    const { error } = await Auth.client
+      .from("painel_abordagens")
+      .update(campos)
+      .eq("id", id);
+
+    if (!error){
+      const registro = abordagensCache.find(a => a.id === id);
+      if (registro) Object.assign(registro, campos);
+      renderizarAbordagens();
+      renderizarNotificacoesPopup();
+    }
+    return !error;
+  }
+
+  function iniciarEdicaoAbordagem(id){
+    abordagemAbertos.add(id);
+    abordagemEditando.add(id);
+    renderizarAbordagens();
+  }
+
+  function cancelarEdicaoAbordagem(id){
+    abordagemEditando.delete(id);
+    renderizarAbordagens();
+  }
+
+  async function salvarEdicaoAbordagem(id){
+    const marca = document.getElementById(`abordagemEdicaoMarca-${id}`).value.trim();
+    if (!marca) return;
+
+    const dataAbordagem = document.getElementById(`abordagemEdicaoData-${id}`).value || null;
+    const statusAtivo = document.querySelector(`#abordagemEdicaoStatus-${id} .ativo`);
+
+    const campos = {
+      marca: marca,
+      produto: document.getElementById(`abordagemEdicaoProduto-${id}`).value.trim() || null,
+      abordagem: document.getElementById(`abordagemEdicaoTexto-${id}`).value.trim() || null,
+      data_abordagem: dataAbordagem,
+      data_followup: dataAbordagem ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null,
+      observacao: document.getElementById(`abordagemEdicaoObs-${id}`).value.trim() || null,
+      status: statusAtivo ? statusAtivo.dataset.status : "andamento"
+    };
+
+    abordagemEditando.delete(id);
+    await atualizarAbordagem(id, campos);
+  }
+
+  async function marcarFollowupFeitoAbordagem(id){
+    await atualizarAbordagem(id, { followup_feito: true });
+  }
+
+  async function removerAbordagem(id){
+    const item = abordagensCache.find(a => a.id === id);
+    if (!item) return;
+    if (!window.confirm(`Remover a abordagem de "${item.marca}"? Essa ação não pode ser desfeita.`)) return;
+
+    const { error } = await Auth.client
+      .from("painel_abordagens")
+      .delete()
+      .eq("id", id);
+    if (error) return;
+
+    abordagensCache = abordagensCache.filter(a => a.id !== id);
+    renderizarAbordagens();
+    renderizarNotificacoesPopup();
+  }
+
+  // Alertas de follow up: mesma janela de aviso das contas a pagar/receber (3 dias antes, 1 dia
+  // antes, no dia, depois atrasado). Só avisa enquanto a negociação está "em andamento" e o
+  // follow up ainda não foi marcado como feito.
+  function obterAlertasFollowupAbordagem(){
+    const hoje = new Date();
+    const hojeSemHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+
+    const alertas = [];
+    abordagensCache.forEach(item => {
+      if (item.status !== "andamento" || item.followup_feito || !item.data_followup) return;
+
+      const [ano, mes, dia] = item.data_followup.split("-").map(Number);
+      const dataFollowup = new Date(ano, mes - 1, dia);
+      const diasParaVencer = Math.round((dataFollowup - hojeSemHora) / (1000 * 60 * 60 * 24));
+
+      if (diasParaVencer < 0){
+        alertas.push({ ...item, statusAlerta: "atrasado", diasParaVencer });
+      } else if (diasParaVencer === 3 || diasParaVencer === 1 || diasParaVencer === 0){
+        alertas.push({ ...item, statusAlerta: "proximo", diasParaVencer });
+      }
+    });
+
+    alertas.sort((a, b) => a.diasParaVencer - b.diasParaVencer);
+    return alertas;
+  }
+
+  function mensagemAlertaFollowupAbordagem(item){
+    if (item.statusAlerta === "atrasado"){
+      const diasAtraso = Math.abs(item.diasParaVencer);
+      return `Follow up atrasado há ${diasAtraso} dia${diasAtraso === 1 ? "" : "s"}`;
+    }
+    if (item.diasParaVencer === 0) return "Follow up é hoje";
+    if (item.diasParaVencer === 1) return "Follow up é amanhã";
+    return `Follow up em ${item.diasParaVencer} dias`;
   }
 
   async function adicionarLancamento(e){
