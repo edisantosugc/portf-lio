@@ -1399,6 +1399,7 @@
   .ugc-badge{ font-size: .72rem; font-weight: 700; padding: 4px 10px; border-radius: 50px; }
   .ugc-badge.aguardando{ background: rgba(201,166,107,.15); color: var(--dourado); }
   .ugc-badge.aprovado{ background: rgba(45,122,79,.12); color: var(--verde); }
+  .ugc-badge.atrasado{ background: rgba(196,69,60,.12); color: var(--vermelho); }
   .ugc-btn{
     font-family: 'Outfit', sans-serif; font-size: .78rem; font-weight: 600; padding: 7px 13px; border-radius: 9px;
     border: 1px solid var(--coral); background: transparent; color: var(--coral); cursor: pointer;
@@ -4971,6 +4972,15 @@
     const gerenciarHtml = renderGerenciarAbordagemHtml(item);
     if (abordagemEditando.has(item.id)) return gerenciarHtml + renderFormEdicaoAbordagemHtml(item);
 
+    const diasFollowup = diasParaFollowupAbordagem(item);
+    const atrasado = item.status === "andamento" && !item.followup_feito && diasFollowup !== null && diasFollowup < 0;
+    const badgeFollowup = item.followup_feito ? "aprovado" : (atrasado ? "atrasado" : "aguardando");
+    const textoFollowup = item.followup_feito
+      ? "Follow up feito"
+      : atrasado
+        ? `Follow up atrasado há ${Math.abs(diasFollowup)} dia${Math.abs(diasFollowup) === 1 ? "" : "s"}`
+        : "Follow up pendente";
+
     return gerenciarHtml + `
       <div class="ugc-detalhe-linha"><span class="rotulo">Produto</span><span class="valor">${item.produto || "—"}</span></div>
       <div class="ugc-detalhe-linha"><span class="rotulo">Data da abordagem</span><span class="valor">${item.data_abordagem ? formatarDataCurta(item.data_abordagem) : "—"}</span></div>
@@ -4979,7 +4989,7 @@
       ${item.abordagem ? `<div class="abordagem-bloco"><span class="rotulo">Abordagem</span><p>${item.abordagem}</p></div>` : ""}
       ${item.observacao ? `<div class="abordagem-bloco"><span class="rotulo">Observação</span><p>${item.observacao}</p></div>` : ""}
       <div class="ugc-status-aprovacao">
-        <span class="ugc-badge ${item.followup_feito ? "aprovado" : "aguardando"}">${item.followup_feito ? "Follow up feito" : "Follow up pendente"}</span>
+        <span class="ugc-badge ${badgeFollowup}">${textoFollowup}</span>
         <button type="button" class="ugc-btn" data-acao="abordagem-toggle-followup" data-id="${item.id}">${item.followup_feito ? "Marcar como pendente" : "Marcar como feito"}</button>
       </div>
     `;
@@ -4988,13 +4998,14 @@
   function renderLinhaAbordagemHtml(item){
     const aberta = abordagemAbertos.has(item.id) ? " open" : "";
     const dataTexto = item.data_followup ? formatarDataCurta(item.data_followup) : "—";
-    const atrasado = item.status === "andamento" && !item.followup_feito && item.data_followup && item.data_followup <= formatarDataISO(new Date());
+    const diasFollowup = diasParaFollowupAbordagem(item);
+    const atrasado = item.status === "andamento" && !item.followup_feito && diasFollowup !== null && diasFollowup < 0;
 
     return `
       <details class="ugc-linha" data-id="${item.id}"${aberta}>
         <summary class="ugc-linha-resumo abordagem-grade-lista">
           <span class="ugc-marca">${item.marca}</span>
-          <span class="ugc-etapa-pill ${classeStatusAbordagem(item.status)}">${nomeStatusAbordagem(item.status)}</span>
+          <span class="ugc-etapa-pill ${atrasado ? "vencida" : classeStatusAbordagem(item.status)}">${atrasado ? "Follow up atrasado" : nomeStatusAbordagem(item.status)}</span>
           <span class="ugc-data ${atrasado ? "vencida" : ""}">${dataTexto}</span>
           <span class="ugc-seta">›</span>
         </summary>
@@ -5187,21 +5198,30 @@
   // Alertas de follow up: mesma janela de aviso das contas a pagar/receber (3 dias antes, 1 dia
   // antes, no dia, depois atrasado). Só avisa enquanto a negociação está "em andamento" e o
   // follow up ainda não foi marcado como feito.
-  function obterAlertasFollowupAbordagem(){
+  // Quantos dias faltam pro follow up de uma abordagem (negativo = já passou da data).
+  // null quando não tem data de follow up definida.
+  function diasParaFollowupAbordagem(item){
+    if (!item.data_followup) return null;
     const hoje = new Date();
     const hojeSemHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    const [ano, mes, dia] = item.data_followup.split("-").map(Number);
+    const dataFollowup = new Date(ano, mes - 1, dia);
+    return Math.round((dataFollowup - hojeSemHora) / (1000 * 60 * 60 * 24));
+  }
 
+  // Enquanto o follow up não é marcado como feito, o lembrete continua aparecendo TODO
+  // dia a partir de 3 dias antes da data (não só em dias específicos) — e depois que a
+  // data passa, some pra "atrasado" e continua avisando todo dia até ser feito.
+  function obterAlertasFollowupAbordagem(){
     const alertas = [];
     abordagensCache.forEach(item => {
-      if (item.status !== "andamento" || item.followup_feito || !item.data_followup) return;
-
-      const [ano, mes, dia] = item.data_followup.split("-").map(Number);
-      const dataFollowup = new Date(ano, mes - 1, dia);
-      const diasParaVencer = Math.round((dataFollowup - hojeSemHora) / (1000 * 60 * 60 * 24));
+      if (item.status !== "andamento" || item.followup_feito) return;
+      const diasParaVencer = diasParaFollowupAbordagem(item);
+      if (diasParaVencer === null) return;
 
       if (diasParaVencer < 0){
         alertas.push({ ...item, statusAlerta: "atrasado", diasParaVencer });
-      } else if (diasParaVencer === 3 || diasParaVencer === 1 || diasParaVencer === 0){
+      } else if (diasParaVencer <= 3){
         alertas.push({ ...item, statusAlerta: "proximo", diasParaVencer });
       }
     });
