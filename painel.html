@@ -1487,6 +1487,79 @@
   .neg-resultado-linha .valor{ font-weight: 600; }
   .neg-resultado-linha.destaque .valor{ color: var(--verde); font-family: 'Fraunces', serif; font-size: 1.05rem; }
 
+  /* ===================== BLOCO DE NOTAS (Ideias Criativas) ===================== */
+  .notas-cabecalho{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+  .notas-titulo{ display: flex; align-items: center; gap: 12px; }
+  .notas-titulo-icone{
+    width: 42px; height: 42px; border-radius: 12px; background: rgba(242,153,74,.15); color: #F2994A;
+    display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;
+  }
+  .notas-contagem{ font-size: .8rem; color: var(--texto-suave); font-weight: 600; }
+  .botao-nova-nota{
+    background: #F2994A; color: var(--branco); border: none; border-radius: 50px; padding: 11px 20px;
+    font-family: 'Outfit', sans-serif; font-weight: 700; font-size: .85rem; cursor: pointer; white-space: nowrap;
+  }
+  .botao-nova-nota:hover{ background: #E08535; }
+
+  .notas-filtros{ display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 20px; }
+  .notas-busca{ flex: 1; min-width: 220px; position: relative; }
+  .notas-busca input{
+    width: 100%; padding: 11px 14px 11px 36px; border-radius: 50px; border: 1px solid var(--borda);
+    background: var(--branco); font-family: 'Outfit', sans-serif; font-size: .85rem; color: var(--grafite);
+  }
+  .notas-busca input:focus{ outline: none; border-color: #F2994A; }
+  .notas-busca-icone{ position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: .85rem; opacity: .6; }
+  .notas-swatches{ display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .nota-swatch{ width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; }
+  .nota-swatch.ativo{ border-color: var(--grafite); }
+  .nota-swatch.cor-amarelo, .nota-cor-mini.cor-amarelo{ background: #F2C94C; }
+  .nota-swatch.cor-rosa, .nota-cor-mini.cor-rosa{ background: #F2789F; }
+  .nota-swatch.cor-azul, .nota-cor-mini.cor-azul{ background: #5B9BD9; }
+  .nota-swatch.cor-verde, .nota-cor-mini.cor-verde{ background: #6FCF7B; }
+  .nota-swatch.cor-cinza, .nota-cor-mini.cor-cinza{ background: #9B9B9B; }
+  .nota-swatch.cor-vermelho, .nota-cor-mini.cor-vermelho{ background: #EB5757; }
+  .nota-swatch.cor-roxo, .nota-cor-mini.cor-roxo{ background: #9B6FD9; }
+  .nota-swatch.cor-laranja, .nota-cor-mini.cor-laranja{ background: #F2994A; }
+
+  .notas-vazio{ text-align: center; padding: 60px 20px; }
+  .notas-vazio-icone{
+    width: 64px; height: 64px; border-radius: 16px; background: rgba(242,153,74,.15); color: #F2994A;
+    display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 16px;
+  }
+  .notas-vazio h3{ font-family: 'Fraunces', serif; font-size: 1.1rem; margin-bottom: 6px; }
+  .notas-vazio p{ font-size: .85rem; color: var(--texto-suave); margin-bottom: 18px; }
+  .notas-vazio-botao{
+    background: var(--branco); border: 1px solid var(--borda); border-radius: 50px; padding: 10px 20px;
+    font-family: 'Outfit', sans-serif; font-weight: 600; font-size: .85rem; cursor: pointer;
+  }
+  .notas-vazio-botao:hover{ border-color: #F2994A; color: #F2994A; }
+
+  .notas-grade{ display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 20px; }
+  .nota-cartao{
+    border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px;
+    box-shadow: 0 4px 14px rgba(26,24,22,.06); border: 1px solid rgba(0,0,0,.05); min-height: 160px;
+  }
+  .nota-cartao.cor-amarelo{ background: rgba(242,201,76,.24); }
+  .nota-cartao.cor-rosa{ background: rgba(242,120,159,.2); }
+  .nota-cartao.cor-azul{ background: rgba(91,155,217,.2); }
+  .nota-cartao.cor-verde{ background: rgba(111,207,123,.22); }
+  .nota-cartao.cor-cinza{ background: rgba(155,155,155,.2); }
+  .nota-cartao.cor-vermelho{ background: rgba(235,87,87,.18); }
+  .nota-cartao.cor-roxo{ background: rgba(155,111,217,.2); }
+  .nota-cartao.cor-laranja{ background: rgba(242,153,74,.2); }
+  .nota-cartao textarea{
+    width: 100%; flex: 1; min-height: 90px; border: none; background: transparent; resize: vertical;
+    font-family: 'Outfit', sans-serif; font-size: .85rem; color: var(--grafite); line-height: 1.5;
+  }
+  .nota-cartao textarea:focus{ outline: none; }
+  .nota-rodape{ display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .nota-cores-mini{ display: flex; gap: 5px; flex-wrap: wrap; }
+  .nota-cor-mini{ width: 14px; height: 14px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(0,0,0,.1); }
+  .nota-cor-mini.ativo{ border: 2px solid var(--grafite); }
+  .nota-excluir{ background: none; border: none; color: var(--texto-suave); font-size: 1rem; line-height: 1; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+  .nota-excluir:hover{ color: var(--vermelho); background: rgba(196,69,60,.08); }
+
   /* ===================== RESPONSIVO ===================== */
   @media (max-width: 900px){
     .sidebar{
@@ -2075,8 +2148,26 @@
     <!-- ===================== ABA: BANCO CRIATIVO ===================== -->
     <section id="painelBancoCriativo" class="painel-tab oculto">
       <div class="cartao">
-        <h2>Ideias Criativas</h2>
-        <p class="texto-vazio">Em construção — daqui a pouco a gente monta o conteúdo dessa aba.</p>
+        <div class="notas-cabecalho">
+          <div class="notas-titulo">
+            <span class="notas-titulo-icone">📄</span>
+            <div>
+              <h2 style="margin:0;">Bloco de Notas</h2>
+              <span class="notas-contagem" id="notasContagem">0 notas</span>
+            </div>
+          </div>
+          <button type="button" class="botao-nova-nota" id="notaBotaoNova">+ Nova Nota</button>
+        </div>
+
+        <div class="notas-filtros">
+          <div class="notas-busca">
+            <span class="notas-busca-icone">🔍</span>
+            <input type="text" id="notaBusca" placeholder="Buscar notas...">
+          </div>
+          <div class="notas-swatches" id="notaFiltroCores"></div>
+        </div>
+
+        <div id="notasCorpo"></div>
       </div>
     </section>
   </main>
@@ -2137,6 +2228,20 @@
   ];
   // EDITE AQUI se quiser mudar depois de quantos dias o follow up é sugerido
   const DIAS_FOLLOWUP_ABORDAGEM = 7;
+
+  // Estado da aba Ideias Criativas: notas do bloco de notas e o filtro de cor selecionado
+  let notasCache = [];
+  let notaFiltroCor = null; // null = mostra notas de todas as cores
+  const NOTA_CORES = [
+    { chave: "amarelo", nome: "Amarelo" },
+    { chave: "rosa", nome: "Rosa" },
+    { chave: "azul", nome: "Azul" },
+    { chave: "verde", nome: "Verde" },
+    { chave: "cinza", nome: "Cinza" },
+    { chave: "vermelho", nome: "Vermelho" },
+    { chave: "roxo", nome: "Roxo" },
+    { chave: "laranja", nome: "Laranja" }
+  ];
 
   // Estado das conversas de IA da Negociação: uma entrada por contexto, cada
   // uma é a lista de mensagens daquela conversa, em ordem cronológica.
@@ -2319,6 +2424,14 @@
         renderizarNotificacoesPopup();
       } catch (erroAbordagem) {
         console.error("Erro ao carregar/renderizar Abordagem:", erroAbordagem);
+      }
+      try {
+        // Isolado do carregamento principal: a tabela painel_notas só existe depois que
+        // o SQL do Bloco de Notas for rodado no Supabase, então essa busca pode falhar sem travar o resto do painel.
+        notasCache = await buscarTudo("painel_notas");
+        renderizarNotas();
+      } catch (erroNotas) {
+        console.error("Erro ao carregar/renderizar Bloco de Notas:", erroNotas);
       }
     } catch (erro) {
       console.error(erro);
@@ -2544,6 +2657,10 @@
 
     document.getElementById("abordagemBusca").addEventListener("input", renderListaAbordagens);
     document.getElementById("abordagemArquivoBusca").addEventListener("input", renderArquivoAbordagens);
+
+    // ---------- Bloco de Notas ----------
+    document.getElementById("notaBotaoNova").addEventListener("click", criarNota);
+    document.getElementById("notaBusca").addEventListener("input", renderNotas);
 
     document.getElementById("ugcBotaoFecharModal").addEventListener("click", fecharModalPrazoEntregaUgc);
     document.getElementById("ugcModalPrazo").addEventListener("click", (e) => {
@@ -5374,6 +5491,132 @@
     if (item.diasParaVencer === 0) return "Follow up é hoje";
     if (item.diasParaVencer === 1) return "Follow up é amanhã";
     return `Follow up em ${item.diasParaVencer} dias`;
+  }
+
+  /* =========================================================================
+     ABA: IDEIAS CRIATIVAS — Bloco de Notas
+     Notas soltas coloridas (tipo post-it): criar, editar o texto direto no
+     card, trocar a cor, excluir, e filtrar por busca de texto + cor.
+     ========================================================================= */
+  function renderFiltroCoresNotas(){
+    const container = document.getElementById("notaFiltroCores");
+    if (!container) return;
+    container.innerHTML = NOTA_CORES.map(c =>
+      `<span class="nota-swatch cor-${c.chave} ${notaFiltroCor === c.chave ? "ativo" : ""}" data-cor="${c.chave}" title="${c.nome}"></span>`
+    ).join("");
+    container.querySelectorAll(".nota-swatch").forEach(sw => {
+      sw.addEventListener("click", () => {
+        notaFiltroCor = notaFiltroCor === sw.dataset.cor ? null : sw.dataset.cor;
+        renderFiltroCoresNotas();
+        renderNotas();
+      });
+    });
+  }
+
+  function renderNotaCartaoHtml(nota){
+    return `
+      <div class="nota-cartao cor-${nota.cor}" data-id="${nota.id}">
+        <textarea data-nota-conteudo="${nota.id}" placeholder="Escreva aqui...">${nota.conteudo || ""}</textarea>
+        <div class="nota-rodape">
+          <div class="nota-cores-mini">
+            ${NOTA_CORES.map(c => `<span class="nota-cor-mini cor-${c.chave} ${nota.cor === c.chave ? "ativo" : ""}" data-acao="nota-cor" data-id="${nota.id}" data-cor="${c.chave}" title="${c.nome}"></span>`).join("")}
+          </div>
+          <button type="button" class="nota-excluir" data-acao="nota-excluir" data-id="${nota.id}" aria-label="Excluir nota">&times;</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function reatarEventosNotas(container){
+    container.querySelectorAll("[data-nota-conteudo]").forEach(area => {
+      area.addEventListener("blur", () => salvarConteudoNota(area.dataset.notaConteudo, area.value));
+    });
+    container.querySelectorAll("[data-acao='nota-cor']").forEach(dot => {
+      dot.addEventListener("click", () => alterarCorNota(dot.dataset.id, dot.dataset.cor));
+    });
+    container.querySelectorAll("[data-acao='nota-excluir']").forEach(btn => {
+      btn.addEventListener("click", () => excluirNota(btn.dataset.id));
+    });
+  }
+
+  function renderNotas(){
+    const corpo = document.getElementById("notasCorpo");
+    if (!corpo) return;
+
+    const contagem = document.getElementById("notasContagem");
+    if (contagem) contagem.textContent = `${notasCache.length} nota${notasCache.length === 1 ? "" : "s"}`;
+
+    if (notasCache.length === 0){
+      corpo.innerHTML = `
+        <div class="notas-vazio">
+          <div class="notas-vazio-icone">📄</div>
+          <h3>Nenhuma nota ainda</h3>
+          <p>Anote ideias, rascunhos, brainstorms — tudo que vier na cabeça</p>
+          <button type="button" class="notas-vazio-botao" id="notaBotaoPrimeira">+ Criar primeira nota</button>
+        </div>
+      `;
+      document.getElementById("notaBotaoPrimeira").addEventListener("click", criarNota);
+      return;
+    }
+
+    const campoBusca = document.getElementById("notaBusca");
+    const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
+    const filtradas = notasCache.filter(n =>
+      (!notaFiltroCor || n.cor === notaFiltroCor) && (!termo || (n.conteudo || "").toLowerCase().includes(termo))
+    );
+
+    corpo.innerHTML = filtradas.length
+      ? `<div class="notas-grade">${filtradas.map(renderNotaCartaoHtml).join("")}</div>`
+      : `<p class="ugc-vazio">Nenhuma nota encontrada.</p>`;
+    reatarEventosNotas(corpo);
+  }
+
+  function renderizarNotas(){
+    renderFiltroCoresNotas();
+    renderNotas();
+  }
+
+  async function criarNota(){
+    const { data: inserido, error } = await Auth.client
+      .from("painel_notas")
+      .insert({ conteudo: "", cor: "amarelo" })
+      .select();
+
+    if (!error && inserido){
+      notasCache = notasCache.concat(inserido);
+      renderNotas();
+      requestAnimationFrame(() => {
+        const area = document.querySelector(`[data-nota-conteudo="${inserido[0].id}"]`);
+        if (area) area.focus();
+      });
+    }
+  }
+
+  async function salvarConteudoNota(id, conteudo){
+    const nota = notasCache.find(n => n.id === id);
+    if (nota && nota.conteudo === conteudo) return;
+
+    const { error } = await Auth.client.from("painel_notas").update({ conteudo }).eq("id", id);
+    if (!error && nota) nota.conteudo = conteudo;
+  }
+
+  async function alterarCorNota(id, cor){
+    const { error } = await Auth.client.from("painel_notas").update({ cor }).eq("id", id);
+    if (!error){
+      const nota = notasCache.find(n => n.id === id);
+      if (nota) nota.cor = cor;
+      renderNotas();
+    }
+  }
+
+  async function excluirNota(id){
+    if (!window.confirm("Excluir essa nota? Essa ação não pode ser desfeita.")) return;
+
+    const { error } = await Auth.client.from("painel_notas").delete().eq("id", id);
+    if (!error){
+      notasCache = notasCache.filter(n => n.id !== id);
+      renderNotas();
+    }
   }
 
   async function adicionarLancamento(e){

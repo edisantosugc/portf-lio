@@ -316,3 +316,27 @@ create policy "Usuaria autenticada gerencia suas abordagens"
   with check (true);
 
 grant select, insert, update, delete on public.painel_abordagens to authenticated;
+
+-- =====================================================================
+-- BLOCO DE NOTAS (aba "Ideias Criativas" do painel)
+-- Notas soltas coloridas, tipo post-it, pra anotar ideias/rascunhos/brainstorms rápido.
+-- =====================================================================
+create table if not exists public.painel_notas (
+  id uuid primary key default gen_random_uuid(),
+  conteudo text not null default '',
+  cor text not null default 'amarelo' check (cor in ('amarelo', 'rosa', 'azul', 'verde', 'cinza', 'vermelho', 'roxo', 'laranja')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_notas_cor on public.painel_notas (cor);
+
+alter table public.painel_notas enable row level security;
+
+create policy "Usuaria autenticada gerencia suas notas"
+  on public.painel_notas
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_notas to authenticated;
