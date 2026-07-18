@@ -266,6 +266,30 @@
   }
   .menu-desktop .pill-btn{ padding: 10px 22px; font-size: .95rem; margin-left: 8px; }
 
+  /* Botão de idioma PT/EN */
+  .idioma-switch{
+    display: flex;
+    align-items: center;
+    border: 2px solid var(--tinta);
+    border-radius: 50px;
+    padding: 3px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .idioma-btn{
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: .78rem;
+    padding: 6px 13px;
+    border-radius: 50px;
+    background: transparent;
+    color: var(--tinta);
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+  }
+  .idioma-btn.ativo{ background: var(--vermelho); color: var(--branco); }
+  .menu-mobile .idioma-switch{ margin: 16px 24px; align-self: flex-start; }
+
   .botao-hamburguer{
     display: none;
     flex-direction: column;
@@ -1047,13 +1071,17 @@
     </a>
 
     <nav class="menu-desktop" aria-label="Navegação principal">
-      <a href="#inicio">Início</a>
-      <a href="#sobre">Sobre</a>
-      <a href="#portfolio">Portfólio</a>
-      <a href="#servicos">Serviços</a>
+      <a href="#inicio" data-nav="inicio">Início</a>
+      <a href="#sobre" data-nav="sobre">Sobre</a>
+      <a href="#portfolio" data-nav="portfolio">Portfólio</a>
+      <a href="#servicos" data-nav="servicos">Serviços</a>
       <!-- <a href="#resultados">Resultados</a> removido junto com a seção -->
-      <a href="#depoimentos">Feedbacks</a>
-      <a href="#contato" class="pill-btn" data-cta="cta_fale_comigo_menu">Fale comigo</a>
+      <a href="#depoimentos" data-nav="feedbacks">Feedbacks</a>
+      <div class="idioma-switch" role="group" aria-label="Idioma / Language">
+        <button type="button" class="idioma-btn" data-idioma="pt">PT</button>
+        <button type="button" class="idioma-btn" data-idioma="en">EN</button>
+      </div>
+      <a href="#contato" class="pill-btn" data-cta="cta_fale_comigo_menu" data-nav="cta">Fale comigo</a>
     </nav>
 
     <button class="botao-hamburguer" id="botaoHamburguer" aria-expanded="false" aria-controls="menuMobile" aria-label="Abrir menu de navegação">
@@ -1062,13 +1090,17 @@
   </div>
 
   <nav class="menu-mobile" id="menuMobile" aria-label="Navegação mobile">
-    <a href="#inicio">Início</a>
-    <a href="#sobre">Sobre</a>
-    <a href="#portfolio">Portfólio</a>
-    <a href="#servicos">Serviços</a>
+    <a href="#inicio" data-nav="inicio">Início</a>
+    <a href="#sobre" data-nav="sobre">Sobre</a>
+    <a href="#portfolio" data-nav="portfolio">Portfólio</a>
+    <a href="#servicos" data-nav="servicos">Serviços</a>
     <!-- <a href="#resultados">Resultados</a> removido junto com a seção -->
-    <a href="#depoimentos">Feedbacks</a>
-    <a href="#contato" class="pill-btn" data-cta="cta_fale_comigo_menu">Fale comigo</a>
+    <a href="#depoimentos" data-nav="feedbacks">Feedbacks</a>
+    <div class="idioma-switch" role="group" aria-label="Idioma / Language">
+      <button type="button" class="idioma-btn" data-idioma="pt">PT</button>
+      <button type="button" class="idioma-btn" data-idioma="en">EN</button>
+    </div>
+    <a href="#contato" class="pill-btn" data-cta="cta_fale_comigo_menu" data-nav="cta">Fale comigo</a>
   </nav>
 </header>
 
@@ -1078,13 +1110,13 @@
   <section class="hero">
     <div class="container">
       <div class="hero-texto reveal">
-        <p class="tag-secao">UGC Creator &amp; Manager</p>
+        <p class="tag-secao" id="heroTag"></p>
         <h1 id="heroTitulo"></h1>
         <p id="heroFrase" class="hero-frase"></p>
         <p id="heroStat" class="hero-stat"></p>
         <div class="hero-botoes">
           <a href="#contato" class="pill-btn" id="heroCta" data-cta="cta_fale_comigo_hero"></a>
-          <a href="#portfolio" class="pill-btn secundario" data-cta="cta_ver_portfolio">Ver portfólio</a>
+          <a href="#portfolio" class="pill-btn secundario" data-cta="cta_ver_portfolio" id="heroCtaSecundario"></a>
         </div>
       </div>
 
@@ -1094,12 +1126,12 @@
 
         <span class="balao-flutuante balao-mineira" aria-hidden="true">
           <span class="balao-emoji">🌄</span>
-          <span class="balao-texto">Mineirinha</span>
+          <span class="balao-texto" id="baloMineira"></span>
         </span>
 
         <span class="balao-flutuante balao-pet" aria-hidden="true">
           <span class="balao-emoji">🐾</span>
-          <span class="balao-texto">Mãe de pet</span>
+          <span class="balao-texto" id="baloPet"></span>
         </span>
 
         <span class="balao-flutuante balao-rotina" aria-hidden="true">
@@ -1109,7 +1141,7 @@
 
         <span class="balao-flutuante balao-idade" aria-hidden="true">
           <span class="balao-emoji">💪🏽</span>
-          <span class="balao-texto">Rotina saudável</span>
+          <span class="balao-texto" id="baloSaudavel"></span>
         </span>
       </div>
     </div>
@@ -1117,7 +1149,7 @@
 
   <!-- ===================== 3. FAIXA DE MARCAS ===================== -->
   <section class="faixa-marcas" aria-label="Marcas que já trabalharam com Edilaine Santos">
-    <p class="rotulo">Marcas que já confiaram no meu trabalho</p>
+    <p class="rotulo" id="faixaMarcasRotulo"></p>
     <div class="marquee" id="marqueeMarcas"></div>
   </section>
 
@@ -1131,7 +1163,7 @@
         <div class="foto-real" style="background-image:url('imagens/sobre.png');"></div>
       </div>
       <div class="sobre-texto reveal">
-        <p class="tag-secao">Sobre mim</p>
+        <p class="tag-secao" id="sobreTag"></p>
         <h2 class="titulo-secao" id="sobreTitulo"></h2>
         <div id="sobreTexto"></div>
         <ul class="sobre-lista" id="sobreLista"></ul>
@@ -1142,9 +1174,9 @@
   <!-- ===================== 5. PORTFÓLIO COM FILTRO ===================== -->
   <section class="portfolio" id="portfolio">
     <div class="container">
-      <p class="tag-secao reveal">Portfólio</p>
-      <h2 class="titulo-secao reveal">Trabalhos que já viraram resultado para as marcas</h2>
-      <p class="sub-secao reveal">Assista aos vídeos reais que eu já produzi, organizados por nicho.</p>
+      <p class="tag-secao reveal" id="portfolioTag"></p>
+      <h2 class="titulo-secao reveal" id="portfolioTitulo"></h2>
+      <p class="sub-secao reveal" id="portfolioSubtitulo"></p>
 
       <div class="filtro-nichos reveal" id="filtroNichos"></div>
 
@@ -1162,8 +1194,8 @@
   <!-- ===================== 5.5 FOTOS UGC ===================== -->
   <section class="fotos-ugc" id="fotos-ugc">
     <div class="container">
-      <p class="tag-secao reveal">Fotos UGC</p>
-      <h2 class="titulo-secao reveal">também faço <span class="destaque-italico">fotos</span>.</h2>
+      <p class="tag-secao reveal" id="fotosUgcTag"></p>
+      <h2 class="titulo-secao reveal" id="fotosUgcTitulo"></h2>
       <div class="fotos-ugc-grid" id="gridFotosUgc"></div>
     </div>
   </section>
@@ -1171,9 +1203,9 @@
   <!-- ===================== 6. SERVIÇOS ===================== -->
   <section class="servicos" id="servicos">
     <div class="container">
-      <p class="tag-secao reveal">Serviços</p>
-      <h2 class="titulo-secao reveal">O que eu posso criar para a sua marca</h2>
-      <p class="sub-secao reveal">Conteúdo pensado para gerar confiança, engajamento e, principalmente, vendas.</p>
+      <p class="tag-secao reveal" id="servicosTag"></p>
+      <h2 class="titulo-secao reveal" id="servicosTitulo"></h2>
+      <p class="sub-secao reveal" id="servicosSubtitulo"></p>
       <div class="servicos-carrossel">
         <button type="button" class="seta-btn seta-esq" id="servicosSetaEsq" aria-label="Ver serviços anteriores">‹</button>
         <div class="servicos-grid" id="gridServicos"></div>
@@ -1187,9 +1219,9 @@
        Pra reativar, é só tirar esse comentário de novo.
   <section class="resultados" id="resultados">
     <div class="container">
-      <p class="tag-secao reveal">Resultados</p>
-      <h2 class="titulo-secao reveal">Números que mostram o meu impacto</h2>
-      <p class="sub-secao reveal">Dados reais de alcance e entrega que ajudam marcas a decidir com confiança.</p>
+      <p class="tag-secao reveal" id="resultadosTag"></p>
+      <h2 class="titulo-secao reveal" id="resultadosTitulo"></h2>
+      <p class="sub-secao reveal" id="resultadosSubtitulo"></p>
       <div class="grid-numeros" id="gridNumeros"></div>
     </div>
   </section>
@@ -1198,9 +1230,9 @@
   <!-- ===================== 8. DEPOIMENTOS ===================== -->
   <section class="depoimentos" id="depoimentos">
     <div class="container">
-      <p class="tag-secao reveal">Depoimentos</p>
-      <h2 class="titulo-secao reveal">O que as marcas dizem sobre o meu trabalho</h2>
-      <p class="sub-secao reveal">Depoimentos de marcas que sentiram na prática o poder de um conteúdo estratégico.</p>
+      <p class="tag-secao reveal" id="depoimentosTag"></p>
+      <h2 class="titulo-secao reveal" id="depoimentosTitulo"></h2>
+      <p class="sub-secao reveal" id="depoimentosSubtitulo"></p>
       <div class="depoimentos-carrossel">
         <button type="button" class="seta-btn seta-esq" id="depoimentosSetaEsq" aria-label="Ver depoimentos anteriores">‹</button>
         <div class="depoimentos-grid" id="gridDepoimentos"></div>
@@ -1212,37 +1244,37 @@
   <!-- ===================== 9. CONTATO ===================== -->
   <section class="contato" id="contato">
     <div class="container">
-      <p class="tag-secao reveal">Contato</p>
-      <h2 class="titulo-secao reveal">Vamos criar o próximo conteúdo de sucesso da sua marca?</h2>
-      <p class="sub-secao reveal">Me chame agora mesmo e receba uma proposta personalizada para o seu produto.</p>
+      <p class="tag-secao reveal" id="contatoTag"></p>
+      <h2 class="titulo-secao reveal" id="contatoTitulo"></h2>
+      <p class="sub-secao reveal" id="contatoSubtitulo"></p>
 
       <div class="contato-grid">
         <form class="form-contato reveal" id="formContato" novalidate>
           <div class="campo-linha">
             <div class="campo">
-              <label for="campoNome">Nome <span class="obrigatorio">*</span></label>
-              <input type="text" id="campoNome" name="nome" required autocomplete="name" placeholder="Seu nome">
+              <label for="campoNome"><span id="labelNome"></span> <span class="obrigatorio">*</span></label>
+              <input type="text" id="campoNome" name="nome" required autocomplete="name">
             </div>
             <div class="campo">
-              <label for="campoEmail">E-mail <span class="obrigatorio">*</span></label>
-              <input type="email" id="campoEmail" name="email" required autocomplete="email" placeholder="voce@marca.com">
+              <label for="campoEmail"><span id="labelEmail"></span> <span class="obrigatorio">*</span></label>
+              <input type="email" id="campoEmail" name="email" required autocomplete="email">
             </div>
           </div>
           <div class="campo-linha">
             <div class="campo">
-              <label for="campoMarca">Marca / Empresa <span class="obrigatorio">*</span></label>
-              <input type="text" id="campoMarca" name="marca" required autocomplete="organization" placeholder="Nome da marca">
+              <label for="campoMarca"><span id="labelMarca"></span> <span class="obrigatorio">*</span></label>
+              <input type="text" id="campoMarca" name="marca" required autocomplete="organization">
             </div>
             <div class="campo">
-              <label for="campoOrcamento">Orçamento estimado <span class="obrigatorio">*</span></label>
-              <input type="text" id="campoOrcamento" name="orcamento" required placeholder="Ex: R$ 1.000 a R$ 5.000">
+              <label for="campoOrcamento"><span id="labelOrcamento"></span> <span class="obrigatorio">*</span></label>
+              <input type="text" id="campoOrcamento" name="orcamento" required>
             </div>
           </div>
           <div class="campo">
-            <label for="campoMensagem">Conta sobre o projeto <span class="obrigatorio">*</span></label>
-            <textarea id="campoMensagem" name="mensagem" required placeholder="Categoria, formato, prazo, objetivo da campanha..."></textarea>
+            <label for="campoMensagem"><span id="labelMensagem"></span> <span class="obrigatorio">*</span></label>
+            <textarea id="campoMensagem" name="mensagem" required></textarea>
           </div>
-          <button type="submit" class="pill-btn">Enviar mensagem</button>
+          <button type="submit" class="pill-btn" id="botaoEnviarTexto"></button>
           <p class="mensagem-confirmacao" id="mensagemConfirmacao" role="status"></p>
         </form>
 
@@ -1268,7 +1300,20 @@
    Todo o texto do site vem deste objeto. Para atualizar o site, edite os
    valores abaixo. Não é necessário mexer em nenhuma outra parte do código.
    ========================================================================= */
-const CONFIG = {
+/* =========================================================================
+   SITE EM 2 IDIOMAS (PT/EN)
+   Existem dois painéis completos abaixo: CONFIG_PT e CONFIG_EN. Editando um
+   texto, edite também o mesmo campo no outro objeto para as duas versões do
+   site ficarem sempre sincronizadas. Campos que não são texto (videoId,
+   gradiente, imagem, logo, número) são os mesmos nos dois.
+   ========================================================================= */
+const CONFIG_PT = {
+
+  // EDITE AQUI: textos do menu e do botão de idioma
+  nav: {
+    inicio: "Início", sobre: "Sobre", portfolio: "Portfólio", servicos: "Serviços",
+    feedbacks: "Feedbacks", cta: "Fale comigo"
+  },
 
   // EDITE AQUI: dados pessoais e de contato
   perfil: {
@@ -1284,6 +1329,7 @@ const CONFIG = {
 
   // EDITE AQUI: textos principais da primeira dobra (Hero)
   hero: {
+    tag: "UGC Creator & Manager",
     tituloParte1: "Histórias que ",
     tituloDestaque1: "conectam",
     tituloParte2: ". Estratégias que ",
@@ -1291,8 +1337,14 @@ const CONFIG = {
     tituloParte3: ".",
     frase: "Conteúdo que atrai, engaja e converte.",
     estatistica: "+100 marcas trabalhadas",
-    textoCta: "Fale comigo"
+    textoCta: "Fale comigo",
+    textoCtaSecundario: "Ver portfólio",
+    baloMineira: "Mineirinha",
+    baloPet: "Mãe de pet",
+    baloSaudavel: "Rotina saudável"
   },
+
+  faixaMarcas: { rotulo: "Marcas que já confiaram no meu trabalho" },
 
   // EDITE AQUI: marcas que já trabalharam com você (aparecem na faixa rolante).
   // "logo" é o nome do arquivo dentro de imagens/marcas/. Se "logo" for null,
@@ -1329,6 +1381,7 @@ const CONFIG = {
 
   // EDITE AQUI: texto e destaques da seção Sobre
   sobre: {
+    tag: "Sobre mim",
     titulo: "Oiee, me chamo <span class=\"nome-destaque\">Edilaine Santos<span class=\"decor-borboleta\" aria-hidden=\"true\"><img src=\"imagens/borboleta.png\" alt=\"\"></span></span>",
     paragrafos: [
       "Tenho 30 anos, sou mineira, mãe de pet e UGC Creator.",
@@ -1341,6 +1394,12 @@ const CONFIG = {
       "+100 MARCAS TRABALHADAS",
       "<svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"currentColor\" style=\"vertical-align:-3px;margin-right:2px\" aria-hidden=\"true\"><path d=\"M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"/></svg> HORTOLÂNDIA – SP"
     ]
+  },
+
+  portfolioTextos: {
+    tag: "Portfólio",
+    titulo: "Trabalhos que já viraram resultado para as marcas",
+    subtitulo: "Assista aos vídeos reais que eu já produzi, organizados por nicho."
   },
 
   // EDITE AQUI: ordem dos nichos de portfólio (cada um vira uma fileira, estilo Netflix)
@@ -1412,6 +1471,11 @@ const CONFIG = {
     { marca: "Yool", titulo: "Site na parede (criativo) – Diversos produtos junino", categoria: "Datas Comemorativas", gradiente: "grad-4", videoId: "pvBmrnzCdHA" }
   ],
 
+  fotosUgcTextos: {
+    tag: "Fotos UGC",
+    tituloHtml: "também faço <span class=\"destaque-italico\">fotos</span>."
+  },
+
   // EDITE AQUI: fotos UGC (grade 6x2). Coloque o arquivo dentro de "imagens" e
   // preencha "imagem"; se o arquivo não existir, o gradiente aparece no lugar.
   // "posicao" é opcional: ajusta o enquadramento do corte (padrão "center").
@@ -1432,6 +1496,12 @@ const CONFIG = {
     { imagem: "imagens/foto-ugc-12.jpg", gradiente: "grad-6" }
   ],
 
+  servicosTextos: {
+    tag: "Serviços",
+    titulo: "O que eu posso criar para a sua marca",
+    subtitulo: "Conteúdo pensado para gerar confiança, engajamento e, principalmente, vendas."
+  },
+
   // EDITE AQUI: cards de serviços oferecidos (o campo "icone" aceita um emoji)
   servicos: [
     { icone: "🎬", titulo: "Vídeo UGC", descricao: "Criação de conteúdo estratégico com foco em vendas para você utilizar em seu próprio perfil e anúncios.", cta: "Quero UGC que converte" },
@@ -1444,6 +1514,12 @@ const CONFIG = {
     { icone: "🤝", titulo: "UGC + Collab", descricao: "Divulgação para a minha própria comunidade, feito em colaboração. No meu perfil abordo autocuidado e lifestyle.", cta: "Quero fazer uma collab" }
   ],
 
+  resultadosTextos: {
+    tag: "Resultados",
+    titulo: "Números que mostram o meu impacto",
+    subtitulo: "Dados reais de alcance e entrega que ajudam marcas a decidir com confiança."
+  },
+
   // EDITE AQUI: números de destaque (a contagem anima sozinha ao aparecer na tela)
   // "decimais" define quantas casas decimais aparecem no número
   resultados: [
@@ -1453,8 +1529,15 @@ const CONFIG = {
     { numero: 8.5, sufixo: "%", rotulo: "Taxa média de engajamento", decimais: 1 }
   ],
 
+  depoimentosTextos: {
+    tag: "Depoimentos",
+    titulo: "O que as marcas dizem sobre o meu trabalho",
+    subtitulo: "Depoimentos de marcas que sentiram na prática o poder de um conteúdo estratégico."
+  },
+
   // EDITE AQUI: depoimentos de clientes (prints reais de feedback).
   // Cada depoimento é só a imagem do print; para adicionar mais, copie a linha e troque o nome do arquivo.
+  // OBS: os prints são reais e ficam em português nas duas versões do site (não são traduzidos).
   depoimentos: [
     { imagem: "imagens/depoimento-1.jpg" },
     { imagem: "imagens/depoimento-2.jpg" },
@@ -1468,9 +1551,276 @@ const CONFIG = {
     { imagem: "imagens/depoimento-10.jpg" }
   ],
 
+  contatoTextos: {
+    tag: "Contato",
+    titulo: "Vamos criar o próximo conteúdo de sucesso da sua marca?",
+    subtitulo: "Me chame agora mesmo e receba uma proposta personalizada para o seu produto.",
+    labelNome: "Nome",
+    labelEmail: "E-mail",
+    labelMarca: "Marca / Empresa",
+    labelOrcamento: "Orçamento estimado",
+    labelMensagem: "Conta sobre o projeto",
+    placeholderNome: "Seu nome",
+    placeholderEmail: "voce@marca.com",
+    placeholderMarca: "Nome da marca",
+    placeholderOrcamento: "Ex: R$ 1.000 a R$ 5.000",
+    placeholderMensagem: "Categoria, formato, prazo, objetivo da campanha...",
+    botaoEnviar: "Enviar mensagem",
+    botaoEnviando: "Enviando...",
+    mensagemSucesso: "Obrigada pelo contato! Recebi sua mensagem e vou te responder em breve.",
+    mensagemErro: "Não consegui enviar sua mensagem agora. Tente novamente ou me chame direto no WhatsApp."
+  },
+
   // EDITE AQUI: texto do rodapé
   rodape: {
     copyrightTexto: "Todos os direitos reservados."
+  }
+};
+
+// EDIT HERE: English version. Keep this in sync with CONFIG_PT above whenever you update content.
+const CONFIG_EN = {
+
+  nav: {
+    inicio: "Home", sobre: "About", portfolio: "Portfolio", servicos: "Services",
+    feedbacks: "Feedback", cta: "Get in touch"
+  },
+
+  perfil: {
+    nome: "Edilaine Santos",
+    nomeCurto: "Edilaine",
+    profissao: "UGC Creator & Manager",
+    instagramArroba: "@byedisantos",
+    instagramUrl: "https://instagram.com/byedisantos",
+    email: "edilainesantosugc@gmail.com",
+    telefoneExibicao: "(19) 99384-2684",
+    whatsappUrl: "https://wa.me/5519993842684"
+  },
+
+  hero: {
+    tag: "UGC Creator & Manager",
+    tituloParte1: "Stories that ",
+    tituloDestaque1: "connect",
+    tituloParte2: ". Strategies that ",
+    tituloDestaque2: "perform",
+    tituloParte3: ".",
+    frase: "Content that attracts, engages, and converts.",
+    estatistica: "+100 brands worked with",
+    textoCta: "Get in touch",
+    textoCtaSecundario: "View portfolio",
+    baloMineira: "From Minas Gerais",
+    baloPet: "Pet mom",
+    baloSaudavel: "Healthy routine"
+  },
+
+  faixaMarcas: { rotulo: "Brands that have trusted my work" },
+
+  marcas: [
+    { nome: "Alva", logo: "alva.jpg" },
+    { nome: "Blis", logo: "blis.jpg" },
+    { nome: "CleanNew Store", logo: "cleannew.jpg" },
+    { nome: "Coala", logo: "coala.png" },
+    { nome: "Condor", logo: "condor.jpg" },
+    { nome: "Darrow", logo: "darrow.png" },
+    { nome: "Dr. Lava Tudo", logo: "dr-lava-tudo.png" },
+    { nome: "Dreams Nutrition", logo: "dreams-nutrition.jpg" },
+    { nome: "FreePet", logo: "freepet.png" },
+    { nome: "Garnie", logo: "garnie.jpg" },
+    { nome: "Itambé", logo: "itambe.jpg" },
+    { nome: "Max Titanium", logo: "max-titanium.jpg" },
+    { nome: "Mega Ótica Opção", logo: "mega-otica-opcao.jpg" },
+    { nome: "Natuka", logo: "natuka.png" },
+    { nome: "Nivea", logo: "nivea.png" },
+    { nome: "Pantene", logo: "pantene.png" },
+    { nome: "Pibe", logo: "pibe.jpg" },
+    { nome: "Rainha Nativa", logo: "rainha-nativa.jpg" },
+    { nome: "Rituária", logo: "rituaria.jpg" },
+    { nome: "Saint Germain", logo: "saint-germain.jpg" },
+    { nome: "Seu Influencer", logo: "seu-influencer.jpg" },
+    { nome: "Shopee", logo: "shopee.png" },
+    { nome: "Show de Pizzaiolo", logo: "show-de-pizzaiolo.png" },
+    { nome: "Vhita", logo: "vhita.png" },
+    { nome: "Voga", logo: "voga.jpg" },
+    { nome: "Yool", logo: "yool.jpg" },
+    { nome: "Marca R", logo: "logo-r.png" }
+  ],
+
+  sobre: {
+    tag: "About me",
+    titulo: "Hi, I'm <span class=\"nome-destaque\">Edilaine Santos<span class=\"decor-borboleta\" aria-hidden=\"true\"><img src=\"imagens/borboleta.png\" alt=\"\"></span></span>",
+    paragrafos: [
+      "I'm 30 years old, from Minas Gerais, a pet mom, and a UGC Creator.",
+      "Writing has always been part of who I am. Since I was little, I turned feelings into words, created stories, found meaning even in the simplest everyday things. Over time, that became my biggest edge in UGC: taking a brand and turning it into content that builds identification, trust, and connection.",
+      "<strong>I've worked with over 100 brands</strong>, producing <strong>hundreds of pieces of content</strong>, moving across many styles and formats. But storytelling is what makes a brand memorable after the video ends, because ads inform and stories connect.",
+      "My work goes beyond creating content: it's about understanding the essence of each brand and turning that into a narrative that <strong>strengthens the relationship with the audience and drives results</strong>.",
+      "Because what stays is feeling. <strong>And feeling becomes trust. And trust becomes results.</strong>"
+    ],
+    destaques: [
+      "+100 BRANDS WORKED WITH",
+      "<svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"currentColor\" style=\"vertical-align:-3px;margin-right:2px\" aria-hidden=\"true\"><path d=\"M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"/></svg> HORTOLÂNDIA, BRAZIL"
+    ]
+  },
+
+  portfolioTextos: {
+    tag: "Portfolio",
+    titulo: "Work that has already delivered results for brands",
+    subtitulo: "Watch real videos I've produced, organized by niche."
+  },
+
+  categoriasPortfolio: [
+    "Health & Wellness", "Home & Decor", "Pet", "Beauty & Self-Care",
+    "Fashion & Accessories", "Tech & Apps", "Services & Experiences", "Special Occasions"
+  ],
+
+  portfolio: [
+    // Health & Wellness
+    { marca: "Max Titanium", titulo: "Voiceover – Protein bar", categoria: "Health & Wellness", gradiente: "grad-1", videoId: "Zd0B7ttQZJQ" },
+    { marca: "Shopee", titulo: "Organic – Fitness set", categoria: "Health & Wellness", gradiente: "grad-2", videoId: "Y4YrncO4UZo" },
+    { marca: "Dreams Burn", titulo: "Storytelling – Thermogenic cube", categoria: "Health & Wellness", gradiente: "grad-3", videoId: "3pbXGVEFaog" },
+    { marca: "Max Titanium", titulo: "Testimonial – Whey drink", categoria: "Health & Wellness", gradiente: "grad-4", videoId: "KbJBIB5RHCI" },
+    { marca: "Rap 10", titulo: "Routine – Fit pizza recipe", categoria: "Health & Wellness", gradiente: "grad-5", videoId: "Jme4EkWP1oY" },
+
+    // Home & Decor
+    { marca: "Condor", titulo: "Storytelling – PVA mop and lint roller", categoria: "Home & Decor", gradiente: "grad-6", videoId: "rjblZsgruDA" },
+    { marca: "Eletrolux", titulo: "Educational – Water filter refill", categoria: "Home & Decor", gradiente: "grad-1", videoId: "e6SAuK22QwM" },
+    { marca: "Shopee", titulo: "Marketplace – Waterproof mattress cover", categoria: "Home & Decor", gradiente: "grad-2", videoId: "AbXbrKyfHcQ" },
+    { marca: "Condor", titulo: "Storytelling – Extreme-clean sponge", categoria: "Home & Decor", gradiente: "grad-3", videoId: "sldWgcR84co" },
+    { marca: "Dobuê", titulo: "Organic – Sisters' debate, dinner table", categoria: "Home & Decor", gradiente: "grad-4", videoId: "AmDppLUwvuc" },
+    { marca: "Shein", titulo: "Marketplace – Bedding set", categoria: "Home & Decor", gradiente: "grad-5", videoId: "vSGOS-KIKUE" },
+    { marca: "Coala", titulo: "Testimonial – Black orchid scent kit", categoria: "Home & Decor", gradiente: "grad-6", videoId: "ogsVF7O7wMM" },
+
+    // Pet
+    { marca: "FreePet", titulo: "Storytelling – Kennel cleaner + odor neutralizer", categoria: "Pet", gradiente: "grad-1", videoId: "d1fmuHk5sEU" },
+    { marca: "Natuka", titulo: "Educational – Enrichment chew sticks", categoria: "Pet", gradiente: "grad-2", videoId: "C5vleYWynVM" },
+    { marca: "Petiko", titulo: "Fun unboxing – Treats and toys", categoria: "Pet", gradiente: "grad-3", videoId: "c6-PNqQZslE" },
+    { marca: "Nutrafases", titulo: "Testimonial – Probiotic supplement", categoria: "Pet", gradiente: "grad-4", videoId: "t9FO_B2oydI" },
+    { marca: "New Pet", titulo: "Storytelling – Smart water fountain", categoria: "Pet", gradiente: "grad-5", videoId: "pkf21wmwvvs" },
+
+    // Beauty & Self-Care
+    { marca: "Condor", titulo: "Storytelling – Makeup brushes", categoria: "Beauty & Self-Care", gradiente: "grad-6", videoId: "usONnfgOlzU" },
+    { marca: "Alva", titulo: "Voiceover/Educational – Tongue scraper", categoria: "Beauty & Self-Care", gradiente: "grad-1", videoId: "k17j7zWKmuA" },
+    { marca: "Mayara", titulo: "Experience – Eyebrow design", categoria: "Beauty & Self-Care", gradiente: "grad-2", videoId: "8K0wrl9mf0U" },
+    { marca: "Condor", titulo: "Educational – Antibacterial toothbrush", categoria: "Beauty & Self-Care", gradiente: "grad-3", videoId: "M7HjEF0YcqU" },
+    { marca: "Pantene", titulo: "Storytelling – Hair tonic", categoria: "Beauty & Self-Care", gradiente: "grad-4", videoId: "38m6Q-Pr5S0" },
+    { marca: "Condor", titulo: "Tip – Hairbrush kit with coloring markers", categoria: "Beauty & Self-Care", gradiente: "grad-5", videoId: "rqMTFESTsAw" },
+    { marca: "Alva", titulo: "Review – Crystal deodorant", categoria: "Beauty & Self-Care", gradiente: "grad-6", videoId: "vOmNzVuLXJw" },
+    { marca: "Dermacyd", titulo: "Storytelling – Intimate soap", categoria: "Beauty & Self-Care", gradiente: "grad-1", videoId: "KMh3cYekKEM" },
+
+    // Fashion & Accessories
+    { marca: "Vans", titulo: "Creative – 1 sneaker, many looks", categoria: "Fashion & Accessories", gradiente: "grad-2", videoId: "80XKBvwlWfU" },
+    { marca: "Ótica Mega Opção", titulo: "Organic – Prescription glasses", categoria: "Fashion & Accessories", gradiente: "grad-3", videoId: "_qhaRoUB1b0" },
+    { marca: "Shein", titulo: "Great find – Pajamas", categoria: "Fashion & Accessories", gradiente: "grad-4", videoId: "Ycp2cp5_ps0" },
+    { marca: "Saint Germain", titulo: "Showcase – Watch", categoria: "Fashion & Accessories", gradiente: "grad-5", videoId: "di5b_sg4_M8" },
+
+    // Tech & Apps
+    { marca: "Hollyland", titulo: "Comparison – Microphone", categoria: "Tech & Apps", gradiente: "grad-6", videoId: "KXBxVTr8PXA" },
+    { marca: "Konta IA", titulo: "Storytelling – Finance organizer app", categoria: "Tech & Apps", gradiente: "grad-1", videoId: "v2zf26ctp98" },
+    { marca: "Samsung", titulo: "ASMR unboxing – Tablet", categoria: "Tech & Apps", gradiente: "grad-2", videoId: "H7vk2JF62PM" },
+    { marca: "Hollyland", titulo: "Tips – Microphone", categoria: "Tech & Apps", gradiente: "grad-3", videoId: "uCHl56vK6Zc" },
+    { marca: "QCY", titulo: "Testimonial – Headphones", categoria: "Tech & Apps", gradiente: "grad-4", videoId: "Mb6rUOi0qAs" },
+
+    // Services & Experiences
+    { marca: "Dr. Lava Tudo", titulo: "Storytelling – Car detailing", categoria: "Services & Experiences", gradiente: "grad-5", videoId: "V2rAhr3_D7E" },
+    { marca: "Show de Pizzaiolo", titulo: "Storytelling – At-home pizza buffet", categoria: "Services & Experiences", gradiente: "grad-6", videoId: "o9KozkhVU-E" },
+    { marca: "Dr. Lava Tudo", titulo: "Storytelling – Sofa + mattress cleaning", categoria: "Services & Experiences", gradiente: "grad-1", videoId: "Y3b5WeKfBP0" },
+    { marca: "Show de Pizzaiolo", titulo: "Paid traffic – At-home pizza buffet (franchisee-focused)", categoria: "Services & Experiences", gradiente: "grad-2", videoId: "7n_Mol2CiSM" },
+
+    // Special Occasions
+    { marca: "Yool", titulo: "June-festival podcast (twins creative) – Q&A, flared skirt", categoria: "Special Occasions", gradiente: "grad-3", videoId: "bzI86bSqRDQ" },
+    { marca: "Yool", titulo: "Wall-mounted display (creative) – Various June-festival products", categoria: "Special Occasions", gradiente: "grad-4", videoId: "pvBmrnzCdHA" }
+  ],
+
+  fotosUgcTextos: {
+    tag: "UGC Photos",
+    tituloHtml: "I also do <span class=\"destaque-italico\">photos</span>."
+  },
+
+  fotosUgc: [
+    { imagem: "imagens/foto-ugc-1.jpg", gradiente: "grad-1" },
+    { imagem: "imagens/foto-ugc-2.jpg", gradiente: "grad-2" },
+    { imagem: "imagens/foto-ugc-3.jpg", gradiente: "grad-3" },
+    { imagem: "imagens/foto-ugc-4.jpg", gradiente: "grad-4" },
+    { imagem: "imagens/foto-ugc-5.jpg", gradiente: "grad-5" },
+    { imagem: "imagens/foto-ugc-6.jpg", gradiente: "grad-6" },
+    { imagem: "imagens/foto-ugc-7.jpg", gradiente: "grad-1" },
+    { imagem: "imagens/foto-ugc-8.jpg", gradiente: "grad-2" },
+    { imagem: "imagens/foto-ugc-9.jpg", gradiente: "grad-3" },
+    { imagem: "imagens/foto-ugc-10.jpg", gradiente: "grad-4" },
+    { imagem: "imagens/foto-ugc-11.jpg", gradiente: "grad-5" },
+    { imagem: "imagens/foto-ugc-12.jpg", gradiente: "grad-6" }
+  ],
+
+  servicosTextos: {
+    tag: "Services",
+    titulo: "What I can create for your brand",
+    subtitulo: "Content designed to build trust, drive engagement, and above all, generate sales."
+  },
+
+  servicos: [
+    { icone: "🎬", titulo: "UGC Video", descricao: "Strategic, sales-focused content creation for you to use on your own profile and in ads.", cta: "I want UGC that converts" },
+    { icone: "🗂️", titulo: "UGC Manager", descricao: "Instead of creating, I'll fully manage campaigns with other UGC creators so you're free — handling everything from hiring to content delivery.", cta: "I want UGC management" },
+    { icone: "📱", titulo: "Reels & TikToks", descricao: "Dynamic content, edited to the rhythm of social media and ready to post or use in ads.", cta: "I want social content" },
+    { icone: "📸", titulo: "Product Photos", descricao: "Authentic, well-lit images that show your product in real everyday life.", cta: "I want product photos" },
+    { icone: "📦", titulo: "Unboxing", descricao: "Unboxing videos with genuine reactions that spark the desire to buy in anyone watching.", cta: "I want an unboxing" },
+    { icone: "⭐", titulo: "Testimonials & Reviews", descricao: "Honest, persuasive reviews that build audience trust in your brand.", cta: "I want real testimonials" },
+    { icone: "🚀", titulo: "Ad Content", descricao: "Videos built to perform as paid ads, with a strong hook in the first seconds.", cta: "I want to create ads" },
+    { icone: "🤝", titulo: "UGC + Collab", descricao: "Promotion to my own community, made in collaboration. My profile covers self-care and lifestyle.", cta: "I want to do a collab" }
+  ],
+
+  resultadosTextos: {
+    tag: "Results",
+    titulo: "Numbers that show my impact",
+    subtitulo: "Real reach and delivery data that help brands decide with confidence."
+  },
+
+  resultados: [
+    { numero: 85, sufixo: "k+", rotulo: "Social media followers", decimais: 0 },
+    { numero: 1.5, sufixo: "M+", rotulo: "Views per month", decimais: 1 },
+    { numero: 40, sufixo: "+", rotulo: "Brands served", decimais: 0 },
+    { numero: 8.5, sufixo: "%", rotulo: "Average engagement rate", decimais: 1 }
+  ],
+
+  depoimentosTextos: {
+    tag: "Feedback",
+    titulo: "What brands say about my work",
+    subtitulo: "Feedback from brands that experienced firsthand the power of strategic content."
+  },
+
+  // These are real screenshots, kept in Portuguese in both versions of the site (not translated).
+  depoimentos: [
+    { imagem: "imagens/depoimento-1.jpg" },
+    { imagem: "imagens/depoimento-2.jpg" },
+    { imagem: "imagens/depoimento-3.jpg" },
+    { imagem: "imagens/depoimento-4.jpg" },
+    { imagem: "imagens/depoimento-5.jpg" },
+    { imagem: "imagens/depoimento-6.jpg" },
+    { imagem: "imagens/depoimento-7.jpg" },
+    { imagem: "imagens/depoimento-8.jpg" },
+    { imagem: "imagens/depoimento-9.jpg" },
+    { imagem: "imagens/depoimento-10.jpg" }
+  ],
+
+  contatoTextos: {
+    tag: "Contact",
+    titulo: "Let's create your brand's next successful content?",
+    subtitulo: "Message me right now and get a personalized proposal for your product.",
+    labelNome: "Name",
+    labelEmail: "Email",
+    labelMarca: "Brand / Company",
+    labelOrcamento: "Estimated budget",
+    labelMensagem: "Tell me about the project",
+    placeholderNome: "Your name",
+    placeholderEmail: "you@brand.com",
+    placeholderMarca: "Brand name",
+    placeholderOrcamento: "E.g. $200 to $1,000",
+    placeholderMensagem: "Category, format, deadline, campaign goal...",
+    botaoEnviar: "Send message",
+    botaoEnviando: "Sending...",
+    mensagemSucesso: "Thanks for reaching out! I've received your message and will reply soon.",
+    mensagemErro: "I couldn't send your message right now. Please try again or message me directly on WhatsApp."
+  },
+
+  rodape: {
+    copyrightTexto: "All rights reserved."
   }
 };
 
@@ -1484,6 +1834,14 @@ const ICONES_SVG = {
   email: '<svg viewBox="0 0 16 16"><path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555ZM0 4.697v7.104l5.803-3.558L0 4.697ZM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.026L8 9.586l-1.239-.757Zm3.436-.586L16 11.801V4.697l-5.803 3.546Z"/></svg>',
   instagram: '<svg viewBox="0 0 16 16"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.27.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.27.087 3.85.048 4.703.01 5.556 0 5.829 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.942a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 8 0Zm0 1.442c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.232s-.008 2.389-.047 3.232c-.035.78-.166 1.204-.275 1.486a2.47 2.47 0 0 1-.599.92c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.275-.843.039-1.096.047-3.232.047s-2.39-.008-3.233-.047c-.78-.035-1.203-.166-1.485-.275a2.478 2.478 0 0 1-.92-.599 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.232s.008-2.389.046-3.232c.035-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.275.843-.039 1.096-.047 3.232-.047Zm0 2.451a4.107 4.107 0 1 0 0 8.214 4.107 4.107 0 0 0 0-8.214Zm0 6.771a2.664 2.664 0 1 1 0-5.328 2.664 2.664 0 0 1 0 5.328Zm5.23-6.933a1.14 1.14 0 1 1-2.279 0 1.14 1.14 0 0 1 2.279 0Z"/></svg>'
 };
+
+/* =========================================================================
+   IDIOMA (PT/EN)
+   "CONFIG" aponta pra CONFIG_PT ou CONFIG_EN conforme a escolha da pessoa
+   (lembrada no navegador). Todo o resto do código lê sempre de "CONFIG".
+   ========================================================================= */
+let idiomaAtual = localStorage.getItem("portfolio_idioma") || "pt";
+let CONFIG = idiomaAtual === "en" ? CONFIG_EN : CONFIG_PT;
 
 /* =========================================================================
    RASTREAMENTO (Supabase)
@@ -1560,20 +1918,31 @@ async function registrarLead(dados){
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  // Registra a visita assim que a página carrega
-  registrarEvento("page_view", null, null);
-
+// Preenche TODO o conteúdo do site a partir de CONFIG. Roda uma vez no carregamento
+// e de novo, toda vez que a pessoa troca o idioma (PT/EN).
+function renderizarConteudo(inicial){
+  // ---------- Menu ----------
+  document.querySelectorAll('[data-nav="inicio"]').forEach(el => el.textContent = CONFIG.nav.inicio);
+  document.querySelectorAll('[data-nav="sobre"]').forEach(el => el.textContent = CONFIG.nav.sobre);
+  document.querySelectorAll('[data-nav="portfolio"]').forEach(el => el.textContent = CONFIG.nav.portfolio);
+  document.querySelectorAll('[data-nav="servicos"]').forEach(el => el.textContent = CONFIG.nav.servicos);
+  document.querySelectorAll('[data-nav="feedbacks"]').forEach(el => el.textContent = CONFIG.nav.feedbacks);
+  document.querySelectorAll('[data-nav="cta"]').forEach(el => el.textContent = CONFIG.nav.cta);
 
   // ---------- Logo do cabeçalho ----------
   document.querySelector(".logo").innerHTML = `${CONFIG.perfil.nomeCurto} <span>${CONFIG.perfil.nome.split(" ").slice(1).join(" ")}<span class="decor-borboleta" aria-hidden="true"><img src="imagens/borboleta.png" alt=""></span></span>`;
 
   // ---------- Hero ----------
+  document.getElementById("heroTag").textContent = CONFIG.hero.tag;
   document.getElementById("heroTitulo").innerHTML =
     `${CONFIG.hero.tituloParte1}<span class="destaque">${CONFIG.hero.tituloDestaque1}</span>${CONFIG.hero.tituloParte2}<span class="destaque">${CONFIG.hero.tituloDestaque2}</span>${CONFIG.hero.tituloParte3}`;
   document.getElementById("heroFrase").textContent = CONFIG.hero.frase;
   document.getElementById("heroStat").textContent = CONFIG.hero.estatistica;
   document.getElementById("heroCta").textContent = CONFIG.hero.textoCta;
+  document.getElementById("heroCtaSecundario").textContent = CONFIG.hero.textoCtaSecundario;
+  document.getElementById("baloMineira").textContent = CONFIG.hero.baloMineira;
+  document.getElementById("baloPet").textContent = CONFIG.hero.baloPet;
+  document.getElementById("baloSaudavel").textContent = CONFIG.hero.baloSaudavel;
 
   // ---------- Faixa de marcas (duplicada para rolagem contínua e infinita) ----------
   // Repete a lista de marcas até passar de uma largura mínima bem generosa
@@ -1605,14 +1974,19 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   `).join("");
   marqueeEl.innerHTML = `<div class="marquee-grupo">${grupoHtml}</div><div class="marquee-grupo" aria-hidden="true">${grupoHtml}</div>`;
+  document.getElementById("faixaMarcasRotulo").textContent = CONFIG.faixaMarcas.rotulo;
 
   // ---------- Sobre ----------
+  document.getElementById("sobreTag").textContent = CONFIG.sobre.tag;
   document.getElementById("sobreTitulo").innerHTML = CONFIG.sobre.titulo;
   document.getElementById("sobreTexto").innerHTML = CONFIG.sobre.paragrafos.map(p => `<p>${p}</p>`).join("");
   document.getElementById("sobreLista").innerHTML = CONFIG.sobre.destaques
     .map((item, i) => `<li class="chip-sobre${i === 0 ? " chip-azul" : ""}">${item}</li>`).join("");
 
   // ---------- Portfólio: uma fileira por nicho, com setas estilo Netflix ----------
+  document.getElementById("portfolioTag").textContent = CONFIG.portfolioTextos.tag;
+  document.getElementById("portfolioTitulo").textContent = CONFIG.portfolioTextos.titulo;
+  document.getElementById("portfolioSubtitulo").textContent = CONFIG.portfolioTextos.subtitulo;
   const categoriasEl = document.getElementById("portfolioCategorias");
   const categoriasComItens = CONFIG.categoriasPortfolio.filter(cat =>
     CONFIG.portfolio.some(item => item.categoria === cat)
@@ -1751,6 +2125,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ---------- Fotos UGC ----------
+  document.getElementById("fotosUgcTag").textContent = CONFIG.fotosUgcTextos.tag;
+  document.getElementById("fotosUgcTitulo").innerHTML = CONFIG.fotosUgcTextos.tituloHtml;
   document.getElementById("gridFotosUgc").innerHTML = CONFIG.fotosUgc.map(f => `
     <div class="foto-ugc foto-bloco ${f.gradiente} reveal" role="img" aria-label="Foto UGC de Edilaine Santos">
       <div class="foto-real" style="background-image:url('${f.imagem}');background-position:${f.posicao || "center"};filter:${f.filtro || "none"};"></div>
@@ -1758,6 +2134,9 @@ document.addEventListener("DOMContentLoaded", () => {
   `).join("");
 
   // ---------- Serviços ----------
+  document.getElementById("servicosTag").textContent = CONFIG.servicosTextos.tag;
+  document.getElementById("servicosTitulo").textContent = CONFIG.servicosTextos.titulo;
+  document.getElementById("servicosSubtitulo").textContent = CONFIG.servicosTextos.subtitulo;
   document.getElementById("gridServicos").innerHTML = CONFIG.servicos.map(s => `
     <div class="card-servico reveal">
       <div class="icone-servico" aria-hidden="true">${s.icone}</div>
@@ -1786,6 +2165,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- Resultados (seção removida temporariamente; só roda se ela voltar) ----------
   const gridNumerosEl = document.getElementById("gridNumeros");
   if (gridNumerosEl) {
+    document.getElementById("resultadosTag").textContent = CONFIG.resultadosTextos.tag;
+    document.getElementById("resultadosTitulo").textContent = CONFIG.resultadosTextos.titulo;
+    document.getElementById("resultadosSubtitulo").textContent = CONFIG.resultadosTextos.subtitulo;
     gridNumerosEl.innerHTML = CONFIG.resultados.map((r, i) => `
       <div class="numero-card reveal">
         <p class="numero" data-alvo="${r.numero}" data-sufixo="${r.sufixo}" data-decimais="${r.decimais}" id="numero-${i}">0</p>
@@ -1795,6 +2177,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ---------- Depoimentos ----------
+  document.getElementById("depoimentosTag").textContent = CONFIG.depoimentosTextos.tag;
+  document.getElementById("depoimentosTitulo").textContent = CONFIG.depoimentosTextos.titulo;
+  document.getElementById("depoimentosSubtitulo").textContent = CONFIG.depoimentosTextos.subtitulo;
   document.getElementById("gridDepoimentos").innerHTML = CONFIG.depoimentos.map(d => `
     <div class="card-depoimento reveal">
       <img src="${d.imagem}" alt="Print de depoimento de cliente" loading="lazy">
@@ -1818,6 +2203,22 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("resize", atualizarSetas);
     atualizarSetas();
   })();
+
+  // ---------- Contato: textos da seção e do formulário ----------
+  document.getElementById("contatoTag").textContent = CONFIG.contatoTextos.tag;
+  document.getElementById("contatoTitulo").textContent = CONFIG.contatoTextos.titulo;
+  document.getElementById("contatoSubtitulo").textContent = CONFIG.contatoTextos.subtitulo;
+  document.getElementById("labelNome").textContent = CONFIG.contatoTextos.labelNome;
+  document.getElementById("labelEmail").textContent = CONFIG.contatoTextos.labelEmail;
+  document.getElementById("labelMarca").textContent = CONFIG.contatoTextos.labelMarca;
+  document.getElementById("labelOrcamento").textContent = CONFIG.contatoTextos.labelOrcamento;
+  document.getElementById("labelMensagem").textContent = CONFIG.contatoTextos.labelMensagem;
+  document.getElementById("campoNome").placeholder = CONFIG.contatoTextos.placeholderNome;
+  document.getElementById("campoEmail").placeholder = CONFIG.contatoTextos.placeholderEmail;
+  document.getElementById("campoMarca").placeholder = CONFIG.contatoTextos.placeholderMarca;
+  document.getElementById("campoOrcamento").placeholder = CONFIG.contatoTextos.placeholderOrcamento;
+  document.getElementById("campoMensagem").placeholder = CONFIG.contatoTextos.placeholderMensagem;
+  document.getElementById("botaoEnviarTexto").textContent = CONFIG.contatoTextos.botaoEnviar;
 
   // ---------- Contatos diretos ----------
   document.getElementById("contatosDiretos").innerHTML = `
@@ -1845,14 +2246,101 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("rodapeCopy").textContent =
     `© ${new Date().getFullYear()} ${CONFIG.perfil.nome}. ${CONFIG.rodape.copyrightTexto}`;
 
-  // Registra cliques nos canais de contato (cartões da seção Contato + ícones do rodapé)
-  document.querySelectorAll("[data-contato]").forEach(link => {
-    link.addEventListener("click", () => registrarEvento("button_click", link.dataset.contato, null));
+  // ---------- Marca os elementos "reveal" ----------
+  // No carregamento inicial, deixa o IntersectionObserver animar a entrada deles
+  // ao rolar a página. Numa troca de idioma, mostra tudo na hora (sem reanimar).
+  if (inicial) {
+    document.querySelectorAll(".reveal").forEach(el => observadorEntrada.observe(el));
+  } else {
+    document.querySelectorAll(".reveal").forEach(el => el.classList.add("visivel"));
+  }
+  document.querySelectorAll(".numero-card .numero").forEach(el => observadorNumeros.observe(el));
+}
+
+// =========================================================================
+// ANIMAÇÃO DE ENTRADA AO ROLAR A PÁGINA (IntersectionObserver)
+// Criado uma única vez fora de renderizarConteudo pra não duplicar a cada
+// troca de idioma.
+// =========================================================================
+const observadorEntrada = new IntersectionObserver((entradas) => {
+  entradas.forEach(entrada => {
+    if (entrada.isIntersecting){
+      entrada.target.classList.add("visivel");
+      observadorEntrada.unobserve(entrada.target);
+    }
+  });
+}, { threshold: 0.15 });
+
+// =========================================================================
+// CONTADOR ANIMADO DOS NÚMEROS DE RESULTADOS
+// =========================================================================
+function animarNumero(el){
+  const alvo = parseFloat(el.dataset.alvo);
+  const sufixo = el.dataset.sufixo;
+  const decimais = parseInt(el.dataset.decimais, 10);
+  const duracao = 1500;
+  const inicio = performance.now();
+
+  function passo(agora){
+    const progresso = Math.min((agora - inicio) / duracao, 1);
+    const valorAtual = alvo * progresso;
+    el.textContent = valorAtual.toFixed(decimais) + sufixo;
+    if (progresso < 1){
+      requestAnimationFrame(passo);
+    } else {
+      el.textContent = alvo.toFixed(decimais) + sufixo;
+    }
+  }
+  requestAnimationFrame(passo);
+}
+
+const observadorNumeros = new IntersectionObserver((entradas) => {
+  entradas.forEach(entrada => {
+    if (entrada.isIntersecting){
+      animarNumero(entrada.target);
+      observadorNumeros.unobserve(entrada.target);
+    }
+  });
+}, { threshold: 0.4 });
+
+// =========================================================================
+// TROCA DE IDIOMA (PT/EN)
+// =========================================================================
+function atualizarBotoesIdioma(){
+  document.querySelectorAll(".idioma-btn").forEach(btn => {
+    btn.classList.toggle("ativo", btn.dataset.idioma === idiomaAtual);
+  });
+}
+
+function definirIdioma(idioma){
+  idiomaAtual = idioma;
+  CONFIG = idioma === "en" ? CONFIG_EN : CONFIG_PT;
+  localStorage.setItem("portfolio_idioma", idioma);
+  document.documentElement.lang = idioma === "en" ? "en" : "pt-BR";
+  atualizarBotoesIdioma();
+  renderizarConteudo(false);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Registra a visita assim que a página carrega
+  registrarEvento("page_view", null, null);
+
+  document.documentElement.lang = idiomaAtual === "en" ? "en" : "pt-BR";
+  atualizarBotoesIdioma();
+  renderizarConteudo(true);
+
+  document.querySelectorAll(".idioma-btn").forEach(btn => {
+    btn.addEventListener("click", () => definirIdioma(btn.dataset.idioma));
   });
 
-  // Registra cliques nos botões de chamada para ação (Fale comigo, Ver portfólio)
-  document.querySelectorAll("[data-cta]").forEach(link => {
-    link.addEventListener("click", () => registrarEvento("button_click", link.dataset.cta, null));
+  // Registra cliques nos canais de contato e nos botões de chamada para ação.
+  // Delegado no "document" (em vez de em cada link) pra continuar funcionando
+  // mesmo depois que o conteúdo é regerado numa troca de idioma.
+  document.addEventListener("click", (e) => {
+    const linkContato = e.target.closest("[data-contato]");
+    if (linkContato) registrarEvento("button_click", linkContato.dataset.contato, null);
+    const linkCta = e.target.closest("[data-cta]");
+    if (linkCta) registrarEvento("button_click", linkCta.dataset.cta, null);
   });
 
   // =========================================================================
@@ -1875,55 +2363,10 @@ document.addEventListener("DOMContentLoaded", () => {
     botaoHamburguer.setAttribute("aria-label", aberto ? "Fechar menu de navegação" : "Abrir menu de navegação");
   });
 
-  menuMobile.querySelectorAll("a").forEach(a => a.addEventListener("click", fecharMenu));
-
-  // =========================================================================
-  // ANIMAÇÃO DE ENTRADA AO ROLAR A PÁGINA (IntersectionObserver)
-  // =========================================================================
-  const observadorEntrada = new IntersectionObserver((entradas) => {
-    entradas.forEach(entrada => {
-      if (entrada.isIntersecting){
-        entrada.target.classList.add("visivel");
-        observadorEntrada.unobserve(entrada.target);
-      }
-    });
-  }, { threshold: 0.15 });
-
-  document.querySelectorAll(".reveal").forEach(el => observadorEntrada.observe(el));
-
-  // =========================================================================
-  // CONTADOR ANIMADO DOS NÚMEROS DE RESULTADOS
-  // =========================================================================
-  function animarNumero(el){
-    const alvo = parseFloat(el.dataset.alvo);
-    const sufixo = el.dataset.sufixo;
-    const decimais = parseInt(el.dataset.decimais, 10);
-    const duracao = 1500;
-    const inicio = performance.now();
-
-    function passo(agora){
-      const progresso = Math.min((agora - inicio) / duracao, 1);
-      const valorAtual = alvo * progresso;
-      el.textContent = valorAtual.toFixed(decimais) + sufixo;
-      if (progresso < 1){
-        requestAnimationFrame(passo);
-      } else {
-        el.textContent = alvo.toFixed(decimais) + sufixo;
-      }
-    }
-    requestAnimationFrame(passo);
-  }
-
-  const observadorNumeros = new IntersectionObserver((entradas) => {
-    entradas.forEach(entrada => {
-      if (entrada.isIntersecting){
-        animarNumero(entrada.target);
-        observadorNumeros.unobserve(entrada.target);
-      }
-    });
-  }, { threshold: 0.4 });
-
-  document.querySelectorAll(".numero-card .numero").forEach(el => observadorNumeros.observe(el));
+  menuMobile.querySelectorAll("a, button").forEach(el => el.addEventListener("click", (e) => {
+    if (e.target.closest(".idioma-switch")) return;
+    fecharMenu();
+  }));
 
   // =========================================================================
   // FORMULÁRIO DE CONTATO
@@ -1933,7 +2376,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const formContato = document.getElementById("formContato");
   const mensagemConfirmacao = document.getElementById("mensagemConfirmacao");
   const botaoEnviarContato = formContato.querySelector("button[type=submit]");
-  const textoOriginalBotaoContato = botaoEnviarContato.textContent;
 
   formContato.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1950,7 +2392,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const mensagem = document.getElementById("campoMensagem").value.trim();
 
     botaoEnviarContato.disabled = true;
-    botaoEnviarContato.textContent = "Enviando...";
+    botaoEnviarContato.textContent = CONFIG.contatoTextos.botaoEnviando;
     mensagemConfirmacao.classList.remove("visivel", "erro");
 
     const { error } = await registrarLead({
@@ -1963,19 +2405,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (error) {
-      mensagemConfirmacao.textContent =
-        "Não consegui enviar sua mensagem agora. Tente novamente ou me chame direto no WhatsApp.";
+      mensagemConfirmacao.textContent = CONFIG.contatoTextos.mensagemErro;
       mensagemConfirmacao.classList.add("visivel", "erro");
     } else {
       registrarEvento("button_click", "contact_formulario", null);
-      mensagemConfirmacao.textContent =
-        "Obrigada pelo contato! Recebi sua mensagem e vou te responder em breve.";
+      mensagemConfirmacao.textContent = CONFIG.contatoTextos.mensagemSucesso;
       mensagemConfirmacao.classList.add("visivel");
       formContato.reset();
     }
 
     botaoEnviarContato.disabled = false;
-    botaoEnviarContato.textContent = textoOriginalBotaoContato;
+    botaoEnviarContato.textContent = CONFIG.contatoTextos.botaoEnviar;
   });
 
 });
