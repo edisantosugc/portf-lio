@@ -301,6 +301,11 @@ create table if not exists public.painel_abordagens (
 create index if not exists idx_painel_abordagens_data_followup on public.painel_abordagens (data_followup);
 create index if not exists idx_painel_abordagens_status on public.painel_abordagens (status);
 
+-- Se a tabela já existia de uma versão anterior (sem a coluna "arquivado"), essa linha
+-- adiciona ela sem apagar nada. Rodar de novo depois que a tabela já foi criada é seguro.
+alter table public.painel_abordagens add column if not exists arquivado boolean not null default false;
+create index if not exists idx_painel_abordagens_arquivado on public.painel_abordagens (arquivado);
+
 alter table public.painel_abordagens enable row level security;
 
 create policy "Usuaria autenticada gerencia suas abordagens"

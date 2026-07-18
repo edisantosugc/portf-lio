@@ -1842,52 +1842,71 @@
 
     <!-- ===================== ABA: ABORDAGEM ===================== -->
     <section id="painelAbordagem" class="painel-tab oculto">
-      <button type="button" class="ugc-linha-add" id="abordagemBotaoNovo">+ nova abordagem</button>
-
-      <div class="cartao ugc-form-novo oculto" id="abordagemFormNovo">
-        <h2>Nova abordagem</h2>
-        <div class="ugc-form-grade">
-          <div class="ugc-campo largo">
-            <label>Nome da marca</label>
-            <input type="text" id="abordagemCampoMarca" placeholder="Ex: Marca Girassol">
-          </div>
-          <div class="ugc-campo largo">
-            <label>Produto da marca</label>
-            <input type="text" id="abordagemCampoProduto" placeholder="Ex: Kit skincare facial">
-          </div>
-          <div class="ugc-campo largo">
-            <label>Abordagem</label>
-            <textarea id="abordagemCampoTexto" rows="3" placeholder="O que foi enviado/falado na abordagem"></textarea>
-          </div>
-          <div class="ugc-campo">
-            <label>Data da abordagem</label>
-            <input type="date" id="abordagemCampoData">
-          </div>
-          <div class="ugc-campo">
-            <label>Data do follow up</label>
-            <input type="text" id="abordagemCampoFollowup" placeholder="Calculada automaticamente (+7 dias)" disabled>
-          </div>
-          <div class="ugc-campo largo">
-            <label>Status</label>
-            <div class="ugc-origem-toggle" id="abordagemStatusToggle">
-              <span class="ativo" data-status="andamento">Negociação em andamento</span>
-              <span data-status="fechada">Negociação fechada</span>
-              <span data-status="sem_retorno">Sem retorno</span>
-            </div>
-          </div>
-          <div class="ugc-campo largo">
-            <label>Observação</label>
-            <textarea id="abordagemCampoObs" rows="2" placeholder="Notas adicionais"></textarea>
-          </div>
-        </div>
-        <button type="button" class="botao-add-tarefa" id="abordagemBotaoAdicionar" style="margin-top:14px;">Adicionar</button>
+      <div class="sub-abas-negocio" id="subAbasAbordagem">
+        <button type="button" class="sub-aba-btn ativo" data-subaba="ativas">Abordagens</button>
+        <button type="button" class="sub-aba-btn" data-subaba="arquivados">Arquivados</button>
       </div>
 
-      <div class="cartao ugc-lista-cartao">
-        <div class="ugc-cabecalho-lista abordagem-grade-lista">
-          <span>Marca</span><span>Status</span><span>Follow up</span><span></span>
+      <!-- ---------- Sub-aba: Abordagens ativas ---------- -->
+      <div id="abordagemAtivas">
+        <button type="button" class="ugc-linha-add" id="abordagemBotaoNovo">+ nova abordagem</button>
+
+        <div class="cartao ugc-form-novo oculto" id="abordagemFormNovo">
+          <h2>Nova abordagem</h2>
+          <div class="ugc-form-grade">
+            <div class="ugc-campo largo">
+              <label>Nome da marca</label>
+              <input type="text" id="abordagemCampoMarca" placeholder="Ex: Marca Girassol">
+            </div>
+            <div class="ugc-campo largo">
+              <label>Produto da marca</label>
+              <input type="text" id="abordagemCampoProduto" placeholder="Ex: Kit skincare facial">
+            </div>
+            <div class="ugc-campo largo">
+              <label>Abordagem</label>
+              <textarea id="abordagemCampoTexto" rows="3" placeholder="O que foi enviado/falado na abordagem"></textarea>
+            </div>
+            <div class="ugc-campo">
+              <label>Data da abordagem</label>
+              <input type="date" id="abordagemCampoData">
+            </div>
+            <div class="ugc-campo">
+              <label>Data do follow up</label>
+              <input type="text" id="abordagemCampoFollowup" placeholder="Calculada automaticamente (+7 dias)" disabled>
+            </div>
+            <div class="ugc-campo largo">
+              <label>Status</label>
+              <div class="ugc-origem-toggle" id="abordagemStatusToggle">
+                <span class="ativo" data-status="andamento">Negociação em andamento</span>
+                <span data-status="fechada">Negociação fechada</span>
+                <span data-status="sem_retorno">Sem retorno</span>
+              </div>
+            </div>
+            <div class="ugc-campo largo">
+              <label>Observação</label>
+              <textarea id="abordagemCampoObs" rows="2" placeholder="Notas adicionais"></textarea>
+            </div>
+          </div>
+          <button type="button" class="botao-add-tarefa" id="abordagemBotaoAdicionar" style="margin-top:14px;">Adicionar</button>
         </div>
-        <div id="abordagemListaCorpo"></div>
+
+        <div class="cartao ugc-lista-cartao">
+          <div class="ugc-cabecalho-lista abordagem-grade-lista">
+            <span>Marca</span><span>Status</span><span>Follow up</span><span></span>
+          </div>
+          <div id="abordagemListaCorpo"></div>
+        </div>
+      </div>
+
+      <!-- ---------- Sub-aba: Arquivados (agrupado mês a mês) ---------- -->
+      <div id="abordagemArquivados" class="oculto">
+        <div class="cartao">
+          <div class="ugc-campo largo">
+            <label>Buscar por nome da marca</label>
+            <input type="text" id="abordagemArquivoBusca" placeholder="Digite o nome da marca">
+          </div>
+        </div>
+        <div id="abordagemArquivoCorpo"></div>
       </div>
     </section>
 
@@ -2511,6 +2530,12 @@
 
     document.getElementById("abordagemBotaoAdicionar").addEventListener("click", criarAbordagem);
 
+    document.querySelectorAll("#subAbasAbordagem .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => trocarSubAbaAbordagem(btn.dataset.subaba));
+    });
+
+    document.getElementById("abordagemArquivoBusca").addEventListener("input", renderArquivoAbordagens);
+
     document.getElementById("ugcBotaoFecharModal").addEventListener("click", fecharModalPrazoEntregaUgc);
     document.getElementById("ugcModalPrazo").addEventListener("click", (e) => {
       if (e.target.id === "ugcModalPrazo") fecharModalPrazoEntregaUgc();
@@ -2531,6 +2556,12 @@
     document.querySelectorAll("#subAbasNegociacao .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === sub));
     document.getElementById("negociacaoNormais").classList.toggle("oculto", sub !== "normais");
     document.getElementById("negociacaoCriativos").classList.toggle("oculto", sub !== "criativos");
+  }
+
+  function trocarSubAbaAbordagem(sub){
+    document.querySelectorAll("#subAbasAbordagem .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === sub));
+    document.getElementById("abordagemAtivas").classList.toggle("oculto", sub !== "ativas");
+    document.getElementById("abordagemArquivados").classList.toggle("oculto", sub !== "arquivados");
   }
 
   // Mostra quanto fica cada parcela (valor total ÷ número de parcelas) enquanto a pessoa digita
@@ -4922,6 +4953,7 @@
     return `
       <div class="ugc-gerenciar">
         <button type="button" class="ugc-btn-icone" data-acao="abordagem-editar" data-id="${item.id}" aria-label="Editar abordagem">&#9998; Editar</button>
+        <button type="button" class="ugc-btn-icone" data-acao="abordagem-arquivar" data-id="${item.id}" aria-label="${item.arquivado ? "Desarquivar abordagem" : "Arquivar abordagem"}">${item.arquivado ? "↩ Desarquivar" : "🗄 Arquivar"}</button>
         <button type="button" class="ugc-btn-icone perigo" data-acao="abordagem-remover" data-id="${item.id}" aria-label="Remover abordagem">&times; Remover</button>
       </div>
     `;
@@ -5034,6 +5066,9 @@
     container.querySelectorAll("[data-acao='abordagem-remover']").forEach(btn => {
       btn.addEventListener("click", () => removerAbordagem(btn.dataset.id));
     });
+    container.querySelectorAll("[data-acao='abordagem-arquivar']").forEach(btn => {
+      btn.addEventListener("click", () => alternarArquivadoAbordagem(btn.dataset.id));
+    });
     container.querySelectorAll("[data-acao='abordagem-salvar-edicao']").forEach(btn => {
       btn.addEventListener("click", () => salvarEdicaoAbordagem(btn.dataset.id));
     });
@@ -5062,15 +5097,71 @@
   function renderListaAbordagens(){
     const corpo = document.getElementById("abordagemListaCorpo");
     if (!corpo) return;
-    const ordenados = abordagensCache.slice().sort((a, b) => (b.data_abordagem || "").localeCompare(a.data_abordagem || ""));
+    const ordenados = abordagensCache.filter(a => !a.arquivado).sort((a, b) => (b.data_abordagem || "").localeCompare(a.data_abordagem || ""));
     corpo.innerHTML = ordenados.length
       ? ordenados.map(item => renderLinhaAbordagemHtml(item)).join("")
       : `<p class="ugc-vazio">Nenhuma abordagem cadastrada ainda.</p>`;
     reatarEventosLinhasAbordagem(corpo);
   }
 
+  const MESES_ABORDAGEM = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+  // Transforma uma chave "AAAA-MM" no rótulo do mês em português (ex: "Julho de 2026")
+  function nomeMesAnoAbordagem(chaveAnoMes){
+    const [ano, mes] = chaveAnoMes.split("-").map(Number);
+    return `${MESES_ABORDAGEM[mes - 1]} de ${ano}`;
+  }
+
+  // Aba Arquivados: agrupa mês a mês (pela data da abordagem) e filtra por nome da marca
+  function renderArquivoAbordagens(){
+    const corpo = document.getElementById("abordagemArquivoCorpo");
+    if (!corpo) return;
+
+    const campoBusca = document.getElementById("abordagemArquivoBusca");
+    const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
+
+    const arquivados = abordagensCache.filter(a =>
+      a.arquivado && (!termo || (a.marca || "").toLowerCase().includes(termo))
+    );
+
+    if (arquivados.length === 0){
+      corpo.innerHTML = `<p class="ugc-vazio">${termo ? "Nenhuma marca arquivada encontrada com esse nome." : "Nenhuma abordagem arquivada ainda."}</p>`;
+      return;
+    }
+
+    const grupos = {};
+    arquivados.forEach(item => {
+      const dataRef = item.data_abordagem || (item.created_at ? item.created_at.slice(0, 10) : null);
+      const chave = dataRef ? dataRef.slice(0, 7) : "0000-00";
+      (grupos[chave] = grupos[chave] || []).push(item);
+    });
+
+    const chavesOrdenadas = Object.keys(grupos).sort((a, b) => b.localeCompare(a));
+
+    corpo.innerHTML = chavesOrdenadas.map(chave => {
+      const itens = grupos[chave].sort((a, b) => (b.data_abordagem || "").localeCompare(a.data_abordagem || ""));
+      return `
+        <div class="cartao ugc-lista-cartao" style="margin-top:14px;">
+          <div class="ugc-cabecalho-lista abordagem-grade-lista">
+            <span>${chave === "0000-00" ? "Sem data" : nomeMesAnoAbordagem(chave)}</span><span>Status</span><span>Follow up</span><span></span>
+          </div>
+          <div>${itens.map(item => renderLinhaAbordagemHtml(item)).join("")}</div>
+        </div>
+      `;
+    }).join("");
+
+    reatarEventosLinhasAbordagem(corpo);
+  }
+
   function renderizarAbordagens(){
     renderListaAbordagens();
+    renderArquivoAbordagens();
+  }
+
+  async function alternarArquivadoAbordagem(id){
+    const item = abordagensCache.find(a => a.id === id);
+    if (!item) return;
+    await atualizarAbordagem(id, { arquivado: !item.arquivado });
   }
 
   // Chamado ao clicar no lembrete de follow up: troca pra aba Abordagem, abre
@@ -5223,7 +5314,7 @@
   function obterAlertasFollowupAbordagem(){
     const alertas = [];
     abordagensCache.forEach(item => {
-      if (item.status !== "andamento" || item.followup_feito) return;
+      if (item.status !== "andamento" || item.followup_feito || item.arquivado) return;
       const diasParaVencer = diasParaFollowupAbordagem(item);
       if (diasParaVencer === null) return;
 
