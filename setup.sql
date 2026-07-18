@@ -324,7 +324,7 @@ grant select, insert, update, delete on public.painel_abordagens to authenticate
 create table if not exists public.painel_notas (
   id uuid primary key default gen_random_uuid(),
   conteudo text not null default '',
-  cor text not null default 'amarelo' check (cor in ('amarelo', 'rosa', 'azul', 'verde', 'cinza', 'vermelho', 'roxo', 'laranja')),
+  cor text not null default 'azul' check (cor in ('amarelo', 'rosa', 'azul', 'verde', 'cinza', 'vermelho', 'roxo', 'laranja')),
   link text,                            -- link de referência opcional (Pinterest, Drive, etc.)
   created_at timestamptz not null default now()
 );
