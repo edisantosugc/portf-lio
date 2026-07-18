@@ -1890,6 +1890,13 @@
           <button type="button" class="botao-add-tarefa" id="abordagemBotaoAdicionar" style="margin-top:14px;">Adicionar</button>
         </div>
 
+        <div class="cartao">
+          <div class="ugc-campo largo">
+            <label>Buscar por nome da marca</label>
+            <input type="text" id="abordagemBusca" placeholder="Digite o nome da marca">
+          </div>
+        </div>
+
         <div class="cartao ugc-lista-cartao">
           <div class="ugc-cabecalho-lista abordagem-grade-lista">
             <span>Marca</span><span>Status</span><span>Follow up</span><span></span>
@@ -2534,6 +2541,7 @@
       btn.addEventListener("click", () => trocarSubAbaAbordagem(btn.dataset.subaba));
     });
 
+    document.getElementById("abordagemBusca").addEventListener("input", renderListaAbordagens);
     document.getElementById("abordagemArquivoBusca").addEventListener("input", renderArquivoAbordagens);
 
     document.getElementById("ugcBotaoFecharModal").addEventListener("click", fecharModalPrazoEntregaUgc);
@@ -5097,10 +5105,17 @@
   function renderListaAbordagens(){
     const corpo = document.getElementById("abordagemListaCorpo");
     if (!corpo) return;
-    const ordenados = abordagensCache.filter(a => !a.arquivado).sort((a, b) => (b.data_abordagem || "").localeCompare(a.data_abordagem || ""));
+
+    const campoBusca = document.getElementById("abordagemBusca");
+    const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
+
+    const ordenados = abordagensCache
+      .filter(a => !a.arquivado && (!termo || (a.marca || "").toLowerCase().includes(termo)))
+      .sort((a, b) => (b.data_abordagem || "").localeCompare(a.data_abordagem || ""));
+
     corpo.innerHTML = ordenados.length
       ? ordenados.map(item => renderLinhaAbordagemHtml(item)).join("")
-      : `<p class="ugc-vazio">Nenhuma abordagem cadastrada ainda.</p>`;
+      : `<p class="ugc-vazio">${termo ? "Nenhuma marca encontrada com esse nome." : "Nenhuma abordagem cadastrada ainda."}</p>`;
     reatarEventosLinhasAbordagem(corpo);
   }
 
