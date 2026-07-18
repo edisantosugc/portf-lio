@@ -2314,6 +2314,7 @@
         // Isolado do carregamento principal: a tabela painel_abordagens só existe depois
         // que o SQL da aba Abordagem for rodado no Supabase, então essa busca pode falhar sem travar o resto do painel.
         abordagensCache = await buscarTudo("painel_abordagens");
+        await arquivarAbordagensMesAnterior();
         renderizarAbordagens();
         renderizarNotificacoesPopup();
       } catch (erroAbordagem) {
@@ -5177,6 +5178,27 @@
     const item = abordagensCache.find(a => a.id === id);
     if (!item) return;
     await atualizarAbordagem(id, { arquivado: !item.arquivado });
+  }
+
+  // Roda uma vez a cada carregamento do painel: qualquer abordagem cuja data seja de um
+  // mês anterior ao atual é arquivada sozinha, sem precisar clicar em "Arquivar". Como não
+  // existe um cron no servidor, isso é o mais perto de "vira o mês, arquiva" que dá pra
+  // fazer aqui — funciona toda vez que o painel é aberto depois da virada do mês.
+  async function arquivarAbordagensMesAnterior(){
+    const hoje = new Date();
+    const chaveAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+
+    const paraArquivar = abordagensCache.filter(item =>
+      !item.arquivado && item.data_abordagem && item.data_abordagem.slice(0, 7) < chaveAtual
+    );
+    if (paraArquivar.length === 0) return;
+
+    const { error } = await Auth.client
+      .from("painel_abordagens")
+      .update({ arquivado: true })
+      .in("id", paraArquivar.map(item => item.id));
+
+    if (!error) paraArquivar.forEach(item => { item.arquivado = true; });
   }
 
   // Chamado ao clicar no lembrete de follow up: troca pra aba Abordagem, abre
