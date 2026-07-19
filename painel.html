@@ -1589,6 +1589,109 @@
   }
   .nota-fechada-link:hover{ text-decoration: underline; }
 
+  /* ===================== CLIENTES ===================== */
+  .clientes-cabecalho{ display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .clientes-titulo{ display: flex; align-items: center; gap: 14px; }
+  .clientes-icone{
+    width: 44px; height: 44px; border-radius: 12px; background: rgba(0,0,128,.08); color: var(--coral);
+    display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;
+  }
+  .clientes-titulo h2{ margin: 0; font-size: 1.2rem; }
+  .clientes-subtitulo{ margin: 2px 0 0; font-size: .82rem; color: var(--texto-suave); }
+  .clientes-acoes-topo{ display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .btn-fantasma{
+    font-family: 'Outfit', sans-serif; font-size: .82rem; font-weight: 700; border-radius: 10px; padding: 10px 16px;
+    cursor: pointer; border: 1px solid var(--borda); background: var(--branco); color: var(--grafite);
+  }
+  .btn-fantasma:hover{ border-color: var(--coral); color: var(--coral); }
+
+  .clientes-cards-resumo{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 20px; }
+  .cliente-card-resumo{ background: var(--branco); border: 1px solid var(--borda); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+  .cliente-card-resumo .topo{ display: flex; align-items: center; justify-content: space-between; }
+  .cliente-card-resumo .rotulo{ font-size: .64rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--texto-suave); }
+  .cliente-card-resumo .bolinha{ width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .cliente-card-resumo .valor{ font-family: 'Fraunces', serif; font-size: 1.8rem; font-variant-numeric: tabular-nums; line-height: 1; }
+  .cliente-card-resumo .legenda{ font-size: .74rem; color: var(--texto-suave); }
+
+  .clientes-barra-subabas{ display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 22px; flex-wrap: wrap; }
+  .btn-negocia{
+    font-family: 'Outfit', sans-serif; font-size: .82rem; font-weight: 700; border-radius: 10px; padding: 10px 16px; border: none;
+    background: var(--dourado); color: #3a2f14; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-negocia:hover{ background: #b8935a; }
+  .contagem-subaba{ background: rgba(0,0,0,.08); border-radius: 50px; padding: 1px 7px; font-size: .68rem; margin-left: 6px; font-variant-numeric: tabular-nums; }
+  .sub-aba-btn.ativo .contagem-subaba{ background: rgba(255,255,255,.25); }
+
+  .clientes-tabela-cartao{ padding: 0; overflow: hidden; margin-top: 16px; }
+  .clientes-tabela-barra{ display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--borda); flex-wrap: wrap; }
+  .clientes-busca{ flex: 1; min-width: 220px; }
+  .clientes-busca input{
+    width: 100%; padding: 9px 14px; border-radius: 50px; border: 1px solid var(--borda); background: var(--creme);
+    font-family: 'Outfit', sans-serif; font-size: .82rem; color: var(--grafite);
+  }
+  .clientes-busca input:focus{ outline: none; border-color: var(--coral); }
+  .clientes-btn-ordenar{ background: var(--creme); border: 1px solid var(--borda); border-radius: 9px; padding: 8px 12px; font-size: .78rem; font-weight: 600; color: var(--texto-suave); cursor: pointer; white-space: nowrap; }
+  .clientes-tabela-scroll{ overflow-x: auto; }
+  .clientes-tabela{ width: 100%; border-collapse: collapse; min-width: 640px; }
+  .clientes-tabela thead th{ text-align: left; font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--texto-suave); padding: 10px 18px; border-bottom: 1px solid var(--borda); }
+  .clientes-tabela tbody td{ padding: 14px 18px; font-size: .84rem; border-bottom: 1px solid var(--borda); vertical-align: middle; }
+  .clientes-tabela tbody tr:last-child td{ border-bottom: none; }
+  .cliente-empresa-nome{ font-weight: 700; }
+  .cliente-contato-linha{ display: block; font-size: .8rem; color: var(--texto-suave); }
+  .cliente-contato-linha.email{ color: var(--coral); }
+  .cliente-tag{ font-size: .7rem; font-weight: 700; padding: 4px 11px; border-radius: 50px; display: inline-block; white-space: nowrap; }
+  .cliente-tag.trabalhou{ background: rgba(0,0,128,.08); color: var(--coral); }
+  .cliente-tag.status-ativo{ background: rgba(45,122,79,.12); color: var(--verde); }
+  .cliente-tag.status-inativo{ background: rgba(196,69,60,.1); color: var(--vermelho); }
+  .cliente-acoes-linha{ position: relative; text-align: right; }
+  .cliente-acoes-botao{ background: none; border: none; font-size: 1.1rem; color: var(--texto-suave); cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+  .cliente-acoes-botao:hover{ background: var(--creme); }
+  .cliente-acoes-menu{
+    position: absolute; right: 18px; top: 38px; background: var(--branco); border: 1px solid var(--borda); border-radius: 10px;
+    box-shadow: 0 10px 24px rgba(26,24,22,.14); padding: 6px; display: flex; flex-direction: column; min-width: 120px; z-index: 5;
+  }
+  .cliente-acoes-menu button{
+    background: none; border: none; text-align: left; font-family: 'Outfit', sans-serif; font-size: .82rem; font-weight: 600;
+    padding: 8px 10px; border-radius: 7px; cursor: pointer; color: var(--grafite); width: 100%;
+  }
+  .cliente-acoes-menu button:hover{ background: var(--creme); }
+  .cliente-acoes-menu button.perigo{ color: var(--vermelho); }
+
+  .cliente-modal-cartao{
+    background: var(--branco); border-radius: 18px; width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto;
+    box-shadow: 0 30px 70px rgba(26,24,22,.3); text-align: left;
+  }
+  .cliente-modal-cartao.largo{ max-width: 620px; }
+  .cliente-modal-topo{ display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--borda); }
+  .cliente-modal-topo h2{ font-size: 1.05rem; margin: 0; }
+  .cliente-modal-fechar{ background: none; border: none; font-size: 1.2rem; color: var(--texto-suave); cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+  .cliente-modal-fechar:hover{ background: var(--creme); }
+  .cliente-modal-corpo{ padding: 20px 22px; display: flex; flex-direction: column; gap: 16px; }
+  .cliente-modal-rodape{ display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--borda); }
+  .cliente-secao-rotulo{ font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--texto-suave); }
+  .cliente-area-upload{
+    border: 1.5px dashed var(--borda); border-radius: 14px; padding: 24px 16px; text-align: center; cursor: pointer;
+    color: var(--texto-suave); background: var(--creme); font-size: .82rem;
+  }
+  .cliente-area-upload:hover{ border-color: var(--coral); color: var(--coral); }
+  .cliente-area-upload .icone-upload{ font-size: 1.3rem; display: block; margin-bottom: 6px; }
+  .cliente-area-upload .principal{ font-weight: 700; display: block; }
+  .cliente-nota-ia{
+    background: rgba(201,166,107,.14); border: 1px solid var(--dourado); border-radius: 12px; padding: 12px 14px;
+    font-size: .78rem; line-height: 1.55; color: var(--grafite);
+  }
+
+  .negocia-perfil-toggle{ display: flex; gap: 6px; background: var(--creme); border-radius: 10px; padding: 4px; }
+  .negocia-perfil-toggle button{
+    flex: 1; font-family: 'Outfit', sans-serif; font-size: .82rem; font-weight: 700; padding: 10px; border-radius: 8px; border: none;
+    background: transparent; color: var(--texto-suave); cursor: pointer;
+  }
+  .negocia-perfil-toggle button.ativo{ background: var(--coral); color: var(--branco); }
+
+  @media (max-width: 760px){
+    .clientes-cards-resumo{ grid-template-columns: repeat(2, 1fr); }
+  }
+
   /* ===================== RESPONSIVO ===================== */
   @media (max-width: 900px){
     .sidebar{
@@ -1629,6 +1732,83 @@
     <div id="ugcModalPrazoLista"></div>
     <button type="button" class="ugc-btn ugc-modal-fechar" id="ugcBotaoFecharModal">Fechar por agora</button>
     <p class="ugc-modal-nota">Isso aparece de novo toda vez que você abrir o painel, até a entrega ser marcada como concluída.</p>
+  </div>
+</div>
+
+<!-- ===== Modal: Novo/Editar Cliente ===== -->
+<div class="ugc-modal-overlay oculto" id="modalCliente" role="dialog" aria-modal="true" aria-labelledby="modalClienteTitulo">
+  <div class="cliente-modal-cartao">
+    <div class="cliente-modal-topo">
+      <h2 id="modalClienteTitulo">🏢 Novo Cliente</h2>
+      <button type="button" class="cliente-modal-fechar" id="clienteModalFechar" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="cliente-modal-corpo">
+      <span class="cliente-secao-rotulo">Dados corporativos</span>
+      <div class="ugc-campo largo">
+        <label>Nome da Marca / Empresa *</label>
+        <input type="text" id="clienteCampoMarca" placeholder="Ex: Nike, Avon, Salão da Juju">
+      </div>
+      <div class="ugc-campo largo">
+        <label>CNPJ</label>
+        <input type="text" id="clienteCampoCnpj" placeholder="00.000.000/0000-00">
+      </div>
+      <div class="ugc-campo largo">
+        <label>Nicho</label>
+        <select id="clienteCampoNicho">
+          <option value="">Selecione o nicho</option>
+          <option value="Moda">Moda</option>
+          <option value="Beleza">Beleza</option>
+          <option value="Pet">Pet</option>
+          <option value="Tech">Tech</option>
+          <option value="Alimentação">Alimentação</option>
+          <option value="Saúde">Saúde</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div class="ugc-form-grade">
+        <div class="ugc-campo"><label>Instagram</label><input type="text" id="clienteCampoInstagram" placeholder="@marca ou link"></div>
+        <div class="ugc-campo"><label>TikTok</label><input type="text" id="clienteCampoTiktok" placeholder="@marca ou link"></div>
+      </div>
+      <span class="cliente-secao-rotulo">Contato</span>
+      <div class="ugc-form-grade">
+        <div class="ugc-campo largo"><label>Responsável</label><input type="text" id="clienteCampoContatoNome" placeholder="Nome de quem você fala"></div>
+        <div class="ugc-campo"><label>E-mail</label><input type="email" id="clienteCampoContatoEmail" placeholder="email@marca.com"></div>
+        <div class="ugc-campo"><label>Telefone</label><input type="text" id="clienteCampoContatoTelefone" placeholder="(11) 90000-0000"></div>
+      </div>
+    </div>
+    <div class="cliente-modal-rodape">
+      <button type="button" class="btn-fantasma" id="clienteModalCancelar">Cancelar</button>
+      <button type="button" class="botao-add-tarefa" id="clienteModalSalvar">Criar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Importar com IA ===== -->
+<div class="ugc-modal-overlay oculto" id="modalImportarIA" role="dialog" aria-modal="true" aria-labelledby="modalImportarIATitulo">
+  <div class="cliente-modal-cartao largo">
+    <div class="cliente-modal-topo">
+      <h2 id="modalImportarIATitulo">✨ Importar com IA</h2>
+      <button type="button" class="cliente-modal-fechar" id="importarIAFechar" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="cliente-modal-corpo">
+      <p style="margin:0;font-size:.85rem;color:var(--texto-suave);line-height:1.55;">
+        Cole qualquer texto com informações de clientes: e-mails, anotações, listas de contatos... Vamos identificar e organizar tudo automaticamente!
+      </p>
+      <label class="cliente-area-upload" for="importarIAArquivo">
+        <span class="icone-upload">📄</span>
+        <span class="principal">Ou envie um PDF</span>
+        <span>Clique para selecionar um arquivo .pdf</span>
+        <input type="file" id="importarIAArquivo" accept="application/pdf" class="oculto">
+      </label>
+      <div class="ugc-campo largo">
+        <textarea id="importarIATexto" rows="6" placeholder="Cole o texto aqui, ex: 'Falei com a Ana da Vizzano (ana@vizzano.com.br) sobre a campanha de sapatos.'"></textarea>
+      </div>
+      <p class="cliente-nota-ia">Essa extração ainda não está ligada à IA de verdade — o visual já está pronto, falta só a Edge Function que lê o texto/PDF e organiza os dados.</p>
+    </div>
+    <div class="cliente-modal-rodape">
+      <button type="button" class="btn-fantasma" id="importarIACancelar">Cancelar</button>
+      <button type="button" class="botao-add-tarefa" id="importarIAProcessar">✨ Processar e Identificar</button>
+    </div>
   </div>
 </div>
 
@@ -2021,9 +2201,147 @@
 
     <!-- ===================== ABA: CLIENTES ===================== -->
     <section id="painelClientes" class="painel-tab oculto">
-      <div class="cartao">
-        <h2>Clientes</h2>
-        <p class="texto-vazio">Em construção — daqui a pouco a gente monta o conteúdo dessa aba.</p>
+      <div class="clientes-cabecalho">
+        <div class="clientes-titulo">
+          <span class="clientes-icone">🏢</span>
+          <div>
+            <h2>Clientes</h2>
+            <p class="clientes-subtitulo">Gerencie sua rede de clientes e parceiros</p>
+          </div>
+        </div>
+        <div class="clientes-acoes-topo">
+          <button type="button" class="btn-fantasma" id="clienteBotaoImportar">✨ Importar com IA</button>
+          <button type="button" class="botao-add-tarefa" id="clienteBotaoNovo">+ Novo Cliente</button>
+        </div>
+      </div>
+
+      <div class="clientes-cards-resumo">
+        <div class="cliente-card-resumo">
+          <div class="topo"><span class="rotulo">Carteira Ativa</span><span class="bolinha" style="background:var(--verde)"></span></div>
+          <span class="valor" id="clienteResumoAtiva">0</span>
+          <span class="legenda">Clientes rendendo agora</span>
+        </div>
+        <div class="cliente-card-resumo">
+          <div class="topo"><span class="rotulo">No Pipeline</span><span class="bolinha" style="background:var(--dourado)"></span></div>
+          <span class="valor" id="clienteResumoPipeline">0</span>
+          <span class="legenda">Em prospecção ativa</span>
+        </div>
+        <div class="cliente-card-resumo">
+          <div class="topo"><span class="rotulo">Follow-up Hoje</span><span class="bolinha" style="background:var(--vermelho)"></span></div>
+          <span class="valor" id="clienteResumoFollowup">0</span>
+          <span class="legenda">Precisam de atenção</span>
+        </div>
+        <div class="cliente-card-resumo">
+          <div class="topo"><span class="rotulo">Fechados Este Mês</span><span class="bolinha" style="background:var(--coral)"></span></div>
+          <span class="valor" id="clienteResumoFechados">0</span>
+          <span class="legenda">Negócios concluídos</span>
+        </div>
+      </div>
+
+      <div class="clientes-barra-subabas">
+        <div class="sub-abas-negocio" id="subAbasClientes">
+          <button type="button" class="sub-aba-btn ativo" data-subaba="contatos">Base de Contatos <span class="contagem-subaba" id="clienteContagemContatos">0</span></button>
+          <button type="button" class="sub-aba-btn" data-subaba="abordagem">Em Abordagem <span class="contagem-subaba" id="clienteContagemAbordagem">0</span></button>
+          <button type="button" class="sub-aba-btn" data-subaba="historico">Histórico de Clientes <span class="contagem-subaba" id="clienteContagemHistorico">0</span></button>
+        </div>
+        <button type="button" class="btn-negocia" id="clienteBotaoNegocia">🤝 NegocIA</button>
+      </div>
+
+      <div class="cartao clientes-tabela-cartao" id="clientesTabelaCartao">
+        <div class="clientes-tabela-barra">
+          <div class="clientes-busca">
+            <input type="text" id="clienteBusca" placeholder="Buscar por nome, responsável, email ou nicho...">
+          </div>
+          <button type="button" class="clientes-btn-ordenar" id="clienteBotaoOrdenar">⇅ <span id="clienteOrdemTexto">Recentes</span></button>
+        </div>
+        <div class="clientes-tabela-scroll">
+          <table class="clientes-tabela">
+            <thead>
+              <tr><th>Empresa</th><th>Nicho</th><th>Contato</th><th>Tag</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody id="clientesTabelaCorpo"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ---------- NegocIA (substitui a tabela quando aberto) ---------- -->
+      <div class="cartao oculto" id="negociaPainel">
+        <div class="clientes-tabela-barra" style="border-bottom:none;">
+          <h2 style="margin:0;font-size:1.05rem;">🤝 NegocIA</h2>
+          <button type="button" class="cliente-modal-fechar" id="negociaFechar" aria-label="Fechar NegocIA">&times;</button>
+        </div>
+        <div style="padding:4px 0 6px;display:flex;flex-direction:column;gap:16px;">
+          <div class="negocia-perfil-toggle" id="negociaPerfilToggle">
+            <button type="button" class="ativo" data-perfil="influenciadora">Influenciadora</button>
+            <button type="button" data-perfil="ugc">UGC Creator</button>
+          </div>
+          <div class="ugc-form-grade">
+            <div class="ugc-campo largo">
+              <label>Marca</label>
+              <input type="text" id="negociaCampoMarca" placeholder="Nome da marca / empresa">
+            </div>
+            <div class="ugc-campo largo">
+              <label>Qual é a situação?</label>
+              <select id="negociaCampoSituacao">
+                <option value="">Selecione a situação</option>
+                <option value="primeiro_contato">Primeiro contato</option>
+                <option value="proposta_recebida">Proposta recebida</option>
+                <option value="negociando_valor">Negociando valor</option>
+                <option value="fechando_detalhes">Fechando detalhes</option>
+              </select>
+            </div>
+            <div class="ugc-campo largo">
+              <label>Cole a conversa aqui</label>
+              <textarea id="negociaCampoConversa" rows="4" placeholder="Cole aqui a conversa com a marca"></textarea>
+            </div>
+            <div class="ugc-campo">
+              <label>Por onde está a conversa?</label>
+              <select id="negociaCampoCanal">
+                <option value="">Selecione o canal</option>
+                <option value="instagram">Instagram</option>
+                <option value="whatsapp">WhatsApp</option>
+                <option value="email">E-mail</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+            <div class="ugc-campo">
+              <label>Seus seguidores</label>
+              <input type="number" id="negociaCampoSeguidores" placeholder="Ex: 50000">
+            </div>
+            <div class="ugc-campo">
+              <label>Seu nicho</label>
+              <select id="negociaCampoNicho">
+                <option value="">Selecione o nicho</option>
+                <option value="Moda">Moda</option>
+                <option value="Beleza">Beleza</option>
+                <option value="Pet">Pet</option>
+                <option value="Tech">Tech</option>
+                <option value="Alimentação">Alimentação</option>
+                <option value="Saúde">Saúde</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+            <div class="ugc-campo">
+              <label>Já trabalhou com essa marca?</label>
+              <select id="negociaCampoJaTrabalhou">
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
+              </select>
+            </div>
+            <div class="ugc-campo oculto" id="negociaCampoVideosUgcWrap">
+              <label>Quantos vídeos UGC já produziu?</label>
+              <select id="negociaCampoVideosUgc">
+                <option value="">Selecione sua experiência</option>
+                <option value="nenhum">Ainda nenhum</option>
+                <option value="1_5">1 a 5</option>
+                <option value="6_20">6 a 20</option>
+                <option value="20_mais">Mais de 20</option>
+              </select>
+            </div>
+          </div>
+          <button type="button" class="botao-add-tarefa" id="negociaBotaoAnalisar" style="width:100%;">✨ Analisar</button>
+          <p class="cliente-nota-ia">Essa análise ainda não está ligada à IA de verdade — o visual já está pronto, falta só a Edge Function que lê a conversa colada e devolve a sugestão.</p>
+        </div>
       </div>
     </section>
 
@@ -2269,6 +2587,13 @@
     { chave: "laranja", nome: "Laranja" }
   ];
 
+  // Estado da aba Clientes: cadastro, sub-aba ativa (contatos/abordagem/histórico),
+  // ordenação da tabela e id do cliente em edição no modal (null = criando um novo)
+  let clientesCache = [];
+  let clienteSubAbaAtiva = "contatos";
+  let clienteOrdemRecente = true;
+  let clienteEditandoId = null;
+
   // Estado das conversas de IA da Negociação: uma entrada por contexto, cada
   // uma é a lista de mensagens daquela conversa, em ordem cronológica.
   // (O Crô usaria esse mesmo mecanismo, mas foi deixado de fora por enquanto.)
@@ -2458,6 +2783,14 @@
         renderizarNotas();
       } catch (erroNotas) {
         console.error("Erro ao carregar/renderizar Bloco de Notas:", erroNotas);
+      }
+      try {
+        // Isolado do carregamento principal: a tabela painel_clientes só existe depois que
+        // o SQL da aba Clientes for rodado no Supabase, então essa busca pode falhar sem travar o resto do painel.
+        clientesCache = await buscarTudo("painel_clientes");
+        renderizarClientes();
+      } catch (erroClientes) {
+        console.error("Erro ao carregar/renderizar Clientes:", erroClientes);
       }
     } catch (erro) {
       console.error(erro);
@@ -2687,6 +3020,48 @@
     // ---------- Bloco de Notas ----------
     document.getElementById("notaBotaoNova").addEventListener("click", criarNota);
     document.getElementById("notaBusca").addEventListener("input", renderNotas);
+
+    // ---------- Clientes ----------
+    document.getElementById("clienteBotaoNovo").addEventListener("click", () => abrirModalCliente(null));
+    document.getElementById("clienteModalFechar").addEventListener("click", fecharModalCliente);
+    document.getElementById("clienteModalCancelar").addEventListener("click", fecharModalCliente);
+    document.getElementById("modalCliente").addEventListener("click", (e) => {
+      if (e.target.id === "modalCliente") fecharModalCliente();
+    });
+    document.getElementById("clienteModalSalvar").addEventListener("click", salvarCliente);
+
+    document.getElementById("clienteBotaoImportar").addEventListener("click", () => {
+      document.getElementById("modalImportarIA").classList.remove("oculto");
+    });
+    document.getElementById("importarIAFechar").addEventListener("click", () => {
+      document.getElementById("modalImportarIA").classList.add("oculto");
+    });
+    document.getElementById("importarIACancelar").addEventListener("click", () => {
+      document.getElementById("modalImportarIA").classList.add("oculto");
+    });
+    document.getElementById("modalImportarIA").addEventListener("click", (e) => {
+      if (e.target.id === "modalImportarIA") document.getElementById("modalImportarIA").classList.add("oculto");
+    });
+
+    document.querySelectorAll("#subAbasClientes .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => trocarSubAbaClientes(btn.dataset.subaba));
+    });
+    document.getElementById("clienteBusca").addEventListener("input", renderTabelaClientes);
+    document.getElementById("clienteBotaoOrdenar").addEventListener("click", alternarOrdemClientes);
+
+    document.getElementById("clienteBotaoNegocia").addEventListener("click", abrirNegocia);
+    document.getElementById("negociaFechar").addEventListener("click", fecharNegocia);
+    document.querySelectorAll("#negociaPerfilToggle button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#negociaPerfilToggle button").forEach(b => b.classList.remove("ativo"));
+        btn.classList.add("ativo");
+        document.getElementById("negociaCampoVideosUgcWrap").classList.toggle("oculto", btn.dataset.perfil !== "ugc");
+      });
+    });
+
+    document.addEventListener("click", () => {
+      document.querySelectorAll(".cliente-acoes-menu").forEach(m => m.classList.add("oculto"));
+    });
 
     document.getElementById("ugcBotaoFecharModal").addEventListener("click", fecharModalPrazoEntregaUgc);
     document.getElementById("ugcModalPrazo").addEventListener("click", (e) => {
@@ -5708,6 +6083,200 @@
       notasCache = notasCache.filter(n => n.id !== id);
       renderNotas();
     }
+  }
+
+  /* =========================================================================
+     ABA: CLIENTES
+     Cadastro de clientes/parceiros, separado da aba Abordagem (que registra
+     toda marca abordada, mesmo antes de virar cliente). Organizado em 3
+     sub-abas por "etapa": contatos | abordagem | historico.
+     "Importar com IA" e "NegocIA" só têm a interface pronta por enquanto —
+     a extração/análise de verdade depende de uma Edge Function nova.
+     ========================================================================= */
+  function calcularResumoClientes(){
+    const ativos = clientesCache.filter(c => c.status === "ativo").length;
+    const pipeline = clientesCache.filter(c => c.etapa === "abordagem").length;
+
+    const hoje = new Date();
+    const fechadosMes = clientesCache.filter(c => {
+      if (c.etapa !== "historico" || !c.created_at) return false;
+      const data = new Date(c.created_at);
+      return data.getFullYear() === hoje.getFullYear() && data.getMonth() === hoje.getMonth();
+    }).length;
+
+    document.getElementById("clienteResumoAtiva").textContent = ativos;
+    document.getElementById("clienteResumoPipeline").textContent = pipeline;
+    document.getElementById("clienteResumoFollowup").textContent = 0; // ainda sem data de follow up no cadastro de cliente
+    document.getElementById("clienteResumoFechados").textContent = fechadosMes;
+  }
+
+  function renderContagensSubAbasClientes(){
+    document.getElementById("clienteContagemContatos").textContent = clientesCache.filter(c => c.etapa === "contatos").length;
+    document.getElementById("clienteContagemAbordagem").textContent = clientesCache.filter(c => c.etapa === "abordagem").length;
+    document.getElementById("clienteContagemHistorico").textContent = clientesCache.filter(c => c.etapa === "historico").length;
+  }
+
+  function renderLinhaClienteHtml(c){
+    const contatoHtml = (c.contato_email || c.contato_telefone)
+      ? `${c.contato_email ? `<span class="cliente-contato-linha email">${c.contato_email}</span>` : ""}${c.contato_telefone ? `<span class="cliente-contato-linha">${c.contato_telefone}</span>` : ""}`
+      : "—";
+
+    return `
+      <tr data-id="${c.id}">
+        <td class="cliente-empresa-nome">${c.nome_marca}</td>
+        <td>${c.nicho || "—"}</td>
+        <td>${contatoHtml}</td>
+        <td>${c.ja_trabalhou ? `<span class="cliente-tag trabalhou">Já trabalhou</span>` : "—"}</td>
+        <td><span class="cliente-tag status-${c.status}">${c.status === "ativo" ? "Ativo" : "Inativo"}</span></td>
+        <td class="cliente-acoes-linha">
+          <button type="button" class="cliente-acoes-botao" data-acao="cliente-acoes-abrir" data-id="${c.id}" aria-label="Ações">⋯</button>
+          <div class="cliente-acoes-menu oculto" data-menu-id="${c.id}">
+            <button type="button" data-acao="cliente-editar" data-id="${c.id}">✎ Editar</button>
+            <button type="button" class="perigo" data-acao="cliente-excluir" data-id="${c.id}">🗑 Excluir</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  function reatarEventosTabelaClientes(corpo){
+    corpo.querySelectorAll("[data-acao='cliente-acoes-abrir']").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const menuAlvo = corpo.querySelector(`[data-menu-id="${btn.dataset.id}"]`);
+        document.querySelectorAll(".cliente-acoes-menu").forEach(m => { if (m !== menuAlvo) m.classList.add("oculto"); });
+        if (menuAlvo) menuAlvo.classList.toggle("oculto");
+      });
+    });
+    corpo.querySelectorAll("[data-acao='cliente-editar']").forEach(btn => {
+      btn.addEventListener("click", () => abrirModalCliente(btn.dataset.id));
+    });
+    corpo.querySelectorAll("[data-acao='cliente-excluir']").forEach(btn => {
+      btn.addEventListener("click", () => excluirCliente(btn.dataset.id));
+    });
+  }
+
+  function renderTabelaClientes(){
+    const corpo = document.getElementById("clientesTabelaCorpo");
+    if (!corpo) return;
+
+    const termo = (document.getElementById("clienteBusca").value || "").trim().toLowerCase();
+    let filtrados = clientesCache.filter(c => c.etapa === clienteSubAbaAtiva);
+    if (termo){
+      filtrados = filtrados.filter(c =>
+        (c.nome_marca || "").toLowerCase().includes(termo) ||
+        (c.contato_nome || "").toLowerCase().includes(termo) ||
+        (c.contato_email || "").toLowerCase().includes(termo) ||
+        (c.nicho || "").toLowerCase().includes(termo)
+      );
+    }
+    filtrados = filtrados.slice().sort((a, b) =>
+      clienteOrdemRecente
+        ? (b.created_at || "").localeCompare(a.created_at || "")
+        : (a.created_at || "").localeCompare(b.created_at || "")
+    );
+
+    corpo.innerHTML = filtrados.length
+      ? filtrados.map(renderLinhaClienteHtml).join("")
+      : `<tr><td colspan="6" class="ugc-vazio">Nenhum cliente encontrado aqui.</td></tr>`;
+
+    reatarEventosTabelaClientes(corpo);
+  }
+
+  function trocarSubAbaClientes(sub){
+    clienteSubAbaAtiva = sub;
+    document.querySelectorAll("#subAbasClientes .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === sub));
+    renderTabelaClientes();
+  }
+
+  function alternarOrdemClientes(){
+    clienteOrdemRecente = !clienteOrdemRecente;
+    document.getElementById("clienteOrdemTexto").textContent = clienteOrdemRecente ? "Recentes" : "Antigos";
+    renderTabelaClientes();
+  }
+
+  function renderizarClientes(){
+    calcularResumoClientes();
+    renderContagensSubAbasClientes();
+    renderTabelaClientes();
+  }
+
+  function abrirModalCliente(id){
+    clienteEditandoId = id || null;
+    const cliente = id ? clientesCache.find(c => c.id === id) : null;
+
+    document.getElementById("modalClienteTitulo").textContent = cliente ? "🏢 Editar Cliente" : "🏢 Novo Cliente";
+    document.getElementById("clienteModalSalvar").textContent = cliente ? "Salvar alterações" : "Criar Cliente";
+    document.getElementById("clienteCampoMarca").value = cliente ? cliente.nome_marca : "";
+    document.getElementById("clienteCampoCnpj").value = cliente ? (cliente.cnpj || "") : "";
+    document.getElementById("clienteCampoNicho").value = cliente ? (cliente.nicho || "") : "";
+    document.getElementById("clienteCampoInstagram").value = cliente ? (cliente.instagram || "") : "";
+    document.getElementById("clienteCampoTiktok").value = cliente ? (cliente.tiktok || "") : "";
+    document.getElementById("clienteCampoContatoNome").value = cliente ? (cliente.contato_nome || "") : "";
+    document.getElementById("clienteCampoContatoEmail").value = cliente ? (cliente.contato_email || "") : "";
+    document.getElementById("clienteCampoContatoTelefone").value = cliente ? (cliente.contato_telefone || "") : "";
+
+    document.getElementById("modalCliente").classList.remove("oculto");
+  }
+
+  function fecharModalCliente(){
+    document.getElementById("modalCliente").classList.add("oculto");
+    clienteEditandoId = null;
+  }
+
+  async function salvarCliente(){
+    const marca = document.getElementById("clienteCampoMarca").value.trim();
+    if (!marca) return;
+
+    const dados = {
+      nome_marca: marca,
+      cnpj: document.getElementById("clienteCampoCnpj").value.trim() || null,
+      nicho: document.getElementById("clienteCampoNicho").value || null,
+      instagram: document.getElementById("clienteCampoInstagram").value.trim() || null,
+      tiktok: document.getElementById("clienteCampoTiktok").value.trim() || null,
+      contato_nome: document.getElementById("clienteCampoContatoNome").value.trim() || null,
+      contato_email: document.getElementById("clienteCampoContatoEmail").value.trim() || null,
+      contato_telefone: document.getElementById("clienteCampoContatoTelefone").value.trim() || null
+    };
+
+    if (clienteEditandoId){
+      const { error } = await Auth.client.from("painel_clientes").update(dados).eq("id", clienteEditandoId);
+      if (!error){
+        const registro = clientesCache.find(c => c.id === clienteEditandoId);
+        if (registro) Object.assign(registro, dados);
+        renderizarClientes();
+        fecharModalCliente();
+      }
+    } else {
+      const { data: inserido, error } = await Auth.client.from("painel_clientes").insert(dados).select();
+      if (!error && inserido){
+        clientesCache = clientesCache.concat(inserido);
+        renderizarClientes();
+        fecharModalCliente();
+      }
+    }
+  }
+
+  async function excluirCliente(id){
+    const cliente = clientesCache.find(c => c.id === id);
+    if (!cliente) return;
+    if (!window.confirm(`Excluir o cliente "${cliente.nome_marca}"? Essa ação não pode ser desfeita.`)) return;
+
+    const { error } = await Auth.client.from("painel_clientes").delete().eq("id", id);
+    if (!error){
+      clientesCache = clientesCache.filter(c => c.id !== id);
+      renderizarClientes();
+    }
+  }
+
+  function abrirNegocia(){
+    document.getElementById("clientesTabelaCartao").classList.add("oculto");
+    document.getElementById("negociaPainel").classList.remove("oculto");
+  }
+
+  function fecharNegocia(){
+    document.getElementById("negociaPainel").classList.add("oculto");
+    document.getElementById("clientesTabelaCartao").classList.remove("oculto");
   }
 
   async function adicionarLancamento(e){

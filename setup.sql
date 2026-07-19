@@ -347,3 +347,41 @@ create policy "Usuaria autenticada gerencia suas notas"
   with check (true);
 
 grant select, insert, update, delete on public.painel_notas to authenticated;
+
+-- =====================================================================
+-- CLIENTES (aba "Clientes" do painel)
+-- Cadastro de clientes/parceiros, separado da aba Abordagem (que registra
+-- toda marca abordada, mesmo antes de virar cliente). Aqui só entram
+-- marcas já cadastradas como cliente/contato, organizadas em 3 etapas:
+-- 'contatos' (Base de Contatos) | 'abordagem' (Em Abordagem, negociando)
+-- | 'historico' (Histórico de Clientes, encerrado).
+-- =====================================================================
+create table if not exists public.painel_clientes (
+  id uuid primary key default gen_random_uuid(),
+  nome_marca text not null,
+  cnpj text,
+  nicho text,
+  instagram text,
+  tiktok text,
+  contato_nome text,
+  contato_email text,
+  contato_telefone text,
+  ja_trabalhou boolean not null default false,
+  status text not null default 'ativo' check (status in ('ativo', 'inativo')),
+  etapa text not null default 'contatos' check (etapa in ('contatos', 'abordagem', 'historico')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_clientes_etapa on public.painel_clientes (etapa);
+create index if not exists idx_painel_clientes_status on public.painel_clientes (status);
+
+alter table public.painel_clientes enable row level security;
+
+create policy "Usuaria autenticada gerencia seus clientes"
+  on public.painel_clientes
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_clientes to authenticated;
