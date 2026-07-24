@@ -1914,6 +1914,8 @@
 
     <!-- ===================== ABA: PORTFÓLIO ===================== -->
     <section id="painelPortfolio" class="painel-tab oculto">
+      <div class="cartoes-numeros" id="cartoesOrigemPortfolio"></div>
+
       <div class="grade-portfolio">
         <div class="cartao">
           <h2>Vídeos mais vistos</h2>
@@ -3152,27 +3154,33 @@
   function renderizarTudo(){
     const eventos = filtrarPorPeriodo(eventosCache);
     const leads = filtrarPorPeriodo(leadsCache);
-    renderizarMenuPrincipal(eventos, leads);
-    renderizarPortfolio(eventos, leads);
+    // O biosite (raiz) e o Portfólio (/portfolio/) são páginas separadas: cada
+    // evento tem o page_path de onde aconteceu, então dá pra separar as
+    // métricas gerais do biosite das métricas específicas do Portfólio.
+    const eventosBiosite = eventos.filter(e => e.page_path === "/");
+    const eventosPortfolio = eventos.filter(e => e.page_path && e.page_path.startsWith("/portfolio"));
+    renderizarMenuPrincipal(eventosBiosite, leads);
+    renderizarPortfolio(eventosPortfolio, leads);
     renderizarAlertasContas();
   }
 
   /* =========================================================================
-     ABA: MENU PRINCIPAL
+     ABA: MENU PRINCIPAL (métricas do biosite, edilainesantos.com)
      ========================================================================= */
   function renderizarMenuPrincipal(eventos, leads){
     const visitas = eventos.filter(e => e.event_type === "page_view");
     const cliques = eventos.filter(e => e.event_type === "button_click");
-    const videos = eventos.filter(e => e.event_type === "video_view");
     const visitantesUnicos = new Set(visitas.map(e => e.session_id)).size;
     const cliquesContato = cliques.filter(e => e.event_name && e.event_name.startsWith("contact_"));
+    const cliquesVerPortfolio = cliques.filter(e => e.event_name === "cta_portfolio_biosite");
 
+    // Métricas do biosite (edilainesantos.com). Vídeos e mensagens não aparecem
+    // aqui porque só existem dentro do Portfólio (/portfolio/) — ficam na aba dele.
+    // Cliques para contato aparecem no cartão grande logo abaixo, não repetidos aqui.
     const cartoes = [
       { numero: visitas.length, rotulo: "Visitas", destaque: true },
       { numero: visitantesUnicos, rotulo: "Visitantes únicos" },
-      { numero: cliques.length, rotulo: "Cliques em botões" },
-      { numero: videos.length, rotulo: "Vídeos vistos" },
-      { numero: leads.length, rotulo: "Mensagens" }
+      { numero: cliquesVerPortfolio.length, rotulo: "Cliques em Ver Portfólio" }
     ];
 
     document.getElementById("cartoesNumeros").innerHTML = cartoes.map(c => `
@@ -3235,13 +3243,34 @@
      ABA: PORTFÓLIO
      ========================================================================= */
   function renderizarPortfolio(eventos, leads){
+    const visitas = eventos.filter(e => e.event_type === "page_view");
     const videos = eventos.filter(e => e.event_type === "video_view");
     const cliques = eventos.filter(e => e.event_type === "button_click");
 
+    renderizarOrigemPortfolio(visitas);
     renderizarVideos(videos);
     renderizarBotoes(cliques);
     renderizarCliquesContato(cliques);
     renderizarMensagens(leads);
+  }
+
+  // Quem chegou ao Portfólio pelo link da bio (Instagram) x quem chegou pelo
+  // link direto (edilainesantos.com/ugcportfolio, usado em abordagens e cadastros de plataforma)
+  function renderizarOrigemPortfolio(visitas){
+    const viaBio = visitas.filter(e => !e.metadata || e.metadata.origem !== "direto").length;
+    const viaDireto = visitas.filter(e => e.metadata && e.metadata.origem === "direto").length;
+
+    const cartoes = [
+      { numero: viaBio, rotulo: "Via link da bio (Instagram)" },
+      { numero: viaDireto, rotulo: "Via link direto (abordagens/plataformas)", destaque: true }
+    ];
+
+    document.getElementById("cartoesOrigemPortfolio").innerHTML = cartoes.map(c => `
+      <div class="cartao cartao-numero ${c.destaque ? "destaque" : ""}">
+        <p class="numero-grande">${c.numero.toLocaleString("pt-BR")}</p>
+        <p class="numero-rotulo">${c.rotulo}</p>
+      </div>
+    `).join("");
   }
 
   // Agrupa uma lista de eventos contando quantas vezes cada valor de "chave" aparece

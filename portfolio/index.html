@@ -2392,9 +2392,17 @@ function definirIdioma(idioma){
   renderizarConteudo(false);
 }
 
+// Origem de quem chegou ao Portfólio: "?origem=direto" é usado no link
+// edilainesantos.com/ugcportfolio (abordagens e cadastros de plataforma);
+// sem essa marcação, assume "bio" (link normal, divulgado no biosite/Instagram).
+function obterOrigemPortfolio(){
+  const paramsUrl = new URLSearchParams(window.location.search);
+  return paramsUrl.get("origem") === "direto" ? "direto" : "bio";
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  // Registra a visita assim que a página carrega
-  registrarEvento("page_view", null, null);
+  // Registra a visita assim que a página carrega, já marcando a origem
+  registrarEvento("page_view", null, { origem: obterOrigemPortfolio() });
 
   document.documentElement.lang = idiomaAtual === "en" ? "en" : "pt-BR";
   atualizarBotoesIdioma();

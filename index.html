@@ -234,8 +234,8 @@ const SECOES_BIOSITE = [
   {
     secao: "Parcerias",
     itens: [
-      { titulo: "Quero te contratar como creator", link: "https://api.whatsapp.com/send?phone=551993842684", imagem: "imagens/biosite/creator.jpg" },
-      { titulo: "Meu portfólio 🦋", link: "https://edilainesantos.com/portfolio/", imagem: "imagens/biosite/portfolio.jpg" }
+      { titulo: "Quero te contratar como creator", link: "https://api.whatsapp.com/send?phone=551993842684", imagem: "imagens/biosite/creator.jpg", dataContato: "contact_whatsapp" },
+      { titulo: "Meu portfólio 🦋", link: "https://edilainesantos.com/portfolio/", imagem: "imagens/biosite/portfolio.jpg", dataCta: "cta_portfolio_biosite" }
     ]
   },
   {
@@ -281,7 +281,7 @@ document.getElementById("secoesBiosite").innerHTML = SECOES_BIOSITE.map(bloco =>
     <div class="secao-titulo">${bloco.secao} ↓</div>
     <div class="lista-links">
       ${bloco.itens.map(item => `
-        <a class="link-item" href="${item.link}" target="_blank" rel="noopener">
+        <a class="link-item" href="${item.link}" target="_blank" rel="noopener"${item.dataContato ? ` data-contato="${item.dataContato}"` : ""}${item.dataCta ? ` data-cta="${item.dataCta}"` : ""}>
           <img src="${item.imagem}" alt="">
           <span class="titulo">${item.titulo}</span>
         </a>
@@ -289,6 +289,58 @@ document.getElementById("secoesBiosite").innerHTML = SECOES_BIOSITE.map(bloco =>
     </div>
   </div>
 `).join("");
+
+/* =========================================================================
+   RASTREAMENTO (Supabase)
+   Registra a visita e os cliques nos links de contato/portfólio para
+   aparecer no painel administrativo (painel.html, aba Menu Principal).
+   Se o Supabase não responder por algum motivo, o site continua
+   funcionando normalmente — o rastreamento só é ignorado silenciosamente.
+   ========================================================================= */
+const SUPABASE_URL = "https://dqtoxxngjqyoibdgmrjr.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc";
+
+function obterSessionId(){
+  const chave = "portfolio_session_id";
+  let id = null;
+  try { id = sessionStorage.getItem(chave); } catch (e) {}
+  if (!id){
+    id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("sess-" + Date.now() + "-" + Math.random().toString(16).slice(2));
+    try { sessionStorage.setItem(chave, id); } catch (e) {}
+  }
+  return id;
+}
+
+function registrarEvento(eventType, eventName, metadata){
+  try {
+    fetch(SUPABASE_URL + "/rest/v1/portfolio_events", {
+      method: "POST",
+      keepalive: true,
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify({
+        event_type: eventType,
+        event_name: eventName || null,
+        session_id: obterSessionId(),
+        page_path: window.location.pathname,
+        metadata: metadata || null
+      })
+    }).catch(() => {});
+  } catch (erro) { /* rastreamento não deve travar o site */ }
+}
+
+registrarEvento("page_view", null, null);
+
+document.addEventListener("click", (e) => {
+  const linkContato = e.target.closest("[data-contato]");
+  if (linkContato) registrarEvento("button_click", linkContato.dataset.contato, null);
+  const linkCta = e.target.closest("[data-cta]");
+  if (linkCta) registrarEvento("button_click", linkCta.dataset.cta, null);
+});
 </script>
 
 </body>
