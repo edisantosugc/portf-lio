@@ -1889,6 +1889,7 @@
       </div>
       <div class="filtro-periodo" id="filtroPeriodo">
         <button class="periodo-btn ativo" data-periodo="tudo">Tudo</button>
+        <button class="periodo-btn" data-periodo="hoje">Hoje</button>
         <button class="periodo-btn" data-periodo="7">7d</button>
         <button class="periodo-btn" data-periodo="30">30d</button>
         <button class="periodo-btn" data-periodo="90">90d</button>
@@ -1914,7 +1915,16 @@
 
     <!-- ===================== ABA: PORTFÓLIO ===================== -->
     <section id="painelPortfolio" class="painel-tab oculto">
+      <div class="cartoes-numeros" id="cartoesNumerosPortfolio"></div>
+
+      <div class="cartao destaque-contato" id="cartaoContatoPortfolio"></div>
+
       <div class="cartoes-numeros" id="cartoesOrigemPortfolio"></div>
+
+      <div class="cartao grafico-cartao">
+        <h2>Visitas nos últimos 14 dias</h2>
+        <div class="grafico-barras" id="graficoBarrasPortfolio"></div>
+      </div>
 
       <div class="grade-portfolio">
         <div class="cartao">
@@ -3145,6 +3155,11 @@
 
   function filtrarPorPeriodo(lista){
     if (periodoAtual === "tudo") return lista;
+    if (periodoAtual === "hoje"){
+      const inicioHoje = new Date();
+      inicioHoje.setHours(0, 0, 0, 0);
+      return lista.filter(item => new Date(item.created_at) >= inicioHoje);
+    }
     const dias = parseInt(periodoAtual, 10);
     const limite = new Date();
     limite.setDate(limite.getDate() - dias);
@@ -3196,11 +3211,11 @@
       <p class="texto-explicativo">Conta quem clicou em WhatsApp, e-mail, Instagram ou no botão de enviar o formulário.</p>
     `;
 
-    renderizarGrafico(visitas);
+    renderizarGrafico(visitas, "graficoBarras");
   }
 
-  function renderizarGrafico(visitas){
-    const grafico = document.getElementById("graficoBarras");
+  function renderizarGrafico(visitas, idContainer){
+    const grafico = document.getElementById(idContainer);
 
     if (visitas.length === 0){
       grafico.innerHTML = '<p class="texto-vazio">Nenhuma visita registrada ainda.</p>';
@@ -3246,8 +3261,27 @@
     const visitas = eventos.filter(e => e.event_type === "page_view");
     const videos = eventos.filter(e => e.event_type === "video_view");
     const cliques = eventos.filter(e => e.event_type === "button_click");
+    const cliquesContato = cliques.filter(e => e.event_name && e.event_name.startsWith("contact_"));
+
+    document.getElementById("cartoesNumerosPortfolio").innerHTML = `
+      <div class="cartao cartao-numero destaque">
+        <p class="numero-grande">${visitas.length.toLocaleString("pt-BR")}</p>
+        <p class="numero-rotulo">Visitas</p>
+      </div>
+      <div class="cartao cartao-numero">
+        <p class="numero-grande">${cliques.length.toLocaleString("pt-BR")}</p>
+        <p class="numero-rotulo">Cliques em links</p>
+      </div>
+    `;
+
+    document.getElementById("cartaoContatoPortfolio").innerHTML = `
+      <p class="numero-grande">${cliquesContato.length.toLocaleString("pt-BR")}</p>
+      <p class="numero-rotulo">Clicaram para entrar em contato</p>
+      <p class="texto-explicativo">Conta quem clicou em WhatsApp, e-mail, Instagram ou no botão de enviar o formulário.</p>
+    `;
 
     renderizarOrigemPortfolio(visitas);
+    renderizarGrafico(visitas, "graficoBarrasPortfolio");
     renderizarVideos(videos);
     renderizarBotoes(cliques);
     renderizarCliquesContato(cliques);
