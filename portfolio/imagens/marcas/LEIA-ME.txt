@@ -1,0 +1,9 @@
+Coloque aqui os arquivos de logo das marcas que você já trabalhou.
+
+Formato recomendado: PNG ou SVG, fundo transparente se possível.
+Nome do arquivo: use o nome da marca em minúsculas, sem espaço nem acento
+(ex: "alva.png", "itambe.png", "saint-germain.png").
+
+Depois de colocar os arquivos aqui, me avise quais nomes de arquivo você usou
+para eu trocar as bolinhas com iniciais pelos logos de verdade na faixa
+"Marcas que já confiaram no meu trabalho".

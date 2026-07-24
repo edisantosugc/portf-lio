@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="fita1" x1="0%" y1="0%" x2="100%" y2="60%">
+      <stop offset="0%" stop-color="#f3eee9" stop-opacity="0"/>
+      <stop offset="18%" stop-color="#ddd0c2" stop-opacity="0.55"/>
+      <stop offset="45%" stop-color="#f6f1ec" stop-opacity="0.35"/>
+      <stop offset="70%" stop-color="#ccc2bc" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#f3eee9" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fita2" x1="10%" y1="100%" x2="90%" y2="0%">
+      <stop offset="0%" stop-color="#f3eee9" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#e7ded2" stop-opacity="0.4"/>
+      <stop offset="60%" stop-color="#ccc2bc" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="#f3eee9" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="#f3eee9"/>
+  <path d="M -100,620 C 250,520 420,720 700,600 C 980,480 1150,600 1400,420 C 1520,340 1580,300 1700,260"
+        fill="none" stroke="url(#fita1)" stroke-width="230" stroke-linecap="round"/>
+  <path d="M -100,260 C 220,180 380,340 640,260 C 900,180 1080,300 1320,200 C 1460,140 1560,110 1700,80"
+        fill="none" stroke="url(#fita2)" stroke-width="140" stroke-linecap="round"/>
+</svg>
