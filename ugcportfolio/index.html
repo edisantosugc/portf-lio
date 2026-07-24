@@ -5,15 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Portfólio | Edilaine Santos</title>
-<meta http-equiv="refresh" content="0; url=/portfolio/?origem=direto">
+<meta http-equiv="refresh" content="0; url=/portfolio/">
 <script>
-  // Link limpo usado em abordagens e cadastros de plataforma. Encaminha
-  // direto para o portfólio de verdade, já marcado como "origem: direto"
-  // (o link da bio/Instagram continua sendo o normal, sem essa marcação).
-  location.replace("/portfolio/?origem=direto");
+  // Link limpo usado em abordagens e cadastros de plataforma. Marca a
+  // origem na sessão do navegador (em vez de na URL, pra não deixar
+  // "?origem=direto" visível na barra de endereço) e encaminha direto
+  // pro portfólio de verdade, já na página normal e limpa.
+  try { sessionStorage.setItem("origem_portfolio", "direto"); } catch (erro) {}
+  location.replace("/portfolio/");
 </script>
 </head>
 <body>
-  <p>Redirecionando para o portfólio... Se não for redirecionado automaticamente, <a href="/portfolio/?origem=direto">clique aqui</a>.</p>
+  <p>Redirecionando para o portfólio... Se não for redirecionado automaticamente, <a href="/portfolio/">clique aqui</a>.</p>
 </body>
 </html>

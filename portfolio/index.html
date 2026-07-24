@@ -2396,8 +2396,15 @@ function definirIdioma(idioma){
 // edilainesantos.com/ugcportfolio (abordagens e cadastros de plataforma);
 // sem essa marcação, assume "bio" (link normal, divulgado no biosite/Instagram).
 function obterOrigemPortfolio(){
+  // "direto" pode vir marcado na sessão (link /ugcportfolio, sem aparecer na
+  // URL) ou, se alguém compartilhar um link com "?origem=direto" na mão, por
+  // aí também. Sem nenhuma das duas marcações, assume "bio".
   const paramsUrl = new URLSearchParams(window.location.search);
-  return paramsUrl.get("origem") === "direto" ? "direto" : "bio";
+  if (paramsUrl.get("origem") === "direto") return "direto";
+  try {
+    if (sessionStorage.getItem("origem_portfolio") === "direto") return "direto";
+  } catch (erro) {}
+  return "bio";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
