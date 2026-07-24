@@ -3,2493 +3,293 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Edi Santos - UGC Creator & Manager</title>
-<meta name="description" content="Edilaine Santos, criadora de conteúdo UGC. Vídeos autênticos, reels, fotos de produto e unboxing para marcas que querem vender mais.">
+<title>Edilaine Santos</title>
+<meta name="description" content="Links de Edilaine Santos: parcerias, cursos, cupons e achadinhos.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦋</text></svg>">
-
-<!-- Fontes do Google Fonts: Oswald Bold (nome, títulos e botões, no lugar da fonte ALPHA usada
-     nas artes do Canva), Lato (textos), Alex Brush (detalhes de destaque, no lugar da fonte
-     Lovera, que é paga e não está disponível no Google Fonts) e Playfair Display (selos/tags
-     das seções) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Oswald:wght@700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
-
-<!-- Supabase: usado só para registrar estatísticas do site (visitas, cliques, vídeos assistidos)
-     e mensagens de contato no painel administrativo. Veja js/auth.js e painel.html. -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
 <style>
-  /* ===================== VARIÁVEIS DE COR (PALETA) =====================
-     EDITE AQUI se quiser ajustar algum tom da paleta.
-     A variável --rosa guarda o tom dourado da nova paleta. O valor usado (#c9a66b) é
-     uma estimativa, já que a paleta enviada não veio com o código hexadecimal exato
-     do dourado; troque o valor abaixo se você tiver o código certo. */
   :root{
-    --creme: #f3eee9;       /* off-white: fundo principal */
-    --creme-escuro: #ccc2bc; /* cinza rosado: fundos e bordas suaves */
-    --rosa: #d4af37;        /* dourado brilhante: destaques e detalhes */
-    --vermelho: #000080;    /* azul royal (tom enviado): cor de destaque principal (botões, links) */
-    --tinta: #2a2622;
+    --coral: #000080;
     --branco: #ffffff;
-    --sombra-dura: 6px 6px 0 var(--tinta);
-    --sombra-dura-sm: 4px 4px 0 var(--tinta);
+    --grafite: #2A2622;
   }
-
-  *{ box-sizing: border-box; margin: 0; padding: 0; }
-
-  html{ scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-
+  *{ box-sizing: border-box; }
   body{
-    background: var(--creme);
-    color: var(--tinta);
+    margin: 0;
     font-family: 'Lato', sans-serif;
-    line-height: 1.6;
-    overflow-x: hidden;
+    color: var(--coral);
+    background: radial-gradient(circle at 50% 0%, #eef0f8 0%, #dcdfee 55%, #d3d6e6 100%);
+    min-height: 100vh;
   }
-
-  img, svg{ max-width: 100%; display: block; }
-
-  a{ color: inherit; text-decoration: none; }
-
-  ul{ list-style: none; }
-
-  h1, h2, h3, h4{
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    line-height: 1.15;
-    color: var(--tinta);
-  }
-
-  .marcador{
-    font-family: 'Alex Brush', cursive;
-    font-weight: 400;
-  }
-
-  .container{
-    width: 100%;
-    max-width: 1180px;
+  .biosite{
+    max-width: 560px;
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 56px 20px 80px;
   }
-
-  section{ position: relative; padding: 90px 0; }
-
-  /* Foco visível para navegação por teclado */
-  a:focus-visible,
-  button:focus-visible,
-  input:focus-visible,
-  textarea:focus-visible{
-    outline: 3px dashed var(--vermelho);
-    outline-offset: 3px;
-  }
-
-  .pill-btn{
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: 1.05rem;
-    padding: 14px 30px;
-    background: var(--vermelho);
-    color: var(--branco);
-    border: 3px solid var(--tinta);
-    border-radius: 50px;
-    box-shadow: var(--sombra-dura);
-    cursor: pointer;
-    transition: transform .15s ease, box-shadow .15s ease;
-  }
-  .pill-btn:hover, .pill-btn:focus-visible{
-    transform: translate(-3px,-3px);
-    box-shadow: 9px 9px 0 var(--tinta);
-  }
-  .pill-btn:active{
-    transform: translate(0,0);
-    box-shadow: 2px 2px 0 var(--tinta);
-  }
-  .pill-btn.secundario{
-    background: var(--creme);
-    color: var(--tinta);
-  }
-  .pill-btn.rosa{ background: var(--rosa); color: var(--tinta); }
-
-  .tag-secao{
-    display: inline-block;
+  .perfil{ text-align: center; }
+  .perfil h1{
     font-family: 'Playfair Display', serif;
-    font-style: italic;
     font-weight: 600;
-    font-size: 1rem;
-    color: var(--vermelho);
-    background: var(--branco);
-    border: 2px dashed var(--vermelho);
-    border-radius: 50px;
-    padding: 6px 18px;
-    transform: rotate(-3deg);
-    margin-bottom: 16px;
+    font-size: 1.9rem;
+    color: var(--coral);
+    margin: 0 0 18px;
   }
 
-  .titulo-secao{
-    font-size: clamp(1.8rem, 4vw, 2.6rem);
-    margin-bottom: 14px;
-  }
-
-  .sub-secao{
-    max-width: 620px;
-    color: #4a453e;
-    font-size: 1.05rem;
-  }
-
-  /* ===================== BLOCOS "FOTO" EM GRADIENTE =====================
-     Estes divs simulam fotos/vídeos com gradientes na paleta do site.
-     PARA TROCAR POR UMA FOTO DE VERDADE: troque a propriedade "background"
-     do bloco (ou da classe) por: background: url('sua-foto.jpg') center/cover;
-     e, se for uma tag <img>, apenas troque o "src" pela imagem real. */
-  .foto-bloco{
-    border: 4px solid var(--tinta);
-    border-radius: 24px;
-    box-shadow: var(--sombra-dura);
+  /* ===== PILHA DE FOTOS ===== */
+  .pilha{
     position: relative;
-    overflow: hidden;
-  }
-  .grad-1{ background: linear-gradient(135deg, var(--rosa), var(--vermelho)); }
-  .grad-2{ background: linear-gradient(135deg, var(--creme-escuro), var(--rosa)); }
-  .grad-3{ background: linear-gradient(135deg, var(--vermelho), var(--tinta)); }
-  .grad-4{ background: linear-gradient(135deg, var(--rosa), var(--creme)); }
-  .grad-5{ background: linear-gradient(135deg, var(--tinta), var(--rosa)); }
-  .grad-6{ background: linear-gradient(135deg, var(--vermelho), var(--rosa), var(--creme)); }
-
-  /* Camada de foto real: fica por cima do gradiente. Se o arquivo de imagem
-     não existir ainda, ela fica invisível e o gradiente continua aparecendo
-     por baixo, sem quebrar o layout. */
-  .foto-real{
-    position: absolute;
-    inset: 0;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-
-  /* Adesivo decorativo (sticker) */
-  .adesivo{
-    position: absolute;
-    font-family: 'Alex Brush', cursive;
-    background: var(--creme);
-    border: 3px solid var(--tinta);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    box-shadow: var(--sombra-dura-sm);
-    z-index: 5;
-  }
-
-  /* ===================== ANIMAÇÃO DE ENTRADA (SCROLL REVEAL) ===================== */
-  .reveal{
-    opacity: 0;
-    transform: translateY(28px);
-    transition: opacity .7s ease, transform .7s ease;
-  }
-  .reveal.visivel{
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* ===================== CABEÇALHO / MENU ===================== */
-  .cabecalho{
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 1000;
-    background: var(--creme);
-    border-bottom: 3px solid var(--tinta);
-  }
-  .barra-nav{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 24px;
-    max-width: 1180px;
+    width: 260px;
+    height: 235px;
     margin: 0 auto;
   }
-  .logo{
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: 1.4rem;
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-  }
-  .logo span{
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    color: var(--vermelho);
-  }
-
-  /* Borboleta decorativa colada na pontinha do "s" final de "Santos".
-     É inline (não absoluta) de propósito: assim ela sempre encosta
-     no fim do texto, não importa a fonte usada. */
-  .decor-borboleta{
-    display: inline-block;
-    vertical-align: top;
-    pointer-events: none;
-    position: relative;
-    animation: decor-flutuar-leve 3.6s ease-in-out infinite;
-    transform-origin: center;
-  }
-  .decor-borboleta img{ width: 100%; height: 100%; object-fit: contain; display: block; }
-  /* Em vez de px fixo: usa "em" para acompanhar o tamanho da fonte do
-     nome em cada tela. Isso é o que faz a borboleta ficar coladinha na
-     ponta do "s" tanto no desktop quanto no mobile — nos títulos que
-     usam clamp() a fonte muda de tamanho conforme a tela, e um deslocamento
-     fixo em px ficava correto só no tamanho de fonte do desktop. */
-  .logo .decor-borboleta{ width: .67em; height: .67em; margin-left: -.223em; top: -.134em; }
-  .nome-destaque .decor-borboleta{ width: .625em; height: .625em; margin-left: -.216em; top: -.12em; animation-delay: -1.4s; }
-  @media (prefers-reduced-motion: reduce){
-    .decor-borboleta{ animation: none; }
-  }
-  @keyframes decor-flutuar-leve{
-    0%, 100%{ transform: translateY(0) rotate(-5deg); }
-    50%{ transform: translateY(-3px) rotate(5deg); }
-  }
-
-  .menu-desktop{
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-  .menu-desktop a{
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    padding: 10px 16px;
-    border-radius: 50px;
-    transition: background .2s ease, color .2s ease;
-  }
-  .menu-desktop a:hover, .menu-desktop a:focus-visible{
-    background: var(--vermelho);
-    color: var(--branco);
-  }
-  .menu-desktop .pill-btn{ padding: 10px 22px; font-size: .95rem; margin-left: 8px; }
-
-  /* Botão de idioma PT/EN */
-  .idioma-switch{
-    display: flex;
-    align-items: center;
-    border: 2px solid var(--tinta);
-    border-radius: 50px;
-    padding: 3px;
-    gap: 2px;
-    flex-shrink: 0;
-  }
-  .idioma-btn{
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: .78rem;
-    padding: 6px 13px;
-    border-radius: 50px;
-    background: transparent;
-    color: var(--tinta);
-    cursor: pointer;
-    transition: background .2s ease, color .2s ease;
-  }
-  .idioma-btn.ativo{ background: var(--vermelho); color: var(--branco); }
-  .menu-mobile .idioma-switch{ margin: 16px 24px; align-self: flex-start; }
-
-  .botao-hamburguer{
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    width: 46px;
-    height: 46px;
-    background: var(--creme);
-    border: 3px solid var(--tinta);
-    border-radius: 12px;
-    box-shadow: var(--sombra-dura-sm);
-    cursor: pointer;
-  }
-  .botao-hamburguer span{
-    display: block;
-    width: 22px;
-    height: 3px;
-    background: var(--tinta);
-    border-radius: 2px;
-    transition: transform .25s ease, opacity .25s ease;
-  }
-  .botao-hamburguer.aberto span:nth-child(1){ transform: translateY(8px) rotate(45deg); }
-  .botao-hamburguer.aberto span:nth-child(2){ opacity: 0; }
-  .botao-hamburguer.aberto span:nth-child(3){ transform: translateY(-8px) rotate(-45deg); }
-
-  .menu-mobile{
-    display: none;
-    flex-direction: column;
-    background: var(--creme);
-    border-top: 3px solid var(--tinta);
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height .35s ease;
-  }
-  .menu-mobile.aberto{ max-height: 480px; }
-  .menu-mobile a{
-    padding: 16px 24px;
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    border-bottom: 1px solid rgba(42,38,34,.15);
-  }
-  .menu-mobile a:hover, .menu-mobile a:focus-visible{ background: var(--rosa); }
-  .menu-mobile .pill-btn{ margin: 16px 24px; text-align: center; justify-content: center; }
-
-  /* ===================== HERO ===================== */
-  .hero{
-    height: auto;
-    padding-top: 76px;
-    padding-bottom: 0;
-    display: flex;
-    align-items: flex-start;
-    position: relative;
-    overflow: hidden;
-    background-color: var(--creme);
-    background-image: url("imagens/textura-hero.svg");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
-  }
-  .hero .container{
-    display: grid;
-    grid-template-columns: 1.1fr .9fr;
-    gap: 40px;
-    align-items: center;
-  }
-  .hero-texto .tag-secao{ margin-bottom: 8px; font-size: 1.2rem; }
-  .hero-texto h1{
-    font-size: clamp(2.3rem, 4.6vw, 3.4rem);
-    margin-bottom: 10px;
-  }
-  .hero-texto h1 .destaque{
-    color: var(--vermelho);
-    position: relative;
-    white-space: nowrap;
-  }
-  .hero-texto p{
-    font-size: 1.35rem;
-    max-width: 520px;
-    margin-bottom: 30px;
-    color: #4a453e;
-  }
-  .hero-texto .hero-frase{
-    font-family: 'Lato', sans-serif;
-    font-weight: 500;
-    font-style: italic;
-    font-size: 1.32rem;
-    color: var(--tinta);
-    margin-bottom: 4px;
-    max-width: 520px;
-  }
-  .hero-texto .hero-stat{
-    font-family: 'Lato', sans-serif;
-    font-weight: 700;
-    font-size: 1.28rem;
-    color: var(--tinta);
-    margin-bottom: 16px;
-  }
-  .hero-botoes{ display: flex; gap: 14px; flex-wrap: wrap; }
-  .hero-botoes .pill-btn{ font-size: 1.28rem; }
-
-  .hero-foto-wrap{ position: relative; width: 440px; max-width: 100%; margin: 8px auto 0; align-self: start; }
-  .hero-foto{
-    width: 100%;
-    display: block;
-  }
-
-  /* Balõezinhos flutuantes, delicados, com emoji sobre a foto do Hero */
-  .balao-flutuante{
+  .cartao-foto{
     position: absolute;
-    display: inline-flex;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #1c1c1c;
+    box-shadow: 0 10px 22px rgba(0,0,128,.20);
+    border: 1px solid rgba(0,0,0,.25);
+  }
+  .cartao-foto .barra{
+    height: 15px;
+    background: #2c2c2c;
+    display: flex;
     align-items: center;
-    gap: 7px;
-    background: rgba(255,255,255,.92);
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
-    border-radius: 13px;
-    padding: 7px 14px 7px 11px;
-    box-shadow: 0 10px 22px -12px rgba(42,38,34,.3), 0 2px 7px -3px rgba(42,38,34,.16);
-    white-space: nowrap;
+    gap: 3px;
+    padding: 0 6px;
+    position: relative;
     z-index: 2;
   }
-  .balao-flutuante .balao-emoji{ font-size: 1.05rem; line-height: 1; }
-  .balao-flutuante .balao-texto{
-    font-family: 'Lato', sans-serif;
-    font-weight: 600;
-    font-size: .86rem;
-    color: var(--tinta);
-  }
-  .balao-mineira{ top: 7%; right: 73%; animation: balao-flutuar-neg 4.2s ease-in-out infinite; }
-  .balao-pet{ top: 32%; right: 84.3%; animation: balao-flutuar-neg 4.6s ease-in-out infinite; animation-delay: -1.5s; }
-  .balao-rotina{ top: 7%; left: 79%; animation: balao-flutuar-pos 4s ease-in-out infinite; animation-delay: -2.7s; }
-  .balao-idade{ top: 32%; left: 87.4%; animation: balao-flutuar-pos 4.4s ease-in-out infinite; animation-delay: -.8s; }
-  @keyframes balao-flutuar-neg{
-    0%, 100%{ transform: rotate(-3deg) translateY(0); }
-    50%{ transform: rotate(-6deg) translateY(-5px); }
-  }
-  @keyframes balao-flutuar-pos{
-    0%, 100%{ transform: rotate(2deg) translateY(0); }
-    50%{ transform: rotate(5deg) translateY(-5px); }
-  }
-  @media (prefers-reduced-motion: reduce){
-    .balao-flutuante{ animation: none; }
-  }
+  .cartao-foto .barra i{ width:4px; height:4px; border-radius:50%; background:#7a7a7a; display:block; }
+  .cartao-foto .barra small{ color:#a6a6a6; font-size:6.5px; margin-left:auto; font-family:monospace; letter-spacing:.02em; }
+  .cartao-foto img{ display:block; width:100%; height:100%; object-fit:cover; position:relative; z-index:1; }
 
-  /* ===================== FAIXA DE MARCAS ===================== */
-  .faixa-marcas{
-    background: var(--vermelho);
-    padding: 18px 0;
-    overflow: hidden;
-  }
-  .faixa-marcas p.rotulo{
-    text-align: center;
-    color: var(--branco);
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: 1rem;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    margin: 0 0 14px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid rgba(255,255,255,.5);
-  }
-  .marquee{
-    display: flex;
-    width: max-content;
-    animation: rolar 170s linear infinite;
-  }
-  .marquee-grupo{
-    display: flex;
-    gap: 26px;
-    padding-right: 26px;
-  }
-  .marca-bolha{
-    position: relative;
-    width: 54px;
-    height: 54px;
-    flex-shrink: 0;
-  }
-  .marca-bolha .logo-circulo{
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: var(--creme);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: .62rem;
-    letter-spacing: -.01em;
-    color: var(--vermelho);
-    text-align: center;
-    line-height: 1.05;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,.25);
-  }
-  .marca-bolha .logo-circulo img{
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    border-radius: 50%;
-  }
-  .marca-bolha .selo-verificado{
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 17px;
-    height: 17px;
-    border-radius: 50%;
-    background: var(--rosa);
-    border: 2px solid var(--branco);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .marca-bolha .selo-verificado svg{ width: 9px; height: 9px; }
-  @keyframes rolar{
-    from{ transform: translateX(0); }
-    to{ transform: translateX(-50%); }
-  }
-
-  /* ===================== SOBRE ===================== */
-  .sobre .container{
-    display: grid;
-    grid-template-columns: .8fr 1.2fr;
-    gap: 56px;
-    align-items: center;
-  }
-  .sobre-foto{
-    aspect-ratio: 1 / 1;
-    transform: rotate(-10deg);
-    border: none;
-    box-shadow: 0 45px 90px -25px rgba(42,38,34,.5), 0 18px 36px -12px rgba(42,38,34,.35), 0 8px 16px -6px rgba(42,38,34,.25);
-  }
-  .sobre-texto p{ margin-bottom: 16px; color: #4a453e; font-size: 1.05rem; }
-  .sobre-texto .nome-destaque{ color: var(--vermelho); }
-  .sobre-lista{ margin-top: 22px; display: flex; flex-wrap: wrap; gap: 12px; }
-  .sobre-lista li.chip-sobre{
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: 'Lato', sans-serif;
-    font-weight: 600;
-    font-size: .95rem;
-    color: var(--vermelho);
-    background: var(--branco);
-    border: 2px dashed var(--vermelho);
-    border-radius: 50px;
-    padding: 6px 18px;
-  }
-  .sobre-lista li.chip-azul{ background: rgba(0,0,128,.07); }
-  .check-bolinha{
-    width: 26px; height: 26px; border-radius: 50%;
-    background: var(--vermelho); color: var(--branco);
-    display: flex; align-items: center; justify-content: center;
-    font-size: .8rem; flex-shrink: 0; border: 2px solid var(--tinta);
-  }
-
-  /* ===================== PORTFÓLIO ===================== */
-  .portfolio{ background: var(--branco); }
-  .filtro-nichos{
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 22px 0 40px;
-  }
-  .pill-nicho{
-    font-family: 'Lato', sans-serif;
-    font-weight: 700;
-    font-size: .92rem;
-    padding: 9px 20px;
-    border-radius: 50px;
-    border: 2px solid var(--vermelho);
-    background: var(--branco);
-    color: var(--vermelho);
-    cursor: pointer;
-    transition: background .2s ease, color .2s ease, transform .15s ease;
-  }
-  .pill-nicho:hover, .pill-nicho:focus-visible{ background: var(--vermelho); color: var(--branco); }
-  .pill-nicho:active{ transform: scale(.97); }
-  .pill-nicho.ativo{ background: var(--vermelho); color: var(--branco); }
-  .categoria-portfolio{ margin: 0 0 44px; scroll-margin-top: 100px; }
-  .categoria-cabecalho{
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-  .categoria-titulo{
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: 1.7rem;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    margin: 0;
-  }
-  .categoria-titulo .categoria-contagem{
-    font-family: 'Lato', sans-serif;
-    font-weight: 400;
-    font-size: .95rem;
-    color: #4a453e;
-    opacity: .6;
-  }
-  .categoria-setas{ display: flex; gap: 8px; flex-shrink: 0; }
-  .seta-btn{
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    border: 2px solid var(--tinta);
-    background: var(--creme);
-    color: var(--tinta);
-    font-size: 1.1rem;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background .2s ease, transform .15s ease;
-  }
-  .seta-btn:hover:not(:disabled){ background: var(--vermelho); color: var(--branco); transform: translateY(-2px); }
-  .seta-btn:disabled{ opacity: .3; cursor: default; }
-  .linha-scroll{
-    display: flex;
-    justify-content: safe center;
-    gap: 20px;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-    padding-bottom: 4px;
-  }
-  .linha-scroll::-webkit-scrollbar{ display: none; }
-  .portfolio-card{ flex: 0 0 260px; }
-  .item-portfolio{
-    width: 100%;
-    aspect-ratio: 9 / 16;
-    display: block;
-    padding: 0;
-    margin: 0;
-    cursor: pointer;
-    appearance: none;
-    border: 2px solid var(--vermelho);
-    box-shadow: none;
-    transition: transform .3s ease, opacity .3s ease;
-  }
-  .item-portfolio:hover, .item-portfolio:focus-visible{ transform: translateY(-6px) rotate(-1deg); }
-  .preview-video{
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: 0;
-    pointer-events: none;
+  .cartao-longe-esq{
+    width: 68px; height: 118px;
+    left: 9px; top: 54px;
+    transform: rotate(-24deg);
     z-index: 1;
   }
-
-  /* Legenda minimalista embaixo do vídeo, estilo legenda de Instagram */
-  .item-legenda{
-    margin-top: 10px;
-    font-family: 'Lato', sans-serif;
-    font-size: .88rem;
-    line-height: 1.4;
-    color: var(--tinta);
-    text-align: center;
+  .cartao-longe-dir{
+    width: 66px; height: 112px;
+    right: 2px; top: 50px;
+    transform: rotate(21deg);
+    z-index: 1;
   }
-  .item-legenda strong{ font-family: 'Oswald', sans-serif; font-weight: 700; }
+  .cartao-tras-esq{
+    width: 125px; height: 170px;
+    left: 32px; top: 10px;
+    transform: rotate(-9deg);
+    z-index: 3;
+  }
+  .cartao-tras-esq img{ object-position: left center; }
+  .cartao-tras-dir{
+    width: 118px; height: 162px;
+    right: 24px; top: 29px;
+    transform: rotate(10deg);
+    z-index: 2;
+  }
+  .cartao-tras-dir img{ object-position: right center; }
+  .cartao-frente{
+    width: 150px; height: 195px;
+    left: 50%; top: 16px;
+    transform: translateX(-50%);
+    z-index: 4;
+  }
+  .cartao-frente img{ transform: scale(1.28); transform-origin: 50% 22%; }
 
-  /* Botão de play sobre a miniatura do vídeo */
-  .play-botao{
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 58px; height: 58px;
+  .contatos{
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 26px 0 44px;
+  }
+  .contatos a{
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
-    background: var(--vermelho);
-    border: 3px solid var(--branco);
-    box-shadow: var(--sombra-dura-sm);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 2;
-    transition: transform .2s ease;
-  }
-  .item-portfolio:hover .play-botao, .item-portfolio:focus-visible .play-botao{ transform: translate(-50%, -50%) scale(1.1); }
-  .play-botao::after{
-    content: "";
-    border-style: solid;
-    border-width: 10px 0 10px 16px;
-    border-color: transparent transparent transparent var(--branco);
-    margin-left: 4px;
-  }
-
-  /* ===================== MODAL DE VÍDEO ===================== */
-  .modal-video{
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(42,38,34,.92);
-    z-index: 2000;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-  }
-  .modal-video.aberto{ display: flex; }
-  .modal-conteudo{
-    position: relative;
-    outline: none;
-    width: 100%;
-    /* Largura máxima calculada para nunca passar da altura disponível na tela,
-       mantendo sempre a proporção vertical 9:16 (formato Shorts) sem sobra preta. */
-    max-width: min(380px, calc((100vh - 48px) * 9 / 16));
-    border: 4px solid var(--branco);
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: var(--sombra-dura);
-    background: var(--tinta);
-  }
-  .modal-conteudo::before{
-    content: "";
-    display: block;
-    padding-top: 177.78%; /* força a proporção 9:16 de forma confiável em qualquer navegador */
-  }
-  .modal-conteudo iframe{
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: 0;
-  }
-
-  /* ===================== FOTOS UGC ===================== */
-  .fotos-ugc{
-    padding: 46px 0 36px;
-    background-color: var(--creme);
-    background-image: url("imagens/textura-hero.svg");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
-  }
-  .titulo-secao .destaque-italico{
-    font-family: 'Playfair Display', serif;
-    font-style: italic;
-    font-weight: 600;
-    color: var(--vermelho);
-  }
-  .fotos-ugc-grid{
-    display: grid;
-    grid-template-columns: repeat(6, 22vh);
-    grid-auto-rows: 29.3vh;
-    justify-content: center;
-    gap: 14px;
-    margin-top: 24px;
-  }
-  .foto-ugc{
-    width: 100%;
-    height: 100%;
-    border-radius: 10px;
-    overflow: hidden;
-    border: 2px solid var(--vermelho);
-    box-shadow: none;
-  }
-  /* No mobile a largura da tela é bem menor que a altura, então aqui o
-     tamanho da foto usa a LARGURA disponível (não vh) — do contrário ela
-     estoura pra fora da tela nas laterais. */
-  @media (max-width: 900px){
-    .fotos-ugc-grid{ grid-template-columns: repeat(3, 1fr); grid-auto-rows: unset; }
-    .foto-ugc{ width: 100%; height: auto; aspect-ratio: 3 / 4; }
-  }
-  @media (max-width: 480px){
-    .fotos-ugc-grid{ grid-template-columns: repeat(2, 1fr); }
-  }
-
-  /* ===================== SERVIÇOS ===================== */
-  .servicos{ background: var(--vermelho); color: var(--branco); }
-  .servicos .titulo-secao, .servicos .tag-secao{ color: var(--branco); }
-  .servicos .tag-secao{ background: var(--vermelho); border-color: var(--branco); }
-  .servicos .sub-secao{ color: rgba(255,250,240,.85); }
-  .servicos-carrossel{ position: relative; margin-top: 32px; }
-  .servicos-carrossel .seta-btn{
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 2;
-    background: var(--branco);
-    box-shadow: var(--sombra-dura-sm);
-  }
-  .servicos-carrossel .seta-esq{ left: -8px; }
-  .servicos-carrossel .seta-dir{ right: -8px; }
-  .servicos-grid{
-    display: flex;
-    gap: 20px;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-    padding: 6px 4px;
-  }
-  .servicos-grid::-webkit-scrollbar{ display: none; }
-  .card-servico{
-    flex: 0 0 240px;
-    background: var(--creme);
-    border: 3px solid var(--tinta);
-    border-radius: 18px;
-    box-shadow: var(--sombra-dura-sm);
-    padding: 22px 20px;
-    display: flex;
-    flex-direction: column;
-    transition: transform .2s ease, box-shadow .2s ease;
-  }
-  .card-servico:hover{
-    transform: translate(-4px,-4px);
-    box-shadow: var(--sombra-dura);
-  }
-  .icone-servico{
-    width: 46px; height: 46px;
-    border-radius: 50%;
-    background: var(--rosa);
-    border: 3px solid var(--tinta);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.2rem;
-    margin-bottom: 12px;
-  }
-  .card-servico h3{ font-size: 1.05rem; margin-bottom: 6px; color: var(--vermelho); }
-  .card-servico p{ color: #4a453e; font-size: .88rem; line-height: 1.4; margin-bottom: 14px; }
-  .card-servico .link-servico{
-    margin-top: auto;
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: .82rem;
-    text-transform: uppercase;
-    letter-spacing: .02em;
-    color: var(--vermelho);
-  }
-  .card-servico .link-servico::after{ content: " →"; }
-
-  /* ===================== RESULTADOS ===================== */
-  .resultados{
-    background: var(--vermelho);
-    color: var(--branco);
-  }
-  .resultados .titulo-secao, .resultados .tag-secao{ color: var(--branco); }
-  .resultados .tag-secao{ background: var(--vermelho); border-color: var(--branco); }
-  .resultados .sub-secao{ color: rgba(255,250,240,.85); }
-  .grid-numeros{
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 24px;
-    margin-top: 40px;
-  }
-  .numero-card{
-    background: var(--tinta);
-    border: 3px solid var(--branco);
-    border-radius: 20px;
-    padding: 30px 20px;
-    text-align: center;
-  }
-  .numero-card .numero{
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: clamp(2.2rem, 5vw, 2.8rem);
-    color: var(--rosa);
-  }
-  .numero-card .rotulo-numero{
-    font-size: .95rem;
-    color: var(--creme);
-    margin-top: 6px;
-  }
-
-  /* ===================== DEPOIMENTOS ===================== */
-  .depoimentos-carrossel{ position: relative; margin-top: 40px; }
-  .depoimentos-carrossel .seta-btn{
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 2;
-    background: var(--branco);
-    box-shadow: var(--sombra-dura-sm);
-  }
-  .depoimentos-carrossel .seta-esq{ left: -8px; }
-  .depoimentos-carrossel .seta-dir{ right: -8px; }
-  .depoimentos-grid{
-    display: flex;
-    align-items: flex-start;
-    gap: 22px;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-    padding: 6px 4px;
-  }
-  .depoimentos-grid::-webkit-scrollbar{ display: none; }
-  .card-depoimento{
-    flex: 0 0 300px;
-    background: var(--branco);
-    border: 3px solid var(--tinta);
-    border-radius: 20px;
-    padding: 8px;
-    box-shadow: var(--sombra-dura-sm);
-    overflow: hidden;
-  }
-  .card-depoimento img{
-    display: block;
-    width: 100%;
-    height: auto;
-    border-radius: 14px;
-  }
-
-  /* ===================== CONTATO ===================== */
-  .contato{ background: var(--vermelho); color: var(--creme); }
-  .contato .titulo-secao{ color: var(--branco); }
-  .contato .tag-secao{ background: var(--branco); }
-  .contato .sub-secao{ color: rgba(255,255,255,.85); }
-  .contato-grid{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 46px;
-    margin-top: 40px;
-    align-items: start;
-  }
-  .form-contato{
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    background: var(--creme);
-    padding: 30px;
-    border-radius: 20px;
-    border: 3px solid var(--branco);
-  }
-  .campo-linha{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-  .campo label{
-    display: block;
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: var(--tinta);
-  }
-  .campo label .obrigatorio{ color: #e02020; }
-  .campo input, .campo textarea{
-    width: 100%;
-    padding: 12px 14px;
-    border-radius: 10px;
-    border: 2px solid var(--tinta);
-    font-family: 'Lato', sans-serif;
-    font-size: 1rem;
-    background: var(--branco);
-    color: var(--tinta);
-  }
-  .campo textarea{ resize: vertical; min-height: 110px; }
-  .mensagem-confirmacao{
-    display: none;
-    background: var(--branco);
-    border: 2px solid var(--branco);
-    border-radius: 10px;
-    padding: 14px;
-    font-weight: 500;
-    color: var(--tinta);
-  }
-  .mensagem-confirmacao.visivel{ display: block; }
-  .mensagem-confirmacao.erro{ background: #f8d7d3; color: #8a2c22; border-color: #8a2c22; }
-
-  .contatos-diretos{ display: flex; flex-direction: column; gap: 16px; }
-  .contato-item{
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    background: rgba(255,255,255,.08);
-    border: 2px solid rgba(255,255,255,.35);
-    border-radius: 16px;
-    padding: 18px 20px;
-    transition: background .2s ease, transform .2s ease;
-  }
-  .contato-item:hover, .contato-item:focus-visible{
-    background: rgba(255,255,255,.18);
-    transform: translateX(4px);
-  }
-  .contato-icone{
-    width: 44px; height: 44px; border-radius: 50%;
-    background: transparent;
-    color: var(--branco);
-    border: 2px solid var(--branco);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+    border: 1.5px solid var(--coral);
+    color: var(--coral);
+    text-decoration: none;
     transition: background .2s ease, color .2s ease;
   }
-  .contato-icone svg{ width: 18px; height: 18px; fill: currentColor; }
-  .contato-item:hover .contato-icone, .contato-item:focus-visible .contato-icone{
-    background: var(--branco);
-    color: var(--vermelho);
-  }
-  .contato-item strong{ display: block; font-family: 'Oswald', sans-serif; font-weight: 700; color: var(--branco); }
-  .contato-item span{ font-size: .9rem; color: rgba(255,255,255,.8); }
+  .contatos a svg{ width: 18px; height: 18px; fill: currentColor; }
+  .contatos a:hover{ background: var(--coral); color: var(--branco); }
 
-  /* ===================== RODAPÉ ===================== */
-  .rodape{
-    background: var(--vermelho);
-    color: var(--creme);
-    padding: 40px 0 24px;
-    border-top: 3px solid var(--tinta);
-  }
-  .rodape .container{
+  .secao{ margin-bottom: 34px; }
+  .secao-titulo{
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
     align-items: center;
-    gap: 20px;
-  }
-  .rodape-logo{ font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 1.2rem; }
-  .rodape-redes{ display: flex; gap: 14px; }
-  .rodape-redes a{
-    width: 42px; height: 42px; border-radius: 50%;
-    border: 2px solid var(--creme);
-    color: var(--creme);
-    display: flex; align-items: center; justify-content: center;
-    transition: background .2s ease, color .2s ease, border-color .2s ease;
-  }
-  .rodape-redes a svg{ width: 18px; height: 18px; fill: currentColor; }
-  .rodape-redes a:hover, .rodape-redes a:focus-visible{ background: var(--branco); border-color: var(--branco); color: var(--vermelho); }
-  .rodape-copy{
-    width: 100%;
+    justify-content: center;
+    gap: 6px;
     text-align: center;
-    font-size: .85rem;
-    opacity: .8;
-    margin-top: 20px;
-    border-top: 1px solid rgba(255,255,255,.25);
-    padding-top: 18px;
+    color: var(--coral);
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    font-size: .82rem;
+    margin: 0 0 14px;
   }
-
-  /* Link para pular para o conteúdo (acessibilidade) */
-  .pular-link{
-    position: absolute;
-    left: -999px;
-    top: 0;
-    background: var(--vermelho);
-    color: var(--branco);
-    padding: 12px 20px;
-    z-index: 2000;
-    border-radius: 0 0 10px 0;
+  .lista-links{
+    display: flex;
+    flex-direction: column;
+    background: var(--branco);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 6px 22px rgba(0,0,128,.09);
   }
-  .pular-link:focus{ left: 0; }
-
-  /* ===================== RESPONSIVO ===================== */
-  @media (max-width: 900px){
-    .hero{ height: auto; overflow: visible; align-items: center; padding-bottom: 48px; }
-    .hero .container{ grid-template-columns: minmax(0, 1fr); min-width: 0; }
-    .hero-foto-wrap{ order: -1; width: 100%; max-width: 340px; margin: 0 auto; min-width: 0; }
-    .hero-texto{ min-width: 0; }
-    .sobre .container{ grid-template-columns: minmax(0, 1fr); }
-    .sobre-foto{ width: 100%; max-width: 340px; margin: 0 auto; }
-    .sobre-texto{ min-width: 0; }
-
-    /* A sobreposição negativa (margin-left/top) usada no título "Sobre mim"
-       depende de medir com precisão a largura exata da letra "s" na fonte
-       carregada. Isso funciona bem no desktop, mas em alguns celulares fica
-       visivelmente solta. No mobile, trocamos por um espacinho pequeno e
-       positivo — não fica "colada" no pixel exato, mas garante que ela
-       sempre apareça encostada ao lado do texto, em qualquer aparelho. */
-    .nome-destaque .decor-borboleta{ margin-left: .08em; top: 0; }
-    .contato-grid{ grid-template-columns: minmax(0, 1fr); }
-
-    /* Balõezinhos: reaparecem no mobile (antes ficavam escondidos), um pouco
-       menores pra combinar com a foto menor da tela pequena. No desktop eles
-       flutuam fora da foto porque sobra espaço nas laterais; no mobile a foto
-       quase não tem margem, então aqui eles ficam coladinhos nos cantos da
-       foto em vez de flutuar pra fora da tela. */
-    .balao-flutuante{
-      display: inline-flex;
-      align-items: center;
-      padding: 5px 11px 5px 9px;
-      border-radius: 10px;
-      gap: 5px;
-      /* Trava de segurança pra largura: no lugar de "nowrap" (que deixa o texto
-         empurrar o balãozinho pra fora da tela em telas estreitas ou em textos
-         mais longos, como a versão em inglês), o texto agora quebra linha
-         dentro de um limite de largura relativo à própria foto. Assim o balão
-         nunca ultrapassa a lateral da tela nem invade o texto ao lado. */
-      max-width: 46%;
-      white-space: normal;
-      box-sizing: border-box;
-    }
-    .balao-flutuante .balao-emoji{ font-size: .82rem; flex-shrink: 0; }
-    .balao-flutuante .balao-texto{ font-size: .68rem; line-height: 1.25; white-space: normal; }
-    /* No mobile não sobra espaço lateral pra flutuar sem tocar a foto — e
-       pedido confirmado: pode ficar sobre a foto mesmo. Os dois de baixo
-       ficam na altura do queixo/mão (perto de 41% do topo), sem cobrir a
-       boca/bochecha (que fica mais acima, perto de 32%). */
-    .balao-mineira{ top: -10px; left: -8px; right: auto; }
-    .balao-rotina{ top: -10px; right: -8px; left: auto; }
-    .balao-pet{ top: 80%; bottom: auto; left: -8px; right: auto; }
-    .balao-idade{ top: 80%; bottom: auto; right: -8px; left: auto; }
-
-    /* Fonte um pouco menor no título "Sobre mim" pra "Edilaine Santos" ter
-       mais chance de caber numa linha só (ver regra "nome-destaque" abaixo). */
-    #sobreTitulo{ font-size: 1.5rem; }
-
-    /* "white-space: nowrap" garante que "Edilaine Santos" nunca quebre no
-       meio da frase — sem isso, a borboleta ficava "flutuando" no meio de
-       duas linhas em vez de colar na ponta do "s". A borboleta agora é
-       posicionada de forma absoluta, presa geometricamente na ponta do "s"
-       (não depende mais de vertical-align/line-height, que se comporta
-       diferente aqui do que no cabeçalho por causa do line-height do h2). */
-    .nome-destaque{ white-space: nowrap; position: relative; display: inline-block; }
-    .nome-destaque .decor-borboleta{
-      position: absolute;
-      left: 100%;
-      top: -5px;
-      margin-left: -.3em;
-    }
+  .link-item{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    text-decoration: none;
+    color: var(--coral);
+    border-bottom: 1px solid rgba(0,0,128,.08);
+    transition: background .15s ease;
   }
-
-  @media (max-width: 760px){
-    .menu-desktop{ display: none; }
-    .botao-hamburguer{ display: flex; }
-    .menu-mobile{ display: flex; }
-    section{ padding: 64px 0; }
-    .hero{ padding-top: 130px; }
+  .lista-links .link-item:last-child{ border-bottom: none; }
+  .link-item:hover{ background: rgba(0,0,128,.04); }
+  .link-item img{
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
   }
-
-  @media (max-width: 480px){
-    .hero-botoes{ flex-direction: column; align-items: stretch; }
-    .hero-botoes .pill-btn{ justify-content: center; }
-    .portfolio-card{ flex-basis: 165px; }
-    .campo-linha{ grid-template-columns: 1fr; }
+  .link-item .titulo{
+    flex: 1;
+    font-size: .93rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .rodape{
+    text-align: center;
+    margin-top: 50px;
+    font-size: .75rem;
+    color: rgba(0,0,128,.55);
   }
 </style>
 </head>
 <body>
 
-<a href="#inicio" class="pular-link">Pular para o conteúdo</a>
+<div class="biosite">
 
-<!-- ===================== 1. CABEÇALHO / MENU ===================== -->
-<header class="cabecalho">
-  <div class="barra-nav">
-    <a href="#inicio" class="logo" aria-label="Edilaine Santos, ir para o início">
-      Edilaine <span>Santos<span class="decor-borboleta" aria-hidden="true"><img src="imagens/borboleta.png" alt=""></span></span>
-    </a>
-
-    <nav class="menu-desktop" aria-label="Navegação principal">
-      <a href="#inicio" data-nav="inicio">Início</a>
-      <a href="#sobre" data-nav="sobre">Sobre</a>
-      <a href="#portfolio" data-nav="portfolio">Portfólio</a>
-      <a href="#servicos" data-nav="servicos">Serviços</a>
-      <!-- <a href="#resultados">Resultados</a> removido junto com a seção -->
-      <a href="#depoimentos" data-nav="feedbacks">Feedbacks</a>
-      <div class="idioma-switch" role="group" aria-label="Idioma / Language">
-        <button type="button" class="idioma-btn" data-idioma="pt">PT</button>
-        <button type="button" class="idioma-btn" data-idioma="en">EN</button>
+  <div class="perfil">
+    <h1 id="perfilNome"></h1>
+    <div class="pilha">
+      <div class="cartao-foto cartao-longe-esq">
+        <div class="barra"><i></i><i></i><i></i><small>00000.jpg</small></div>
+        <img src="imagens/biosite/perfil-extra-2.jpg" alt="" style="object-position:left center;">
       </div>
-      <a href="#contato" class="pill-btn" data-cta="cta_fale_comigo_menu" data-nav="cta">Fale comigo</a>
-    </nav>
-
-    <button class="botao-hamburguer" id="botaoHamburguer" aria-expanded="false" aria-controls="menuMobile" aria-label="Abrir menu de navegação">
-      <span></span><span></span><span></span>
-    </button>
+      <div class="cartao-foto cartao-longe-dir">
+        <div class="barra"><i></i><i></i><i></i><small>00000.jpg</small></div>
+        <img src="imagens/biosite/perfil-extra-2.jpg" alt="" style="object-position:right center;">
+      </div>
+      <div class="cartao-foto cartao-tras-esq">
+        <div class="barra"><i></i><i></i><i></i><small>00000.jpg</small></div>
+        <img src="imagens/biosite/perfil-extra-2.jpg" alt="">
+      </div>
+      <div class="cartao-foto cartao-tras-dir">
+        <div class="barra"><i></i><i></i><i></i><small>00000.jpg</small></div>
+        <img src="imagens/biosite/perfil-extra-2.jpg" alt="">
+      </div>
+      <div class="cartao-foto cartao-frente">
+        <div class="barra"><i></i><i></i><i></i><small>00000.jpg</small></div>
+        <img src="imagens/hero-sem-fundo-v2.png" alt="Edilaine Santos" style="object-position: top center; background:#fff;">
+      </div>
+    </div>
+    <div class="contatos" id="perfilContatos"></div>
   </div>
 
-  <nav class="menu-mobile" id="menuMobile" aria-label="Navegação mobile">
-    <a href="#inicio" data-nav="inicio">Início</a>
-    <a href="#sobre" data-nav="sobre">Sobre</a>
-    <a href="#portfolio" data-nav="portfolio">Portfólio</a>
-    <a href="#servicos" data-nav="servicos">Serviços</a>
-    <!-- <a href="#resultados">Resultados</a> removido junto com a seção -->
-    <a href="#depoimentos" data-nav="feedbacks">Feedbacks</a>
-    <div class="idioma-switch" role="group" aria-label="Idioma / Language">
-      <button type="button" class="idioma-btn" data-idioma="pt">PT</button>
-      <button type="button" class="idioma-btn" data-idioma="en">EN</button>
-    </div>
-    <a href="#contato" class="pill-btn" data-cta="cta_fale_comigo_menu" data-nav="cta">Fale comigo</a>
-  </nav>
-</header>
+  <div id="secoesBiosite"></div>
 
-<main id="inicio">
-
-  <!-- ===================== 2. HERO ===================== -->
-  <section class="hero">
-    <div class="container">
-      <div class="hero-texto reveal">
-        <p class="tag-secao" id="heroTag"></p>
-        <h1 id="heroTitulo"></h1>
-        <p id="heroFrase" class="hero-frase"></p>
-        <p id="heroStat" class="hero-stat"></p>
-        <div class="hero-botoes">
-          <a href="#contato" class="pill-btn" id="heroCta" data-cta="cta_fale_comigo_hero"></a>
-          <a href="#portfolio" class="pill-btn secundario" data-cta="cta_ver_portfolio" id="heroCtaSecundario"></a>
-        </div>
-      </div>
-
-      <div class="hero-foto-wrap">
-        <!-- Foto principal recortada (fundo removido), sem moldura, igual à capa do portfólio. -->
-        <img class="hero-foto" src="imagens/hero-sem-fundo-v2.png" alt="Edilaine Santos, criadora de conteúdo UGC">
-
-        <span class="balao-flutuante balao-mineira" aria-hidden="true">
-          <span class="balao-emoji">🌄</span>
-          <span class="balao-texto" id="baloMineira"></span>
-        </span>
-
-        <span class="balao-flutuante balao-pet" aria-hidden="true">
-          <span class="balao-emoji">🐾</span>
-          <span class="balao-texto" id="baloPet"></span>
-        </span>
-
-        <span class="balao-flutuante balao-rotina" aria-hidden="true">
-          <span class="balao-emoji">💙</span>
-          <span class="balao-texto">30+</span>
-        </span>
-
-        <span class="balao-flutuante balao-idade" aria-hidden="true">
-          <span class="balao-emoji">🏋🏽‍♀️</span>
-          <span class="balao-texto" id="baloSaudavel"></span>
-        </span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== 3. FAIXA DE MARCAS ===================== -->
-  <section class="faixa-marcas" aria-label="Marcas que já trabalharam com Edilaine Santos">
-    <p class="rotulo" id="faixaMarcasRotulo"></p>
-    <div class="marquee" id="marqueeMarcas"></div>
-  </section>
-
-  <!-- ===================== 4. SOBRE ===================== -->
-  <section class="sobre" id="sobre">
-    <div class="container">
-      <div class="sobre-foto foto-bloco grad-2 reveal" role="img" aria-label="Foto de Edilaine Santos gravando conteúdo">
-        <!-- Bloco em gradiente simulando a foto da seção Sobre.
-             PARA USAR SUA FOTO REAL: coloque um arquivo chamado "sobre.jpg"
-             dentro da pasta "imagens". Se o arquivo não existir, o gradiente aparece no lugar. -->
-        <div class="foto-real" style="background-image:url('imagens/sobre.png');"></div>
-      </div>
-      <div class="sobre-texto reveal">
-        <p class="tag-secao" id="sobreTag"></p>
-        <h2 class="titulo-secao" id="sobreTitulo"></h2>
-        <div id="sobreTexto"></div>
-        <ul class="sobre-lista" id="sobreLista"></ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== 5. PORTFÓLIO COM FILTRO ===================== -->
-  <section class="portfolio" id="portfolio">
-    <div class="container">
-      <p class="tag-secao reveal" id="portfolioTag"></p>
-      <h2 class="titulo-secao reveal" id="portfolioTitulo"></h2>
-      <p class="sub-secao reveal" id="portfolioSubtitulo"></p>
-
-      <div class="filtro-nichos reveal" id="filtroNichos"></div>
-
-      <div id="portfolioCategorias"></div>
-    </div>
-  </section>
-
-  <!-- Modal que abre o vídeo do YouTube ao clicar em um card do portfólio -->
-  <div class="modal-video" id="modalVideo" role="dialog" aria-modal="true" aria-label="Reprodução de vídeo do portfólio">
-    <div class="modal-conteudo" tabindex="-1">
-      <div id="modalPlayer"></div>
-    </div>
-  </div>
-
-  <!-- ===================== 5.5 FOTOS UGC ===================== -->
-  <section class="fotos-ugc" id="fotos-ugc">
-    <div class="container">
-      <p class="tag-secao reveal" id="fotosUgcTag"></p>
-      <h2 class="titulo-secao reveal" id="fotosUgcTitulo"></h2>
-      <div class="fotos-ugc-grid" id="gridFotosUgc"></div>
-    </div>
-  </section>
-
-  <!-- ===================== 6. SERVIÇOS ===================== -->
-  <section class="servicos" id="servicos">
-    <div class="container">
-      <p class="tag-secao reveal" id="servicosTag"></p>
-      <h2 class="titulo-secao reveal" id="servicosTitulo"></h2>
-      <p class="sub-secao reveal" id="servicosSubtitulo"></p>
-      <div class="servicos-carrossel">
-        <button type="button" class="seta-btn seta-esq" id="servicosSetaEsq" aria-label="Ver serviços anteriores">‹</button>
-        <div class="servicos-grid" id="gridServicos"></div>
-        <button type="button" class="seta-btn seta-dir" id="servicosSetaDir" aria-label="Ver próximos serviços">›</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== 7. RESULTADOS / NÚMEROS =====================
-       Removida temporariamente a pedido (não será publicada por enquanto).
-       Pra reativar, é só tirar esse comentário de novo.
-  <section class="resultados" id="resultados">
-    <div class="container">
-      <p class="tag-secao reveal" id="resultadosTag"></p>
-      <h2 class="titulo-secao reveal" id="resultadosTitulo"></h2>
-      <p class="sub-secao reveal" id="resultadosSubtitulo"></p>
-      <div class="grid-numeros" id="gridNumeros"></div>
-    </div>
-  </section>
-  -->
-
-  <!-- ===================== 8. DEPOIMENTOS ===================== -->
-  <section class="depoimentos" id="depoimentos">
-    <div class="container">
-      <p class="tag-secao reveal" id="depoimentosTag"></p>
-      <h2 class="titulo-secao reveal" id="depoimentosTitulo"></h2>
-      <p class="sub-secao reveal" id="depoimentosSubtitulo"></p>
-      <div class="depoimentos-carrossel">
-        <button type="button" class="seta-btn seta-esq" id="depoimentosSetaEsq" aria-label="Ver depoimentos anteriores">‹</button>
-        <div class="depoimentos-grid" id="gridDepoimentos"></div>
-        <button type="button" class="seta-btn seta-dir" id="depoimentosSetaDir" aria-label="Ver próximos depoimentos">›</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== 9. CONTATO ===================== -->
-  <section class="contato" id="contato">
-    <div class="container">
-      <p class="tag-secao reveal" id="contatoTag"></p>
-      <h2 class="titulo-secao reveal" id="contatoTitulo"></h2>
-      <p class="sub-secao reveal" id="contatoSubtitulo"></p>
-
-      <div class="contato-grid">
-        <form class="form-contato reveal" id="formContato" novalidate>
-          <div class="campo-linha">
-            <div class="campo">
-              <label for="campoNome"><span id="labelNome"></span> <span class="obrigatorio">*</span></label>
-              <input type="text" id="campoNome" name="nome" required autocomplete="name">
-            </div>
-            <div class="campo">
-              <label for="campoEmail"><span id="labelEmail"></span> <span class="obrigatorio">*</span></label>
-              <input type="email" id="campoEmail" name="email" required autocomplete="email">
-            </div>
-          </div>
-          <div class="campo-linha">
-            <div class="campo">
-              <label for="campoMarca"><span id="labelMarca"></span> <span class="obrigatorio">*</span></label>
-              <input type="text" id="campoMarca" name="marca" required autocomplete="organization">
-            </div>
-            <div class="campo">
-              <label for="campoOrcamento"><span id="labelOrcamento"></span></label>
-              <input type="text" id="campoOrcamento" name="orcamento">
-            </div>
-          </div>
-          <div class="campo">
-            <label for="campoMensagem"><span id="labelMensagem"></span> <span class="obrigatorio">*</span></label>
-            <textarea id="campoMensagem" name="mensagem" required></textarea>
-          </div>
-          <button type="submit" class="pill-btn" id="botaoEnviarTexto"></button>
-          <p class="mensagem-confirmacao" id="mensagemConfirmacao" role="status"></p>
-        </form>
-
-        <div class="contatos-diretos reveal" id="contatosDiretos"></div>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<!-- ===================== 10. RODAPÉ ===================== -->
-<footer class="rodape">
-  <div class="container">
-    <p class="rodape-logo" id="rodapeLogo"></p>
-    <div class="rodape-redes" id="rodapeRedes"></div>
-    <p class="rodape-copy" id="rodapeCopy"></p>
-  </div>
-</footer>
+  <div class="rodape">Edilaine Santos © <span id="anoRodape"></span></div>
+</div>
 
 <script>
 /* =========================================================================
-   PAINEL DE CONTEÚDO EDITÁVEL
-   Todo o texto do site vem deste objeto. Para atualizar o site, edite os
-   valores abaixo. Não é necessário mexer em nenhuma outra parte do código.
+   CONFIG DO BIOSITE
+   Pra editar: troque os textos entre aspas.
+   - "titulo": texto do botão
+   - "link": endereço pra onde o botão leva
+   - "imagem": caminho da miniatura (arquivos ficam em imagens/biosite/)
+   Pra adicionar um botão novo, copie um bloco { titulo, link, imagem }
+   inteiro e cole dentro da seção desejada. Pra criar uma seção nova,
+   copie um bloco { secao, itens } inteiro.
    ========================================================================= */
-/* =========================================================================
-   SITE EM 2 IDIOMAS (PT/EN)
-   Existem dois painéis completos abaixo: CONFIG_PT e CONFIG_EN. Editando um
-   texto, edite também o mesmo campo no outro objeto para as duas versões do
-   site ficarem sempre sincronizadas. Campos que não são texto (videoId,
-   gradiente, imagem, logo, número) são os mesmos nos dois.
-   ========================================================================= */
-const CONFIG_PT = {
 
-  // EDITE AQUI: textos do menu e do botão de idioma
-  nav: {
-    inicio: "Início", sobre: "Sobre", portfolio: "Portfólio", servicos: "Serviços",
-    feedbacks: "Feedbacks", cta: "Fale comigo"
-  },
-
-  // EDITE AQUI: dados pessoais e de contato
-  perfil: {
-    nome: "Edilaine Santos",
-    nomeCurto: "Edilaine",
-    profissao: "UGC Creator & Manager",
-    instagramArroba: "@byedisantos",
-    instagramUrl: "https://instagram.com/byedisantos",
-    email: "edilainesantosugc@gmail.com",
-    telefoneExibicao: "(19) 99384-2684",
-    whatsappUrl: "https://wa.me/5519993842684"
-  },
-
-  // EDITE AQUI: textos principais da primeira dobra (Hero)
-  hero: {
-    tag: "UGC Creator & Manager",
-    tituloParte1: "Histórias que ",
-    tituloDestaque1: "conectam",
-    tituloParte2: ". Estratégias que ",
-    tituloDestaque2: "performam",
-    tituloParte3: ".",
-    frase: "Conteúdo que atrai, engaja e converte.",
-    estatistica: "+100 marcas trabalhadas",
-    textoCta: "Fale comigo",
-    textoCtaSecundario: "Ver portfólio",
-    baloMineira: "Mineirinha",
-    baloPet: "Mãe de pet",
-    baloSaudavel: "Rotina saudável"
-  },
-
-  faixaMarcas: { rotulo: "Marcas que já confiaram no meu trabalho" },
-
-  // EDITE AQUI: marcas que já trabalharam com você (aparecem na faixa rolante).
-  // "logo" é o nome do arquivo dentro de imagens/marcas/. Se "logo" for null,
-  // aparece uma bolinha com as iniciais do nome no lugar.
-  marcas: [
-    { nome: "Alva", logo: "alva.jpg" },
-    { nome: "Blis", logo: "blis.jpg" },
-    { nome: "CleanNew Store", logo: "cleannew.jpg" },
-    { nome: "Coala", logo: "coala.png" },
-    { nome: "Condor", logo: "condor.jpg" },
-    { nome: "Darrow", logo: "darrow.png" },
-    { nome: "Dr. Lava Tudo", logo: "dr-lava-tudo.png" },
-    { nome: "Dreams Nutrition", logo: "dreams-nutrition.jpg" },
-    { nome: "FreePet", logo: "freepet.png" },
-    { nome: "Garnie", logo: "garnie.jpg" },
-    { nome: "Itambé", logo: "itambe.jpg" },
-    { nome: "Max Titanium", logo: "max-titanium.jpg" },
-    { nome: "Mega Ótica Opção", logo: "mega-otica-opcao.jpg" },
-    { nome: "Natuka", logo: "natuka.png" },
-    { nome: "Nivea", logo: "nivea.png" },
-    { nome: "Pantene", logo: "pantene.png" },
-    { nome: "Pibe", logo: "pibe.jpg" },
-    { nome: "Rainha Nativa", logo: "rainha-nativa.jpg" },
-    { nome: "Rituária", logo: "rituaria.jpg" },
-    { nome: "Saint Germain", logo: "saint-germain.jpg" },
-    { nome: "Seu Influencer", logo: "seu-influencer.jpg" },
-    { nome: "Shopee", logo: "shopee.png" },
-    { nome: "Show de Pizzaiolo", logo: "show-de-pizzaiolo.png" },
-    { nome: "Vhita", logo: "vhita.png" },
-    { nome: "Voga", logo: "voga.jpg" },
-    { nome: "Yool", logo: "yool.jpg" },
-    { nome: "Marca R", logo: "logo-r.png" }
-  ],
-
-  // EDITE AQUI: texto e destaques da seção Sobre
-  sobre: {
-    tag: "Sobre mim",
-    titulo: "Oiee, me chamo <span class=\"nome-destaque\">Edilaine Santos<span class=\"decor-borboleta\" aria-hidden=\"true\"><img src=\"imagens/borboleta.png\" alt=\"\"></span></span>",
-    paragrafos: [
-      "Tenho 30 anos, sou mineira, mãe de pet e UGC Creator.",
-      "Escrever sempre fez parte de mim. Desde pequena eu já transformava sentimento em palavra, criava história, achava sentido até nas coisas mais simples do dia a dia. Com o tempo, isso virou meu maior diferencial no UGC: pegar uma marca e transformar ela em conteúdo que gera identificação, confiança e aproxima.",
-      "<strong>Já trabalhei com mais de 100 marcas</strong>, produzindo <strong>centenas de conteúdos</strong>, transitando por vários estilos e formatos. Mas storytelling é o que faz a marca ser lembrada depois do vídeo, porque anúncio informa e história conecta.",
-      "Meu trabalho vai além de criar conteúdo: é entender a essência de cada marca e transformar isso em narrativa que <strong>fortalece a relação com o público e traz resultado</strong>.",
-      "Porque o que fica é sentimento. <strong>E sentimento vira confiança. E confiança vira resultado.</strong>"
-    ],
-    destaques: [
-      "+100 MARCAS TRABALHADAS",
-      "<svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"currentColor\" style=\"vertical-align:-3px;margin-right:2px\" aria-hidden=\"true\"><path d=\"M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"/></svg> HORTOLÂNDIA – SP"
-    ]
-  },
-
-  portfolioTextos: {
-    tag: "Portfólio",
-    titulo: "Trabalhos que já viraram resultado para as marcas",
-    subtitulo: "Assista aos vídeos reais que eu já produzi, organizados por nicho."
-  },
-
-  // EDITE AQUI: ordem dos nichos de portfólio (cada um vira uma fileira, estilo Netflix)
-  categoriasPortfolio: [
-    "Saúde e Bem-estar", "Casa e Decoração", "Pet", "Beleza e Autocuidado",
-    "Moda e Acessórios", "Tech & Apps", "Serviços e Experiências", "Datas Comemorativas"
-  ],
-
-  // EDITE AQUI: trabalhos do portfólio, com vídeos reais hospedados no YouTube (modo não listado).
-  // O campo "videoId" é o código que vem depois de "youtube.com/shorts/" no link do vídeo.
-  // Exemplo: no link "https://youtube.com/shorts/Zd0B7ttQZJQ" o videoId é "Zd0B7ttQZJQ".
-  // "marca" não aparece no site (é só para os relatórios do painel); a legenda mostrada no
-  // card é sempre "titulo". Para adicionar um vídeo, copie um bloco { ... } e troque os campos.
-  portfolio: [
-    // Saúde e Bem-estar
-    { marca: "Max Titanium", titulo: "Narrador – Barrinha de proteína", categoria: "Saúde e Bem-estar", gradiente: "grad-1", videoId: "Zd0B7ttQZJQ" },
-    { marca: "Shopee", titulo: "Orgânico – Conjuntinho fitness", categoria: "Saúde e Bem-estar", gradiente: "grad-2", videoId: "Y4YrncO4UZo" },
-    { marca: "Dreams Burn", titulo: "Storytelling – Cubo termogênico", categoria: "Saúde e Bem-estar", gradiente: "grad-3", videoId: "3pbXGVEFaog" },
-    { marca: "Max Titanium", titulo: "Depoimento – Whey drink", categoria: "Saúde e Bem-estar", gradiente: "grad-4", videoId: "KbJBIB5RHCI" },
-    { marca: "Rap 10", titulo: "Rotina – Receita pizza fit", categoria: "Saúde e Bem-estar", gradiente: "grad-5", videoId: "Jme4EkWP1oY" },
-
-    // Casa e Decoração
-    { marca: "Condor", titulo: "Storytelling – Mop PVA e rolo de tirar pelo", categoria: "Casa e Decoração", gradiente: "grad-6", videoId: "rjblZsgruDA" },
-    { marca: "Eletrolux", titulo: "Educativo – Refil filtro purificador de água", categoria: "Casa e Decoração", gradiente: "grad-1", videoId: "e6SAuK22QwM" },
-    { marca: "Shopee", titulo: "Marketplace – Capa de colchão impermeável", categoria: "Casa e Decoração", gradiente: "grad-2", videoId: "AbXbrKyfHcQ" },
-    { marca: "Condor", titulo: "Storytelling – Esponja limpeza extrema", categoria: "Casa e Decoração", gradiente: "grad-3", videoId: "sldWgcR84co" },
-    { marca: "Dobuê", titulo: "Orgânico – Debate entre irmãs, mesa de jantar", categoria: "Casa e Decoração", gradiente: "grad-4", videoId: "AmDppLUwvuc" },
-    { marca: "Shein", titulo: "Marketplace – Jogo de cama", categoria: "Casa e Decoração", gradiente: "grad-5", videoId: "vSGOS-KIKUE" },
-    { marca: "Coala", titulo: "Depoimento – Kit cheirinho orquídea negra", categoria: "Casa e Decoração", gradiente: "grad-6", videoId: "ogsVF7O7wMM" },
-
-    // Pet
-    { marca: "FreePet", titulo: "Storytelling – Limpa canil + neutralizador de odores", categoria: "Pet", gradiente: "grad-1", videoId: "d1fmuHk5sEU" },
-    { marca: "Natuka", titulo: "Educativo – Palitinhos enriquecimento ambiental", categoria: "Pet", gradiente: "grad-2", videoId: "C5vleYWynVM" },
-    { marca: "Petiko", titulo: "Unboxing divertido – Petiscos e brinquedos", categoria: "Pet", gradiente: "grad-3", videoId: "c6-PNqQZslE" },
-    { marca: "Nutrafases", titulo: "Depoimento – Suplemento alimentar probiótico", categoria: "Pet", gradiente: "grad-4", videoId: "t9FO_B2oydI" },
-    { marca: "New Pet", titulo: "Storytelling – Bebedouro de água inteligente", categoria: "Pet", gradiente: "grad-5", videoId: "pkf21wmwvvs" },
-
-    // Beleza e Autocuidado
-    { marca: "Condor", titulo: "Storytelling – Pincéis de maquiagem", categoria: "Beleza e Autocuidado", gradiente: "grad-6", videoId: "usONnfgOlzU" },
-    { marca: "Alva", titulo: "Narrador/Educativo – Raspador de língua", categoria: "Beleza e Autocuidado", gradiente: "grad-1", videoId: "k17j7zWKmuA" },
-    { marca: "Mayara", titulo: "Experiência – Design de sobrancelha", categoria: "Beleza e Autocuidado", gradiente: "grad-2", videoId: "8K0wrl9mf0U" },
-    { marca: "Condor", titulo: "Educativo – Escova de dente antibac", categoria: "Beleza e Autocuidado", gradiente: "grad-3", videoId: "M7HjEF0YcqU" },
-    { marca: "Pantene", titulo: "Storytelling – Tônico capilar", categoria: "Beleza e Autocuidado", gradiente: "grad-4", videoId: "38m6Q-Pr5S0" },
-    { marca: "Condor", titulo: "Dica – Kit escova de cabelo com canetinhas para colorir", categoria: "Beleza e Autocuidado", gradiente: "grad-5", videoId: "rqMTFESTsAw" },
-    { marca: "Alva", titulo: "Review – Desodorante cristal", categoria: "Beleza e Autocuidado", gradiente: "grad-6", videoId: "vOmNzVuLXJw" },
-    { marca: "Dermacyd", titulo: "Storytelling – Sabonete íntimo", categoria: "Beleza e Autocuidado", gradiente: "grad-1", videoId: "KMh3cYekKEM" },
-
-    // Moda e Acessórios
-    { marca: "Vans", titulo: "Criativo – 1 tênis, vários looks", categoria: "Moda e Acessórios", gradiente: "grad-2", videoId: "80XKBvwlWfU" },
-    { marca: "Ótica Mega Opção", titulo: "Orgânico – Óculos de grau", categoria: "Moda e Acessórios", gradiente: "grad-3", videoId: "_qhaRoUB1b0" },
-    { marca: "Shein", titulo: "Achadinho – Pijamas", categoria: "Moda e Acessórios", gradiente: "grad-4", videoId: "Ycp2cp5_ps0" },
-    { marca: "Saint Germain", titulo: "Apresentação – Relógio", categoria: "Moda e Acessórios", gradiente: "grad-5", videoId: "di5b_sg4_M8" },
-
-    // Tech & Apps
-    { marca: "Hollyland", titulo: "Comparação – Microfone", categoria: "Tech & Apps", gradiente: "grad-6", videoId: "KXBxVTr8PXA" },
-    { marca: "Konta IA", titulo: "Storytelling – Aplicativo organização financeira", categoria: "Tech & Apps", gradiente: "grad-1", videoId: "v2zf26ctp98" },
-    { marca: "Samsung", titulo: "Unboxing ASMR – Tablet", categoria: "Tech & Apps", gradiente: "grad-2", videoId: "H7vk2JF62PM" },
-    { marca: "Hollyland", titulo: "Dicas – Microfone", categoria: "Tech & Apps", gradiente: "grad-3", videoId: "uCHl56vK6Zc" },
-    { marca: "QCY", titulo: "Depoimento – Fone de ouvido", categoria: "Tech & Apps", gradiente: "grad-4", videoId: "Mb6rUOi0qAs" },
-
-    // Serviços e Experiências
-    { marca: "Dr. Lava Tudo", titulo: "Storytelling – Limpeza automotiva", categoria: "Serviços e Experiências", gradiente: "grad-5", videoId: "V2rAhr3_D7E" },
-    { marca: "Show de Pizzaiolo", titulo: "Storytelling – Rodízio de pizza em domicílio", categoria: "Serviços e Experiências", gradiente: "grad-6", videoId: "o9KozkhVU-E" },
-    { marca: "Dr. Lava Tudo", titulo: "Storytelling – Limpeza de sofá + colchão", categoria: "Serviços e Experiências", gradiente: "grad-1", videoId: "Y3b5WeKfBP0" },
-    { marca: "Show de Pizzaiolo", titulo: "Tráfego pago – Rodízio de pizza em domicílio (foco em alcançar franqueados)", categoria: "Serviços e Experiências", gradiente: "grad-2", videoId: "7n_Mol2CiSM" },
-
-    // Datas Comemorativas
-    { marca: "Yool", titulo: "Podcast junino (criativo gêmeas) – Respondendo perguntas, saia godê", categoria: "Datas Comemorativas", gradiente: "grad-3", videoId: "bzI86bSqRDQ" },
-    { marca: "Yool", titulo: "Site na parede (criativo) – Diversos produtos junino", categoria: "Datas Comemorativas", gradiente: "grad-4", videoId: "pvBmrnzCdHA" }
-  ],
-
-  fotosUgcTextos: {
-    tag: "Fotos UGC",
-    tituloHtml: "também faço <span class=\"destaque-italico\">fotos</span>."
-  },
-
-  // EDITE AQUI: fotos UGC (grade 6x2). Coloque o arquivo dentro de "imagens" e
-  // preencha "imagem"; se o arquivo não existir, o gradiente aparece no lugar.
-  // "posicao" é opcional: ajusta o enquadramento do corte (padrão "center").
-  // Use algo como "center 0%" pra puxar o corte mais pra cima da foto.
-  // "filtro" é opcional: ajusta brilho/contraste (ex: "brightness(.88) contrast(1.08) saturate(1.05)").
-  fotosUgc: [
-    { imagem: "imagens/foto-ugc-1.jpg", gradiente: "grad-1" },
-    { imagem: "imagens/foto-ugc-2.jpg", gradiente: "grad-2" },
-    { imagem: "imagens/foto-ugc-3.jpg", gradiente: "grad-3" },
-    { imagem: "imagens/foto-ugc-4.jpg", gradiente: "grad-4" },
-    { imagem: "imagens/foto-ugc-5.jpg", gradiente: "grad-5" },
-    { imagem: "imagens/foto-ugc-6.jpg", gradiente: "grad-6" },
-    { imagem: "imagens/foto-ugc-7.jpg", gradiente: "grad-1" },
-    { imagem: "imagens/foto-ugc-8.jpg", gradiente: "grad-2" },
-    { imagem: "imagens/foto-ugc-9.jpg", gradiente: "grad-3" },
-    { imagem: "imagens/foto-ugc-10.jpg", gradiente: "grad-4" },
-    { imagem: "imagens/foto-ugc-11.jpg", gradiente: "grad-5" },
-    { imagem: "imagens/foto-ugc-12.jpg", gradiente: "grad-6" }
-  ],
-
-  servicosTextos: {
-    tag: "Serviços",
-    titulo: "O que eu posso criar para a sua marca",
-    subtitulo: "Conteúdo pensado para gerar confiança, engajamento e, principalmente, vendas."
-  },
-
-  // EDITE AQUI: cards de serviços oferecidos (o campo "icone" aceita um emoji)
-  servicos: [
-    { icone: "🎬", titulo: "Vídeo UGC", descricao: "Criação de conteúdo estratégico com foco em vendas para você utilizar em seu próprio perfil e anúncios.", cta: "Quero UGC que converte" },
-    { icone: "🗂️", titulo: "UGC Manager", descricao: "Ao invés de criar, farei a gestão completa de campanhas com outras UGC's para que você fique livre, cuidarei desde a contratação até a entrega dos conteúdos.", cta: "Quero gestão de UGC's" },
-    { icone: "📱", titulo: "Reels e TikToks", descricao: "Conteúdo dinâmico, editado no ritmo das redes sociais e pronto para publicar ou usar em anúncios.", cta: "Quero conteúdo pra redes" },
-    { icone: "📸", titulo: "Fotos de Produto", descricao: "Imagens autênticas e bem iluminadas que mostram o seu produto no dia a dia real.", cta: "Quero fotos de produto" },
-    { icone: "📦", titulo: "Unboxing", descricao: "Vídeos de abertura de caixa com reação genuína, despertando desejo de compra em quem assiste.", cta: "Quero um unboxing" },
-    { icone: "⭐", titulo: "Depoimentos e Reviews", descricao: "Avaliações sinceras e persuasivas que aumentam a confiança do público na sua marca.", cta: "Quero depoimentos reais" },
-    { icone: "🚀", titulo: "Conteúdo para Anúncios", descricao: "Vídeos pensados para performar como anúncio pago, com gancho forte nos primeiros segundos.", cta: "Quero criar anúncios" },
-    { icone: "🤝", titulo: "UGC + Collab", descricao: "Divulgação para a minha própria comunidade, feito em colaboração. No meu perfil abordo autocuidado e lifestyle.", cta: "Quero fazer uma collab" }
-  ],
-
-  resultadosTextos: {
-    tag: "Resultados",
-    titulo: "Números que mostram o meu impacto",
-    subtitulo: "Dados reais de alcance e entrega que ajudam marcas a decidir com confiança."
-  },
-
-  // EDITE AQUI: números de destaque (a contagem anima sozinha ao aparecer na tela)
-  // "decimais" define quantas casas decimais aparecem no número
-  resultados: [
-    { numero: 85, sufixo: " mil+", rotulo: "Seguidores nas redes sociais", decimais: 0 },
-    { numero: 1.5, sufixo: " mi+", rotulo: "Visualizações por mês", decimais: 1 },
-    { numero: 40, sufixo: "+", rotulo: "Marcas atendidas", decimais: 0 },
-    { numero: 8.5, sufixo: "%", rotulo: "Taxa média de engajamento", decimais: 1 }
-  ],
-
-  depoimentosTextos: {
-    tag: "Depoimentos",
-    titulo: "O que as marcas dizem sobre o meu trabalho",
-    subtitulo: "Depoimentos de marcas que sentiram na prática o poder de um conteúdo estratégico."
-  },
-
-  // EDITE AQUI: depoimentos de clientes (prints reais de feedback).
-  // Cada depoimento é só a imagem do print; para adicionar mais, copie a linha e troque o nome do arquivo.
-  // OBS: os prints são reais e ficam em português nas duas versões do site (não são traduzidos).
-  depoimentos: [
-    { imagem: "imagens/depoimento-1.jpg" },
-    { imagem: "imagens/depoimento-2.jpg" },
-    { imagem: "imagens/depoimento-3.jpg" },
-    { imagem: "imagens/depoimento-4.jpg" },
-    { imagem: "imagens/depoimento-5.jpg" },
-    { imagem: "imagens/depoimento-6.jpg" },
-    { imagem: "imagens/depoimento-7.jpg" },
-    { imagem: "imagens/depoimento-8.jpg" },
-    { imagem: "imagens/depoimento-9.jpg" },
-    { imagem: "imagens/depoimento-10.jpg" }
-  ],
-
-  contatoTextos: {
-    tag: "Contato",
-    titulo: "Vamos criar o próximo conteúdo de sucesso da sua marca?",
-    subtitulo: "Me chame agora mesmo e receba uma proposta personalizada para o seu produto.",
-    labelNome: "Nome",
-    labelEmail: "E-mail",
-    labelMarca: "Marca / Empresa",
-    labelOrcamento: "Orçamento estimado",
-    labelMensagem: "Conta sobre o projeto",
-    placeholderNome: "Seu nome",
-    placeholderEmail: "voce@marca.com",
-    placeholderMarca: "Nome da marca",
-    placeholderOrcamento: "Ex: R$ 1.000 a R$ 5.000",
-    placeholderMensagem: "Categoria, formato, prazo, objetivo da campanha...",
-    botaoEnviar: "Enviar mensagem",
-    botaoEnviando: "Enviando...",
-    mensagemSucesso: "Obrigada pelo contato! Recebi sua mensagem e vou te responder em breve.",
-    mensagemErro: "Não consegui enviar sua mensagem agora. Tente novamente ou me chame direto no WhatsApp."
-  },
-
-  // EDITE AQUI: texto do rodapé
-  rodape: {
-    copyrightTexto: "Todos os direitos reservados."
-  }
+const PERFIL_BIOSITE = {
+  nome: "Edilaine Santos",
+  email: "edilainesantosugc@gmail.com",
+  tiktokUrl: "https://www.tiktok.com/@byedisantos"
 };
 
-// EDIT HERE: English version. Keep this in sync with CONFIG_PT above whenever you update content.
-const CONFIG_EN = {
-
-  nav: {
-    inicio: "Home", sobre: "About", portfolio: "Portfolio", servicos: "Services",
-    feedbacks: "Feedback", cta: "Get in touch"
-  },
-
-  perfil: {
-    nome: "Edilaine Santos",
-    nomeCurto: "Edilaine",
-    profissao: "UGC Creator & Manager",
-    instagramArroba: "@byedisantos",
-    instagramUrl: "https://instagram.com/byedisantos",
-    email: "edilainesantosugc@gmail.com",
-    telefoneExibicao: "(19) 99384-2684",
-    whatsappUrl: "https://wa.me/5519993842684"
-  },
-
-  hero: {
-    tag: "UGC Creator & Manager",
-    tituloParte1: "Stories that ",
-    tituloDestaque1: "connect",
-    tituloParte2: ". Strategies that ",
-    tituloDestaque2: "perform",
-    tituloParte3: ".",
-    frase: "Content that attracts, engages, and converts.",
-    estatistica: "+100 brands worked with",
-    textoCta: "Get in touch",
-    textoCtaSecundario: "View portfolio",
-    baloMineira: "From Minas Gerais",
-    baloPet: "Pet mom",
-    baloSaudavel: "Healthy routine"
-  },
-
-  faixaMarcas: { rotulo: "Brands that have trusted my work" },
-
-  marcas: [
-    { nome: "Alva", logo: "alva.jpg" },
-    { nome: "Blis", logo: "blis.jpg" },
-    { nome: "CleanNew Store", logo: "cleannew.jpg" },
-    { nome: "Coala", logo: "coala.png" },
-    { nome: "Condor", logo: "condor.jpg" },
-    { nome: "Darrow", logo: "darrow.png" },
-    { nome: "Dr. Lava Tudo", logo: "dr-lava-tudo.png" },
-    { nome: "Dreams Nutrition", logo: "dreams-nutrition.jpg" },
-    { nome: "FreePet", logo: "freepet.png" },
-    { nome: "Garnie", logo: "garnie.jpg" },
-    { nome: "Itambé", logo: "itambe.jpg" },
-    { nome: "Max Titanium", logo: "max-titanium.jpg" },
-    { nome: "Mega Ótica Opção", logo: "mega-otica-opcao.jpg" },
-    { nome: "Natuka", logo: "natuka.png" },
-    { nome: "Nivea", logo: "nivea.png" },
-    { nome: "Pantene", logo: "pantene.png" },
-    { nome: "Pibe", logo: "pibe.jpg" },
-    { nome: "Rainha Nativa", logo: "rainha-nativa.jpg" },
-    { nome: "Rituária", logo: "rituaria.jpg" },
-    { nome: "Saint Germain", logo: "saint-germain.jpg" },
-    { nome: "Seu Influencer", logo: "seu-influencer.jpg" },
-    { nome: "Shopee", logo: "shopee.png" },
-    { nome: "Show de Pizzaiolo", logo: "show-de-pizzaiolo.png" },
-    { nome: "Vhita", logo: "vhita.png" },
-    { nome: "Voga", logo: "voga.jpg" },
-    { nome: "Yool", logo: "yool.jpg" },
-    { nome: "Marca R", logo: "logo-r.png" }
-  ],
-
-  sobre: {
-    tag: "About me",
-    titulo: "Hi, I'm <span class=\"nome-destaque\">Edilaine Santos<span class=\"decor-borboleta\" aria-hidden=\"true\"><img src=\"imagens/borboleta.png\" alt=\"\"></span></span>",
-    paragrafos: [
-      "I'm 30 years old, from Minas Gerais, a pet mom, and a UGC Creator.",
-      "Writing has always been part of who I am. Since I was little, I turned feelings into words, created stories, found meaning even in the simplest everyday things. Over time, that became my biggest edge in UGC: taking a brand and turning it into content that builds identification, trust, and connection.",
-      "<strong>I've worked with over 100 brands</strong>, producing <strong>hundreds of pieces of content</strong>, moving across many styles and formats. But storytelling is what makes a brand memorable after the video ends, because ads inform and stories connect.",
-      "My work goes beyond creating content: it's about understanding the essence of each brand and turning that into a narrative that <strong>strengthens the relationship with the audience and drives results</strong>.",
-      "Because what stays is feeling. <strong>And feeling becomes trust. And trust becomes results.</strong>"
-    ],
-    destaques: [
-      "+100 BRANDS WORKED WITH",
-      "<svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"currentColor\" style=\"vertical-align:-3px;margin-right:2px\" aria-hidden=\"true\"><path d=\"M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"/></svg> HORTOLÂNDIA, BRAZIL"
+const SECOES_BIOSITE = [
+  {
+    secao: "Parcerias",
+    itens: [
+      { titulo: "Quero te contratar como creator", link: "https://api.whatsapp.com/send?phone=551993842684", imagem: "imagens/biosite/creator.jpg" },
+      { titulo: "Meu portfólio 🦋", link: "https://edilainesantos.com/portfolio/", imagem: "imagens/biosite/portfolio.jpg" }
     ]
   },
-
-  portfolioTextos: {
-    tag: "Portfolio",
-    titulo: "Work that has already delivered results for brands",
-    subtitulo: "Watch real videos I've produced, organized by niche."
+  {
+    secao: "Cursos e Mentorias Validados",
+    itens: [
+      { titulo: "Profissão do Futuro ✨", link: "https://lp.rafaelachagas.com.br/embaixadoras-pf?sck=afiliadas-embaixadoras&ref=A106065864W&utm_source=direto", imagem: "imagens/biosite/profissao-futuro.jpg" },
+      { titulo: "Consultoria Marca e Essência", link: "https://pay.hub.la/o90RvETFsGZg8hEUh65N?ref=aX3iQFHMqNG7E73FrYeA", imagem: "imagens/biosite/consultoria-marca.jpg" },
+      { titulo: "Método Posiciona", link: "https://pay.hub.la/Fyj1Pfoha3tw1cjX9Pog?ref=QTuP5DAhzbKFEwsfHv3Q", imagem: "imagens/biosite/metodo-posiciona.png" },
+      { titulo: "UGC de Conversão", link: "https://pay.hub.la/e1O3S6IVaxbeg1IFcSqW?ref=57hLb0zlHoHW424KrfAy", imagem: "imagens/biosite/ugc-conversao.png" },
+      { titulo: "Laboratório de Edições Criativas", link: "https://luannagomide.com.br/laboratorio-de-edicoes", imagem: "imagens/biosite/laboratorio-edicoes.jpg" }
+    ]
   },
-
-  categoriasPortfolio: [
-    "Health & Wellness", "Home & Decor", "Pet", "Beauty & Self-Care",
-    "Fashion & Accessories", "Tech & Apps", "Services & Experiences", "Special Occasions"
-  ],
-
-  portfolio: [
-    // Health & Wellness
-    { marca: "Max Titanium", titulo: "Voiceover – Protein bar", categoria: "Health & Wellness", gradiente: "grad-1", videoId: "Zd0B7ttQZJQ" },
-    { marca: "Shopee", titulo: "Organic – Fitness set", categoria: "Health & Wellness", gradiente: "grad-2", videoId: "Y4YrncO4UZo" },
-    { marca: "Dreams Burn", titulo: "Storytelling – Thermogenic cube", categoria: "Health & Wellness", gradiente: "grad-3", videoId: "3pbXGVEFaog" },
-    { marca: "Max Titanium", titulo: "Testimonial – Whey drink", categoria: "Health & Wellness", gradiente: "grad-4", videoId: "KbJBIB5RHCI" },
-    { marca: "Rap 10", titulo: "Routine – Fit pizza recipe", categoria: "Health & Wellness", gradiente: "grad-5", videoId: "Jme4EkWP1oY" },
-
-    // Home & Decor
-    { marca: "Condor", titulo: "Storytelling – PVA mop and lint roller", categoria: "Home & Decor", gradiente: "grad-6", videoId: "rjblZsgruDA" },
-    { marca: "Eletrolux", titulo: "Educational – Water filter refill", categoria: "Home & Decor", gradiente: "grad-1", videoId: "e6SAuK22QwM" },
-    { marca: "Shopee", titulo: "Marketplace – Waterproof mattress cover", categoria: "Home & Decor", gradiente: "grad-2", videoId: "AbXbrKyfHcQ" },
-    { marca: "Condor", titulo: "Storytelling – Extreme-clean sponge", categoria: "Home & Decor", gradiente: "grad-3", videoId: "sldWgcR84co" },
-    { marca: "Dobuê", titulo: "Organic – Sisters' debate, dinner table", categoria: "Home & Decor", gradiente: "grad-4", videoId: "AmDppLUwvuc" },
-    { marca: "Shein", titulo: "Marketplace – Bedding set", categoria: "Home & Decor", gradiente: "grad-5", videoId: "vSGOS-KIKUE" },
-    { marca: "Coala", titulo: "Testimonial – Black orchid scent kit", categoria: "Home & Decor", gradiente: "grad-6", videoId: "ogsVF7O7wMM" },
-
-    // Pet
-    { marca: "FreePet", titulo: "Storytelling – Kennel cleaner + odor neutralizer", categoria: "Pet", gradiente: "grad-1", videoId: "d1fmuHk5sEU" },
-    { marca: "Natuka", titulo: "Educational – Enrichment chew sticks", categoria: "Pet", gradiente: "grad-2", videoId: "C5vleYWynVM" },
-    { marca: "Petiko", titulo: "Fun unboxing – Treats and toys", categoria: "Pet", gradiente: "grad-3", videoId: "c6-PNqQZslE" },
-    { marca: "Nutrafases", titulo: "Testimonial – Probiotic supplement", categoria: "Pet", gradiente: "grad-4", videoId: "t9FO_B2oydI" },
-    { marca: "New Pet", titulo: "Storytelling – Smart water fountain", categoria: "Pet", gradiente: "grad-5", videoId: "pkf21wmwvvs" },
-
-    // Beauty & Self-Care
-    { marca: "Condor", titulo: "Storytelling – Makeup brushes", categoria: "Beauty & Self-Care", gradiente: "grad-6", videoId: "usONnfgOlzU" },
-    { marca: "Alva", titulo: "Voiceover/Educational – Tongue scraper", categoria: "Beauty & Self-Care", gradiente: "grad-1", videoId: "k17j7zWKmuA" },
-    { marca: "Mayara", titulo: "Experience – Eyebrow design", categoria: "Beauty & Self-Care", gradiente: "grad-2", videoId: "8K0wrl9mf0U" },
-    { marca: "Condor", titulo: "Educational – Antibacterial toothbrush", categoria: "Beauty & Self-Care", gradiente: "grad-3", videoId: "M7HjEF0YcqU" },
-    { marca: "Pantene", titulo: "Storytelling – Hair tonic", categoria: "Beauty & Self-Care", gradiente: "grad-4", videoId: "38m6Q-Pr5S0" },
-    { marca: "Condor", titulo: "Tip – Hairbrush kit with coloring markers", categoria: "Beauty & Self-Care", gradiente: "grad-5", videoId: "rqMTFESTsAw" },
-    { marca: "Alva", titulo: "Review – Crystal deodorant", categoria: "Beauty & Self-Care", gradiente: "grad-6", videoId: "vOmNzVuLXJw" },
-    { marca: "Dermacyd", titulo: "Storytelling – Intimate soap", categoria: "Beauty & Self-Care", gradiente: "grad-1", videoId: "KMh3cYekKEM" },
-
-    // Fashion & Accessories
-    { marca: "Vans", titulo: "Creative – 1 sneaker, many looks", categoria: "Fashion & Accessories", gradiente: "grad-2", videoId: "80XKBvwlWfU" },
-    { marca: "Ótica Mega Opção", titulo: "Organic – Prescription glasses", categoria: "Fashion & Accessories", gradiente: "grad-3", videoId: "_qhaRoUB1b0" },
-    { marca: "Shein", titulo: "Great find – Pajamas", categoria: "Fashion & Accessories", gradiente: "grad-4", videoId: "Ycp2cp5_ps0" },
-    { marca: "Saint Germain", titulo: "Showcase – Watch", categoria: "Fashion & Accessories", gradiente: "grad-5", videoId: "di5b_sg4_M8" },
-
-    // Tech & Apps
-    { marca: "Hollyland", titulo: "Comparison – Microphone", categoria: "Tech & Apps", gradiente: "grad-6", videoId: "KXBxVTr8PXA" },
-    { marca: "Konta IA", titulo: "Storytelling – Finance organizer app", categoria: "Tech & Apps", gradiente: "grad-1", videoId: "v2zf26ctp98" },
-    { marca: "Samsung", titulo: "ASMR unboxing – Tablet", categoria: "Tech & Apps", gradiente: "grad-2", videoId: "H7vk2JF62PM" },
-    { marca: "Hollyland", titulo: "Tips – Microphone", categoria: "Tech & Apps", gradiente: "grad-3", videoId: "uCHl56vK6Zc" },
-    { marca: "QCY", titulo: "Testimonial – Headphones", categoria: "Tech & Apps", gradiente: "grad-4", videoId: "Mb6rUOi0qAs" },
-
-    // Services & Experiences
-    { marca: "Dr. Lava Tudo", titulo: "Storytelling – Car detailing", categoria: "Services & Experiences", gradiente: "grad-5", videoId: "V2rAhr3_D7E" },
-    { marca: "Show de Pizzaiolo", titulo: "Storytelling – At-home pizza buffet", categoria: "Services & Experiences", gradiente: "grad-6", videoId: "o9KozkhVU-E" },
-    { marca: "Dr. Lava Tudo", titulo: "Storytelling – Sofa + mattress cleaning", categoria: "Services & Experiences", gradiente: "grad-1", videoId: "Y3b5WeKfBP0" },
-    { marca: "Show de Pizzaiolo", titulo: "Paid traffic – At-home pizza buffet (franchisee-focused)", categoria: "Services & Experiences", gradiente: "grad-2", videoId: "7n_Mol2CiSM" },
-
-    // Special Occasions
-    { marca: "Yool", titulo: "June-festival podcast (twins creative) – Q&A, flared skirt", categoria: "Special Occasions", gradiente: "grad-3", videoId: "bzI86bSqRDQ" },
-    { marca: "Yool", titulo: "Wall-mounted display (creative) – Various June-festival products", categoria: "Special Occasions", gradiente: "grad-4", videoId: "pvBmrnzCdHA" }
-  ],
-
-  fotosUgcTextos: {
-    tag: "UGC Photos",
-    tituloHtml: "I also do <span class=\"destaque-italico\">photos</span>."
+  {
+    secao: "Meus Cupons",
+    itens: [
+      { titulo: "Saint Germain | 🏷️ A-EDILAINESGPA", link: "https://www.saintgermainbrand.com.br/", imagem: "imagens/biosite/saint-germain.jpg" },
+      { titulo: "Dr. Lava Tudo | 🏷️ EDILAINE-10", link: "https://drlavatudo.com/loja/?afiliado=EDILAINE", imagem: "imagens/biosite/dr-lava-tudo.png" }
+    ]
   },
-
-  fotosUgc: [
-    { imagem: "imagens/foto-ugc-1.jpg", gradiente: "grad-1" },
-    { imagem: "imagens/foto-ugc-2.jpg", gradiente: "grad-2" },
-    { imagem: "imagens/foto-ugc-3.jpg", gradiente: "grad-3" },
-    { imagem: "imagens/foto-ugc-4.jpg", gradiente: "grad-4" },
-    { imagem: "imagens/foto-ugc-5.jpg", gradiente: "grad-5" },
-    { imagem: "imagens/foto-ugc-6.jpg", gradiente: "grad-6" },
-    { imagem: "imagens/foto-ugc-7.jpg", gradiente: "grad-1" },
-    { imagem: "imagens/foto-ugc-8.jpg", gradiente: "grad-2" },
-    { imagem: "imagens/foto-ugc-9.jpg", gradiente: "grad-3" },
-    { imagem: "imagens/foto-ugc-10.jpg", gradiente: "grad-4" },
-    { imagem: "imagens/foto-ugc-11.jpg", gradiente: "grad-5" },
-    { imagem: "imagens/foto-ugc-12.jpg", gradiente: "grad-6" }
-  ],
-
-  servicosTextos: {
-    tag: "Services",
-    titulo: "What I can create for your brand",
-    subtitulo: "Content designed to build trust, drive engagement, and above all, generate sales."
-  },
-
-  servicos: [
-    { icone: "🎬", titulo: "UGC Video", descricao: "Strategic, sales-focused content creation for you to use on your own profile and in ads.", cta: "I want UGC that converts" },
-    { icone: "🗂️", titulo: "UGC Manager", descricao: "Instead of creating, I'll fully manage campaigns with other UGC creators so you're free — handling everything from hiring to content delivery.", cta: "I want UGC management" },
-    { icone: "📱", titulo: "Reels & TikToks", descricao: "Dynamic content, edited to the rhythm of social media and ready to post or use in ads.", cta: "I want social content" },
-    { icone: "📸", titulo: "Product Photos", descricao: "Authentic, well-lit images that show your product in real everyday life.", cta: "I want product photos" },
-    { icone: "📦", titulo: "Unboxing", descricao: "Unboxing videos with genuine reactions that spark the desire to buy in anyone watching.", cta: "I want an unboxing" },
-    { icone: "⭐", titulo: "Testimonials & Reviews", descricao: "Honest, persuasive reviews that build audience trust in your brand.", cta: "I want real testimonials" },
-    { icone: "🚀", titulo: "Ad Content", descricao: "Videos built to perform as paid ads, with a strong hook in the first seconds.", cta: "I want to create ads" },
-    { icone: "🤝", titulo: "UGC + Collab", descricao: "Promotion to my own community, made in collaboration. My profile covers self-care and lifestyle.", cta: "I want to do a collab" }
-  ],
-
-  resultadosTextos: {
-    tag: "Results",
-    titulo: "Numbers that show my impact",
-    subtitulo: "Real reach and delivery data that help brands decide with confidence."
-  },
-
-  resultados: [
-    { numero: 85, sufixo: "k+", rotulo: "Social media followers", decimais: 0 },
-    { numero: 1.5, sufixo: "M+", rotulo: "Views per month", decimais: 1 },
-    { numero: 40, sufixo: "+", rotulo: "Brands served", decimais: 0 },
-    { numero: 8.5, sufixo: "%", rotulo: "Average engagement rate", decimais: 1 }
-  ],
-
-  depoimentosTextos: {
-    tag: "Feedback",
-    titulo: "What brands say about my work",
-    subtitulo: "Feedback from brands that experienced firsthand the power of strategic content."
-  },
-
-  // These are real screenshots, kept in Portuguese in both versions of the site (not translated).
-  depoimentos: [
-    { imagem: "imagens/depoimento-1.jpg" },
-    { imagem: "imagens/depoimento-2.jpg" },
-    { imagem: "imagens/depoimento-3.jpg" },
-    { imagem: "imagens/depoimento-4.jpg" },
-    { imagem: "imagens/depoimento-5.jpg" },
-    { imagem: "imagens/depoimento-6.jpg" },
-    { imagem: "imagens/depoimento-7.jpg" },
-    { imagem: "imagens/depoimento-8.jpg" },
-    { imagem: "imagens/depoimento-9.jpg" },
-    { imagem: "imagens/depoimento-10.jpg" }
-  ],
-
-  contatoTextos: {
-    tag: "Contact",
-    titulo: "Let's create your brand's next successful content?",
-    subtitulo: "Message me right now and get a personalized proposal for your product.",
-    labelNome: "Name",
-    labelEmail: "Email",
-    labelMarca: "Brand / Company",
-    labelOrcamento: "Estimated budget",
-    labelMensagem: "Tell me about the project",
-    placeholderNome: "Your name",
-    placeholderEmail: "you@brand.com",
-    placeholderMarca: "Brand name",
-    placeholderOrcamento: "E.g. $200 to $1,000",
-    placeholderMensagem: "Category, format, deadline, campaign goal...",
-    botaoEnviar: "Send message",
-    botaoEnviando: "Sending...",
-    mensagemSucesso: "Thanks for reaching out! I've received your message and will reply soon.",
-    mensagemErro: "I couldn't send your message right now. Please try again or message me directly on WhatsApp."
-  },
-
-  rodape: {
-    copyrightTexto: "All rights reserved."
+  {
+    secao: "Achadinhos",
+    itens: [
+      { titulo: "Só os favoritos 💙", link: "https://collshp.com/ediindica", imagem: "imagens/biosite/achadinhos.jpg" }
+    ]
   }
-};
+];
 
-/* =========================================================================
-   RENDERIZAÇÃO DO CONTEÚDO (não é necessário editar a partir daqui)
-   ========================================================================= */
-
-// Ícones das redes/contato em SVG (não usam biblioteca externa, ficam nítidos em qualquer tamanho)
 const ICONES_SVG = {
-  whatsapp: '<svg viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.006-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.593 6.592zm3.615-4.934c-.199-.099-1.177-.581-1.36-.647-.183-.066-.315-.099-.448.099-.133.198-.513.647-.627.78-.116.133-.232.148-.43.05-.199-.1-.838-.31-1.595-.985-.59-.526-.988-1.175-1.104-1.373-.116-.198-.012-.304.087-.403.089-.088.198-.232.297-.348.1-.116.133-.198.198-.33.066-.134.033-.248-.016-.347-.05-.099-.448-1.08-.613-1.48-.16-.383-.324-.332-.448-.337-.116-.005-.248-.005-.38-.005a.729.729 0 0 0-.529.247c-.182.198-.696.68-.696 1.658 0 .978.712 1.923.813 2.056.099.133 1.393 2.129 3.376 2.983.472.204.84.326 1.126.417.473.15.904.129 1.245.078.38-.058 1.177-.48 1.343-.943.166-.464.166-.86.117-.943-.05-.083-.183-.133-.383-.232z"/></svg>',
   email: '<svg viewBox="0 0 16 16"><path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555ZM0 4.697v7.104l5.803-3.558L0 4.697ZM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.026L8 9.586l-1.239-.757Zm3.436-.586L16 11.801V4.697l-5.803 3.546Z"/></svg>',
-  instagram: '<svg viewBox="0 0 16 16"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.27.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.27.087 3.85.048 4.703.01 5.556 0 5.829 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.942a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 8 0Zm0 1.442c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.232s-.008 2.389-.047 3.232c-.035.78-.166 1.204-.275 1.486a2.47 2.47 0 0 1-.599.92c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.275-.843.039-1.096.047-3.232.047s-2.39-.008-3.233-.047c-.78-.035-1.203-.166-1.485-.275a2.478 2.478 0 0 1-.92-.599 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.232s.008-2.389.046-3.232c.035-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.275.843-.039 1.096-.047 3.232-.047Zm0 2.451a4.107 4.107 0 1 0 0 8.214 4.107 4.107 0 0 0 0-8.214Zm0 6.771a2.664 2.664 0 1 1 0-5.328 2.664 2.664 0 0 1 0 5.328Zm5.23-6.933a1.14 1.14 0 1 1-2.279 0 1.14 1.14 0 0 1 2.279 0Z"/></svg>'
+  tiktok: '<svg viewBox="0 0 16 16"><path d="M9 0h2.2c.14 1.1.66 2.1 1.46 2.83.8.73 1.83 1.17 2.94 1.24v2.2a5.6 5.6 0 0 1-3.2-.98v5.5a4.7 4.7 0 1 1-4.7-4.7c.16 0 .32 0 .48.02v2.24a2.46 2.46 0 1 0 1.98 2.42V0Z"/></svg>'
 };
 
-/* =========================================================================
-   IDIOMA (PT/EN)
-   "CONFIG" aponta pra CONFIG_PT ou CONFIG_EN conforme a escolha da pessoa
-   (lembrada no navegador). Todo o resto do código lê sempre de "CONFIG".
-   ========================================================================= */
-// Lê com try/catch: em navegação privada do Safari (e em alguns navegadores
-// mais restritos) o acesso ao localStorage lança um erro em vez de simplesmente
-// retornar vazio, o que travaria todo o restante deste script — incluindo a
-// renderização dos balõezinhos, portfólio, serviços etc.
-let idiomaAtual = "pt";
-try { idiomaAtual = localStorage.getItem("portfolio_idioma") || "pt"; } catch (e) {}
-let CONFIG = idiomaAtual === "en" ? CONFIG_EN : CONFIG_PT;
+document.getElementById("perfilNome").textContent = PERFIL_BIOSITE.nome;
+document.getElementById("anoRodape").textContent = new Date().getFullYear();
 
-/* =========================================================================
-   RASTREAMENTO (Supabase)
-   Registra visitas, cliques e vídeos assistidos para aparecer no painel
-   administrativo (painel.html). Usa a mesma chave pública ("anon") do
-   Supabase; se o Supabase não carregar por algum motivo (bloqueador de
-   anúncios, sem internet), o site continua funcionando normalmente, o
-   rastreamento só é ignorado silenciosamente.
-   ========================================================================= */
-const SUPABASE_URL = "https://dqtoxxngjqyoibdgmrjr.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc";
-const sbRastreio = (window.supabase && typeof window.supabase.createClient === "function")
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
+document.getElementById("perfilContatos").innerHTML = `
+  <a href="mailto:${PERFIL_BIOSITE.email}" aria-label="E-mail de ${PERFIL_BIOSITE.nome}">${ICONES_SVG.email}</a>
+  <a href="${PERFIL_BIOSITE.tiktokUrl}" target="_blank" rel="noopener" aria-label="TikTok de ${PERFIL_BIOSITE.nome}">${ICONES_SVG.tiktok}</a>
+`;
 
-// Cada visitante recebe um identificador de sessão (dura enquanto a aba estiver aberta)
-function obterSessionId(){
-  const chave = "portfolio_session_id";
-  let id = null;
-  try { id = sessionStorage.getItem(chave); } catch (e) {}
-  if (!id){
-    id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("sess-" + Date.now() + "-" + Math.random().toString(16).slice(2));
-    try { sessionStorage.setItem(chave, id); } catch (e) {}
-  }
-  return id;
-}
-
-// Registra um evento (page_view, button_click ou video_view). Nunca quebra o site em caso de erro.
-// Usa fetch com "keepalive" (em vez do cliente do Supabase) porque cliques em links que abrem
-// nova aba (WhatsApp, Instagram) podem fazer o navegador cancelar a requisição antes dela
-// terminar; "keepalive" garante que o registro seja enviado mesmo assim.
-function registrarEvento(eventType, eventName, metadata){
-  try {
-    fetch(SUPABASE_URL + "/rest/v1/portfolio_events", {
-      method: "POST",
-      keepalive: true,
-      headers: {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
-        "Content-Type": "application/json",
-        "Prefer": "return=minimal"
-      },
-      body: JSON.stringify({
-        event_type: eventType,
-        event_name: eventName || null,
-        session_id: obterSessionId(),
-        page_path: window.location.pathname,
-        metadata: metadata || null
-      })
-    }).catch(() => {});
-  } catch (erro) { /* rastreamento não deve travar o site */ }
-}
-
-// Registra uma mensagem de contato (formulário) na tabela de leads.
-// Usa fetch direto na API (em vez do cliente do Supabase) pra não depender do
-// script externo do CDN, que pode ser bloqueado por bloqueadores de anúncios.
-async function registrarLead(dados){
-  try {
-    const resposta = await fetch(SUPABASE_URL + "/rest/v1/portfolio_leads", {
-      method: "POST",
-      headers: {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
-        "Content-Type": "application/json",
-        "Prefer": "return=minimal"
-      },
-      body: JSON.stringify(dados)
-    });
-    if (!resposta.ok) {
-      return { error: new Error("Falha ao gravar lead: " + resposta.status) };
-    }
-    return { error: null };
-  } catch (erro) {
-    return { error: erro };
-  }
-}
-
-// Preenche TODO o conteúdo do site a partir de CONFIG. Roda uma vez no carregamento
-// e de novo, toda vez que a pessoa troca o idioma (PT/EN).
-function renderizarConteudo(inicial){
-  // ---------- Menu ----------
-  document.querySelectorAll('[data-nav="inicio"]').forEach(el => el.textContent = CONFIG.nav.inicio);
-  document.querySelectorAll('[data-nav="sobre"]').forEach(el => el.textContent = CONFIG.nav.sobre);
-  document.querySelectorAll('[data-nav="portfolio"]').forEach(el => el.textContent = CONFIG.nav.portfolio);
-  document.querySelectorAll('[data-nav="servicos"]').forEach(el => el.textContent = CONFIG.nav.servicos);
-  document.querySelectorAll('[data-nav="feedbacks"]').forEach(el => el.textContent = CONFIG.nav.feedbacks);
-  document.querySelectorAll('[data-nav="cta"]').forEach(el => el.textContent = CONFIG.nav.cta);
-
-  // ---------- Logo do cabeçalho ----------
-  document.querySelector(".logo").innerHTML = `${CONFIG.perfil.nomeCurto} <span>${CONFIG.perfil.nome.split(" ").slice(1).join(" ")}<span class="decor-borboleta" aria-hidden="true"><img src="imagens/borboleta.png" alt=""></span></span>`;
-
-  // ---------- Hero ----------
-  document.getElementById("heroTag").textContent = CONFIG.hero.tag;
-  document.getElementById("heroTitulo").innerHTML =
-    `${CONFIG.hero.tituloParte1}<span class="destaque">${CONFIG.hero.tituloDestaque1}</span>${CONFIG.hero.tituloParte2}<span class="destaque">${CONFIG.hero.tituloDestaque2}</span>${CONFIG.hero.tituloParte3}`;
-  document.getElementById("heroFrase").textContent = CONFIG.hero.frase;
-  document.getElementById("heroStat").textContent = CONFIG.hero.estatistica;
-  document.getElementById("heroCta").textContent = CONFIG.hero.textoCta;
-  document.getElementById("heroCtaSecundario").textContent = CONFIG.hero.textoCtaSecundario;
-  document.getElementById("baloMineira").textContent = CONFIG.hero.baloMineira;
-  document.getElementById("baloPet").textContent = CONFIG.hero.baloPet;
-  document.getElementById("baloSaudavel").textContent = CONFIG.hero.baloSaudavel;
-
-  // ---------- Faixa de marcas (duplicada para rolagem contínua e infinita) ----------
-  // Repete a lista de marcas até passar de uma largura mínima bem generosa
-  // (cobre até telas ultrawide) ANTES de duplicar o grupo para a animação.
-  // Sem isso, em telas largas com poucas marcas cadastradas, a rolagem chega
-  // ao fim da lista e mostra um vazio antes de reiniciar — é esse vazio que
-  // NÃO pode acontecer.
-  const marqueeEl = document.getElementById("marqueeMarcas");
-  const iconeCheck = '<svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.2 11.5L13 4.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const iniciaisMarca = nome => nome.split(" ").slice(0, 2).map(p => p[0]).join("").toUpperCase();
-  const LARGURA_MINIMA_GRUPO_PX = 4000;
-  const LARGURA_ESTIMADA_POR_ITEM_PX = 80;
-  const itensPorGrupo = Math.max(
-    CONFIG.marcas.length,
-    Math.ceil(LARGURA_MINIMA_GRUPO_PX / LARGURA_ESTIMADA_POR_ITEM_PX)
-  );
-  const marcasRepetidas = Array.from(
-    { length: itensPorGrupo },
-    (_, i) => CONFIG.marcas[i % CONFIG.marcas.length]
-  );
-  const grupoHtml = marcasRepetidas.map(m => `
-    <div class="marca-bolha" title="${m.nome}">
-      <div class="logo-circulo">${
-        m.logo
-          ? `<img src="imagens/marcas/${m.logo}?v=2" alt="${m.nome}" loading="lazy">`
-          : iniciaisMarca(m.nome)
-      }</div>
-      <div class="selo-verificado">${iconeCheck}</div>
+document.getElementById("secoesBiosite").innerHTML = SECOES_BIOSITE.map(bloco => `
+  <div class="secao">
+    <div class="secao-titulo">${bloco.secao} ↓</div>
+    <div class="lista-links">
+      ${bloco.itens.map(item => `
+        <a class="link-item" href="${item.link}" target="_blank" rel="noopener">
+          <img src="${item.imagem}" alt="">
+          <span class="titulo">${item.titulo}</span>
+        </a>
+      `).join("")}
     </div>
-  `).join("");
-  marqueeEl.innerHTML = `<div class="marquee-grupo">${grupoHtml}</div><div class="marquee-grupo" aria-hidden="true">${grupoHtml}</div>`;
-  document.getElementById("faixaMarcasRotulo").textContent = CONFIG.faixaMarcas.rotulo;
-
-  // ---------- Sobre ----------
-  document.getElementById("sobreTag").textContent = CONFIG.sobre.tag;
-  document.getElementById("sobreTitulo").innerHTML = CONFIG.sobre.titulo;
-  document.getElementById("sobreTexto").innerHTML = CONFIG.sobre.paragrafos.map(p => `<p>${p}</p>`).join("");
-  document.getElementById("sobreLista").innerHTML = CONFIG.sobre.destaques
-    .map((item, i) => `<li class="chip-sobre${i === 0 ? " chip-azul" : ""}">${item}</li>`).join("");
-
-  // ---------- Portfólio: uma fileira por nicho, com setas estilo Netflix ----------
-  document.getElementById("portfolioTag").textContent = CONFIG.portfolioTextos.tag;
-  document.getElementById("portfolioTitulo").textContent = CONFIG.portfolioTextos.titulo;
-  document.getElementById("portfolioSubtitulo").textContent = CONFIG.portfolioTextos.subtitulo;
-  const categoriasEl = document.getElementById("portfolioCategorias");
-  const categoriasComItens = CONFIG.categoriasPortfolio.filter(cat =>
-    CONFIG.portfolio.some(item => item.categoria === cat)
-  );
-
-  // Botões de filtro: um por nicho, clicando rola até a fileira correspondente
-  const filtroEl = document.getElementById("filtroNichos");
-  filtroEl.innerHTML = categoriasComItens
-    .map((cat, i) => `<button type="button" class="pill-nicho" data-alvo="nicho-${i}">${cat}</button>`)
-    .join("");
-  filtroEl.addEventListener("click", (e) => {
-    const botao = e.target.closest(".pill-nicho");
-    if (!botao) return;
-    document.getElementById(botao.dataset.alvo)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
-
-  categoriasEl.innerHTML = categoriasComItens.map((cat, i) => {
-    const itens = CONFIG.portfolio.filter(item => item.categoria === cat);
-    const cardsHtml = itens.map(item => {
-      const [formato, assunto] = item.titulo.split(" – ");
-      return `
-      <div class="portfolio-card">
-        <button type="button" class="item-portfolio foto-bloco ${item.gradiente}" data-video-id="${item.videoId}" aria-label="Assistir vídeo: ${item.titulo}">
-          <span class="foto-real" data-video-id="${item.videoId}" style="background-image:url('https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg');"></span>
-          <span class="play-botao" aria-hidden="true"></span>
-        </button>
-        <p class="item-legenda"><strong>${formato}</strong>${assunto ? ` – ${assunto}` : ""}</p>
-      </div>
-    `;
-    }).join("");
-    return `
-      <div class="categoria-portfolio reveal" id="nicho-${i}">
-        <div class="categoria-cabecalho">
-          <h3 class="categoria-titulo">${cat} <span class="categoria-contagem">${itens.length}</span></h3>
-          <div class="categoria-setas">
-            <button type="button" class="seta-btn seta-esq" aria-label="Ver vídeos anteriores de ${cat}">‹</button>
-            <button type="button" class="seta-btn seta-dir" aria-label="Ver próximos vídeos de ${cat}">›</button>
-          </div>
-        </div>
-        <div class="linha-scroll">${cardsHtml}</div>
-      </div>
-    `;
-  }).join("");
-  // Para adicionar, remover ou trocar vídeos, edite a lista CONFIG.portfolio lá em cima.
-  // Cada card puxa automaticamente a miniatura do próprio vídeo do YouTube.
-
-  // Tenta trocar cada miniatura pela versão em alta resolução (mais nítida).
-  // Se essa versão não existir para algum vídeo, a miniatura padrão (já carregada acima) continua no lugar.
-  categoriasEl.querySelectorAll(".foto-real[data-video-id]").forEach(el => {
-    const idVideo = el.dataset.videoId;
-    const imgAltaResolucao = new Image();
-    imgAltaResolucao.onload = () => {
-      // A miniatura "sem imagem disponível" do YouTube tem sempre 120x90, então ignoramos ela.
-      if (imgAltaResolucao.naturalWidth > 120){
-        el.style.backgroundImage = `url('https://i.ytimg.com/vi/${idVideo}/maxresdefault.jpg')`;
-      }
-    };
-    imgAltaResolucao.src = `https://i.ytimg.com/vi/${idVideo}/maxresdefault.jpg`;
-  });
-
-  // Preview em hover: passou o mouse, toca um preview mudo do vídeo; saiu, para.
-  categoriasEl.querySelectorAll(".item-portfolio").forEach(item => {
-    const idVideo = item.dataset.videoId;
-    item.addEventListener("mouseenter", () => {
-      if (item.querySelector(".preview-video")) return;
-      const iframe = document.createElement("iframe");
-      iframe.className = "preview-video";
-      iframe.src = `https://www.youtube.com/embed/${idVideo}?autoplay=1&mute=1&controls=0&loop=1&playlist=${idVideo}&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&playsinline=1`;
-      iframe.setAttribute("allow", "autoplay");
-      iframe.setAttribute("tabindex", "-1");
-      iframe.setAttribute("aria-hidden", "true");
-      item.appendChild(iframe);
-    });
-    item.addEventListener("mouseleave", () => {
-      const preview = item.querySelector(".preview-video");
-      if (preview) preview.remove();
-    });
-  });
-
-  // Setas: rolam a fileira e ficam desativadas no início/fim
-  categoriasEl.querySelectorAll(".categoria-portfolio").forEach(bloco => {
-    const linha = bloco.querySelector(".linha-scroll");
-    const btnEsq = bloco.querySelector(".seta-esq");
-    const btnDir = bloco.querySelector(".seta-dir");
-    const atualizarSetas = () => {
-      btnEsq.disabled = linha.scrollLeft <= 4;
-      btnDir.disabled = linha.scrollLeft >= linha.scrollWidth - linha.clientWidth - 4;
-    };
-    btnEsq.addEventListener("click", () => linha.scrollBy({ left: -linha.clientWidth * 0.9, behavior: "smooth" }));
-    btnDir.addEventListener("click", () => linha.scrollBy({ left: linha.clientWidth * 0.9, behavior: "smooth" }));
-    linha.addEventListener("scroll", atualizarSetas);
-    window.addEventListener("resize", atualizarSetas);
-    atualizarSetas();
-  });
-
-  // ---------- Modal de vídeo do portfólio ----------
-  const modalVideo = document.getElementById("modalVideo");
-  const modalPlayer = document.getElementById("modalPlayer");
-  const modalConteudo = document.querySelector(".modal-conteudo");
-  let elementoComFoco = null;
-
-  function abrirModalVideo(videoId, gatilho){
-    elementoComFoco = gatilho;
-    modalPlayer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" title="Vídeo do portfólio" scrolling="no" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-    modalVideo.classList.add("aberto");
-    modalConteudo.focus();
-    document.body.style.overflow = "hidden";
-
-    // Registra a visualização do vídeo para aparecer no painel administrativo
-    const itemPortfolio = CONFIG.portfolio.find(p => p.videoId === videoId);
-    registrarEvento("video_view", videoId, itemPortfolio ? {
-      title: itemPortfolio.titulo,
-      brand: itemPortfolio.marca,
-      category: itemPortfolio.categoria
-    } : null);
-  }
-
-  function fecharModalVideo(){
-    modalVideo.classList.remove("aberto");
-    modalPlayer.innerHTML = "";
-    document.body.style.overflow = "";
-    if (elementoComFoco) elementoComFoco.focus();
-  }
-
-  categoriasEl.addEventListener("click", (e) => {
-    const item = e.target.closest(".item-portfolio");
-    if (!item) return;
-    abrirModalVideo(item.dataset.videoId, item);
-  });
-
-  modalVideo.addEventListener("click", (e) => {
-    if (e.target === modalVideo) fecharModalVideo();
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && modalVideo.classList.contains("aberto")) fecharModalVideo();
-  });
-
-  // ---------- Fotos UGC ----------
-  document.getElementById("fotosUgcTag").textContent = CONFIG.fotosUgcTextos.tag;
-  document.getElementById("fotosUgcTitulo").innerHTML = CONFIG.fotosUgcTextos.tituloHtml;
-  document.getElementById("gridFotosUgc").innerHTML = CONFIG.fotosUgc.map(f => `
-    <div class="foto-ugc foto-bloco ${f.gradiente} reveal" role="img" aria-label="Foto UGC de Edilaine Santos">
-      <div class="foto-real" style="background-image:url('${f.imagem}');background-position:${f.posicao || "center"};filter:${f.filtro || "none"};"></div>
-    </div>
-  `).join("");
-
-  // ---------- Serviços ----------
-  document.getElementById("servicosTag").textContent = CONFIG.servicosTextos.tag;
-  document.getElementById("servicosTitulo").textContent = CONFIG.servicosTextos.titulo;
-  document.getElementById("servicosSubtitulo").textContent = CONFIG.servicosTextos.subtitulo;
-  document.getElementById("gridServicos").innerHTML = CONFIG.servicos.map(s => `
-    <div class="card-servico reveal">
-      <div class="icone-servico" aria-hidden="true">${s.icone}</div>
-      <h3>${s.titulo}</h3>
-      <p>${s.descricao}</p>
-      <a class="link-servico" href="#contato" data-cta="cta_servico_${s.titulo}">${s.cta}</a>
-    </div>
-  `).join("");
-
-  // Setas do carrossel de serviços: rolam a fileira e ficam desativadas no início/fim
-  (() => {
-    const linha = document.getElementById("gridServicos");
-    const btnEsq = document.getElementById("servicosSetaEsq");
-    const btnDir = document.getElementById("servicosSetaDir");
-    const atualizarSetas = () => {
-      btnEsq.disabled = linha.scrollLeft <= 4;
-      btnDir.disabled = linha.scrollLeft >= linha.scrollWidth - linha.clientWidth - 4;
-    };
-    btnEsq.addEventListener("click", () => linha.scrollBy({ left: -linha.clientWidth * 0.9, behavior: "smooth" }));
-    btnDir.addEventListener("click", () => linha.scrollBy({ left: linha.clientWidth * 0.9, behavior: "smooth" }));
-    linha.addEventListener("scroll", atualizarSetas);
-    window.addEventListener("resize", atualizarSetas);
-    atualizarSetas();
-  })();
-
-  // ---------- Resultados (seção removida temporariamente; só roda se ela voltar) ----------
-  const gridNumerosEl = document.getElementById("gridNumeros");
-  if (gridNumerosEl) {
-    document.getElementById("resultadosTag").textContent = CONFIG.resultadosTextos.tag;
-    document.getElementById("resultadosTitulo").textContent = CONFIG.resultadosTextos.titulo;
-    document.getElementById("resultadosSubtitulo").textContent = CONFIG.resultadosTextos.subtitulo;
-    gridNumerosEl.innerHTML = CONFIG.resultados.map((r, i) => `
-      <div class="numero-card reveal">
-        <p class="numero" data-alvo="${r.numero}" data-sufixo="${r.sufixo}" data-decimais="${r.decimais}" id="numero-${i}">0</p>
-        <p class="rotulo-numero">${r.rotulo}</p>
-      </div>
-    `).join("");
-  }
-
-  // ---------- Depoimentos ----------
-  document.getElementById("depoimentosTag").textContent = CONFIG.depoimentosTextos.tag;
-  document.getElementById("depoimentosTitulo").textContent = CONFIG.depoimentosTextos.titulo;
-  document.getElementById("depoimentosSubtitulo").textContent = CONFIG.depoimentosTextos.subtitulo;
-  document.getElementById("gridDepoimentos").innerHTML = CONFIG.depoimentos.map(d => `
-    <div class="card-depoimento reveal">
-      <img src="${d.imagem}" alt="Print de depoimento de cliente" loading="lazy">
-    </div>
-  `).join("");
-  // Para adicionar mais depoimentos, coloque o print dentro da pasta "imagens"
-  // e adicione uma linha em CONFIG.depoimentos com o nome do arquivo.
-
-  // Setas do carrossel de depoimentos: rolam a fileira e ficam desativadas no início/fim
-  (() => {
-    const linha = document.getElementById("gridDepoimentos");
-    const btnEsq = document.getElementById("depoimentosSetaEsq");
-    const btnDir = document.getElementById("depoimentosSetaDir");
-    const atualizarSetas = () => {
-      btnEsq.disabled = linha.scrollLeft <= 4;
-      btnDir.disabled = linha.scrollLeft >= linha.scrollWidth - linha.clientWidth - 4;
-    };
-    btnEsq.addEventListener("click", () => linha.scrollBy({ left: -linha.clientWidth * 0.9, behavior: "smooth" }));
-    btnDir.addEventListener("click", () => linha.scrollBy({ left: linha.clientWidth * 0.9, behavior: "smooth" }));
-    linha.addEventListener("scroll", atualizarSetas);
-    window.addEventListener("resize", atualizarSetas);
-    atualizarSetas();
-  })();
-
-  // ---------- Contato: textos da seção e do formulário ----------
-  document.getElementById("contatoTag").textContent = CONFIG.contatoTextos.tag;
-  document.getElementById("contatoTitulo").textContent = CONFIG.contatoTextos.titulo;
-  document.getElementById("contatoSubtitulo").textContent = CONFIG.contatoTextos.subtitulo;
-  document.getElementById("labelNome").textContent = CONFIG.contatoTextos.labelNome;
-  document.getElementById("labelEmail").textContent = CONFIG.contatoTextos.labelEmail;
-  document.getElementById("labelMarca").textContent = CONFIG.contatoTextos.labelMarca;
-  document.getElementById("labelOrcamento").textContent = CONFIG.contatoTextos.labelOrcamento;
-  document.getElementById("labelMensagem").textContent = CONFIG.contatoTextos.labelMensagem;
-  document.getElementById("campoNome").placeholder = CONFIG.contatoTextos.placeholderNome;
-  document.getElementById("campoEmail").placeholder = CONFIG.contatoTextos.placeholderEmail;
-  document.getElementById("campoMarca").placeholder = CONFIG.contatoTextos.placeholderMarca;
-  document.getElementById("campoOrcamento").placeholder = CONFIG.contatoTextos.placeholderOrcamento;
-  document.getElementById("campoMensagem").placeholder = CONFIG.contatoTextos.placeholderMensagem;
-  document.getElementById("botaoEnviarTexto").textContent = CONFIG.contatoTextos.botaoEnviar;
-
-  // ---------- Contatos diretos ----------
-  document.getElementById("contatosDiretos").innerHTML = `
-    <a class="contato-item" href="${CONFIG.perfil.whatsappUrl}" target="_blank" rel="noopener" data-contato="contact_whatsapp">
-      <span class="contato-icone" aria-hidden="true">${ICONES_SVG.whatsapp}</span>
-      <span><strong>WhatsApp</strong><span>${CONFIG.perfil.telefoneExibicao}</span></span>
-    </a>
-    <a class="contato-item" href="mailto:${CONFIG.perfil.email}" data-contato="contact_email">
-      <span class="contato-icone" aria-hidden="true">${ICONES_SVG.email}</span>
-      <span><strong>E-mail</strong><span>${CONFIG.perfil.email}</span></span>
-    </a>
-    <a class="contato-item" href="${CONFIG.perfil.instagramUrl}" target="_blank" rel="noopener" data-contato="contact_instagram">
-      <span class="contato-icone" aria-hidden="true">${ICONES_SVG.instagram}</span>
-      <span><strong>Instagram</strong><span>${CONFIG.perfil.instagramArroba}</span></span>
-    </a>
-  `;
-
-  // ---------- Rodapé ----------
-  document.getElementById("rodapeLogo").textContent = CONFIG.perfil.nome;
-  document.getElementById("rodapeRedes").innerHTML = `
-    <a href="${CONFIG.perfil.instagramUrl}" target="_blank" rel="noopener" aria-label="Instagram de ${CONFIG.perfil.nome}" data-contato="contact_instagram">${ICONES_SVG.instagram}</a>
-    <a href="${CONFIG.perfil.whatsappUrl}" target="_blank" rel="noopener" aria-label="WhatsApp de ${CONFIG.perfil.nome}" data-contato="contact_whatsapp">${ICONES_SVG.whatsapp}</a>
-    <a href="mailto:${CONFIG.perfil.email}" aria-label="E-mail de ${CONFIG.perfil.nome}" data-contato="contact_email">${ICONES_SVG.email}</a>
-  `;
-  document.getElementById("rodapeCopy").textContent =
-    `© ${new Date().getFullYear()} ${CONFIG.perfil.nome}. ${CONFIG.rodape.copyrightTexto}`;
-
-  // ---------- Marca os elementos "reveal" ----------
-  // No carregamento inicial, deixa o IntersectionObserver animar a entrada deles
-  // ao rolar a página. Numa troca de idioma, mostra tudo na hora (sem reanimar).
-  if (inicial) {
-    document.querySelectorAll(".reveal").forEach(el => observadorEntrada.observe(el));
-  } else {
-    document.querySelectorAll(".reveal").forEach(el => el.classList.add("visivel"));
-  }
-  document.querySelectorAll(".numero-card .numero").forEach(el => observadorNumeros.observe(el));
-}
-
-// =========================================================================
-// ANIMAÇÃO DE ENTRADA AO ROLAR A PÁGINA (IntersectionObserver)
-// Criado uma única vez fora de renderizarConteudo pra não duplicar a cada
-// troca de idioma.
-// =========================================================================
-const observadorEntrada = new IntersectionObserver((entradas) => {
-  entradas.forEach(entrada => {
-    if (entrada.isIntersecting){
-      entrada.target.classList.add("visivel");
-      observadorEntrada.unobserve(entrada.target);
-    }
-  });
-}, { threshold: 0.15 });
-
-// =========================================================================
-// CONTADOR ANIMADO DOS NÚMEROS DE RESULTADOS
-// =========================================================================
-function animarNumero(el){
-  const alvo = parseFloat(el.dataset.alvo);
-  const sufixo = el.dataset.sufixo;
-  const decimais = parseInt(el.dataset.decimais, 10);
-  const duracao = 1500;
-  const inicio = performance.now();
-
-  function passo(agora){
-    const progresso = Math.min((agora - inicio) / duracao, 1);
-    const valorAtual = alvo * progresso;
-    el.textContent = valorAtual.toFixed(decimais) + sufixo;
-    if (progresso < 1){
-      requestAnimationFrame(passo);
-    } else {
-      el.textContent = alvo.toFixed(decimais) + sufixo;
-    }
-  }
-  requestAnimationFrame(passo);
-}
-
-const observadorNumeros = new IntersectionObserver((entradas) => {
-  entradas.forEach(entrada => {
-    if (entrada.isIntersecting){
-      animarNumero(entrada.target);
-      observadorNumeros.unobserve(entrada.target);
-    }
-  });
-}, { threshold: 0.4 });
-
-// =========================================================================
-// TROCA DE IDIOMA (PT/EN)
-// =========================================================================
-function atualizarBotoesIdioma(){
-  document.querySelectorAll(".idioma-btn").forEach(btn => {
-    btn.classList.toggle("ativo", btn.dataset.idioma === idiomaAtual);
-  });
-}
-
-function definirIdioma(idioma){
-  idiomaAtual = idioma;
-  CONFIG = idioma === "en" ? CONFIG_EN : CONFIG_PT;
-  try { localStorage.setItem("portfolio_idioma", idioma); } catch (e) {}
-  document.documentElement.lang = idioma === "en" ? "en" : "pt-BR";
-  atualizarBotoesIdioma();
-  renderizarConteudo(false);
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  // Registra a visita assim que a página carrega
-  registrarEvento("page_view", null, null);
-
-  document.documentElement.lang = idiomaAtual === "en" ? "en" : "pt-BR";
-  atualizarBotoesIdioma();
-  renderizarConteudo(true);
-
-  document.querySelectorAll(".idioma-btn").forEach(btn => {
-    btn.addEventListener("click", () => definirIdioma(btn.dataset.idioma));
-  });
-
-  // Registra cliques nos canais de contato e nos botões de chamada para ação.
-  // Delegado no "document" (em vez de em cada link) pra continuar funcionando
-  // mesmo depois que o conteúdo é regerado numa troca de idioma.
-  document.addEventListener("click", (e) => {
-    const linkContato = e.target.closest("[data-contato]");
-    if (linkContato) registrarEvento("button_click", linkContato.dataset.contato, null);
-    const linkCta = e.target.closest("[data-cta]");
-    if (linkCta) registrarEvento("button_click", linkCta.dataset.cta, null);
-  });
-
-  // =========================================================================
-  // MENU HAMBÚRGUER
-  // =========================================================================
-  const botaoHamburguer = document.getElementById("botaoHamburguer");
-  const menuMobile = document.getElementById("menuMobile");
-
-  function fecharMenu(){
-    botaoHamburguer.classList.remove("aberto");
-    menuMobile.classList.remove("aberto");
-    botaoHamburguer.setAttribute("aria-expanded", "false");
-    botaoHamburguer.setAttribute("aria-label", "Abrir menu de navegação");
-  }
-
-  botaoHamburguer.addEventListener("click", () => {
-    const aberto = menuMobile.classList.toggle("aberto");
-    botaoHamburguer.classList.toggle("aberto", aberto);
-    botaoHamburguer.setAttribute("aria-expanded", String(aberto));
-    botaoHamburguer.setAttribute("aria-label", aberto ? "Fechar menu de navegação" : "Abrir menu de navegação");
-  });
-
-  menuMobile.querySelectorAll("a, button").forEach(el => el.addEventListener("click", (e) => {
-    if (e.target.closest(".idioma-switch")) return;
-    fecharMenu();
-  }));
-
-  // =========================================================================
-  // FORMULÁRIO DE CONTATO
-  // A mensagem é salva direto no banco (aparece no painel administrativo em
-  // painel.html), sem abrir o aplicativo de e-mail de quem está enviando.
-  // =========================================================================
-  const formContato = document.getElementById("formContato");
-  const mensagemConfirmacao = document.getElementById("mensagemConfirmacao");
-  const botaoEnviarContato = formContato.querySelector("button[type=submit]");
-
-  formContato.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    if (!formContato.checkValidity()) {
-      formContato.reportValidity();
-      return;
-    }
-
-    const nome = document.getElementById("campoNome").value.trim();
-    const email = document.getElementById("campoEmail").value.trim();
-    const marca = document.getElementById("campoMarca").value.trim();
-    const orcamento = document.getElementById("campoOrcamento").value.trim();
-    const mensagem = document.getElementById("campoMensagem").value.trim();
-
-    botaoEnviarContato.disabled = true;
-    botaoEnviarContato.textContent = CONFIG.contatoTextos.botaoEnviando;
-    mensagemConfirmacao.classList.remove("visivel", "erro");
-
-    const { error } = await registrarLead({
-      name: nome,
-      email: email,
-      brand: marca || null,
-      budget: orcamento || null,
-      message: mensagem,
-      source: "contact"
-    });
-
-    if (error) {
-      mensagemConfirmacao.textContent = CONFIG.contatoTextos.mensagemErro;
-      mensagemConfirmacao.classList.add("visivel", "erro");
-    } else {
-      registrarEvento("button_click", "contact_formulario", null);
-      mensagemConfirmacao.textContent = CONFIG.contatoTextos.mensagemSucesso;
-      mensagemConfirmacao.classList.add("visivel");
-      formContato.reset();
-    }
-
-    botaoEnviarContato.disabled = false;
-    botaoEnviarContato.textContent = CONFIG.contatoTextos.botaoEnviar;
-  });
-
-});
+  </div>
+`).join("");
 </script>
+
 </body>
 </html>
