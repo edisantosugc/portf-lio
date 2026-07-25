@@ -13,8 +13,39 @@ create table if not exists public.portfolio_events (
   session_id text,                 -- identifica um visitante dentro de uma sessão de navegação
   page_path text,                  -- caminho da página onde o evento aconteceu
   metadata jsonb,                  -- dados extras (title, brand, category, etc.)
+  visitor_hash text,               -- hash do IP de quem visitou, preenchido sozinho (ver trigger abaixo)
   created_at timestamptz not null default now()
 );
+
+-- =====================================================================
+-- Visitantes únicos por IP (em vez de por sessão do navegador)
+-- session_id muda toda vez que a pessoa abre uma aba nova, então duas
+-- visitas da mesma pessoa contavam como "2 visitantes únicos". Essa trigger
+-- lê o IP de quem fez a requisição (cabeçalho x-forwarded-for) e grava um
+-- hash dele (não o IP em texto puro, por privacidade) na coluna acima,
+-- automaticamente, a cada novo evento.
+-- =====================================================================
+create extension if not exists pgcrypto;
+
+create or replace function public.set_portfolio_visitor_hash()
+returns trigger
+language plpgsql
+as $$
+declare
+  ip text;
+begin
+  ip := split_part(coalesce(current_setting('request.headers', true)::json->>'x-forwarded-for', ''), ',', 1);
+  if ip is not null and trim(ip) <> '' then
+    new.visitor_hash := encode(digest(trim(ip), 'sha256'), 'hex');
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_set_portfolio_visitor_hash on public.portfolio_events;
+create trigger trg_set_portfolio_visitor_hash
+  before insert on public.portfolio_events
+  for each row execute function public.set_portfolio_visitor_hash();
 
 -- Tabela de mensagens recebidas pelo formulário de contato e pelo popup do site
 create table if not exists public.portfolio_leads (

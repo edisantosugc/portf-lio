@@ -1888,11 +1888,11 @@
         <h1 id="tituloTopo">Menu Principal</h1>
       </div>
       <div class="filtro-periodo" id="filtroPeriodo">
-        <button class="periodo-btn ativo" data-periodo="tudo">Tudo</button>
         <button class="periodo-btn" data-periodo="hoje">Hoje</button>
         <button class="periodo-btn" data-periodo="7">7d</button>
         <button class="periodo-btn" data-periodo="30">30d</button>
         <button class="periodo-btn" data-periodo="90">90d</button>
+        <button class="periodo-btn ativo" data-periodo="tudo">Tudo</button>
       </div>
     </div>
 
@@ -3179,13 +3179,20 @@
     renderizarAlertasContas();
   }
 
+  // Conta visitantes únicos pelo IP (hash, gravado automaticamente pelo banco).
+  // Para visitas antigas, de antes dessa marcação existir, cai de volta pro
+  // identificador de sessão do navegador (menos preciso, mas evita contar tudo como "outro").
+  function contarVisitantesUnicos(visitas){
+    return new Set(visitas.map(e => e.visitor_hash || e.session_id)).size;
+  }
+
   /* =========================================================================
      ABA: MENU PRINCIPAL (métricas do biosite, edilainesantos.com)
      ========================================================================= */
   function renderizarMenuPrincipal(eventos, leads){
     const visitas = eventos.filter(e => e.event_type === "page_view");
     const cliques = eventos.filter(e => e.event_type === "button_click");
-    const visitantesUnicos = new Set(visitas.map(e => e.session_id)).size;
+    const visitantesUnicos = contarVisitantesUnicos(visitas);
     const cliquesContato = cliques.filter(e => e.event_name && e.event_name.startsWith("contact_"));
     const cliquesVerPortfolio = cliques.filter(e => e.event_name === "cta_portfolio_biosite");
 
@@ -3267,6 +3274,10 @@
       <div class="cartao cartao-numero destaque">
         <p class="numero-grande">${visitas.length.toLocaleString("pt-BR")}</p>
         <p class="numero-rotulo">Visitas</p>
+      </div>
+      <div class="cartao cartao-numero">
+        <p class="numero-grande">${contarVisitantesUnicos(visitas).toLocaleString("pt-BR")}</p>
+        <p class="numero-rotulo">Visitantes únicos</p>
       </div>
       <div class="cartao cartao-numero">
         <p class="numero-grande">${cliques.length.toLocaleString("pt-BR")}</p>
