@@ -57,6 +57,7 @@ create table if not exists public.portfolio_leads (
   budget text,
   message text,
   source text,                     -- 'contact' | 'popup'
+  lida boolean not null default false, -- true depois que você abre a mensagem no painel
   created_at timestamptz not null default now()
 );
 
@@ -84,13 +85,21 @@ create policy "Usuarios autenticados podem ler leads"
   to authenticated
   using (true);
 
+-- Permite marcar mensagens como lidas (bolinha vermelha de não lidas no painel)
+create policy "Usuarios autenticados podem atualizar leads"
+  on public.portfolio_leads
+  for update
+  to authenticated
+  using (true)
+  with check (true);
+
 -- As policies acima controlam QUAIS LINHAS podem ser lidas, mas o Postgres
 -- exige tambem uma permissao basica de acesso a tabela em si. Quando as
 -- tabelas sao criadas pela interface do Supabase isso e feito automatico,
 -- mas como criamos via SQL, precisamos liberar explicitamente:
 grant usage on schema public to authenticated;
 grant select on public.portfolio_events to authenticated;
-grant select on public.portfolio_leads to authenticated;
+grant select, update on public.portfolio_leads to authenticated;
 
 -- =====================================================================
 -- GRAVAÇÃO DOS EVENTOS E MENSAGENS (feita pelo navegador do visitante)

@@ -382,6 +382,26 @@
   .cartao-numero.destaque .numero-grande,
   .cartao-numero.destaque .numero-rotulo{ color: var(--branco); }
 
+  .cartao-numero.clicavel{ position: relative; cursor: pointer; }
+  .badge-nao-lidas{
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--vermelho);
+    color: var(--branco);
+    font-size: .72rem;
+    font-weight: 700;
+    line-height: 1;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--creme);
+  }
+
   .numero-grande{
     font-family: 'Fraunces', serif;
     font-size: 2.2rem;
@@ -535,6 +555,16 @@
     display: block;
     font-weight: 600;
     font-size: .92rem;
+  }
+  .cartao-mensagem.nao-lida .cartao-mensagem-nome::after{
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--vermelho);
+    margin-left: 8px;
+    vertical-align: middle;
   }
   .cartao-mensagem-email{
     display: block;
@@ -1833,6 +1863,7 @@
       <button class="menu-item" data-tab="portfolio">
         <svg viewBox="0 0 16 16"><path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/></svg>
         Portfólio
+        <span class="badge-alerta-sidebar oculto" id="badgeMensagensPortfolio"></span>
       </button>
       <button class="menu-item" data-tab="abordagem">
         <svg viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.259.408a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg>
@@ -1942,7 +1973,7 @@
           <div id="listaContatoCliques"></div>
         </div>
 
-        <div class="cartao">
+        <div class="cartao" id="cartaoMensagensRecebidas">
           <h2>Mensagens recebidas</h2>
           <div id="listaMensagens"></div>
         </div>
@@ -3283,7 +3314,16 @@
         <p class="numero-grande">${cliques.length.toLocaleString("pt-BR")}</p>
         <p class="numero-rotulo">Cliques em links</p>
       </div>
+      <div class="cartao cartao-numero clicavel" id="cartaoMensagensPortfolio">
+        <p class="numero-grande">${leads.length.toLocaleString("pt-BR")}</p>
+        <p class="numero-rotulo">Mensagens recebidas</p>
+      </div>
     `;
+
+    document.getElementById("cartaoMensagensPortfolio").addEventListener("click", () => {
+      document.getElementById("cartaoMensagensRecebidas")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    atualizarBadgesMensagens();
 
     document.getElementById("cartaoContatoPortfolio").innerHTML = `
       <p class="numero-grande">${cliquesContato.length.toLocaleString("pt-BR")}</p>
@@ -3439,7 +3479,7 @@
       const numeroWhats = lead.phone ? lead.phone.replace(/\D/g, "") : null;
 
       return `
-        <div class="cartao-mensagem">
+        <div class="cartao-mensagem ${lead.lida ? "" : "nao-lida"}">
           <div class="cartao-mensagem-topo" data-idx="${i}" data-id="${lead.id}">
             <span class="selo-origem">${origem}</span>
             <span class="cartao-mensagem-principal">
@@ -3467,6 +3507,7 @@
       btn.addEventListener("click", () => {
         const corpo = document.getElementById("mensagem-" + btn.dataset.idx);
         corpo.classList.toggle("oculto");
+        marcarMensagemLida(btn.dataset.id);
       });
     });
 
@@ -3479,6 +3520,51 @@
     });
   }
 
+  // Bolinha vermelha com a quantidade de mensagens não lidas: aparece tanto no
+  // menu lateral (pra notar assim que entra no painel) quanto no cartão da aba
+  // Portfólio. Sempre conta o total de mensagens não lidas, sem depender do
+  // filtro de período selecionado.
+  function atualizarBadgesMensagens(){
+    const naoLidas = leadsCache.filter(l => !l.lida).length;
+
+    const badgeSidebar = document.getElementById("badgeMensagensPortfolio");
+    if (badgeSidebar){
+      badgeSidebar.textContent = naoLidas;
+      badgeSidebar.classList.toggle("oculto", naoLidas === 0);
+    }
+
+    const cartao = document.getElementById("cartaoMensagensPortfolio");
+    if (cartao){
+      let badgeCartao = cartao.querySelector(".badge-nao-lidas");
+      if (naoLidas > 0){
+        if (!badgeCartao){
+          badgeCartao = document.createElement("span");
+          badgeCartao.className = "badge-nao-lidas";
+          cartao.appendChild(badgeCartao);
+        }
+        badgeCartao.textContent = naoLidas;
+      } else if (badgeCartao){
+        badgeCartao.remove();
+      }
+    }
+  }
+
+  // Marca a mensagem como lida na primeira vez que a pessoa abre/expande ela
+  async function marcarMensagemLida(id){
+    const lead = leadsCache.find(l => l.id === id);
+    if (!lead || lead.lida) return;
+
+    lead.lida = true;
+    atualizarBadgesMensagens();
+
+    const { error } = await Auth.client
+      .from("portfolio_leads")
+      .update({ lida: true })
+      .eq("id", id);
+
+    if (error) lead.lida = false;
+  }
+
   async function excluirMensagem(id){
     const { error } = await Auth.client
       .from("portfolio_leads")
@@ -3487,6 +3573,7 @@
 
     if (!error){
       leadsCache = leadsCache.filter(l => l.id !== id);
+      atualizarBadgesMensagens();
       renderizarTudo();
     }
   }
