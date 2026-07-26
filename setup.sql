@@ -288,6 +288,13 @@ create table if not exists public.painel_ugc_trabalhos (
 create index if not exists idx_painel_ugc_trabalhos_etapa on public.painel_ugc_trabalhos (etapa);
 create index if not exists idx_painel_ugc_trabalhos_data_entrega on public.painel_ugc_trabalhos (data_entrega);
 
+-- Contrato ativo + período de tráfego pago rodando pra esse trabalho. Se a tabela já
+-- existia de uma versão anterior, essas linhas adicionam as colunas sem apagar nada.
+alter table public.painel_ugc_trabalhos add column if not exists contrato_ativo boolean not null default false;
+alter table public.painel_ugc_trabalhos add column if not exists trafego_pago_inicio date;
+alter table public.painel_ugc_trabalhos add column if not exists trafego_pago_fim date;
+create index if not exists idx_painel_ugc_trabalhos_trafego_fim on public.painel_ugc_trabalhos (trafego_pago_fim);
+
 alter table public.painel_ugc_trabalhos enable row level security;
 
 create policy "Usuaria autenticada gerencia seus trabalhos UGC"

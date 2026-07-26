@@ -2537,6 +2537,21 @@
               <label>Data de entrega do conteúdo</label>
               <input type="date" id="ugcCampoDataEntrega">
             </div>
+            <div class="ugc-campo largo">
+              <label>Contrato ativo?</label>
+              <div class="ugc-origem-toggle" id="ugcContratoAtivoToggle">
+                <span data-contrato="sim">Sim</span>
+                <span class="ativo" data-contrato="nao">Não</span>
+              </div>
+            </div>
+            <div class="ugc-campo">
+              <label>Início do tráfego pago</label>
+              <input type="date" id="ugcCampoTrafegoInicio">
+            </div>
+            <div class="ugc-campo">
+              <label>Fim do tráfego pago</label>
+              <input type="date" id="ugcCampoTrafegoFim">
+            </div>
           </div>
           <button type="button" class="botao-add-tarefa" id="ugcBotaoAdicionar" style="margin-top:14px;">Adicionar</button>
         </div>
@@ -2636,6 +2651,7 @@
   const ugcAbertos = new Set();
   const ugcEditando = new Set();
   let ugcOrigemSelecionada = "Inbound";
+  let ugcContratoAtivoSelecionado = false;
 
   // Estado da aba Abordagem: registros de abordagens a marcas, linhas abertas/em edição e status selecionado no formulário
   let abordagensCache = [];
@@ -3083,6 +3099,14 @@
         document.getElementById("ugcOrigemToggle").querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
         span.classList.add("ativo");
         ugcOrigemSelecionada = span.dataset.origem;
+      });
+    });
+
+    document.getElementById("ugcContratoAtivoToggle").querySelectorAll("span").forEach(span => {
+      span.addEventListener("click", () => {
+        document.getElementById("ugcContratoAtivoToggle").querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
+        span.classList.add("ativo");
+        ugcContratoAtivoSelecionado = span.dataset.contrato === "sim";
       });
     });
 
@@ -5205,6 +5229,21 @@
           <label>Data de entrega do conteúdo</label>
           <input type="date" id="ugcEdicaoDataEntrega-${item.id}" value="${item.data_entrega || ""}">
         </div>
+        <div class="ugc-campo largo">
+          <label>Contrato ativo?</label>
+          <div class="ugc-origem-toggle" id="ugcEdicaoContratoAtivo-${item.id}">
+            <span class="${item.contrato_ativo ? "ativo" : ""}" data-contrato="sim">Sim</span>
+            <span class="${item.contrato_ativo ? "" : "ativo"}" data-contrato="nao">Não</span>
+          </div>
+        </div>
+        <div class="ugc-campo">
+          <label>Início do tráfego pago</label>
+          <input type="date" id="ugcEdicaoTrafegoInicio-${item.id}" value="${item.trafego_pago_inicio || ""}">
+        </div>
+        <div class="ugc-campo">
+          <label>Fim do tráfego pago</label>
+          <input type="date" id="ugcEdicaoTrafegoFim-${item.id}" value="${item.trafego_pago_fim || ""}">
+        </div>
       </div>
       <div class="ugc-branch" style="margin-top:14px;">
         <button type="button" class="ugc-btn" data-acao="ugc-salvar-edicao" data-id="${item.id}">Salvar alterações</button>
@@ -5223,8 +5262,14 @@
     const prazoLinha = (UGC_ETAPAS_ANTES_DA_ENTREGA.includes(item.etapa) && item.data_entrega)
       ? `<div class="ugc-detalhe-linha"><span class="rotulo">Prazo de entrega</span><span class="valor">${formatarDataCurta(item.data_entrega)}</span></div>`
       : "";
+    const trafegoLinha = item.trafego_pago_fim
+      ? `<div class="ugc-detalhe-linha"><span class="rotulo">Tráfego pago até</span><span class="valor">${formatarDataCurta(item.trafego_pago_fim)}</span></div>`
+      : "";
+    const contratoLinha = item.contrato_ativo
+      ? `<div class="ugc-detalhe-linha"><span class="rotulo">Contrato</span><span class="ugc-badge aprovado">Ativo</span></div>`
+      : "";
 
-    return gerenciarHtml + (() => {
+    return gerenciarHtml + trafegoLinha + contratoLinha + (() => {
     switch (item.etapa){
       case "novo_lead":
         return `
@@ -5359,6 +5404,14 @@
         });
       });
     });
+    container.querySelectorAll("[id^='ugcEdicaoContratoAtivo-']").forEach(toggle => {
+      toggle.querySelectorAll("span").forEach(span => {
+        span.addEventListener("click", () => {
+          toggle.querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
+          span.classList.add("ativo");
+        });
+      });
+    });
   }
 
   function renderListaUgc(){
@@ -5409,6 +5462,9 @@
       data_fechamento: document.getElementById("ugcCampoDataFechamento").value || null,
       data_pagamento_prevista: document.getElementById("ugcCampoDataPagamento").value || null,
       data_entrega: document.getElementById("ugcCampoDataEntrega").value || null,
+      contrato_ativo: ugcContratoAtivoSelecionado,
+      trafego_pago_inicio: document.getElementById("ugcCampoTrafegoInicio").value || null,
+      trafego_pago_fim: document.getElementById("ugcCampoTrafegoFim").value || null,
       etapa: "novo_lead"
     };
 
@@ -5419,9 +5475,11 @@
 
     if (!error && inserido){
       ugcCache = ugcCache.concat(inserido);
-      ["ugcCampoMarca", "ugcCampoTipo", "ugcCampoValor", "ugcCampoDataFechamento", "ugcCampoDataPagamento", "ugcCampoDataEntrega"].forEach(id => {
+      ["ugcCampoMarca", "ugcCampoTipo", "ugcCampoValor", "ugcCampoDataFechamento", "ugcCampoDataPagamento", "ugcCampoDataEntrega", "ugcCampoTrafegoInicio", "ugcCampoTrafegoFim"].forEach(id => {
         document.getElementById(id).value = "";
       });
+      ugcContratoAtivoSelecionado = false;
+      document.getElementById("ugcContratoAtivoToggle").querySelectorAll("span").forEach(s => s.classList.toggle("ativo", s.dataset.contrato === "nao"));
       document.getElementById("ugcFormNovo").classList.add("oculto");
       renderizarUgcCreator();
     }
@@ -5490,7 +5548,10 @@
       valor: parseFloat(document.getElementById(`ugcEdicaoValor-${id}`).value) || null,
       data_fechamento: document.getElementById(`ugcEdicaoDataFechamento-${id}`).value || null,
       data_pagamento_prevista: document.getElementById(`ugcEdicaoDataPagamento-${id}`).value || null,
-      data_entrega: document.getElementById(`ugcEdicaoDataEntrega-${id}`).value || null
+      data_entrega: document.getElementById(`ugcEdicaoDataEntrega-${id}`).value || null,
+      contrato_ativo: !!document.querySelector(`#ugcEdicaoContratoAtivo-${id} .ativo[data-contrato="sim"]`),
+      trafego_pago_inicio: document.getElementById(`ugcEdicaoTrafegoInicio-${id}`).value || null,
+      trafego_pago_fim: document.getElementById(`ugcEdicaoTrafegoFim-${id}`).value || null
     };
 
     // Pular direto pra etapa "Pago" pelo formulário passa pelo mesmo caminho do botão "Pago"
