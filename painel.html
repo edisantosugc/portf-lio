@@ -4615,6 +4615,42 @@
     return `Previsto para daqui a ${item.diasParaVencer} dias`;
   }
 
+  // Alertas de vencimento do período de tráfego pago dos trabalhos UGC. Só considera
+  // trabalhos com "Contrato ativo" marcado — se a usuária esquecer de marcar o toggle,
+  // o alerta não dispara mesmo com trafego_pago_fim preenchido e vencido.
+  function obterAlertasTrafegoPago(){
+    const hoje = new Date();
+    const hojeSemHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+
+    const alertas = [];
+    ugcCache.forEach(item => {
+      if (item.etapa === "arquivado" || !item.contrato_ativo || !item.trafego_pago_fim) return;
+
+      const [ano, mes, dia] = item.trafego_pago_fim.split("-").map(Number);
+      const dataFim = new Date(ano, mes - 1, dia);
+      const diasParaVencer = Math.round((dataFim - hojeSemHora) / (1000 * 60 * 60 * 24));
+
+      if (diasParaVencer < 0){
+        alertas.push({ ...item, statusAlerta: "atrasado", diasParaVencer });
+      } else if (diasParaVencer === 3 || diasParaVencer === 1 || diasParaVencer === 0){
+        alertas.push({ ...item, statusAlerta: "proximo", diasParaVencer });
+      }
+    });
+
+    alertas.sort((a, b) => a.diasParaVencer - b.diasParaVencer);
+    return alertas;
+  }
+
+  function mensagemAlertaTrafegoPago(item){
+    if (item.statusAlerta === "atrasado"){
+      const diasAtraso = Math.abs(item.diasParaVencer);
+      return `Venceu há ${diasAtraso} dia${diasAtraso === 1 ? "" : "s"} — entre em contato pra verificar se ainda está rodando ou negociar renovação`;
+    }
+    if (item.diasParaVencer === 0) return "Vence hoje — verifique se ainda está rodando ou negocie renovação";
+    if (item.diasParaVencer === 1) return "Vence amanhã — verifique se ainda está rodando ou negocie renovação";
+    return `Vence em ${item.diasParaVencer} dias`;
+  }
+
   // Número vermelho ao lado de "Finanças" na barra lateral, com a quantidade de contas atrasadas
   function atualizarBadgeFinancas(quantidade){
     const badge = document.getElementById("badgeAlertaFinancas");
@@ -4687,8 +4723,11 @@
     const itensFollowup = obterAlertasFollowupAbordagem()
       .map(item => ({ ...item, categoria: "followup", chave: `followup-${item.id}` }));
 
+    const itensTrafegoPago = obterAlertasTrafegoPago()
+      .map(item => ({ ...item, categoria: "trafego_pago", chave: `trafego-${item.id}` }));
+
     const agora = Date.now();
-    const visiveis = itensContas.concat(itensRecebimentos).concat(itensFollowup)
+    const visiveis = itensContas.concat(itensRecebimentos).concat(itensFollowup).concat(itensTrafegoPago)
       .filter(item => !notificacoesPopupFechadas.has(item.chave))
       .filter(item => !(notificacoesPopupAdiadas[item.chave] && agora < notificacoesPopupAdiadas[item.chave]))
       .sort((a, b) => a.diasParaVencer - b.diasParaVencer);
@@ -4701,25 +4740,27 @@
     container.innerHTML = visiveis.map(item => {
       const ehPagar = item.categoria === "pagar";
       const ehFollowup = item.categoria === "followup";
+      const ehTrafego = item.categoria === "trafego_pago";
       const nomeExibicao = ehPagar
         ? (item.tipo === "cartao" ? `Fatura ${item.nome}` : item.nome)
-        : ehFollowup ? item.marca : item.descricao;
-      const mensagem = ehPagar ? mensagemAlertaConta(item) : ehFollowup ? mensagemAlertaFollowupAbordagem(item) : mensagemAlertaRecebimento(item);
-      const classeStatus = ehFollowup ? (item.statusAlerta === "atrasado" ? "atrasado" : "") : (!ehPagar && item.status === "proximo" ? "proximo-receber" : item.status);
-      const acaoBotao = ehPagar ? "marcar-pago-notificacao" : ehFollowup ? "marcar-followup-notificacao" : "marcar-recebido-notificacao";
+        : ehFollowup ? item.marca : ehTrafego ? item.marca : item.descricao;
+      const mensagem = ehPagar ? mensagemAlertaConta(item) : ehFollowup ? mensagemAlertaFollowupAbordagem(item) : ehTrafego ? mensagemAlertaTrafegoPago(item) : mensagemAlertaRecebimento(item);
+      const classeStatus = (ehFollowup || ehTrafego) ? (item.statusAlerta === "atrasado" ? "atrasado" : "") : (!ehPagar && item.status === "proximo" ? "proximo-receber" : item.status);
+      const acaoBotao = ehPagar ? "marcar-pago-notificacao" : ehFollowup ? "marcar-followup-notificacao" : ehTrafego ? "" : "marcar-recebido-notificacao";
       const textoBotao = ehPagar ? "Marcar como pago" : ehFollowup ? "Marcar follow up como feito" : "Marcar como recebido";
-      const corpoAtributos = ehFollowup ? `data-acao="ir-abordagem-notificacao" data-id="${item.id}" tabindex="0" role="button"` : "";
+      const corpoAtributos = (ehFollowup || ehTrafego) ? `data-acao="${ehFollowup ? "ir-abordagem-notificacao" : "ir-trabalho-notificacao"}" data-id="${item.id}" tabindex="0" role="button"` : "";
 
       return `
         <div class="notificacao-popup ${classeStatus}" data-chave="${item.chave}" data-categoria="${item.categoria}" data-nome="${item.nome || ""}" data-tipo="${item.tipo || ""}" data-id="${item.id || ""}">
           <button type="button" class="notificacao-popup-fechar" data-acao="fechar-notificacao" aria-label="Fechar aviso">&times;</button>
-          <div class="notificacao-popup-corpo${ehFollowup ? " clicavel" : ""}" ${corpoAtributos}>
+          <div class="notificacao-popup-corpo${(ehFollowup || ehTrafego) ? " clicavel" : ""}" ${corpoAtributos}>
             <p class="notificacao-popup-nome">${nomeExibicao}</p>
             <p class="notificacao-popup-mensagem">${mensagem}${item.valor != null ? " · " + formatarMoeda(Number(item.valor)) : ""}</p>
             ${ehFollowup ? `<p class="notificacao-popup-ver-mais">Ver anotação da abordagem ›</p>` : ""}
+            ${ehTrafego ? `<p class="notificacao-popup-ver-mais">Ver trabalho no UGC Creator ›</p>` : ""}
           </div>
           <div class="notificacao-popup-acoes">
-            <button type="button" class="notificacao-popup-botao-pago" data-acao="${acaoBotao}">${textoBotao}</button>
+            ${ehTrafego ? "" : `<button type="button" class="notificacao-popup-botao-pago" data-acao="${acaoBotao}">${textoBotao}</button>`}
             <button type="button" class="notificacao-popup-botao-adiar" data-acao="adiar-notificacao">Lembrar em 1h</button>
           </div>
         </div>
@@ -4758,6 +4799,16 @@
         container.querySelectorAll(".notificacao-popup").forEach(c => notificacoesPopupFechadas.add(c.dataset.chave));
         container.innerHTML = "";
         irParaAbordagem(el.dataset.id);
+      };
+      el.addEventListener("click", irParaEntrada);
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter") irParaEntrada(); });
+    });
+
+    container.querySelectorAll("[data-acao='ir-trabalho-notificacao']").forEach(el => {
+      const irParaEntrada = () => {
+        container.querySelectorAll(".notificacao-popup").forEach(c => notificacoesPopupFechadas.add(c.dataset.chave));
+        container.innerHTML = "";
+        irParaTrabalhoUgc(el.dataset.id);
       };
       el.addEventListener("click", irParaEntrada);
       el.addEventListener("keydown", (e) => { if (e.key === "Enter") irParaEntrada(); });
