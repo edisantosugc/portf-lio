@@ -414,6 +414,32 @@
     color: var(--texto-suave);
   }
 
+  /* ===================== MINI-CARDS DE CLIQUES (Menu Principal) ===================== */
+  .mini-cartoes{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .mini-cartao{
+    background: var(--branco);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    padding: 4px 12px;
+  }
+  .mini-numero{
+    font-family: 'Fraunces', serif;
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--coral);
+    line-height: 1.1;
+  }
+  .mini-rotulo{
+    font-size: .6rem;
+    color: var(--texto-suave);
+    line-height: 1.1;
+  }
+
   .destaque-contato{
     background: var(--grafite);
     margin-bottom: 24px;
@@ -1936,6 +1962,8 @@
 
       <div class="cartoes-numeros" id="cartoesNumeros"></div>
 
+      <div class="mini-cartoes" id="miniCartoesCliques"></div>
+
       <div class="cartao destaque-contato" id="cartaoContato"></div>
 
       <div class="cartao grafico-cartao">
@@ -3242,6 +3270,28 @@
       <div class="cartao cartao-numero ${c.destaque ? "destaque" : ""}">
         <p class="numero-grande">${c.numero.toLocaleString("pt-BR")}</p>
         <p class="numero-rotulo">${c.rotulo}</p>
+      </div>
+    `).join("");
+
+    // Cliques por seção do biosite (mini-cards compactos, sem o destaque dos cards grandes)
+    const cliquesMeContrate = cliques.filter(e => e.event_name === "contact_whatsapp");
+    const cliquesCursos = cliques.filter(e => e.event_name === "cta_cursos");
+    const cliquesCupons = cliques.filter(e => e.event_name === "cta_cupons");
+    const cliquesAchadinhos = cliques.filter(e => e.event_name === "cta_achadinhos");
+    const cliquesIcones = cliques.filter(e => e.event_name && e.event_name.startsWith("cta_icone_"));
+
+    const miniCartoes = [
+      { numero: cliquesMeContrate.length, rotulo: "Me Contrate" },
+      { numero: cliquesCursos.length, rotulo: "Cursos e Mentorias" },
+      { numero: cliquesCupons.length, rotulo: "Meus Cupons" },
+      { numero: cliquesAchadinhos.length, rotulo: "Achadinhos" },
+      { numero: cliquesIcones.length, rotulo: "Ícones (E-mail + TikTok)" }
+    ];
+
+    document.getElementById("miniCartoesCliques").innerHTML = miniCartoes.map(c => `
+      <div class="mini-cartao">
+        <p class="mini-numero">${c.numero.toLocaleString("pt-BR")}</p>
+        <p class="mini-rotulo">${c.rotulo}</p>
       </div>
     `).join("");
 

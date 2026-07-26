@@ -241,24 +241,24 @@ const SECOES_BIOSITE = [
   {
     secao: "Cursos e Mentorias Validados",
     itens: [
-      { titulo: "Profissão do Futuro ✨", link: "https://lp.rafaelachagas.com.br/embaixadoras-pf?sck=afiliadas-embaixadoras&ref=A106065864W&utm_source=direto", imagem: "imagens/biosite/profissao-futuro.jpg" },
-      { titulo: "Consultoria Marca e Essência", link: "https://pay.hub.la/o90RvETFsGZg8hEUh65N?ref=aX3iQFHMqNG7E73FrYeA", imagem: "imagens/biosite/consultoria-marca.jpg" },
-      { titulo: "Método Posiciona", link: "https://pay.hub.la/Fyj1Pfoha3tw1cjX9Pog?ref=QTuP5DAhzbKFEwsfHv3Q", imagem: "imagens/biosite/metodo-posiciona.png" },
-      { titulo: "UGC de Conversão", link: "https://pay.hub.la/e1O3S6IVaxbeg1IFcSqW?ref=57hLb0zlHoHW424KrfAy", imagem: "imagens/biosite/ugc-conversao.png" },
-      { titulo: "Laboratório de Edições Criativas", link: "https://luannagomide.com.br/laboratorio-de-edicoes", imagem: "imagens/biosite/laboratorio-edicoes.jpg" }
+      { titulo: "Profissão do Futuro ✨", link: "https://lp.rafaelachagas.com.br/embaixadoras-pf?sck=afiliadas-embaixadoras&ref=A106065864W&utm_source=direto", imagem: "imagens/biosite/profissao-futuro.jpg", dataCta: "cta_cursos" },
+      { titulo: "Consultoria Marca e Essência", link: "https://pay.hub.la/o90RvETFsGZg8hEUh65N?ref=aX3iQFHMqNG7E73FrYeA", imagem: "imagens/biosite/consultoria-marca.jpg", dataCta: "cta_cursos" },
+      { titulo: "Método Posiciona", link: "https://pay.hub.la/Fyj1Pfoha3tw1cjX9Pog?ref=QTuP5DAhzbKFEwsfHv3Q", imagem: "imagens/biosite/metodo-posiciona.png", dataCta: "cta_cursos" },
+      { titulo: "UGC de Conversão", link: "https://pay.hub.la/e1O3S6IVaxbeg1IFcSqW?ref=57hLb0zlHoHW424KrfAy", imagem: "imagens/biosite/ugc-conversao.png", dataCta: "cta_cursos" },
+      { titulo: "Laboratório de Edições Criativas", link: "https://luannagomide.com.br/laboratorio-de-edicoes", imagem: "imagens/biosite/laboratorio-edicoes.jpg", dataCta: "cta_cursos" }
     ]
   },
   {
     secao: "Meus Cupons",
     itens: [
-      { titulo: "Saint Germain | 🏷️ A-EDILAINESGPA", link: "https://www.saintgermainbrand.com.br/", imagem: "imagens/biosite/saint-germain.jpg" },
-      { titulo: "Dr. Lava Tudo | 🏷️ EDILAINE-10", link: "https://drlavatudo.com/loja/?afiliado=EDILAINE", imagem: "imagens/biosite/dr-lava-tudo.png" }
+      { titulo: "Saint Germain | 🏷️ A-EDILAINESGPA", link: "https://www.saintgermainbrand.com.br/", imagem: "imagens/biosite/saint-germain.jpg", dataCta: "cta_cupons" },
+      { titulo: "Dr. Lava Tudo | 🏷️ EDILAINE-10", link: "https://drlavatudo.com/loja/?afiliado=EDILAINE", imagem: "imagens/biosite/dr-lava-tudo.png", dataCta: "cta_cupons" }
     ]
   },
   {
     secao: "Achadinhos",
     itens: [
-      { titulo: "Só os favoritos 💙", link: "https://collshp.com/ediindica", imagem: "imagens/biosite/achadinhos.jpg" }
+      { titulo: "Só os favoritos 💙", link: "https://collshp.com/ediindica", imagem: "imagens/biosite/achadinhos.jpg", dataCta: "cta_achadinhos" }
     ]
   }
 ];
@@ -272,8 +272,8 @@ document.getElementById("perfilNome").textContent = PERFIL_BIOSITE.nome;
 document.getElementById("anoRodape").textContent = new Date().getFullYear();
 
 document.getElementById("perfilContatos").innerHTML = `
-  <a href="mailto:${PERFIL_BIOSITE.email}" aria-label="E-mail de ${PERFIL_BIOSITE.nome}">${ICONES_SVG.email}</a>
-  <a href="${PERFIL_BIOSITE.tiktokUrl}" target="_blank" rel="noopener" aria-label="TikTok de ${PERFIL_BIOSITE.nome}">${ICONES_SVG.tiktok}</a>
+  <a href="mailto:${PERFIL_BIOSITE.email}" aria-label="E-mail de ${PERFIL_BIOSITE.nome}" data-cta="cta_icone_email">${ICONES_SVG.email}</a>
+  <a href="${PERFIL_BIOSITE.tiktokUrl}" target="_blank" rel="noopener" aria-label="TikTok de ${PERFIL_BIOSITE.nome}" data-cta="cta_icone_tiktok">${ICONES_SVG.tiktok}</a>
 `;
 
 document.getElementById("secoesBiosite").innerHTML = SECOES_BIOSITE.map(bloco => `
