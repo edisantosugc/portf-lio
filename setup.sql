@@ -185,6 +185,10 @@ create table if not exists public.painel_clientes (
 create index if not exists idx_painel_clientes_etapa on public.painel_clientes (etapa);
 create index if not exists idx_painel_clientes_status on public.painel_clientes (status);
 
+-- Detalhe livre do nicho quando "nicho" = 'Outro'. Se a tabela já existia de uma
+-- versão anterior, essa linha adiciona a coluna sem apagar nada.
+alter table public.painel_clientes add column if not exists nicho_detalhe text;
+
 alter table public.painel_clientes enable row level security;
 
 create policy "Usuaria autenticada gerencia seus clientes"

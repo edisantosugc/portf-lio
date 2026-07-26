@@ -1822,6 +1822,10 @@
           <option value="Outro">Outro</option>
         </select>
       </div>
+      <div class="ugc-campo largo oculto" id="clienteCampoNichoOutroWrap">
+        <label>Qual é o nicho?</label>
+        <input type="text" id="clienteCampoNichoOutro" placeholder="Descreva o nicho da marca">
+      </div>
       <div class="ugc-form-grade">
         <div class="ugc-campo"><label>Instagram</label><input type="text" id="clienteCampoInstagram" placeholder="@marca ou link"></div>
         <div class="ugc-campo"><label>TikTok</label><input type="text" id="clienteCampoTiktok" placeholder="@marca ou link"></div>
@@ -3127,6 +3131,9 @@
     });
     document.getElementById("clienteCampoContatoTelefone").addEventListener("input", (e) => {
       e.target.value = aplicarMascaraTelefone(e.target.value);
+    });
+    document.getElementById("clienteCampoNicho").addEventListener("change", (e) => {
+      document.getElementById("clienteCampoNichoOutroWrap").classList.toggle("oculto", e.target.value !== "Outro");
     });
 
     document.getElementById("clienteBotaoImportar").addEventListener("click", () => {
@@ -6355,6 +6362,10 @@
     document.getElementById("clienteContagemHistorico").textContent = clientesCache.filter(c => c.etapa === "historico").length;
   }
 
+  function formatarNichoCliente(c){
+    return c.nicho === "Outro" && c.nicho_detalhe ? c.nicho_detalhe : (c.nicho || "—");
+  }
+
   function renderLinhaClienteHtml(c){
     const contatoHtml = (c.contato_email || c.contato_telefone)
       ? `${c.contato_email ? `<span class="cliente-contato-linha email">${c.contato_email}</span>` : ""}${c.contato_telefone ? `<span class="cliente-contato-linha">${c.contato_telefone}</span>` : ""}`
@@ -6363,7 +6374,7 @@
     return `
       <tr data-id="${c.id}">
         <td class="cliente-empresa-nome">${c.nome_marca}</td>
-        <td>${c.nicho || "—"}</td>
+        <td>${formatarNichoCliente(c)}</td>
         <td>${contatoHtml}</td>
         <td>${c.ja_trabalhou ? `<span class="cliente-tag trabalhou">Já trabalhou</span>` : "—"}</td>
         <td><span class="cliente-tag status-${c.status}">${c.status === "ativo" ? "Ativo" : "Inativo"}</span></td>
@@ -6406,7 +6417,8 @@
         (c.nome_marca || "").toLowerCase().includes(termo) ||
         (c.contato_nome || "").toLowerCase().includes(termo) ||
         (c.contato_email || "").toLowerCase().includes(termo) ||
-        (c.nicho || "").toLowerCase().includes(termo)
+        (c.nicho || "").toLowerCase().includes(termo) ||
+        (c.nicho_detalhe || "").toLowerCase().includes(termo)
       );
     }
     filtrados = filtrados.slice().sort((a, b) =>
@@ -6449,6 +6461,8 @@
     document.getElementById("clienteCampoMarca").value = cliente ? cliente.nome_marca : "";
     document.getElementById("clienteCampoCnpj").value = cliente ? (cliente.cnpj || "") : "";
     document.getElementById("clienteCampoNicho").value = cliente ? (cliente.nicho || "") : "";
+    document.getElementById("clienteCampoNichoOutro").value = cliente ? (cliente.nicho_detalhe || "") : "";
+    document.getElementById("clienteCampoNichoOutroWrap").classList.toggle("oculto", !cliente || cliente.nicho !== "Outro");
     document.getElementById("clienteCampoInstagram").value = cliente ? (cliente.instagram || "") : "";
     document.getElementById("clienteCampoTiktok").value = cliente ? (cliente.tiktok || "") : "";
     document.getElementById("clienteCampoContatoNome").value = cliente ? (cliente.contato_nome || "") : "";
@@ -6460,6 +6474,8 @@
 
   function fecharModalCliente(){
     document.getElementById("modalCliente").classList.add("oculto");
+    document.getElementById("clienteCampoNichoOutroWrap").classList.add("oculto");
+    document.getElementById("clienteCampoNichoOutro").value = "";
     clienteEditandoId = null;
   }
 
@@ -6467,10 +6483,12 @@
     const marca = document.getElementById("clienteCampoMarca").value.trim();
     if (!marca) return;
 
+    const nicho = document.getElementById("clienteCampoNicho").value || null;
     const dados = {
       nome_marca: marca,
       cnpj: document.getElementById("clienteCampoCnpj").value.trim() || null,
-      nicho: document.getElementById("clienteCampoNicho").value || null,
+      nicho: nicho,
+      nicho_detalhe: nicho === "Outro" ? (document.getElementById("clienteCampoNichoOutro").value.trim() || null) : null,
       instagram: document.getElementById("clienteCampoInstagram").value.trim() || null,
       tiktok: document.getElementById("clienteCampoTiktok").value.trim() || null,
       contato_nome: document.getElementById("clienteCampoContatoNome").value.trim() || null,
