@@ -2901,6 +2901,25 @@
   }
 
   /* =========================================================================
+     MÁSCARAS DE INPUT (CNPJ, telefone) — formata enquanto a usuária digita
+     ========================================================================= */
+  function aplicarMascaraCnpj(valor){
+    const digitos = valor.replace(/\D/g, "").slice(0, 14);
+    return digitos
+      .replace(/^(\d{2})(\d)/, "$1.$2")
+      .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/\.(\d{3})(\d)/, ".$1/$2")
+      .replace(/(\d{4})(\d)/, "$1-$2");
+  }
+  function aplicarMascaraTelefone(valor){
+    const digitos = valor.replace(/\D/g, "").slice(0, 11);
+    if (digitos.length <= 10){
+      return digitos.replace(/^(\d{2})(\d)/, "($1) $2").replace(/(\d{4})(\d)/, "$1-$2");
+    }
+    return digitos.replace(/^(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
+  }
+
+  /* =========================================================================
      INTERFACE: ABAS, PERÍODO, MENU MOBILE, SAIR
      ========================================================================= */
   function configurarEventosDeInterface(){
@@ -3103,6 +3122,12 @@
       if (e.target.id === "modalCliente") fecharModalCliente();
     });
     document.getElementById("clienteModalSalvar").addEventListener("click", salvarCliente);
+    document.getElementById("clienteCampoCnpj").addEventListener("input", (e) => {
+      e.target.value = aplicarMascaraCnpj(e.target.value);
+    });
+    document.getElementById("clienteCampoContatoTelefone").addEventListener("input", (e) => {
+      e.target.value = aplicarMascaraTelefone(e.target.value);
+    });
 
     document.getElementById("clienteBotaoImportar").addEventListener("click", () => {
       document.getElementById("modalImportarIA").classList.remove("oculto");
