@@ -2507,8 +2507,11 @@
           <h2>Novo trabalho</h2>
           <div class="ugc-form-grade">
             <div class="ugc-campo largo">
-              <label>Nome da marca</label>
-              <input type="text" id="ugcCampoMarca" placeholder="Ex: Marca Girassol">
+              <label>Cliente</label>
+              <select id="ugcCampoClienteId">
+                <option value="">Selecione o cliente</option>
+              </select>
+              <button type="button" class="btn-fantasma" id="ugcBotaoClienteRapido" style="margin-top:6px;">+ cadastrar cliente novo</button>
             </div>
             <div class="ugc-campo largo">
               <label>Origem do lead</label>
@@ -2652,6 +2655,7 @@
   const ugcEditando = new Set();
   let ugcOrigemSelecionada = "Inbound";
   let ugcContratoAtivoSelecionado = false;
+  let ugcClienteRapidoAtivo = false; // true enquanto o cliente é cadastrado pelo atalho "+ cadastrar cliente novo" do form de trabalho
 
   // Estado da aba Abordagem: registros de abordagens a marcas, linhas abertas/em edição e status selecionado no formulário
   let abordagensCache = [];
@@ -2884,6 +2888,7 @@
         // o SQL da aba Clientes for rodado no Supabase, então essa busca pode falhar sem travar o resto do painel.
         clientesCache = await buscarTudo("painel_clientes");
         renderizarClientes();
+        preencherSelectClienteUgc(document.getElementById("ugcCampoClienteId"), "");
       } catch (erroClientes) {
         console.error("Erro ao carregar/renderizar Clientes:", erroClientes);
       }
@@ -3093,6 +3098,12 @@
 
     document.getElementById("ugcBotaoNovo").addEventListener("click", () => {
       document.getElementById("ugcFormNovo").classList.toggle("oculto");
+      preencherSelectClienteUgc(document.getElementById("ugcCampoClienteId"), "");
+    });
+
+    document.getElementById("ugcBotaoClienteRapido").addEventListener("click", () => {
+      ugcClienteRapidoAtivo = true;
+      abrirModalCliente(null);
     });
 
     document.getElementById("ugcOrigemToggle").querySelectorAll("span").forEach(span => {
@@ -5258,8 +5269,9 @@
     return `
       <div class="ugc-form-grade">
         <div class="ugc-campo largo">
-          <label>Nome da marca</label>
-          <input type="text" id="ugcEdicaoMarca-${item.id}" value="${item.marca}">
+          <label>Cliente</label>
+          <select id="ugcEdicaoClienteId-${item.id}"></select>
+          ${!item.cliente_id ? `<p class="ugc-nota-mini">Trabalho antigo, ainda sem cliente vinculado — marca salva: "${item.marca}". Selecione acima pra vincular (opcional).</p>` : ""}
         </div>
         <div class="ugc-campo largo">
           <label>Origem do lead</label>
@@ -5477,6 +5489,11 @@
         });
       });
     });
+    container.querySelectorAll("[id^='ugcEdicaoClienteId-']").forEach(select => {
+      const trabalhoId = select.id.replace("ugcEdicaoClienteId-", "");
+      const trabalho = ugcCache.find(t => t.id === trabalhoId);
+      preencherSelectClienteUgc(select, trabalho ? trabalho.cliente_id : "");
+    });
   }
 
   function renderListaUgc(){
@@ -5514,13 +5531,26 @@
     renderKanbanUgc();
   }
 
+  // Preenche um <select> de cliente em ordem alfabética. Reaproveitado no form de "Novo
+  // trabalho" e em cada linha de edição de trabalho já existente (vínculo retroativo).
+  function preencherSelectClienteUgc(selectEl, clienteIdSelecionado){
+    if (!selectEl) return;
+    const ordenados = clientesCache.slice().sort((a, b) => a.nome_marca.localeCompare(b.nome_marca));
+    selectEl.innerHTML = `<option value="">Selecione o cliente</option>` +
+      ordenados.map(c => `<option value="${c.id}" ${c.id === clienteIdSelecionado ? "selected" : ""}>${c.nome_marca}</option>`).join("");
+  }
+
   async function criarTrabalhoUgc(){
-    const campoMarca = document.getElementById("ugcCampoMarca");
-    const marca = campoMarca.value.trim();
-    if (!marca) return;
+    const clienteId = document.getElementById("ugcCampoClienteId").value;
+    if (!clienteId){
+      alert("Selecione um cliente (ou cadastre um novo pelo botão ao lado) antes de adicionar o trabalho.");
+      return;
+    }
+    const cliente = clientesCache.find(c => c.id === clienteId);
 
     const dados = {
-      marca: marca,
+      cliente_id: clienteId,
+      marca: cliente.nome_marca,
       origem: ugcOrigemSelecionada,
       tipo_trabalho: document.getElementById("ugcCampoTipo").value.trim() || null,
       valor: parseFloat(document.getElementById("ugcCampoValor").value) || null,
@@ -5540,7 +5570,8 @@
 
     if (!error && inserido){
       ugcCache = ugcCache.concat(inserido);
-      ["ugcCampoMarca", "ugcCampoTipo", "ugcCampoValor", "ugcCampoDataFechamento", "ugcCampoDataPagamento", "ugcCampoDataEntrega", "ugcCampoTrafegoInicio", "ugcCampoTrafegoFim"].forEach(id => {
+      document.getElementById("ugcCampoClienteId").value = "";
+      ["ugcCampoTipo", "ugcCampoValor", "ugcCampoDataFechamento", "ugcCampoDataPagamento", "ugcCampoDataEntrega", "ugcCampoTrafegoInicio", "ugcCampoTrafegoFim"].forEach(id => {
         document.getElementById(id).value = "";
       });
       ugcContratoAtivoSelecionado = false;
@@ -5599,15 +5630,19 @@
   }
 
   async function salvarEdicaoUgc(id){
-    const marca = document.getElementById(`ugcEdicaoMarca-${id}`).value.trim();
-    if (!marca) return;
-
     const registroAtual = ugcCache.find(t => t.id === id);
     const origemAtiva = document.querySelector(`#ugcEdicaoOrigem-${id} .ativo`);
     const novaEtapa = document.getElementById(`ugcEdicaoEtapa-${id}`).value;
 
+    // Vínculo retroativo: se a usuária selecionar um cliente aqui, "marca" passa a ser
+    // o retrato do nome dele. Se deixar em branco (comum em trabalhos antigos), mantém
+    // a marca como estava — não migra nada automaticamente, é sempre manual e opcional.
+    const clienteIdSelecionado = document.getElementById(`ugcEdicaoClienteId-${id}`).value || null;
+    const clienteSelecionado = clienteIdSelecionado ? clientesCache.find(c => c.id === clienteIdSelecionado) : null;
+
     const campos = {
-      marca: marca,
+      cliente_id: clienteIdSelecionado,
+      marca: clienteSelecionado ? clienteSelecionado.nome_marca : registroAtual.marca,
       origem: origemAtiva ? origemAtiva.dataset.origem : null,
       tipo_trabalho: document.getElementById(`ugcEdicaoTipo-${id}`).value.trim() || null,
       valor: parseFloat(document.getElementById(`ugcEdicaoValor-${id}`).value) || null,
@@ -6628,6 +6663,7 @@
     document.getElementById("clienteCampoNichoOutro").value = "";
     clienteEditandoId = null;
     clienteAbordagemOrigemId = null;
+    ugcClienteRapidoAtivo = false;
   }
 
   async function salvarCliente(){
@@ -6653,6 +6689,7 @@
         const registro = clientesCache.find(c => c.id === clienteEditandoId);
         if (registro) Object.assign(registro, dados);
         renderizarClientes();
+        preencherSelectClienteUgc(document.getElementById("ugcCampoClienteId"), document.getElementById("ugcCampoClienteId").value);
         fecharModalCliente();
       }
     } else {
@@ -6666,6 +6703,10 @@
         if (clienteAbordagemOrigemId){
           await atualizarAbordagem(clienteAbordagemOrigemId, { cliente_id: inserido[0].id });
         }
+        // Se veio do atalho "+ cadastrar cliente novo" do form de Trabalho UGC, já
+        // deixa o cliente recém-criado selecionado ali (ugcClienteRapidoAtivo é lido
+        // aqui, antes de fecharModalCliente() resetar a flag).
+        preencherSelectClienteUgc(document.getElementById("ugcCampoClienteId"), ugcClienteRapidoAtivo ? inserido[0].id : "");
         fecharModalCliente();
       }
     }

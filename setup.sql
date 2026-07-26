@@ -295,6 +295,14 @@ alter table public.painel_ugc_trabalhos add column if not exists trafego_pago_in
 alter table public.painel_ugc_trabalhos add column if not exists trafego_pago_fim date;
 create index if not exists idx_painel_ugc_trabalhos_trafego_fim on public.painel_ugc_trabalhos (trafego_pago_fim);
 
+-- Vínculo com o Cliente oficial (aba Clientes). A coluna "marca" continua existindo e
+-- não é mais preenchida à mão: ela vira um retrato do nome do cliente escolhido no
+-- momento do vínculo, então o resto do painel (listas, kanban, sincronização com o
+-- Financeiro UGC) não precisa mudar. Trabalhos antigos ficam com cliente_id nulo até
+-- serem vinculados manualmente na tela de edição — isso é opcional, não obrigatório.
+alter table public.painel_ugc_trabalhos add column if not exists cliente_id uuid references public.painel_clientes(id) on delete set null;
+create index if not exists idx_painel_ugc_trabalhos_cliente on public.painel_ugc_trabalhos (cliente_id);
+
 alter table public.painel_ugc_trabalhos enable row level security;
 
 create policy "Usuaria autenticada gerencia seus trabalhos UGC"
