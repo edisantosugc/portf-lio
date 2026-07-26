@@ -367,6 +367,12 @@ create index if not exists idx_painel_abordagens_status on public.painel_abordag
 alter table public.painel_abordagens add column if not exists arquivado boolean not null default false;
 create index if not exists idx_painel_abordagens_arquivado on public.painel_abordagens (arquivado);
 
+-- Vínculo com o Cliente oficial depois que a negociação fecha e o cadastro é completado
+-- (aba Clientes). Fica null até isso acontecer — é o que o painel usa pra saber quais
+-- negociações fechadas ainda têm pendência de cadastro.
+alter table public.painel_abordagens add column if not exists cliente_id uuid references public.painel_clientes(id) on delete set null;
+create index if not exists idx_painel_abordagens_cliente on public.painel_abordagens (cliente_id);
+
 alter table public.painel_abordagens enable row level security;
 
 create policy "Usuaria autenticada gerencia suas abordagens"

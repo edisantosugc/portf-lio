@@ -2687,6 +2687,7 @@
   let clienteSubAbaAtiva = "contatos";
   let clienteOrdemRecente = true;
   let clienteEditandoId = null;
+  let clienteAbordagemOrigemId = null; // de qual abordagem veio o "Completar cadastro", pra linkar de volta depois de salvar
 
   // Estado das conversas de IA da Negociação: uma entrada por contexto, cada
   // uma é a lista de mensagens daquela conversa, em ordem cronológica.
@@ -4726,8 +4727,11 @@
     const itensTrafegoPago = obterAlertasTrafegoPago()
       .map(item => ({ ...item, categoria: "trafego_pago", chave: `trafego-${item.id}` }));
 
+    const itensPendenciaCadastro = obterAlertasCompletarCadastroCliente()
+      .map(item => ({ ...item, categoria: "pendencia_cliente", chave: `pendencia-${item.id}` }));
+
     const agora = Date.now();
-    const visiveis = itensContas.concat(itensRecebimentos).concat(itensFollowup).concat(itensTrafegoPago)
+    const visiveis = itensContas.concat(itensRecebimentos).concat(itensFollowup).concat(itensTrafegoPago).concat(itensPendenciaCadastro)
       .filter(item => !notificacoesPopupFechadas.has(item.chave))
       .filter(item => !(notificacoesPopupAdiadas[item.chave] && agora < notificacoesPopupAdiadas[item.chave]))
       .sort((a, b) => a.diasParaVencer - b.diasParaVencer);
@@ -4741,13 +4745,14 @@
       const ehPagar = item.categoria === "pagar";
       const ehFollowup = item.categoria === "followup";
       const ehTrafego = item.categoria === "trafego_pago";
+      const ehPendencia = item.categoria === "pendencia_cliente";
       const nomeExibicao = ehPagar
         ? (item.tipo === "cartao" ? `Fatura ${item.nome}` : item.nome)
-        : ehFollowup ? item.marca : ehTrafego ? item.marca : item.descricao;
-      const mensagem = ehPagar ? mensagemAlertaConta(item) : ehFollowup ? mensagemAlertaFollowupAbordagem(item) : ehTrafego ? mensagemAlertaTrafegoPago(item) : mensagemAlertaRecebimento(item);
-      const classeStatus = (ehFollowup || ehTrafego) ? (item.statusAlerta === "atrasado" ? "atrasado" : "") : (!ehPagar && item.status === "proximo" ? "proximo-receber" : item.status);
-      const acaoBotao = ehPagar ? "marcar-pago-notificacao" : ehFollowup ? "marcar-followup-notificacao" : ehTrafego ? "" : "marcar-recebido-notificacao";
-      const textoBotao = ehPagar ? "Marcar como pago" : ehFollowup ? "Marcar follow up como feito" : "Marcar como recebido";
+        : (ehFollowup || ehTrafego || ehPendencia) ? item.marca : item.descricao;
+      const mensagem = ehPagar ? mensagemAlertaConta(item) : ehFollowup ? mensagemAlertaFollowupAbordagem(item) : ehTrafego ? mensagemAlertaTrafegoPago(item) : ehPendencia ? mensagemPendenciaCadastroCliente() : mensagemAlertaRecebimento(item);
+      const classeStatus = ehPendencia ? "" : (ehFollowup || ehTrafego) ? (item.statusAlerta === "atrasado" ? "atrasado" : "") : (!ehPagar && item.status === "proximo" ? "proximo-receber" : item.status);
+      const acaoBotao = ehPagar ? "marcar-pago-notificacao" : ehFollowup ? "marcar-followup-notificacao" : ehPendencia ? "completar-cadastro-cliente" : ehTrafego ? "" : "marcar-recebido-notificacao";
+      const textoBotao = ehPagar ? "Marcar como pago" : ehFollowup ? "Marcar follow up como feito" : ehPendencia ? "Completar cadastro" : "Marcar como recebido";
       const corpoAtributos = (ehFollowup || ehTrafego) ? `data-acao="${ehFollowup ? "ir-abordagem-notificacao" : "ir-trabalho-notificacao"}" data-id="${item.id}" tabindex="0" role="button"` : "";
 
       return `
@@ -4837,6 +4842,15 @@
       btn.addEventListener("click", () => {
         const cartaoEl = btn.closest(".notificacao-popup");
         marcarFollowupFeitoAbordagem(cartaoEl.dataset.id);
+      });
+    });
+
+    container.querySelectorAll("[data-acao='completar-cadastro-cliente']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const cartaoEl = btn.closest(".notificacao-popup");
+        container.querySelectorAll(".notificacao-popup").forEach(c => notificacoesPopupFechadas.add(c.dataset.chave));
+        container.innerHTML = "";
+        abrirModalClienteApartirDeAbordagem(cartaoEl.dataset.id);
       });
     });
   }
@@ -6252,6 +6266,20 @@
     return `Follow up em ${item.diasParaVencer} dias`;
   }
 
+  // Pendência administrativa permanente: negociação fechada que ainda não virou
+  // cadastro oficial de Cliente. Diferente do follow-up acima, NÃO respeita
+  // "arquivado" — senão a pendência sumiria sozinha quando arquivarAbordagensMesAnterior()
+  // arquivar a abordagem no mês seguinte, e a usuária nunca mais veria o lembrete.
+  function obterAlertasCompletarCadastroCliente(){
+    return abordagensCache
+      .filter(item => item.status === "fechada" && !item.cliente_id)
+      .map(item => ({ ...item, diasParaVencer: -9999 })); // sempre no topo, mesma urgência visual de "atrasado"
+  }
+
+  function mensagemPendenciaCadastroCliente(){
+    return "Negociação fechada! Complete o cadastro dela como cliente oficial.";
+  }
+
   /* =========================================================================
      ABA: IDEIAS CRIATIVAS — Bloco de Notas
      Notas soltas coloridas (tipo post-it): criar, editar o texto direto no
@@ -6584,11 +6612,22 @@
     document.getElementById("modalCliente").classList.remove("oculto");
   }
 
+  // Atalho vindo do card "Completar cadastro" (abordagem fechada sem cliente vinculado ainda).
+  // Só a marca vem preenchida — a abordagem não tem contato/CNPJ/nicho pra trazer junto.
+  function abrirModalClienteApartirDeAbordagem(abordagemId){
+    const abordagem = abordagensCache.find(a => a.id === abordagemId);
+    if (!abordagem) return;
+    clienteAbordagemOrigemId = abordagemId;
+    abrirModalCliente(null);
+    document.getElementById("clienteCampoMarca").value = abordagem.marca || "";
+  }
+
   function fecharModalCliente(){
     document.getElementById("modalCliente").classList.add("oculto");
     document.getElementById("clienteCampoNichoOutroWrap").classList.add("oculto");
     document.getElementById("clienteCampoNichoOutro").value = "";
     clienteEditandoId = null;
+    clienteAbordagemOrigemId = null;
   }
 
   async function salvarCliente(){
@@ -6621,6 +6660,12 @@
       if (!error && inserido){
         clientesCache = clientesCache.concat(inserido);
         renderizarClientes();
+        // Se o cadastro veio do card "Completar cadastro", linka de volta na abordagem
+        // de origem — isso faz a pendência sumir sozinha (atualizarAbordagem já
+        // re-renderiza o pop-up de notificações ao final).
+        if (clienteAbordagemOrigemId){
+          await atualizarAbordagem(clienteAbordagemOrigemId, { cliente_id: inserido[0].id });
+        }
         fecharModalCliente();
       }
     }
