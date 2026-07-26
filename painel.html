@@ -1669,6 +1669,17 @@
   .cliente-card-resumo .bolinha{ width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .cliente-card-resumo .valor{ font-family: 'Fraunces', serif; font-size: 1.8rem; font-variant-numeric: tabular-nums; line-height: 1; }
   .cliente-card-resumo .legenda{ font-size: .74rem; color: var(--texto-suave); }
+  .cliente-card-resumo.clicavel{ cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease; }
+  .cliente-card-resumo.clicavel:hover{ border-color: var(--dourado); }
+  .cliente-card-resumo.filtro-ativo{ border-color: var(--dourado); box-shadow: 0 0 0 2px rgba(201,166,107,.25); }
+
+  .clientes-filtro-ativo-aviso{
+    display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: .82rem; color: var(--texto-suave);
+  }
+  .clientes-filtro-ativo-aviso span{ font-weight: 700; color: var(--grafite); }
+  .clientes-filtro-ativo-aviso button{
+    border: none; background: none; color: var(--coral); font-weight: 600; font-size: .78rem; cursor: pointer; padding: 0;
+  }
 
   .clientes-barra-subabas{ display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 22px; flex-wrap: wrap; }
   .btn-negocia{
@@ -2294,20 +2305,20 @@
       </div>
 
       <div class="clientes-cards-resumo">
-        <div class="cliente-card-resumo">
-          <div class="topo"><span class="rotulo">Carteira Ativa</span><span class="bolinha" style="background:var(--verde)"></span></div>
+        <div class="cliente-card-resumo clicavel" data-filtro-resumo="carteira" role="button" tabindex="0">
+          <div class="topo"><span class="rotulo">Sua Carteira</span><span class="bolinha" style="background:var(--verde)"></span></div>
+          <span class="valor" id="clienteResumoCarteira">0</span>
+          <span class="legenda">Todos os clientes já trabalhados</span>
+        </div>
+        <div class="cliente-card-resumo clicavel" data-filtro-resumo="ativa" role="button" tabindex="0">
+          <div class="topo"><span class="rotulo">Carteira Ativa</span><span class="bolinha" style="background:var(--dourado)"></span></div>
           <span class="valor" id="clienteResumoAtiva">0</span>
-          <span class="legenda">Clientes rendendo agora</span>
+          <span class="legenda">Com trabalho rodando agora</span>
         </div>
-        <div class="cliente-card-resumo">
-          <div class="topo"><span class="rotulo">No Pipeline</span><span class="bolinha" style="background:var(--dourado)"></span></div>
-          <span class="valor" id="clienteResumoPipeline">0</span>
+        <div class="cliente-card-resumo clicavel" data-filtro-resumo="abordagem" role="button" tabindex="0">
+          <div class="topo"><span class="rotulo">Em Abordagem</span><span class="bolinha" style="background:var(--vermelho)"></span></div>
+          <span class="valor" id="clienteResumoAbordagem">0</span>
           <span class="legenda">Em prospecção ativa</span>
-        </div>
-        <div class="cliente-card-resumo">
-          <div class="topo"><span class="rotulo">Follow-up Hoje</span><span class="bolinha" style="background:var(--vermelho)"></span></div>
-          <span class="valor" id="clienteResumoFollowup">0</span>
-          <span class="legenda">Precisam de atenção</span>
         </div>
         <div class="cliente-card-resumo">
           <div class="topo"><span class="rotulo">Fechados Este Mês</span><span class="bolinha" style="background:var(--coral)"></span></div>
@@ -2315,6 +2326,11 @@
           <span class="legenda">Negócios concluídos</span>
         </div>
       </div>
+
+      <p class="clientes-filtro-ativo-aviso oculto" id="clienteFiltroResumoAviso">
+        Filtrando por: <span id="clienteFiltroResumoNome"></span>
+        <button type="button" id="clienteFiltroResumoLimpar">✕ limpar</button>
+      </p>
 
       <div class="clientes-barra-subabas">
         <div class="sub-abas-negocio" id="subAbasClientes">
@@ -2692,6 +2708,7 @@
   let clienteOrdemRecente = true;
   let clienteEditandoId = null;
   let clienteAbordagemOrigemId = null; // de qual abordagem veio o "Completar cadastro", pra linkar de volta depois de salvar
+  let clienteFiltroResumoAtivo = null; // 'carteira' | 'ativa' | 'abordagem' | null — filtro pelos cards do topo, tem prioridade sobre a sub-aba
 
   // Estado das conversas de IA da Negociação: uma entrada por contexto, cada
   // uma é a lista de mensagens daquela conversa, em ordem cronológica.
@@ -3171,6 +3188,11 @@
     document.getElementById("clienteCampoNicho").addEventListener("change", (e) => {
       document.getElementById("clienteCampoNichoOutroWrap").classList.toggle("oculto", e.target.value !== "Outro");
     });
+    document.querySelectorAll("[data-filtro-resumo]").forEach(card => {
+      card.addEventListener("click", () => alternarFiltroResumoClientes(card.dataset.filtroResumo));
+      card.addEventListener("keydown", (e) => { if (e.key === "Enter") alternarFiltroResumoClientes(card.dataset.filtroResumo); });
+    });
+    document.getElementById("clienteFiltroResumoLimpar").addEventListener("click", () => alternarFiltroResumoClientes(clienteFiltroResumoAtivo));
 
     document.getElementById("clienteBotaoImportar").addEventListener("click", () => {
       document.getElementById("modalImportarIA").classList.remove("oculto");
@@ -6586,9 +6608,27 @@
      "Importar com IA" e "NegocIA" só têm a interface pronta por enquanto —
      a extração/análise de verdade depende de uma Edge Function nova.
      ========================================================================= */
+  // "Sua Carteira": todo cliente já trabalhado, histórico completo. Combina os 3 sinais
+  // existentes com OR porque nenhum sozinho é garantidamente completo/atualizado
+  // (ja_trabalhou e etapa=historico são manuais; ter trabalho vinculado é automático).
+  function clienteJaTrabalhou(cliente){
+    return cliente.ja_trabalhou === true || cliente.etapa === "historico" || ugcCache.some(t => t.cliente_id === cliente.id);
+  }
+
+  // "Carteira Ativa": cliente com trabalho em andamento agora — em qualquer etapa antes
+  // de pago/arquivado, OU já entregue/pago mas ainda com tráfego pago vigente.
+  function clienteTemTrabalhoAtivoAgora(cliente){
+    const hojeISO = formatarDataISO(new Date());
+    return ugcCache.some(t => t.cliente_id === cliente.id && (
+      !["pago", "arquivado"].includes(t.etapa) ||
+      (t.trafego_pago_fim && t.trafego_pago_fim >= hojeISO)
+    ));
+  }
+
   function calcularResumoClientes(){
-    const ativos = clientesCache.filter(c => c.status === "ativo").length;
-    const pipeline = clientesCache.filter(c => c.etapa === "abordagem").length;
+    const carteira = clientesCache.filter(clienteJaTrabalhou).length;
+    const ativa = clientesCache.filter(clienteTemTrabalhoAtivoAgora).length;
+    const emAbordagem = clientesCache.filter(c => c.etapa === "abordagem").length;
 
     const hoje = new Date();
     const fechadosMes = clientesCache.filter(c => {
@@ -6597,9 +6637,9 @@
       return data.getFullYear() === hoje.getFullYear() && data.getMonth() === hoje.getMonth();
     }).length;
 
-    document.getElementById("clienteResumoAtiva").textContent = ativos;
-    document.getElementById("clienteResumoPipeline").textContent = pipeline;
-    document.getElementById("clienteResumoFollowup").textContent = 0; // ainda sem data de follow up no cadastro de cliente
+    document.getElementById("clienteResumoCarteira").textContent = carteira;
+    document.getElementById("clienteResumoAtiva").textContent = ativa;
+    document.getElementById("clienteResumoAbordagem").textContent = emAbordagem;
     document.getElementById("clienteResumoFechados").textContent = fechadosMes;
   }
 
@@ -6653,12 +6693,35 @@
     });
   }
 
+  const CLIENTE_FILTROS_RESUMO = {
+    carteira: { rotulo: "Sua Carteira", teste: clienteJaTrabalhou },
+    ativa: { rotulo: "Carteira Ativa", teste: clienteTemTrabalhoAtivoAgora },
+    abordagem: { rotulo: "Em Abordagem", teste: c => c.etapa === "abordagem" }
+  };
+
+  // O filtro dos cards do topo, quando ativo, tem prioridade sobre a sub-aba (Base de
+  // Contatos/Em Abordagem/Histórico) — ele pode abranger clientes de mais de uma etapa.
+  function alternarFiltroResumoClientes(filtro){
+    clienteFiltroResumoAtivo = clienteFiltroResumoAtivo === filtro ? null : filtro;
+    document.querySelectorAll("[data-filtro-resumo]").forEach(el =>
+      el.classList.toggle("filtro-ativo", el.dataset.filtroResumo === clienteFiltroResumoAtivo)
+    );
+    const aviso = document.getElementById("clienteFiltroResumoAviso");
+    aviso.classList.toggle("oculto", !clienteFiltroResumoAtivo);
+    if (clienteFiltroResumoAtivo){
+      document.getElementById("clienteFiltroResumoNome").textContent = CLIENTE_FILTROS_RESUMO[clienteFiltroResumoAtivo].rotulo;
+    }
+    renderTabelaClientes();
+  }
+
   function renderTabelaClientes(){
     const corpo = document.getElementById("clientesTabelaCorpo");
     if (!corpo) return;
 
     const termo = (document.getElementById("clienteBusca").value || "").trim().toLowerCase();
-    let filtrados = clientesCache.filter(c => c.etapa === clienteSubAbaAtiva);
+    let filtrados = clienteFiltroResumoAtivo
+      ? clientesCache.filter(CLIENTE_FILTROS_RESUMO[clienteFiltroResumoAtivo].teste)
+      : clientesCache.filter(c => c.etapa === clienteSubAbaAtiva);
     if (termo){
       filtrados = filtrados.filter(c =>
         (c.nome_marca || "").toLowerCase().includes(termo) ||
@@ -6684,6 +6747,13 @@
   function trocarSubAbaClientes(sub){
     clienteSubAbaAtiva = sub;
     document.querySelectorAll("#subAbasClientes .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === sub));
+    // Sub-aba e filtro dos cards do topo são visões alternativas, não se somam — escolher
+    // uma sub-aba desliga o filtro de card, senão o clique na sub-aba pareceria não fazer nada.
+    if (clienteFiltroResumoAtivo){
+      clienteFiltroResumoAtivo = null;
+      document.querySelectorAll("[data-filtro-resumo]").forEach(el => el.classList.remove("filtro-ativo"));
+      document.getElementById("clienteFiltroResumoAviso").classList.add("oculto");
+    }
     renderTabelaClientes();
   }
 
