@@ -4741,8 +4741,11 @@
     const itensPendenciaCadastro = obterAlertasCompletarCadastroCliente()
       .map(item => ({ ...item, categoria: "pendencia_cliente", chave: `pendencia-${item.id}` }));
 
+    const itensReengajamento = obterAlertasReengajamentoClientes()
+      .map(item => ({ ...item, categoria: "reengajamento", chave: `reengajamento-${item.id}` }));
+
     const agora = Date.now();
-    const visiveis = itensContas.concat(itensRecebimentos).concat(itensFollowup).concat(itensTrafegoPago).concat(itensPendenciaCadastro)
+    const visiveis = itensContas.concat(itensRecebimentos).concat(itensFollowup).concat(itensTrafegoPago).concat(itensPendenciaCadastro).concat(itensReengajamento)
       .filter(item => !notificacoesPopupFechadas.has(item.chave))
       .filter(item => !(notificacoesPopupAdiadas[item.chave] && agora < notificacoesPopupAdiadas[item.chave]))
       .sort((a, b) => a.diasParaVencer - b.diasParaVencer);
@@ -4757,26 +4760,31 @@
       const ehFollowup = item.categoria === "followup";
       const ehTrafego = item.categoria === "trafego_pago";
       const ehPendencia = item.categoria === "pendencia_cliente";
+      const ehReengajamento = item.categoria === "reengajamento";
+      const ehClicavel = ehFollowup || ehTrafego || ehReengajamento;
       const nomeExibicao = ehPagar
         ? (item.tipo === "cartao" ? `Fatura ${item.nome}` : item.nome)
+        : ehReengajamento ? item.nome_marca
         : (ehFollowup || ehTrafego || ehPendencia) ? item.marca : item.descricao;
-      const mensagem = ehPagar ? mensagemAlertaConta(item) : ehFollowup ? mensagemAlertaFollowupAbordagem(item) : ehTrafego ? mensagemAlertaTrafegoPago(item) : ehPendencia ? mensagemPendenciaCadastroCliente() : mensagemAlertaRecebimento(item);
-      const classeStatus = ehPendencia ? "" : (ehFollowup || ehTrafego) ? (item.statusAlerta === "atrasado" ? "atrasado" : "") : (!ehPagar && item.status === "proximo" ? "proximo-receber" : item.status);
-      const acaoBotao = ehPagar ? "marcar-pago-notificacao" : ehFollowup ? "marcar-followup-notificacao" : ehPendencia ? "completar-cadastro-cliente" : ehTrafego ? "" : "marcar-recebido-notificacao";
+      const mensagem = ehPagar ? mensagemAlertaConta(item) : ehFollowup ? mensagemAlertaFollowupAbordagem(item) : ehTrafego ? mensagemAlertaTrafegoPago(item) : ehPendencia ? mensagemPendenciaCadastroCliente() : ehReengajamento ? mensagemAlertaReengajamento(item) : mensagemAlertaRecebimento(item);
+      const classeStatus = (ehPendencia || ehReengajamento) ? "" : (ehFollowup || ehTrafego) ? (item.statusAlerta === "atrasado" ? "atrasado" : "") : (!ehPagar && item.status === "proximo" ? "proximo-receber" : item.status);
+      const acaoBotao = ehPagar ? "marcar-pago-notificacao" : ehFollowup ? "marcar-followup-notificacao" : ehPendencia ? "completar-cadastro-cliente" : "marcar-recebido-notificacao";
       const textoBotao = ehPagar ? "Marcar como pago" : ehFollowup ? "Marcar follow up como feito" : ehPendencia ? "Completar cadastro" : "Marcar como recebido";
-      const corpoAtributos = (ehFollowup || ehTrafego) ? `data-acao="${ehFollowup ? "ir-abordagem-notificacao" : "ir-trabalho-notificacao"}" data-id="${item.id}" tabindex="0" role="button"` : "";
+      const acaoNavegacao = ehFollowup ? "ir-abordagem-notificacao" : ehTrafego ? "ir-trabalho-notificacao" : ehReengajamento ? "ir-cliente-notificacao" : "";
+      const corpoAtributos = ehClicavel ? `data-acao="${acaoNavegacao}" data-id="${item.id}" tabindex="0" role="button"` : "";
 
       return `
         <div class="notificacao-popup ${classeStatus}" data-chave="${item.chave}" data-categoria="${item.categoria}" data-nome="${item.nome || ""}" data-tipo="${item.tipo || ""}" data-id="${item.id || ""}">
           <button type="button" class="notificacao-popup-fechar" data-acao="fechar-notificacao" aria-label="Fechar aviso">&times;</button>
-          <div class="notificacao-popup-corpo${(ehFollowup || ehTrafego) ? " clicavel" : ""}" ${corpoAtributos}>
+          <div class="notificacao-popup-corpo${ehClicavel ? " clicavel" : ""}" ${corpoAtributos}>
             <p class="notificacao-popup-nome">${nomeExibicao}</p>
             <p class="notificacao-popup-mensagem">${mensagem}${item.valor != null ? " · " + formatarMoeda(Number(item.valor)) : ""}</p>
             ${ehFollowup ? `<p class="notificacao-popup-ver-mais">Ver anotação da abordagem ›</p>` : ""}
             ${ehTrafego ? `<p class="notificacao-popup-ver-mais">Ver trabalho no UGC Creator ›</p>` : ""}
+            ${ehReengajamento ? `<p class="notificacao-popup-ver-mais">Ver cliente ›</p>` : ""}
           </div>
           <div class="notificacao-popup-acoes">
-            ${ehTrafego ? "" : `<button type="button" class="notificacao-popup-botao-pago" data-acao="${acaoBotao}">${textoBotao}</button>`}
+            ${(ehTrafego || ehReengajamento) ? "" : `<button type="button" class="notificacao-popup-botao-pago" data-acao="${acaoBotao}">${textoBotao}</button>`}
             <button type="button" class="notificacao-popup-botao-adiar" data-acao="adiar-notificacao">Lembrar em 1h</button>
           </div>
         </div>
@@ -4825,6 +4833,16 @@
         container.querySelectorAll(".notificacao-popup").forEach(c => notificacoesPopupFechadas.add(c.dataset.chave));
         container.innerHTML = "";
         irParaTrabalhoUgc(el.dataset.id);
+      };
+      el.addEventListener("click", irParaEntrada);
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter") irParaEntrada(); });
+    });
+
+    container.querySelectorAll("[data-acao='ir-cliente-notificacao']").forEach(el => {
+      const irParaEntrada = () => {
+        container.querySelectorAll(".notificacao-popup").forEach(c => notificacoesPopupFechadas.add(c.dataset.chave));
+        container.innerHTML = "";
+        irParaCliente(el.dataset.id);
       };
       el.addEventListener("click", irParaEntrada);
       el.addEventListener("keydown", (e) => { if (e.key === "Enter") irParaEntrada(); });
@@ -6313,6 +6331,60 @@
 
   function mensagemPendenciaCadastroCliente(){
     return "Negociação fechada! Complete o cadastro dela como cliente oficial.";
+  }
+
+  // Alerta de reengajamento: cliente sem NOVO trabalho fechado há 3+ meses. O prazo é
+  // sempre calculado em cima do trabalho mais recente (via cliente_id), então fechar um
+  // trabalho novo já muda data_fechamento e o alerta some sozinho — sem "resetar" nada.
+  const DIAS_LIMITE_REENGAJAMENTO = 90; // ~3 meses. Edite aqui se quiser mudar o prazo.
+
+  function obterUltimoTrabalhoFechadoDoCliente(clienteId){
+    const doCliente = ugcCache.filter(t => t.cliente_id === clienteId && t.data_fechamento);
+    if (!doCliente.length) return null;
+    return doCliente.slice().sort((a, b) => b.data_fechamento.localeCompare(a.data_fechamento))[0];
+  }
+
+  function diasDesdeData(dataISO){
+    const hoje = new Date();
+    const hojeSemHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    const [ano, mes, dia] = dataISO.split("-").map(Number);
+    return Math.round((hojeSemHora - new Date(ano, mes - 1, dia)) / (1000 * 60 * 60 * 24));
+  }
+
+  // Só considera clientes com pelo menos um trabalho vinculado por cliente_id — clientes
+  // cujos trabalhos antigos ainda não foram vinculados retroativamente (ver aba UGC
+  // Creator) não geram alerta aqui até isso ser feito.
+  function obterAlertasReengajamentoClientes(){
+    const alertas = [];
+    clientesCache.forEach(cliente => {
+      const ultimo = obterUltimoTrabalhoFechadoDoCliente(cliente.id);
+      if (!ultimo) return; // nunca fechou trabalho vinculado — não é "reengajamento"
+      const diasSemTrabalho = diasDesdeData(ultimo.data_fechamento);
+      if (diasSemTrabalho >= DIAS_LIMITE_REENGAJAMENTO){
+        alertas.push({ ...cliente, ultimoTrabalho: ultimo, diasSemTrabalho, diasParaVencer: -diasSemTrabalho });
+      }
+    });
+    alertas.sort((a, b) => b.diasSemTrabalho - a.diasSemTrabalho);
+    return alertas;
+  }
+
+  function mensagemAlertaReengajamento(item){
+    const meses = Math.floor(item.diasSemTrabalho / 30);
+    return `Já fazem ${meses}+ meses sem novo trabalho fechado com ${item.nome_marca}. Bom momento pra reengajar.`;
+  }
+
+  function irParaCliente(id){
+    trocarAba("clientes");
+    const cliente = clientesCache.find(c => c.id === id);
+    if (cliente) trocarSubAbaClientes(cliente.etapa);
+    requestAnimationFrame(() => {
+      const linha = document.querySelector(`#clientesTabelaCorpo tr[data-id="${id}"]`);
+      if (linha){
+        linha.scrollIntoView({ behavior: "smooth", block: "center" });
+        linha.classList.add("ugc-linha-flash");
+        setTimeout(() => linha.classList.remove("ugc-linha-flash"), 1400);
+      }
+    });
   }
 
   /* =========================================================================
