@@ -1841,6 +1841,12 @@
         <div class="ugc-campo"><label>Instagram</label><input type="text" id="clienteCampoInstagram" placeholder="@marca ou link"></div>
         <div class="ugc-campo"><label>TikTok</label><input type="text" id="clienteCampoTiktok" placeholder="@marca ou link"></div>
       </div>
+      <div class="ugc-campo largo">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:400;">
+          <input type="checkbox" id="clienteCampoJaTrabalhou" style="width:16px; height:16px; flex-shrink:0;">
+          Já trabalhei com essa marca (entra em "Sua Carteira")
+        </label>
+      </div>
       <span class="cliente-secao-rotulo">Contato</span>
       <div class="ugc-form-grade">
         <div class="ugc-campo largo"><label>Responsável</label><input type="text" id="clienteCampoContatoNome" placeholder="Nome de quem você fala"></div>
@@ -6782,6 +6788,7 @@
     document.getElementById("clienteCampoNichoOutroWrap").classList.toggle("oculto", !cliente || cliente.nicho !== "Outro");
     document.getElementById("clienteCampoInstagram").value = cliente ? (cliente.instagram || "") : "";
     document.getElementById("clienteCampoTiktok").value = cliente ? (cliente.tiktok || "") : "";
+    document.getElementById("clienteCampoJaTrabalhou").checked = cliente ? !!cliente.ja_trabalhou : false;
     document.getElementById("clienteCampoContatoNome").value = cliente ? (cliente.contato_nome || "") : "";
     document.getElementById("clienteCampoContatoEmail").value = cliente ? (cliente.contato_email || "") : "";
     document.getElementById("clienteCampoContatoTelefone").value = cliente ? (cliente.contato_telefone || "") : "";
@@ -6820,6 +6827,7 @@
       nicho_detalhe: nicho === "Outro" ? (document.getElementById("clienteCampoNichoOutro").value.trim() || null) : null,
       instagram: document.getElementById("clienteCampoInstagram").value.trim() || null,
       tiktok: document.getElementById("clienteCampoTiktok").value.trim() || null,
+      ja_trabalhou: document.getElementById("clienteCampoJaTrabalhou").checked,
       contato_nome: document.getElementById("clienteCampoContatoNome").value.trim() || null,
       contato_email: document.getElementById("clienteCampoContatoEmail").value.trim() || null,
       contato_telefone: document.getElementById("clienteCampoContatoTelefone").value.trim() || null
