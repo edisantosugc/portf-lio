@@ -1919,11 +1919,11 @@
         <h1 id="tituloTopo">Menu Principal</h1>
       </div>
       <div class="filtro-periodo" id="filtroPeriodo">
-        <button class="periodo-btn" data-periodo="hoje">Hoje</button>
+        <button class="periodo-btn ativo" data-periodo="hoje">Hoje</button>
         <button class="periodo-btn" data-periodo="7">7d</button>
         <button class="periodo-btn" data-periodo="30">30d</button>
         <button class="periodo-btn" data-periodo="90">90d</button>
-        <button class="periodo-btn ativo" data-periodo="tudo">Tudo</button>
+        <button class="periodo-btn" data-periodo="tudo">Tudo</button>
       </div>
     </div>
 
@@ -2573,7 +2573,7 @@
   let leadsCache = [];
   let tarefasCache = [];
   let lancamentosCache = [];
-  let periodoAtual = "tudo";
+  let periodoAtual = "hoje";
 
   // Estado da aba Agenda: mês/ano exibidos no calendário e o dia selecionado no planner
   const hojeAgenda = new Date();
