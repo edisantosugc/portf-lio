@@ -1879,6 +1879,13 @@
        os dois campos empilham em vez de ficar lado a lado. */
     #negociacaoNormais .ugc-form-grade,
     #negociacaoCriativos .ugc-form-grade{ grid-template-columns: 1fr; }
+
+    /* Linhas de lançamento (Financeiro UGC — Investimentos/Ganhos/Fechamento por
+       ano): data, selo "Previsto p/" e valor espremiam a descrição numa coluna
+       mínima, quebrando uma palavra por linha. A descrição passa a ocupar a
+       linha inteira, e o resto empilha abaixo dela. */
+    .linha-negocio{ flex-wrap: wrap; gap: 4px 12px; }
+    .linha-negocio-descricao{ order: -1; flex-basis: 100%; }
   }
 
   @media (max-width: 480px){
