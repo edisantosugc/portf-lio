@@ -2041,8 +2041,6 @@
 
       <div class="mini-cartoes" id="miniCartoesCliques"></div>
 
-      <div class="cartao destaque-contato" id="cartaoContato"></div>
-
       <div class="cartao grafico-cartao">
         <h2>Visitas nos últimos 14 dias</h2>
         <div class="grafico-barras" id="graficoBarras"></div>
@@ -3604,12 +3602,10 @@
     const visitas = eventos.filter(e => e.event_type === "page_view");
     const cliques = eventos.filter(e => e.event_type === "button_click");
     const visitantesUnicos = contarVisitantesUnicos(visitas);
-    const cliquesContato = cliques.filter(e => e.event_name && e.event_name.startsWith("contact_"));
     const cliquesVerPortfolio = cliques.filter(e => e.event_name === "cta_portfolio_biosite");
 
     // Métricas do biosite (edilainesantos.com). Vídeos e mensagens não aparecem
     // aqui porque só existem dentro do Portfólio (/portfolio/) — ficam na aba dele.
-    // Cliques para contato aparecem no cartão grande logo abaixo, não repetidos aqui.
     const cartoes = [
       { numero: visitas.length, rotulo: "Visitas", destaque: true },
       { numero: visitantesUnicos, rotulo: "Visitantes únicos" },
@@ -3644,12 +3640,6 @@
         <p class="mini-rotulo">${c.rotulo}</p>
       </div>
     `).join("");
-
-    document.getElementById("cartaoContato").innerHTML = `
-      <p class="numero-grande">${cliquesContato.length.toLocaleString("pt-BR")}</p>
-      <p class="numero-rotulo">Clicaram para entrar em contato</p>
-      <p class="texto-explicativo">Conta quem clicou em WhatsApp, e-mail, Instagram ou no botão de enviar o formulário.</p>
-    `;
 
     renderizarGrafico(visitas, "graficoBarras");
   }
