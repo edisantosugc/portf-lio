@@ -1017,15 +1017,17 @@
      controle interno do Safari que ignora parte do padding normal do input,
      ficando colado nas bordas. Reforça o espaçamento e alinha à esquerda. */
   .form-lancamento input[type="date"]{
-    padding: 10px 12px;
+    padding: 0;
+    min-height: 40px;
     max-width: 100%;
     box-sizing: border-box;
   }
+  .form-lancamento input[type="date"]::-webkit-datetime-edit{
+    padding: 10px 12px;
+  }
   .form-lancamento input[type="date"]::-webkit-date-and-time-value{
     text-align: left;
-    padding: 0;
     margin: 0;
-    min-height: 0;
   }
   .form-lancamento-parcelas{
     display: none;
