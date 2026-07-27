@@ -1881,15 +1881,15 @@
     #negociacaoCriativos .ugc-form-grade{ grid-template-columns: 1fr; }
 
     /* Linhas de lançamento (Financeiro UGC — Investimentos/Ganhos/Fechamento por
-       ano): reestrutura pra uma informação por linha (data / descrição / previsto
-       / valor+bolinha+excluir), em vez de tudo espremido lado a lado. */
+       ano): reestrutura pra 4 linhas — (1) data + excluir, (2) descrição,
+       (3) previsto, (4) valor + bolinha de pago. */
     .linha-negocio{ flex-wrap: wrap; align-items: center; gap: 4px 12px; }
-    .linha-negocio-data{ flex-basis: 100%; width: auto; order: 0; }
-    .linha-negocio-descricao{ flex-basis: 100%; order: 1; }
-    .selo-pendente-recebimento{ flex-basis: 100%; order: 2; }
-    .linha-negocio-valor{ order: 3; }
-    .botao-recebido-toggle{ order: 4; }
-    .lancamento-excluir{ order: 5; margin-left: auto; }
+    .linha-negocio-data{ flex-basis: auto; width: auto; order: 0; }
+    .lancamento-excluir{ order: 1; margin-left: auto; }
+    .linha-negocio-descricao{ flex-basis: 100%; order: 2; }
+    .selo-pendente-recebimento{ flex-basis: 100%; order: 3; }
+    .linha-negocio-valor{ order: 4; }
+    .botao-recebido-toggle{ order: 5; margin-left: auto; }
   }
 
   @media (max-width: 480px){
