@@ -1013,6 +1013,17 @@
     flex-shrink: 0;
   }
   .form-lancamento input:focus, .form-lancamento select:focus{ outline: none; border-color: var(--coral); }
+  /* Campos de data no iOS: o texto formatado ("27 de jul. de 2026") vem de um
+     controle interno do Safari que ignora parte do padding normal do input,
+     ficando colado nas bordas. Reforça o espaçamento e alinha à esquerda. */
+  .form-lancamento input[type="date"]{
+    padding: 12px 14px;
+  }
+  .form-lancamento input[type="date"]::-webkit-date-and-time-value{
+    text-align: left;
+    padding: 0;
+    margin: 0;
+  }
   .form-lancamento-parcelas{
     display: none;
     grid-column: 1 / -1;
