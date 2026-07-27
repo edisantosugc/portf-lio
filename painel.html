@@ -2284,6 +2284,7 @@
 
       <div class="sub-abas-negocio" id="subAbasAbordagem">
         <button type="button" class="sub-aba-btn ativo" data-subaba="ativas">Abordagens</button>
+        <button type="button" class="sub-aba-btn" data-subaba="rascunhos">Rascunhos</button>
         <button type="button" class="sub-aba-btn" data-subaba="arquivados">Arquivados</button>
       </div>
 
@@ -2392,6 +2393,23 @@
             <div id="abordagemFiltroLista" class="abordagem-filtro-lista"></div>
           </div>
           <div id="abordagemListaCorpo"></div>
+        </div>
+      </div>
+
+      <!-- ---------- Sub-aba: Rascunhos (marcas pesquisadas, ainda não abordadas) ---------- -->
+      <div id="abordagemRascunhos" class="oculto">
+        <div class="cartao">
+          <div class="ugc-campo largo">
+            <label>Buscar por nome da marca</label>
+            <input type="text" id="abordagemRascunhoBusca" placeholder="Digite o nome da marca">
+          </div>
+        </div>
+
+        <div class="cartao ugc-lista-cartao">
+          <div class="ugc-cabecalho-lista abordagem-grade-lista">
+            <span>Data Abordagem</span><span>Marca</span><span>Nicho</span><span>Follow up</span><span>Status</span><span></span>
+          </div>
+          <div id="abordagemRascunhoCorpo"></div>
         </div>
       </div>
 
@@ -3339,6 +3357,7 @@
     });
 
     document.getElementById("abordagemBusca").addEventListener("input", renderListaAbordagens);
+    document.getElementById("abordagemRascunhoBusca").addEventListener("input", renderRascunhosAbordagens);
     document.getElementById("abordagemArquivoBusca").addEventListener("input", renderArquivoAbordagens);
 
     document.querySelectorAll(".abordagem-filtro-btn").forEach(btn => {
@@ -3467,6 +3486,7 @@
   function trocarSubAbaAbordagem(sub){
     document.querySelectorAll("#subAbasAbordagem .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === sub));
     document.getElementById("abordagemAtivas").classList.toggle("oculto", sub !== "ativas");
+    document.getElementById("abordagemRascunhos").classList.toggle("oculto", sub !== "rascunhos");
     document.getElementById("abordagemArquivados").classList.toggle("oculto", sub !== "arquivados");
   }
 
@@ -6495,15 +6515,36 @@
     const ordenados = abordagensCache
       .filter(a =>
         !a.arquivado &&
+        a.status !== "rascunho" && // Rascunho tem aba própria agora, não entra mais aqui
         (!termo || (a.marca || "").toLowerCase().includes(termo)) &&
         passaFiltrosColunaAbordagem(a) &&
-        (a.status === "rascunho" || passaPeriodoAbordagem(a.data_abordagem)) // Rascunho nunca some, nenhum período esconde ela
+        passaPeriodoAbordagem(a.data_abordagem)
       )
       .sort((a, b) => (b.data_abordagem || "").localeCompare(a.data_abordagem || ""));
 
     corpo.innerHTML = ordenados.length
       ? ordenados.map(item => renderLinhaAbordagemHtml(item)).join("")
       : `<p class="ugc-vazio">${termo ? "Nenhuma marca encontrada com esse nome." : "Nenhuma abordagem cadastrada ainda."}</p>`;
+    reatarEventosLinhasAbordagem(corpo);
+  }
+
+  // Sub-aba "Rascunhos": marcas já pesquisadas mas ainda não abordadas de verdade.
+  // Ordenado do rascunho mais antigo pro mais novo — quem está esperando há mais
+  // tempo aparece primeiro, já que é o que mais precisa de atenção.
+  function renderRascunhosAbordagens(){
+    const corpo = document.getElementById("abordagemRascunhoCorpo");
+    if (!corpo) return;
+
+    const campoBusca = document.getElementById("abordagemRascunhoBusca");
+    const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
+
+    const ordenados = abordagensCache
+      .filter(a => !a.arquivado && a.status === "rascunho" && (!termo || (a.marca || "").toLowerCase().includes(termo)))
+      .sort((a, b) => (a.data_rascunho || "").localeCompare(b.data_rascunho || ""));
+
+    corpo.innerHTML = ordenados.length
+      ? ordenados.map(item => renderLinhaAbordagemHtml(item)).join("")
+      : `<p class="ugc-vazio">${termo ? "Nenhuma marca encontrada com esse nome." : "Nenhum rascunho cadastrado ainda."}</p>`;
     reatarEventosLinhasAbordagem(corpo);
   }
 
@@ -6558,6 +6599,7 @@
 
   function renderizarAbordagens(){
     renderListaAbordagens();
+    renderRascunhosAbordagens();
     renderArquivoAbordagens();
     calcularMetricasAbordagem();
   }
