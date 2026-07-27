@@ -1832,7 +1832,33 @@
     .grade-agenda{ grid-template-columns: 1fr; }
     .grade-negocio{ grid-template-columns: 1fr; }
     .form-lancamento{ grid-template-columns: 1fr 1fr; }
-    .tabela-lancamentos{ display: block; overflow-x: auto; white-space: nowrap; }
+
+    /* Tabelas de Lançamentos/Contas a pagar (Financeiro Pessoal): em vez de espremer
+       as colunas (o que cortava o campo de valor), o container ganha rolagem
+       horizontal por arraste e a tabela mantém a largura de que precisa.
+       #listaCartoesPagar já tinha overflow-x:auto (via .lista-cartoes-pagar). */
+    #listaCartoesPagar, #areaTabelaLancamentos{ -webkit-overflow-scrolling: touch; }
+    #areaTabelaLancamentos{ overflow-x: auto; }
+    .tabela-lancamentos{ min-width: 520px; }
+
+    /* Seletor de mês (Financeiro Pessoal/UGC): título do mês, setas e "Mês atual"
+       ficam com fontes mais parecidas e sem forçar largura extra. */
+    .financas-mes-titulo{ font-size: 1rem; min-width: 0; }
+
+    /* Listas de Abordagem (ativas/rascunhos) e UGC Creator (Visão Lista): mesma ideia
+       das tabelas acima — rolagem horizontal por arraste em vez de colunas
+       sobrepostas/ilegíveis, igual já funciona na Visão Kanban. */
+    .ugc-lista-cartao{ overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .ugc-grade-lista{ min-width: 620px; }
+    .abordagem-grade-lista{ min-width: 740px; }
+
+    /* Tabela de Clientes: reforça o toque suave no iOS (a rolagem em si já existia). */
+    .clientes-tabela-scroll{ -webkit-overflow-scrolling: touch; }
+
+    /* Calculadora de pacote (Negociação): essa tela não pode ter rolagem lateral —
+       os dois campos empilham em vez de ficar lado a lado. */
+    #negociacaoNormais .ugc-form-grade,
+    #negociacaoCriativos .ugc-form-grade{ grid-template-columns: 1fr; }
   }
 
   @media (max-width: 480px){
