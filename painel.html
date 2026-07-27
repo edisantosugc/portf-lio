@@ -1687,7 +1687,27 @@
   .btn-fantasma:hover{ border-color: var(--coral); color: var(--coral); }
 
   .clientes-cards-resumo{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 20px; }
-  .abordagem-cards-metricas{ grid-template-columns: repeat(3, 1fr); margin-top: 0; margin-bottom: 20px; }
+  .topo-abordagem-metricas{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; }
+  .abordagem-cartao-metrica{
+    background: var(--branco); border: 1px solid var(--borda); border-radius: 14px;
+    padding: 18px 20px; display: flex; align-items: baseline; gap: 14px; flex: 1; min-width: 220px;
+  }
+  .abordagem-cartao-metrica .valor{
+    font-family: 'Fraunces', serif; font-weight: 700; font-size: 2.1rem;
+    font-variant-numeric: tabular-nums; color: var(--coral); line-height: 1;
+  }
+  .abordagem-cartao-metrica .legenda{ font-size: .85rem; color: var(--texto-suave); }
+  .abordagem-cartao-metrica .legenda strong{ color: var(--grafite); display: block; font-size: .95rem; margin-bottom: 2px; }
+  /* Cópia visual do .filtro-periodo/.periodo-btn (Menu Principal), com classe própria
+     pra não ser pega pelo listener global daquele componente (períodos independentes). */
+  .abordagem-filtro-periodo{ display: flex; gap: 8px; background: var(--branco); border: 1px solid var(--borda); border-radius: 12px; padding: 4px; }
+  .abordagem-periodo-btn{
+    padding: 8px 16px; border-radius: 9px; border: none; background: transparent; color: var(--texto-suave);
+    font-family: 'Outfit', sans-serif; font-weight: 500; font-size: .85rem; cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+  }
+  .abordagem-periodo-btn:hover{ color: var(--grafite); }
+  .abordagem-periodo-btn.ativo{ background: var(--coral); color: var(--branco); }
   .cliente-card-resumo{ background: var(--branco); border: 1px solid var(--borda); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
   .cliente-card-resumo .topo{ display: flex; align-items: center; justify-content: space-between; }
   .cliente-card-resumo .rotulo{ font-size: .64rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--texto-suave); }
@@ -1783,6 +1803,9 @@
 
   @media (max-width: 760px){
     .clientes-cards-resumo{ grid-template-columns: repeat(2, 1fr); }
+    .topo-abordagem-metricas{ flex-direction: column; align-items: stretch; }
+    .abordagem-filtro-periodo{ width: 100%; justify-content: space-between; }
+    .abordagem-periodo-btn{ flex: 1; padding: 8px 6px; }
   }
 
   /* ===================== RESPONSIVO ===================== */
@@ -2245,21 +2268,17 @@
 
     <!-- ===================== ABA: ABORDAGEM ===================== -->
     <section id="painelAbordagem" class="painel-tab oculto">
-      <div class="clientes-cards-resumo abordagem-cards-metricas">
-        <div class="cliente-card-resumo">
-          <div class="topo"><span class="rotulo">Esta Semana</span><span class="bolinha" style="background:var(--dourado)"></span></div>
-          <span class="valor" id="abordagemMetricaSemana">0</span>
-          <span class="legenda">Abordagens realizadas</span>
+      <div class="topo-abordagem-metricas">
+        <div class="abordagem-cartao-metrica">
+          <span class="valor" id="abordagemMetricaValor">0</span>
+          <span class="legenda"><strong id="abordagemMetricaLegenda">Hoje</strong>Abordagens realizadas</span>
         </div>
-        <div class="cliente-card-resumo">
-          <div class="topo"><span class="rotulo">Este Mês</span><span class="bolinha" style="background:var(--coral)"></span></div>
-          <span class="valor" id="abordagemMetricaMes">0</span>
-          <span class="legenda">Abordagens realizadas</span>
-        </div>
-        <div class="cliente-card-resumo">
-          <div class="topo"><span class="rotulo">Este Ano</span><span class="bolinha" style="background:var(--verde)"></span></div>
-          <span class="valor" id="abordagemMetricaAno">0</span>
-          <span class="legenda">Abordagens realizadas</span>
+        <div class="abordagem-filtro-periodo" id="abordagemFiltroPeriodo">
+          <button type="button" class="abordagem-periodo-btn ativo" data-periodo="hoje">Hoje</button>
+          <button type="button" class="abordagem-periodo-btn" data-periodo="7">7d</button>
+          <button type="button" class="abordagem-periodo-btn" data-periodo="30">30d</button>
+          <button type="button" class="abordagem-periodo-btn" data-periodo="90">90d</button>
+          <button type="button" class="abordagem-periodo-btn" data-periodo="tudo">Tudo</button>
         </div>
       </div>
 
@@ -2786,6 +2805,11 @@
   let abordagemFiltrosColuna = { data_abordagem: null, marca: null, nicho: null, status: null };
   let abordagemFiltroColunaAberta = null; // qual coluna tem o dropdown de filtro aberto agora
 
+  // Período do card "Abordagens realizadas" + filtro da lista abaixo. Independente do
+  // periodoAtual global (Menu Principal/Portfólio) — cada um tem seu próprio botão/classe.
+  let abordagemPeriodoAtual = "hoje";
+  const ABORDAGEM_PERIODO_LEGENDA = { hoje: "Hoje", "7": "Últimos 7 dias", "30": "Últimos 30 dias", "90": "Últimos 90 dias", tudo: "Desde sempre" };
+
   const ABORDAGEM_STATUS = [
     { chave: "rascunho", nome: "Rascunho" },
     { chave: "realizada", nome: "Abordagem realizada" },
@@ -3267,6 +3291,15 @@
 
     document.getElementById("abordagemBotaoCancelarNovo").addEventListener("click", () => {
       document.getElementById("abordagemFormNovo").classList.add("oculto");
+    });
+
+    document.querySelectorAll(".abordagem-periodo-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".abordagem-periodo-btn").forEach(b => b.classList.remove("ativo"));
+        btn.classList.add("ativo");
+        abordagemPeriodoAtual = btn.dataset.periodo;
+        renderizarAbordagens();
+      });
     });
 
     document.getElementById("abordagemStatusToggle").querySelectorAll("span").forEach(span => {
@@ -6460,7 +6493,12 @@
     const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
 
     const ordenados = abordagensCache
-      .filter(a => !a.arquivado && (!termo || (a.marca || "").toLowerCase().includes(termo)) && passaFiltrosColunaAbordagem(a))
+      .filter(a =>
+        !a.arquivado &&
+        (!termo || (a.marca || "").toLowerCase().includes(termo)) &&
+        passaFiltrosColunaAbordagem(a) &&
+        passaPeriodoAbordagem(a.data_abordagem || a.data_rascunho)
+      )
       .sort((a, b) => (b.data_abordagem || "").localeCompare(a.data_abordagem || ""));
 
     corpo.innerHTML = ordenados.length
@@ -6524,35 +6562,37 @@
     calcularMetricasAbordagem();
   }
 
-  // Conta quantas abordagens já saíram de "Rascunho" (viraram abordagem de verdade),
-  // agrupadas por semana/mês/ano atuais, usando data_abordagem como referência. Uma
-  // abordagem só entra na contagem quando tem data_abordagem preenchida — o que já
-  // acontece automaticamente assim que o status deixa de ser "Rascunho".
-  function calcularMetricasAbordagem(){
-    const elSemana = document.getElementById("abordagemMetricaSemana");
-    if (!elSemana) return;
-
+  // Quantos dias atrás foi uma data ISO (0 = hoje, negativo = data futura).
+  function diasDesde(dataISO){
     const hoje = new Date();
     const hojeSemHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-    const diaSemana = hojeSemHora.getDay(); // 0 = domingo
-    const inicioSemana = new Date(hojeSemHora);
-    inicioSemana.setDate(inicioSemana.getDate() - (diaSemana === 0 ? 6 : diaSemana - 1)); // volta até a segunda-feira
+    const [ano, mes, dia] = dataISO.split("-").map(Number);
+    return Math.round((hojeSemHora - new Date(ano, mes - 1, dia)) / (1000 * 60 * 60 * 24));
+  }
 
-    let semana = 0, mes = 0, ano = 0;
-    abordagensCache.forEach(item => {
-      if (item.status === "rascunho" || !item.data_abordagem) return;
-      const [anoItem, mesItem, diaItem] = item.data_abordagem.split("-").map(Number);
-      const data = new Date(anoItem, mesItem - 1, diaItem);
-      if (data > hojeSemHora) return; // não conta datas futuras
+  // Se a abordagem (com essa data de referência) entra no período selecionado no toggle
+  // Hoje/7d/30d/90d/Tudo. Datas futuras sempre passam (não faz sentido escondê-las).
+  function passaPeriodoAbordagem(dataISO){
+    if (abordagemPeriodoAtual === "tudo") return true;
+    if (!dataISO) return false;
+    const dias = diasDesde(dataISO);
+    if (dias < 0) return true;
+    if (abordagemPeriodoAtual === "hoje") return dias === 0;
+    return dias <= parseInt(abordagemPeriodoAtual, 10);
+  }
 
-      if (data >= inicioSemana) semana++;
-      if (anoItem === hoje.getFullYear() && mesItem - 1 === hoje.getMonth()) mes++;
-      if (anoItem === hoje.getFullYear()) ano++;
-    });
+  // Card "Abordagens realizadas": conta só quem já saiu de "Rascunho" (tem data_abordagem
+  // de verdade) e cai dentro do período escolhido no toggle.
+  function calcularMetricasAbordagem(){
+    const elValor = document.getElementById("abordagemMetricaValor");
+    if (!elValor) return;
 
-    elSemana.textContent = semana;
-    document.getElementById("abordagemMetricaMes").textContent = mes;
-    document.getElementById("abordagemMetricaAno").textContent = ano;
+    const total = abordagensCache.filter(item =>
+      item.status !== "rascunho" && item.data_abordagem && passaPeriodoAbordagem(item.data_abordagem)
+    ).length;
+
+    elValor.textContent = total;
+    document.getElementById("abordagemMetricaLegenda").textContent = ABORDAGEM_PERIODO_LEGENDA[abordagemPeriodoAtual];
   }
 
   async function alternarArquivadoAbordagem(id){
