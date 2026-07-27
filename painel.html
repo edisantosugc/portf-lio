@@ -2326,7 +2326,10 @@
               <textarea id="abordagemCampoObs" rows="2" placeholder="Notas adicionais"></textarea>
             </div>
           </div>
-          <button type="button" class="botao-add-tarefa" id="abordagemBotaoAdicionar" style="margin-top:14px;">Adicionar</button>
+          <div style="display:flex; justify-content:space-between; gap:10px; margin-top:14px;">
+            <button type="button" class="botao-add-tarefa" id="abordagemBotaoAdicionar">Adicionar</button>
+            <button type="button" class="botao-add-tarefa" id="abordagemBotaoCancelarNovo">Cancelar</button>
+          </div>
         </div>
 
         <div class="cartao">
@@ -3241,6 +3244,10 @@
     // ---------- Abordagem ----------
     document.getElementById("abordagemBotaoNovo").addEventListener("click", () => {
       document.getElementById("abordagemFormNovo").classList.toggle("oculto");
+    });
+
+    document.getElementById("abordagemBotaoCancelarNovo").addEventListener("click", () => {
+      document.getElementById("abordagemFormNovo").classList.add("oculto");
     });
 
     document.getElementById("abordagemStatusToggle").querySelectorAll("span").forEach(span => {
