@@ -381,6 +381,7 @@
   }
   .cartao-numero.destaque .numero-grande,
   .cartao-numero.destaque .numero-rotulo{ color: var(--branco); }
+  .cartao-numero.destaque .numero-extra{ color: rgba(255,255,255,.75); }
 
   .cartao-numero.clicavel{ position: relative; cursor: pointer; }
   .badge-nao-lidas{
@@ -412,6 +413,11 @@
   .numero-rotulo{
     font-size: .9rem;
     color: var(--texto-suave);
+  }
+  .numero-extra{
+    font-size: .74rem;
+    color: var(--texto-suave);
+    margin-top: 4px;
   }
 
   /* ===================== MINI-CARDS DE CLIQUES (Menu Principal) ===================== */
@@ -3735,21 +3741,26 @@
     renderizarMensagens(leads);
   }
 
-  // Quem chegou ao Portfólio pelo link da bio (Instagram) x quem chegou pelo
-  // link direto (edilainesantos.com/ugcportfolio, usado em abordagens e cadastros de plataforma)
+  // Quem chegou ao Portfólio pelo link da bio (clique real em "Meu portfólio 🦋" no
+  // biosite, marcado via sessionStorage) x quem chegou pelo link direto
+  // (edilainesantos.com/ugcportfolio, usado em abordagens e cadastros de plataforma).
+  // Quem não tem nenhuma das duas marcações (busca, link salvo, compartilhamento
+  // externo) não entra em nenhum dos dois cards — por isso a soma dos dois pode ser
+  // menor que o total de visitas.
   function renderizarOrigemPortfolio(visitas){
-    const viaBio = visitas.filter(e => !e.metadata || e.metadata.origem !== "direto").length;
-    const viaDireto = visitas.filter(e => e.metadata && e.metadata.origem === "direto").length;
+    const viaBio = visitas.filter(e => e.metadata && e.metadata.origem === "bio");
+    const viaDireto = visitas.filter(e => e.metadata && e.metadata.origem === "direto");
 
     const cartoes = [
-      { numero: viaBio, rotulo: "Via link da bio (Instagram)" },
-      { numero: viaDireto, rotulo: "Via link direto (abordagens/plataformas)", destaque: true }
+      { numero: viaBio.length, unicos: contarVisitantesUnicos(viaBio), rotulo: "Via link da bio (Instagram)" },
+      { numero: viaDireto.length, unicos: contarVisitantesUnicos(viaDireto), rotulo: "Via link direto (abordagens/plataformas)", destaque: true }
     ];
 
     document.getElementById("cartoesOrigemPortfolio").innerHTML = cartoes.map(c => `
       <div class="cartao cartao-numero ${c.destaque ? "destaque" : ""}">
         <p class="numero-grande">${c.numero.toLocaleString("pt-BR")}</p>
         <p class="numero-rotulo">${c.rotulo}</p>
+        <p class="numero-extra">${c.unicos.toLocaleString("pt-BR")} visitante${c.unicos === 1 ? "" : "s"} único${c.unicos === 1 ? "" : "s"}</p>
       </div>
     `).join("");
   }

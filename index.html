@@ -340,6 +340,11 @@ document.addEventListener("click", (e) => {
   if (linkContato) registrarEvento("button_click", linkContato.dataset.contato, null);
   const linkCta = e.target.closest("[data-cta]");
   if (linkCta) registrarEvento("button_click", linkCta.dataset.cta, null);
+  // Marca a origem "bio" antes de sair pro Portfólio, pra aquela visita ser contada
+  // de verdade como vinda daqui (e não só cair no balde padrão de "outras origens").
+  if (linkCta && linkCta.dataset.cta === "cta_portfolio_biosite"){
+    try { sessionStorage.setItem("origem_portfolio", "bio"); } catch (erro) {}
+  }
 });
 </script>
 

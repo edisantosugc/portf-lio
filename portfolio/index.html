@@ -2405,19 +2405,20 @@ function definirIdioma(idioma){
   renderizarConteudo(false);
 }
 
-// Origem de quem chegou ao Portfólio: "?origem=direto" é usado no link
-// edilainesantos.com/ugcportfolio (abordagens e cadastros de plataforma);
-// sem essa marcação, assume "bio" (link normal, divulgado no biosite/Instagram).
+// Origem de quem chegou ao Portfólio: "direto" é usado no link
+// edilainesantos.com/ugcportfolio (abordagens e cadastros de plataforma); "bio" é
+// marcado pelo próprio biosite ao clicar em "Meu portfólio 🦋". Sem nenhuma das duas
+// marcações (busca, link salvo, compartilhamento externo, etc.), fica como "outro".
 function obterOrigemPortfolio(){
-  // "direto" pode vir marcado na sessão (link /ugcportfolio, sem aparecer na
-  // URL) ou, se alguém compartilhar um link com "?origem=direto" na mão, por
-  // aí também. Sem nenhuma das duas marcações, assume "bio".
+  // "direto" pode vir marcado na sessão (link /ugcportfolio, sem aparecer na URL) ou,
+  // se alguém compartilhar um link com "?origem=direto" na mão, por aí também.
   const paramsUrl = new URLSearchParams(window.location.search);
   if (paramsUrl.get("origem") === "direto") return "direto";
   try {
-    if (sessionStorage.getItem("origem_portfolio") === "direto") return "direto";
+    const origemSalva = sessionStorage.getItem("origem_portfolio");
+    if (origemSalva === "direto" || origemSalva === "bio") return origemSalva;
   } catch (erro) {}
-  return "bio";
+  return "outro";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
