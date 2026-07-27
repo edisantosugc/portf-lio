@@ -1434,6 +1434,7 @@
   .ugc-etapa-pill.vencida{ background: rgba(196,69,60,.1); border-color: var(--vermelho); color: var(--vermelho); }
   .ugc-etapa-pill.andamento{ background: rgba(201,166,107,.15); border-color: var(--dourado); color: var(--dourado); }
   .ugc-etapa-pill.sem-retorno{ background: rgba(196,69,60,.1); border-color: var(--vermelho); color: var(--vermelho); }
+  .ugc-etapa-pill.realizada{ background: rgba(0,0,128,.08); border-color: var(--coral); color: var(--coral); }
 
   .abordagem-grade-lista{ display: grid; grid-template-columns: minmax(0,1.5fr) 190px 90px 16px; align-items: center; gap: 14px; }
   .abordagem-grade-lista span:nth-child(3){ text-align: right; }
@@ -2243,6 +2244,19 @@
               <label>Abordagem</label>
               <textarea id="abordagemCampoTexto" rows="3" placeholder="O que foi enviado/falado na abordagem"></textarea>
             </div>
+            <div class="ugc-campo largo">
+              <label>Canal da abordagem</label>
+              <div class="ugc-origem-toggle" id="abordagemCanalToggle">
+                <span data-canal="formulario">Formulário</span>
+                <span data-canal="instagram">Instagram</span>
+                <span data-canal="email">E-mail</span>
+                <span data-canal="plataforma">Plataforma</span>
+              </div>
+            </div>
+            <div class="ugc-campo largo oculto" id="abordagemCanalDetalheWrap">
+              <label id="abordagemCanalDetalheLabel">Detalhe</label>
+              <input type="text" id="abordagemCanalDetalhe" placeholder="">
+            </div>
             <div class="ugc-campo">
               <label>Data da abordagem</label>
               <input type="date" id="abordagemCampoData">
@@ -2254,7 +2268,8 @@
             <div class="ugc-campo largo">
               <label>Status</label>
               <div class="ugc-origem-toggle" id="abordagemStatusToggle">
-                <span class="ativo" data-status="andamento">Negociação em andamento</span>
+                <span class="ativo" data-status="realizada">Abordagem realizada</span>
+                <span data-status="andamento">Negociação em andamento</span>
                 <span data-status="fechada">Negociação fechada</span>
                 <span data-status="sem_retorno">Sem retorno</span>
               </div>
@@ -2683,13 +2698,23 @@
   let abordagensCache = [];
   const abordagemAbertos = new Set();
   const abordagemEditando = new Set();
-  let abordagemStatusSelecionado = "andamento";
+  let abordagemStatusSelecionado = "realizada";
+  let abordagemCanalSelecionado = null;
 
   const ABORDAGEM_STATUS = [
+    { chave: "realizada", nome: "Abordagem realizada" },
     { chave: "andamento", nome: "Negociação em andamento" },
     { chave: "fechada", nome: "Negociação fechada" },
     { chave: "sem_retorno", nome: "Sem retorno" }
   ];
+  // Canais possíveis de uma abordagem — cada um define o rótulo/placeholder do
+  // campo de detalhe que aparece ao selecionar (link do formulário, @ do Instagram, etc.)
+  const ABORDAGEM_CANAL_CONFIG = {
+    formulario: { nome: "Formulário", label: "Link do formulário", placeholder: "Cole aqui o link do formulário" },
+    instagram: { nome: "Instagram", label: "Instagram", placeholder: "@perfil" },
+    email: { nome: "E-mail", label: "E-mail enviado", placeholder: "email@marca.com" },
+    plataforma: { nome: "Plataforma", label: "Qual plataforma?", placeholder: "Ex: Creators Club, LTK, etc." }
+  };
   // EDITE AQUI se quiser mudar depois de quantos dias o follow up é sugerido
   const DIAS_FOLLOWUP_ABORDAGEM = 7;
 
@@ -3159,6 +3184,14 @@
         abordagemStatusSelecionado = span.dataset.status;
       });
     });
+
+    configurarToggleCanalAbordagem(
+      document.getElementById("abordagemCanalToggle"),
+      document.getElementById("abordagemCanalDetalheWrap"),
+      document.getElementById("abordagemCanalDetalheLabel"),
+      document.getElementById("abordagemCanalDetalhe"),
+      (canal) => { abordagemCanalSelecionado = canal; }
+    );
 
     document.getElementById("abordagemCampoData").addEventListener("change", (e) => {
       atualizarPreviaFollowupAbordagem(e.target.value, "abordagemCampoFollowup");
@@ -5919,7 +5952,31 @@
   function classeStatusAbordagem(chave){
     if (chave === "fechada") return "pago";
     if (chave === "sem_retorno") return "sem-retorno";
+    if (chave === "realizada") return "realizada";
     return "andamento";
+  }
+
+  // Follow up faz sentido enquanto ainda não teve resposta ("realizada") ou enquanto a
+  // negociação está rolando ("andamento") — não depois de fechada ou sem retorno.
+  function precisaFollowupAbordagem(status){
+    return status === "realizada" || status === "andamento";
+  }
+
+  // Liga o toggle de canal (Formulário/Instagram/E-mail/Plataforma) ao campo de detalhe:
+  // ao escolher um canal, troca o rótulo/placeholder do campo e mostra ele. Reaproveitado
+  // tanto no form de "nova abordagem" quanto em cada linha de edição já existente.
+  function configurarToggleCanalAbordagem(toggleEl, wrapEl, labelEl, inputEl, onSelect){
+    toggleEl.querySelectorAll("span").forEach(span => {
+      span.addEventListener("click", () => {
+        toggleEl.querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
+        span.classList.add("ativo");
+        const config = ABORDAGEM_CANAL_CONFIG[span.dataset.canal];
+        labelEl.textContent = config.label;
+        inputEl.placeholder = config.placeholder;
+        wrapEl.classList.remove("oculto");
+        if (onSelect) onSelect(span.dataset.canal);
+      });
+    });
   }
 
   // Preenche um campo de texto (desabilitado) com a data do follow up calculada a partir da data da abordagem
@@ -5953,6 +6010,16 @@
         <div class="ugc-campo largo">
           <label>Abordagem</label>
           <textarea id="abordagemEdicaoTexto-${item.id}" rows="3">${item.abordagem || ""}</textarea>
+        </div>
+        <div class="ugc-campo largo">
+          <label>Canal da abordagem</label>
+          <div class="ugc-origem-toggle" id="abordagemEdicaoCanal-${item.id}">
+            ${Object.entries(ABORDAGEM_CANAL_CONFIG).map(([chave, config]) => `<span class="${chave === item.canal ? "ativo" : ""}" data-canal="${chave}">${config.nome}</span>`).join("")}
+          </div>
+        </div>
+        <div class="ugc-campo largo${item.canal ? "" : " oculto"}" id="abordagemEdicaoCanalDetalheWrap-${item.id}">
+          <label id="abordagemEdicaoCanalDetalheLabel-${item.id}">${item.canal ? ABORDAGEM_CANAL_CONFIG[item.canal].label : "Detalhe"}</label>
+          <input type="text" id="abordagemEdicaoCanalDetalhe-${item.id}" value="${item.canal_detalhe || ""}" placeholder="${item.canal ? ABORDAGEM_CANAL_CONFIG[item.canal].placeholder : ""}">
         </div>
         <div class="ugc-campo">
           <label>Data da abordagem</label>
@@ -5993,7 +6060,7 @@
     if (abordagemEditando.has(item.id)) return gerenciarHtml + renderFormEdicaoAbordagemHtml(item);
 
     const diasFollowup = diasParaFollowupAbordagem(item);
-    const atrasado = item.status === "andamento" && !item.followup_feito && diasFollowup !== null && diasFollowup < 0;
+    const atrasado = precisaFollowupAbordagem(item.status) && !item.followup_feito && diasFollowup !== null && diasFollowup < 0;
     const badgeFollowup = item.followup_feito ? "aprovado" : (atrasado ? "atrasado" : "aguardando");
     const textoFollowup = item.followup_feito
       ? "Follow up feito"
@@ -6003,6 +6070,7 @@
 
     return gerenciarHtml + `
       <div class="ugc-detalhe-linha"><span class="rotulo">Produto</span><span class="valor">${item.produto || "—"}</span></div>
+      ${item.canal ? `<div class="ugc-detalhe-linha"><span class="rotulo">Canal</span><span class="valor">${ABORDAGEM_CANAL_CONFIG[item.canal].nome}${item.canal_detalhe ? ` (${item.canal_detalhe})` : ""}</span></div>` : ""}
       <div class="ugc-detalhe-linha"><span class="rotulo">Data da abordagem</span><span class="valor">${item.data_abordagem ? formatarDataCurta(item.data_abordagem) : "—"}</span></div>
       <div class="ugc-detalhe-linha"><span class="rotulo">Follow up</span><span class="valor">${item.data_followup ? formatarDataCurta(item.data_followup) : "—"}</span></div>
       <div class="ugc-detalhe-linha"><span class="rotulo">Status</span><span class="ugc-etapa-pill ${classeStatusAbordagem(item.status)}">${nomeStatusAbordagem(item.status)}</span></div>
@@ -6019,7 +6087,7 @@
     const aberta = abordagemAbertos.has(item.id) ? " open" : "";
     const dataTexto = item.data_followup ? formatarDataCurta(item.data_followup) : "—";
     const diasFollowup = diasParaFollowupAbordagem(item);
-    const atrasado = item.status === "andamento" && !item.followup_feito && diasFollowup !== null && diasFollowup < 0;
+    const atrasado = precisaFollowupAbordagem(item.status) && !item.followup_feito && diasFollowup !== null && diasFollowup < 0;
 
     return `
       <details class="ugc-linha" data-id="${item.id}"${aberta}>
@@ -6071,6 +6139,15 @@
         const id = input.id.replace("abordagemEdicaoData-", "");
         atualizarPreviaFollowupAbordagem(input.value, `abordagemEdicaoFollowup-${id}`);
       });
+    });
+    container.querySelectorAll("[id^='abordagemEdicaoCanal-']").forEach(toggle => {
+      const id = toggle.id.replace("abordagemEdicaoCanal-", "");
+      configurarToggleCanalAbordagem(
+        toggle,
+        document.getElementById(`abordagemEdicaoCanalDetalheWrap-${id}`),
+        document.getElementById(`abordagemEdicaoCanalDetalheLabel-${id}`),
+        document.getElementById(`abordagemEdicaoCanalDetalhe-${id}`)
+      );
     });
   }
 
@@ -6203,6 +6280,8 @@
       data_followup: dataAbordagem ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null,
       observacao: document.getElementById("abordagemCampoObs").value.trim() || null,
       status: abordagemStatusSelecionado,
+      canal: abordagemCanalSelecionado,
+      canal_detalhe: document.getElementById("abordagemCanalDetalhe").value.trim() || null,
       followup_feito: false
     };
 
@@ -6213,12 +6292,15 @@
 
     if (!error && inserido){
       abordagensCache = abordagensCache.concat(inserido);
-      ["abordagemCampoMarca", "abordagemCampoProduto", "abordagemCampoTexto", "abordagemCampoData", "abordagemCampoFollowup", "abordagemCampoObs"].forEach(id => {
+      ["abordagemCampoMarca", "abordagemCampoProduto", "abordagemCampoTexto", "abordagemCampoData", "abordagemCampoFollowup", "abordagemCampoObs", "abordagemCanalDetalhe"].forEach(id => {
         document.getElementById(id).value = "";
       });
       document.getElementById("abordagemStatusToggle").querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
-      document.getElementById("abordagemStatusToggle").querySelector("[data-status='andamento']").classList.add("ativo");
-      abordagemStatusSelecionado = "andamento";
+      document.getElementById("abordagemStatusToggle").querySelector("[data-status='realizada']").classList.add("ativo");
+      abordagemStatusSelecionado = "realizada";
+      document.getElementById("abordagemCanalToggle").querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
+      document.getElementById("abordagemCanalDetalheWrap").classList.add("oculto");
+      abordagemCanalSelecionado = null;
       document.getElementById("abordagemFormNovo").classList.add("oculto");
       renderizarAbordagens();
       renderizarNotificacoesPopup();
@@ -6258,15 +6340,18 @@
     const dataAbordagem = document.getElementById(`abordagemEdicaoData-${id}`).value || null;
     const statusAtivo = document.querySelector(`#abordagemEdicaoStatus-${id} .ativo`);
     const followupAtivo = document.querySelector(`#abordagemEdicaoFollowupFeito-${id} .ativo`);
+    const canalAtivo = document.querySelector(`#abordagemEdicaoCanal-${id} .ativo`);
 
     const campos = {
       marca: marca,
       produto: document.getElementById(`abordagemEdicaoProduto-${id}`).value.trim() || null,
       abordagem: document.getElementById(`abordagemEdicaoTexto-${id}`).value.trim() || null,
+      canal: canalAtivo ? canalAtivo.dataset.canal : null,
+      canal_detalhe: document.getElementById(`abordagemEdicaoCanalDetalhe-${id}`).value.trim() || null,
       data_abordagem: dataAbordagem,
       data_followup: dataAbordagem ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null,
       observacao: document.getElementById(`abordagemEdicaoObs-${id}`).value.trim() || null,
-      status: statusAtivo ? statusAtivo.dataset.status : "andamento",
+      status: statusAtivo ? statusAtivo.dataset.status : "realizada",
       followup_feito: followupAtivo ? followupAtivo.dataset.followup === "feito" : false
     };
 
@@ -6322,7 +6407,7 @@
   function obterAlertasFollowupAbordagem(){
     const alertas = [];
     abordagensCache.forEach(item => {
-      if (item.status !== "andamento" || item.followup_feito || item.arquivado) return;
+      if (!precisaFollowupAbordagem(item.status) || item.followup_feito || item.arquivado) return;
       const diasParaVencer = diasParaFollowupAbordagem(item);
       if (diasParaVencer === null) return;
 

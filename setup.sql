@@ -381,6 +381,20 @@ create index if not exists idx_painel_abordagens_arquivado on public.painel_abor
 alter table public.painel_abordagens add column if not exists cliente_id uuid references public.painel_clientes(id) on delete set null;
 create index if not exists idx_painel_abordagens_cliente on public.painel_abordagens (cliente_id);
 
+-- Canal por onde a abordagem foi feita (formulário/Instagram/e-mail/plataforma) + o
+-- detalhe específico daquele canal (link, @, e-mail ou nome da plataforma).
+alter table public.painel_abordagens add column if not exists canal text check (canal in ('formulario', 'instagram', 'email', 'plataforma'));
+alter table public.painel_abordagens add column if not exists canal_detalhe text;
+
+-- Novo status inicial "realizada": a abordagem nasce como "só enviei, ainda sem resposta"
+-- e só vira "andamento" quando a marca responder. Recria a constraint pra aceitar o valor
+-- novo (não dá pra só "adicionar" um valor a um check existente no Postgres) e atualiza o
+-- default. Isso não altera nenhuma linha já existente, só o que passa a ser aceito daqui pra frente.
+alter table public.painel_abordagens drop constraint if exists painel_abordagens_status_check;
+alter table public.painel_abordagens add constraint painel_abordagens_status_check
+  check (status in ('realizada', 'andamento', 'fechada', 'sem_retorno'));
+alter table public.painel_abordagens alter column status set default 'realizada';
+
 alter table public.painel_abordagens enable row level security;
 
 create policy "Usuaria autenticada gerencia suas abordagens"
