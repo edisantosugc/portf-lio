@@ -1436,9 +1436,31 @@
   .ugc-etapa-pill.sem-retorno{ background: rgba(196,69,60,.1); border-color: var(--vermelho); color: var(--vermelho); }
   .ugc-etapa-pill.realizada{ background: rgba(0,0,128,.08); border-color: var(--coral); color: var(--coral); }
 
-  .abordagem-grade-lista{ display: grid; grid-template-columns: minmax(0,1.5fr) 190px 90px 16px; align-items: center; gap: 14px; }
-  .abordagem-grade-lista span:nth-child(3){ text-align: right; }
+  .abordagem-grade-lista{ display: grid; grid-template-columns: 100px minmax(0,1fr) 130px 90px 190px 16px; align-items: center; gap: 14px; }
+  .abordagem-grade-lista span:nth-child(4){ text-align: right; }
   .abordagem-bloco{ display: flex; flex-direction: column; gap: 4px; }
+  .ugc-data-abordagem{ font-size: .8rem; color: var(--grafite); white-space: nowrap; }
+  .ugc-nicho{ font-size: .8rem; color: var(--texto-suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ===================== FILTROS ESTILO EXCEL (lista de Abordagens) ===================== */
+  .abordagem-th{ display: inline-flex; align-items: center; gap: 4px; }
+  .abordagem-filtro-btn{
+    border: none; background: none; cursor: pointer; color: var(--texto-suave);
+    font-size: .65rem; padding: 0; line-height: 1;
+  }
+  .abordagem-filtro-btn.ativo{ color: var(--coral); font-weight: 700; }
+  .abordagem-filtro-dropdown{
+    position: absolute; z-index: 40; background: var(--branco);
+    border: 1px solid var(--borda); border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(26,24,22,.15); padding: 10px; width: 220px;
+  }
+  .abordagem-filtro-dropdown input[type="text"]{
+    width: 100%; padding: 6px 8px; border: 1px solid var(--borda); border-radius: 8px;
+    font-family: 'Outfit', sans-serif; font-size: .8rem; margin-bottom: 8px; background: var(--creme); color: var(--grafite);
+  }
+  .abordagem-filtro-item{ display: flex; align-items: center; gap: 6px; font-size: .78rem; padding: 4px 2px; cursor: pointer; }
+  .abordagem-filtro-todos{ border-bottom: 1px solid var(--borda); margin-bottom: 4px; padding-bottom: 6px; }
+  .abordagem-filtro-lista{ max-height: 180px; overflow-y: auto; }
   .abordagem-bloco .rotulo{ font-size: .78rem; font-weight: 600; color: var(--texto-suave); }
   .abordagem-bloco p{ margin: 0; font-size: .85rem; color: var(--grafite); white-space: pre-wrap; }
 
@@ -2241,6 +2263,23 @@
               <input type="text" id="abordagemCampoProduto" placeholder="Ex: Kit skincare facial">
             </div>
             <div class="ugc-campo largo">
+              <label>Nicho</label>
+              <select id="abordagemCampoNicho">
+                <option value="">Selecione o nicho</option>
+                <option value="Moda">Moda</option>
+                <option value="Beleza">Beleza</option>
+                <option value="Pet">Pet</option>
+                <option value="Tech">Tech</option>
+                <option value="Alimentação">Alimentação</option>
+                <option value="Saúde">Saúde</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+            <div class="ugc-campo largo oculto" id="abordagemCampoNichoOutroWrap">
+              <label>Qual é o nicho?</label>
+              <input type="text" id="abordagemCampoNichoOutro" placeholder="Descreva o nicho da marca">
+            </div>
+            <div class="ugc-campo largo">
               <label>Abordagem</label>
               <textarea id="abordagemCampoTexto" rows="3" placeholder="O que foi enviado/falado na abordagem"></textarea>
             </div>
@@ -2289,9 +2328,19 @@
           </div>
         </div>
 
-        <div class="cartao ugc-lista-cartao">
+        <div class="cartao ugc-lista-cartao" id="abordagemListaContainer" style="position:relative;">
           <div class="ugc-cabecalho-lista abordagem-grade-lista">
-            <span>Marca</span><span>Status</span><span>Follow up</span><span></span>
+            <span class="abordagem-th">Data Abordagem<button type="button" class="abordagem-filtro-btn" data-campo="data_abordagem" aria-label="Filtrar por data de abordagem">▾</button></span>
+            <span class="abordagem-th">Marca<button type="button" class="abordagem-filtro-btn" data-campo="marca" aria-label="Filtrar por marca">▾</button></span>
+            <span class="abordagem-th">Nicho<button type="button" class="abordagem-filtro-btn" data-campo="nicho" aria-label="Filtrar por nicho">▾</button></span>
+            <span>Follow up</span>
+            <span class="abordagem-th">Status<button type="button" class="abordagem-filtro-btn" data-campo="status" aria-label="Filtrar por status">▾</button></span>
+            <span></span>
+          </div>
+          <div class="abordagem-filtro-dropdown oculto" id="abordagemFiltroDropdown">
+            <input type="text" id="abordagemFiltroBusca" placeholder="Buscar valor...">
+            <label class="abordagem-filtro-item abordagem-filtro-todos"><input type="checkbox" id="abordagemFiltroTodos"> <strong>(Selecionar tudo)</strong></label>
+            <div id="abordagemFiltroLista" class="abordagem-filtro-lista"></div>
           </div>
           <div id="abordagemListaCorpo"></div>
         </div>
@@ -2700,6 +2749,11 @@
   const abordagemEditando = new Set();
   let abordagemStatusSelecionado = "realizada";
   let abordagemCanalSelecionado = null;
+
+  // Filtros estilo Excel na lista de Abordagens (por coluna). Cada valor é null (sem
+  // filtro, mostra tudo) ou um Set com as chaves marcadas como visíveis naquela coluna.
+  let abordagemFiltrosColuna = { data_abordagem: null, marca: null, nicho: null, status: null };
+  let abordagemFiltroColunaAberta = null; // qual coluna tem o dropdown de filtro aberto agora
 
   const ABORDAGEM_STATUS = [
     { chave: "realizada", nome: "Abordagem realizada" },
@@ -3193,6 +3247,10 @@
       (canal) => { abordagemCanalSelecionado = canal; }
     );
 
+    document.getElementById("abordagemCampoNicho").addEventListener("change", (e) => {
+      document.getElementById("abordagemCampoNichoOutroWrap").classList.toggle("oculto", e.target.value !== "Outro");
+    });
+
     document.getElementById("abordagemCampoData").addEventListener("change", (e) => {
       atualizarPreviaFollowupAbordagem(e.target.value, "abordagemCampoFollowup");
     });
@@ -3205,6 +3263,47 @@
 
     document.getElementById("abordagemBusca").addEventListener("input", renderListaAbordagens);
     document.getElementById("abordagemArquivoBusca").addEventListener("input", renderArquivoAbordagens);
+
+    document.querySelectorAll(".abordagem-filtro-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const campo = btn.dataset.campo;
+        if (abordagemFiltroColunaAberta === campo) fecharFiltroColunaAbordagem();
+        else abrirFiltroColunaAbordagem(campo, btn);
+      });
+    });
+
+    document.getElementById("abordagemFiltroDropdown").addEventListener("click", (e) => e.stopPropagation());
+
+    document.getElementById("abordagemFiltroBusca").addEventListener("input", (e) => {
+      renderizarListaFiltroAbordagem(e.target.value);
+    });
+
+    document.getElementById("abordagemFiltroTodos").addEventListener("change", (e) => {
+      const campo = abordagemFiltroColunaAberta;
+      if (!campo) return;
+      abordagemFiltrosColuna[campo] = e.target.checked ? null : new Set();
+      renderizarListaFiltroAbordagem(document.getElementById("abordagemFiltroBusca").value);
+      renderListaAbordagens();
+      atualizarIndicadoresFiltroAbordagem();
+    });
+
+    document.getElementById("abordagemFiltroLista").addEventListener("change", (e) => {
+      if (e.target.type !== "checkbox") return;
+      const campo = abordagemFiltroColunaAberta;
+      if (!campo) return;
+      const todosValores = obterValoresColunaAbordagem(campo);
+      const atual = abordagemFiltrosColuna[campo] ? new Set(abordagemFiltrosColuna[campo]) : new Set(todosValores.map(v => v.chave));
+      if (e.target.checked) atual.add(e.target.value); else atual.delete(e.target.value);
+      abordagemFiltrosColuna[campo] = atual.size === todosValores.length ? null : atual;
+      document.getElementById("abordagemFiltroTodos").checked = !abordagemFiltrosColuna[campo];
+      renderListaAbordagens();
+      atualizarIndicadoresFiltroAbordagem();
+    });
+
+    document.addEventListener("click", () => {
+      if (abordagemFiltroColunaAberta) fecharFiltroColunaAbordagem();
+    });
 
     // ---------- Bloco de Notas ----------
     document.getElementById("notaBotaoNova").addEventListener("click", criarNota);
@@ -5949,6 +6048,96 @@
     return status ? status.nome : chave;
   }
 
+  function formatarNichoAbordagem(item){
+    return item.nicho === "Outro" && item.nicho_detalhe ? item.nicho_detalhe : (item.nicho || "—");
+  }
+
+  /* =========================================================================
+     FILTROS ESTILO EXCEL NA LISTA DE ABORDAGENS
+     Cada coluna filtrável (data, marca, nicho, status) tem um botão ▾ no
+     cabeçalho que abre um dropdown com busca + lista de valores marcáveis,
+     igual ao autofiltro de planilha. Só vale pra lista ativa (não Arquivados).
+     ========================================================================= */
+  function chaveColunaAbordagem(item, campo){
+    if (campo === "status") return item.status;
+    if (campo === "nicho") return formatarNichoAbordagem(item);
+    if (campo === "data_abordagem") return item.data_abordagem || "";
+    return item.marca || "";
+  }
+
+  function rotuloColunaAbordagem(item, campo){
+    if (campo === "status") return nomeStatusAbordagem(item.status);
+    if (campo === "nicho") return formatarNichoAbordagem(item);
+    if (campo === "data_abordagem") return item.data_abordagem ? formatarDataCurta(item.data_abordagem) : "Sem data";
+    return item.marca || "Sem marca";
+  }
+
+  // Valores distintos daquela coluna, considerando só as abordagens ativas (não arquivadas).
+  function obterValoresColunaAbordagem(campo){
+    const vistos = new Map(); // chave -> rótulo
+    abordagensCache.filter(a => !a.arquivado).forEach(item => {
+      vistos.set(chaveColunaAbordagem(item, campo), rotuloColunaAbordagem(item, campo));
+    });
+    return Array.from(vistos.entries())
+      .map(([chave, rotulo]) => ({ chave, rotulo }))
+      .sort((a, b) => campo === "data_abordagem" ? a.chave.localeCompare(b.chave) : a.rotulo.localeCompare(b.rotulo, "pt-BR"));
+  }
+
+  function passaFiltrosColunaAbordagem(item){
+    return Object.keys(abordagemFiltrosColuna).every(campo => {
+      const filtro = abordagemFiltrosColuna[campo];
+      return !filtro || filtro.has(chaveColunaAbordagem(item, campo));
+    });
+  }
+
+  function atualizarIndicadoresFiltroAbordagem(){
+    document.querySelectorAll(".abordagem-filtro-btn").forEach(btn => {
+      btn.classList.toggle("ativo", !!abordagemFiltrosColuna[btn.dataset.campo]);
+    });
+  }
+
+  function renderizarListaFiltroAbordagem(termo){
+    const campo = abordagemFiltroColunaAberta;
+    if (!campo) return;
+    const valores = obterValoresColunaAbordagem(campo);
+    const filtroAtual = abordagemFiltrosColuna[campo];
+    const termoLower = (termo || "").trim().toLowerCase();
+
+    document.getElementById("abordagemFiltroTodos").checked = !filtroAtual || filtroAtual.size === valores.length;
+
+    const visiveis = valores.filter(v => !termoLower || v.rotulo.toLowerCase().includes(termoLower));
+    document.getElementById("abordagemFiltroLista").innerHTML = visiveis.length
+      ? visiveis.map(v => `
+          <label class="abordagem-filtro-item">
+            <input type="checkbox" value="${v.chave}" ${(!filtroAtual || filtroAtual.has(v.chave)) ? "checked" : ""}>
+            ${v.rotulo}
+          </label>
+        `).join("")
+      : `<p class="ugc-vazio" style="padding:6px 2px;">Nada encontrado.</p>`;
+  }
+
+  function abrirFiltroColunaAbordagem(campo, botaoEl){
+    abordagemFiltroColunaAberta = campo;
+    const painel = document.getElementById("abordagemFiltroDropdown");
+    const container = document.getElementById("abordagemListaContainer");
+    document.getElementById("abordagemFiltroBusca").value = "";
+    renderizarListaFiltroAbordagem("");
+    painel.classList.remove("oculto");
+
+    const rectBotao = botaoEl.getBoundingClientRect();
+    const rectContainer = container.getBoundingClientRect();
+    const larguraPainel = painel.offsetWidth || 220;
+    painel.style.top = (rectBotao.bottom - rectContainer.top + 4) + "px";
+    // Alinha a borda direita do painel com a borda direita do botão, pra não estourar
+    // pra fora do card em colunas que ficam perto da direita (ex: Status).
+    painel.style.left = Math.max(0, rectBotao.right - rectContainer.left - larguraPainel) + "px";
+  }
+
+  function fecharFiltroColunaAbordagem(){
+    document.getElementById("abordagemFiltroDropdown").classList.add("oculto");
+    abordagemFiltroColunaAberta = null;
+  }
+
   function classeStatusAbordagem(chave){
     if (chave === "fechada") return "pago";
     if (chave === "sem_retorno") return "sem-retorno";
@@ -6006,6 +6195,17 @@
         <div class="ugc-campo largo">
           <label>Produto da marca</label>
           <input type="text" id="abordagemEdicaoProduto-${item.id}" value="${item.produto || ""}">
+        </div>
+        <div class="ugc-campo largo">
+          <label>Nicho</label>
+          <select id="abordagemEdicaoNicho-${item.id}">
+            <option value="">Selecione o nicho</option>
+            ${["Moda", "Beleza", "Pet", "Tech", "Alimentação", "Saúde", "Outro"].map(n => `<option value="${n}" ${n === item.nicho ? "selected" : ""}>${n}</option>`).join("")}
+          </select>
+        </div>
+        <div class="ugc-campo largo${item.nicho === "Outro" ? "" : " oculto"}" id="abordagemEdicaoNichoOutroWrap-${item.id}">
+          <label>Qual é o nicho?</label>
+          <input type="text" id="abordagemEdicaoNichoOutro-${item.id}" value="${item.nicho_detalhe || ""}" placeholder="Descreva o nicho da marca">
         </div>
         <div class="ugc-campo largo">
           <label>Abordagem</label>
@@ -6086,15 +6286,18 @@
   function renderLinhaAbordagemHtml(item){
     const aberta = abordagemAbertos.has(item.id) ? " open" : "";
     const dataTexto = item.data_followup ? formatarDataCurta(item.data_followup) : "—";
+    const dataAbordagemTexto = item.data_abordagem ? formatarDataCurta(item.data_abordagem) : "—";
     const diasFollowup = diasParaFollowupAbordagem(item);
     const atrasado = precisaFollowupAbordagem(item.status) && !item.followup_feito && diasFollowup !== null && diasFollowup < 0;
 
     return `
       <details class="ugc-linha" data-id="${item.id}"${aberta}>
         <summary class="ugc-linha-resumo abordagem-grade-lista">
+          <span class="ugc-data-abordagem">${dataAbordagemTexto}</span>
           <span class="ugc-marca">${item.marca}</span>
-          <span class="ugc-etapa-pill ${atrasado ? "vencida" : classeStatusAbordagem(item.status)}">${atrasado ? "Follow up atrasado" : nomeStatusAbordagem(item.status)}</span>
+          <span class="ugc-nicho">${formatarNichoAbordagem(item)}</span>
           <span class="ugc-data ${atrasado ? "vencida" : ""}">${dataTexto}</span>
+          <span class="ugc-etapa-pill ${atrasado ? "vencida" : classeStatusAbordagem(item.status)}">${atrasado ? "Follow up atrasado" : nomeStatusAbordagem(item.status)}</span>
           <span class="ugc-seta">›</span>
         </summary>
         <div class="ugc-detalhe">${renderDetalheAbordagemHtml(item)}</div>
@@ -6149,6 +6352,12 @@
         document.getElementById(`abordagemEdicaoCanalDetalhe-${id}`)
       );
     });
+    container.querySelectorAll("[id^='abordagemEdicaoNicho-']").forEach(select => {
+      const id = select.id.replace("abordagemEdicaoNicho-", "");
+      select.addEventListener("change", () => {
+        document.getElementById(`abordagemEdicaoNichoOutroWrap-${id}`).classList.toggle("oculto", select.value !== "Outro");
+      });
+    });
   }
 
   function renderListaAbordagens(){
@@ -6159,7 +6368,7 @@
     const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
 
     const ordenados = abordagensCache
-      .filter(a => !a.arquivado && (!termo || (a.marca || "").toLowerCase().includes(termo)))
+      .filter(a => !a.arquivado && (!termo || (a.marca || "").toLowerCase().includes(termo)) && passaFiltrosColunaAbordagem(a))
       .sort((a, b) => (b.data_abordagem || "").localeCompare(a.data_abordagem || ""));
 
     corpo.innerHTML = ordenados.length
@@ -6207,7 +6416,7 @@
       return `
         <div class="cartao ugc-lista-cartao" style="margin-top:14px;">
           <div class="ugc-cabecalho-lista abordagem-grade-lista">
-            <span>${chave === "0000-00" ? "Sem data" : nomeMesAnoAbordagem(chave)}</span><span>Status</span><span>Follow up</span><span></span>
+            <span>${chave === "0000-00" ? "Sem data" : nomeMesAnoAbordagem(chave)}</span><span>Marca</span><span>Nicho</span><span>Follow up</span><span>Status</span><span></span>
           </div>
           <div>${itens.map(item => renderLinhaAbordagemHtml(item)).join("")}</div>
         </div>
@@ -6272,9 +6481,13 @@
 
     const dataAbordagem = document.getElementById("abordagemCampoData").value || null;
 
+    const nicho = document.getElementById("abordagemCampoNicho").value || null;
+
     const dados = {
       marca: marca,
       produto: document.getElementById("abordagemCampoProduto").value.trim() || null,
+      nicho: nicho,
+      nicho_detalhe: nicho === "Outro" ? (document.getElementById("abordagemCampoNichoOutro").value.trim() || null) : null,
       abordagem: document.getElementById("abordagemCampoTexto").value.trim() || null,
       data_abordagem: dataAbordagem,
       data_followup: dataAbordagem ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null,
@@ -6292,9 +6505,11 @@
 
     if (!error && inserido){
       abordagensCache = abordagensCache.concat(inserido);
-      ["abordagemCampoMarca", "abordagemCampoProduto", "abordagemCampoTexto", "abordagemCampoData", "abordagemCampoFollowup", "abordagemCampoObs", "abordagemCanalDetalhe"].forEach(id => {
+      ["abordagemCampoMarca", "abordagemCampoProduto", "abordagemCampoTexto", "abordagemCampoData", "abordagemCampoFollowup", "abordagemCampoObs", "abordagemCanalDetalhe", "abordagemCampoNichoOutro"].forEach(id => {
         document.getElementById(id).value = "";
       });
+      document.getElementById("abordagemCampoNicho").value = "";
+      document.getElementById("abordagemCampoNichoOutroWrap").classList.add("oculto");
       document.getElementById("abordagemStatusToggle").querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
       document.getElementById("abordagemStatusToggle").querySelector("[data-status='realizada']").classList.add("ativo");
       abordagemStatusSelecionado = "realizada";
@@ -6341,10 +6556,13 @@
     const statusAtivo = document.querySelector(`#abordagemEdicaoStatus-${id} .ativo`);
     const followupAtivo = document.querySelector(`#abordagemEdicaoFollowupFeito-${id} .ativo`);
     const canalAtivo = document.querySelector(`#abordagemEdicaoCanal-${id} .ativo`);
+    const nicho = document.getElementById(`abordagemEdicaoNicho-${id}`).value || null;
 
     const campos = {
       marca: marca,
       produto: document.getElementById(`abordagemEdicaoProduto-${id}`).value.trim() || null,
+      nicho: nicho,
+      nicho_detalhe: nicho === "Outro" ? (document.getElementById(`abordagemEdicaoNichoOutro-${id}`).value.trim() || null) : null,
       abordagem: document.getElementById(`abordagemEdicaoTexto-${id}`).value.trim() || null,
       canal: canalAtivo ? canalAtivo.dataset.canal : null,
       canal_detalhe: document.getElementById(`abordagemEdicaoCanalDetalhe-${id}`).value.trim() || null,

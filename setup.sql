@@ -386,6 +386,11 @@ create index if not exists idx_painel_abordagens_cliente on public.painel_aborda
 alter table public.painel_abordagens add column if not exists canal text check (canal in ('formulario', 'instagram', 'email', 'plataforma'));
 alter table public.painel_abordagens add column if not exists canal_detalhe text;
 
+-- Nicho da marca abordada — campo independente do Cliente (a abordagem pode nunca virar
+-- cliente oficial), mesmas opções usadas no cadastro de Cliente, com "Outro" + detalhe livre.
+alter table public.painel_abordagens add column if not exists nicho text;
+alter table public.painel_abordagens add column if not exists nicho_detalhe text;
+
 -- Novo status inicial "realizada": a abordagem nasce como "só enviei, ainda sem resposta"
 -- e só vira "andamento" quando a marca responder. Recria a constraint pra aceitar o valor
 -- novo (não dá pra só "adicionar" um valor a um check existente no Postgres) e atualiza o
