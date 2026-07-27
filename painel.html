@@ -2987,16 +2987,19 @@
     configurarEventosDeInterface();
 
     try {
-      const [eventos, leads, tarefas, lancamentos, pagamentosCartao, gastosFixos, negocio, trabalhosUgc] = await Promise.all([
-        buscarTudo("portfolio_events"),
-        buscarTudo("portfolio_leads"),
-        buscarTudo("painel_tarefas"),
-        buscarTudo("financas_lancamentos"),
-        buscarTudo("financas_cartoes_pagos"),
-        buscarTudo("financas_gastos_fixos"),
-        buscarTudo("negocio_lancamentos"),
-        buscarTudo("painel_ugc_trabalhos")
-      ]);
+      const { eventos, leads, tarefas, lancamentos, pagamentosCartao, gastosFixos, negocio, trabalhosUgc } = await comRetry(async () => {
+        const [eventos, leads, tarefas, lancamentos, pagamentosCartao, gastosFixos, negocio, trabalhosUgc] = await Promise.all([
+          buscarTudo("portfolio_events"),
+          buscarTudo("portfolio_leads"),
+          buscarTudo("painel_tarefas"),
+          buscarTudo("financas_lancamentos"),
+          buscarTudo("financas_cartoes_pagos"),
+          buscarTudo("financas_gastos_fixos"),
+          buscarTudo("negocio_lancamentos"),
+          buscarTudo("painel_ugc_trabalhos")
+        ]);
+        return { eventos, leads, tarefas, lancamentos, pagamentosCartao, gastosFixos, negocio, trabalhosUgc };
+      });
       eventosCache = eventos;
       leadsCache = leads;
       tarefasCache = tarefas;
@@ -3037,7 +3040,7 @@
       try {
         // Isolado do carregamento principal: a tabela painel_ia_mensagens só existe depois
         // que o SQL da IA for rodado no Supabase, então essa busca pode falhar sem travar o resto do painel.
-        const mensagensIa = await buscarTudo("painel_ia_mensagens");
+        const mensagensIa = await comRetry(() => buscarTudo("painel_ia_mensagens"));
         mensagensIa.slice().reverse().forEach(m => { if (iaCache[m.contexto]) iaCache[m.contexto].push(m); });
         Object.keys(iaCache).forEach(renderizarChatIa);
       } catch (erroIa) {
@@ -3046,7 +3049,7 @@
       try {
         // Isolado do carregamento principal: a tabela painel_abordagens só existe depois
         // que o SQL da aba Abordagem for rodado no Supabase, então essa busca pode falhar sem travar o resto do painel.
-        abordagensCache = await buscarTudo("painel_abordagens");
+        abordagensCache = await comRetry(() => buscarTudo("painel_abordagens"));
         await arquivarAbordagensMesAnterior();
         renderizarAbordagens();
         renderizarNotificacoesPopup();
@@ -3056,7 +3059,7 @@
       try {
         // Isolado do carregamento principal: a tabela painel_notas só existe depois que
         // o SQL do Bloco de Notas for rodado no Supabase, então essa busca pode falhar sem travar o resto do painel.
-        notasCache = await buscarTudo("painel_notas");
+        notasCache = await comRetry(() => buscarTudo("painel_notas"));
         renderizarNotas();
       } catch (erroNotas) {
         console.error("Erro ao carregar/renderizar Bloco de Notas:", erroNotas);
@@ -3064,7 +3067,7 @@
       try {
         // Isolado do carregamento principal: a tabela painel_clientes só existe depois que
         // o SQL da aba Clientes for rodado no Supabase, então essa busca pode falhar sem travar o resto do painel.
-        clientesCache = await buscarTudo("painel_clientes");
+        clientesCache = await comRetry(() => buscarTudo("painel_clientes"));
         renderizarClientes();
         preencherSelectClienteUgc(document.getElementById("ugcCampoClienteId"), "");
       } catch (erroClientes) {
@@ -3079,6 +3082,21 @@
       areaErro.classList.remove("oculto");
     }
   })();
+
+  // Tenta rodar uma função assíncrona; se der erro na primeira vez, espera um pouco e
+  // tenta de novo antes de desistir. Cobre erros transitórios do Supabase logo após o
+  // login (ex: "JWT issued at future" — descompasso de relógio entre os servidores do
+  // Supabase que se resolve sozinho em 1-2 segundos, motivo pelo qual recarregar a
+  // página "resolvia" o problema antes desse retry existir).
+  async function comRetry(fn){
+    try {
+      return await fn();
+    } catch (primeiroErro) {
+      console.warn("Primeira tentativa falhou, tentando de novo:", primeiroErro);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      return await fn();
+    }
+  }
 
   // Busca todas as linhas de uma tabela em blocos de 1000 (limite do Supabase)
   async function buscarTudo(tabela){
