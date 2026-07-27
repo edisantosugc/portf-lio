@@ -6497,7 +6497,7 @@
         !a.arquivado &&
         (!termo || (a.marca || "").toLowerCase().includes(termo)) &&
         passaFiltrosColunaAbordagem(a) &&
-        passaPeriodoAbordagem(a.data_abordagem || a.data_rascunho)
+        (a.status === "rascunho" || passaPeriodoAbordagem(a.data_abordagem)) // Rascunho nunca some, nenhum período esconde ela
       )
       .sort((a, b) => (b.data_abordagem || "").localeCompare(a.data_abordagem || ""));
 
