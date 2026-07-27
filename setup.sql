@@ -400,6 +400,16 @@ alter table public.painel_abordagens add constraint painel_abordagens_status_che
   check (status in ('realizada', 'andamento', 'fechada', 'sem_retorno'));
 alter table public.painel_abordagens alter column status set default 'realizada';
 
+-- Status "Rascunho": vem antes de "Abordagem realizada", pra marcas já pesquisadas mas
+-- ainda não abordadas de verdade (evita abordar todas de uma vez). data_rascunho guarda
+-- quando foi cadastrada como rascunho — o painel lembra depois de 3 dias sem virar
+-- "Abordagem realizada". Recria a constraint de novo pra incluir esse valor.
+alter table public.painel_abordagens drop constraint if exists painel_abordagens_status_check;
+alter table public.painel_abordagens add constraint painel_abordagens_status_check
+  check (status in ('rascunho', 'realizada', 'andamento', 'fechada', 'sem_retorno'));
+alter table public.painel_abordagens alter column status set default 'rascunho';
+alter table public.painel_abordagens add column if not exists data_rascunho date;
+
 alter table public.painel_abordagens enable row level security;
 
 create policy "Usuaria autenticada gerencia suas abordagens"

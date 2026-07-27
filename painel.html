@@ -1435,6 +1435,7 @@
   .ugc-etapa-pill.andamento{ background: rgba(201,166,107,.15); border-color: var(--dourado); color: var(--dourado); }
   .ugc-etapa-pill.sem-retorno{ background: rgba(196,69,60,.1); border-color: var(--vermelho); color: var(--vermelho); }
   .ugc-etapa-pill.realizada{ background: rgba(0,0,128,.08); border-color: var(--coral); color: var(--coral); }
+  .ugc-etapa-pill.rascunho{ background: rgba(107,100,92,.1); border-color: var(--texto-suave); color: var(--texto-suave); }
 
   .abordagem-grade-lista{ display: grid; grid-template-columns: 100px minmax(0,1fr) 130px 90px 190px 16px; align-items: center; gap: 14px; }
   .abordagem-grade-lista span:nth-child(4){ text-align: right; }
@@ -2298,22 +2299,27 @@
               <label id="abordagemCanalDetalheLabel">Detalhe</label>
               <input type="text" id="abordagemCanalDetalhe" placeholder="">
             </div>
-            <div class="ugc-campo">
-              <label>Data da abordagem</label>
-              <input type="date" id="abordagemCampoData">
-            </div>
-            <div class="ugc-campo">
-              <label>Data do follow up</label>
-              <input type="text" id="abordagemCampoFollowup" placeholder="Calculada automaticamente (+7 dias)" disabled>
-            </div>
             <div class="ugc-campo largo">
               <label>Status</label>
               <div class="ugc-origem-toggle" id="abordagemStatusToggle">
-                <span class="ativo" data-status="realizada">Abordagem realizada</span>
+                <span class="ativo" data-status="rascunho">Rascunho</span>
+                <span data-status="realizada">Abordagem realizada</span>
                 <span data-status="andamento">Negociação em andamento</span>
                 <span data-status="fechada">Negociação fechada</span>
                 <span data-status="sem_retorno">Sem retorno</span>
               </div>
+            </div>
+            <div class="ugc-campo" id="abordagemCampoDataRascunhoWrap">
+              <label>Data de cadastro</label>
+              <input type="date" id="abordagemCampoDataRascunho">
+            </div>
+            <div class="ugc-campo oculto" id="abordagemCampoDataWrap">
+              <label>Data da abordagem</label>
+              <input type="date" id="abordagemCampoData">
+            </div>
+            <div class="ugc-campo oculto" id="abordagemCampoFollowupWrap">
+              <label>Data do follow up</label>
+              <input type="text" id="abordagemCampoFollowup" placeholder="Calculada automaticamente (+7 dias)" disabled>
             </div>
             <div class="ugc-campo largo">
               <label>Observação</label>
@@ -2750,7 +2756,7 @@
   let abordagensCache = [];
   const abordagemAbertos = new Set();
   const abordagemEditando = new Set();
-  let abordagemStatusSelecionado = "realizada";
+  let abordagemStatusSelecionado = "rascunho";
   let abordagemCanalSelecionado = null;
 
   // Filtros estilo Excel na lista de Abordagens (por coluna). Cada valor é null (sem
@@ -2759,11 +2765,14 @@
   let abordagemFiltroColunaAberta = null; // qual coluna tem o dropdown de filtro aberto agora
 
   const ABORDAGEM_STATUS = [
+    { chave: "rascunho", nome: "Rascunho" },
     { chave: "realizada", nome: "Abordagem realizada" },
     { chave: "andamento", nome: "Negociação em andamento" },
     { chave: "fechada", nome: "Negociação fechada" },
     { chave: "sem_retorno", nome: "Sem retorno" }
   ];
+  // EDITE AQUI se quiser mudar depois de quantos dias sem sair do Rascunho o painel lembra
+  const DIAS_LEMBRETE_RASCUNHO = 3;
   // Canais possíveis de uma abordagem — cada um define o rótulo/placeholder do
   // campo de detalhe que aparece ao selecionar (link do formulário, @ do Instagram, etc.)
   const ABORDAGEM_CANAL_CONFIG = {
@@ -3239,6 +3248,12 @@
         document.getElementById("abordagemStatusToggle").querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
         span.classList.add("ativo");
         abordagemStatusSelecionado = span.dataset.status;
+        atualizarVisibilidadeCamposDataAbordagem(
+          abordagemStatusSelecionado,
+          document.getElementById("abordagemCampoDataRascunhoWrap"),
+          document.getElementById("abordagemCampoDataWrap"),
+          document.getElementById("abordagemCampoFollowupWrap")
+        );
       });
     });
 
@@ -4907,8 +4922,11 @@
     const itensReengajamento = obterAlertasReengajamentoClientes()
       .map(item => ({ ...item, categoria: "reengajamento", chave: `reengajamento-${item.id}` }));
 
+    const itensRascunho = obterAlertasRascunho()
+      .map(item => ({ ...item, categoria: "rascunho_lembrete", chave: `rascunho-${item.id}` }));
+
     const agora = Date.now();
-    const visiveis = itensContas.concat(itensRecebimentos).concat(itensFollowup).concat(itensTrafegoPago).concat(itensPendenciaCadastro).concat(itensReengajamento)
+    const visiveis = itensContas.concat(itensRecebimentos).concat(itensFollowup).concat(itensTrafegoPago).concat(itensPendenciaCadastro).concat(itensReengajamento).concat(itensRascunho)
       .filter(item => !notificacoesPopupFechadas.has(item.chave))
       .filter(item => !(notificacoesPopupAdiadas[item.chave] && agora < notificacoesPopupAdiadas[item.chave]))
       .sort((a, b) => a.diasParaVencer - b.diasParaVencer);
@@ -4924,16 +4942,17 @@
       const ehTrafego = item.categoria === "trafego_pago";
       const ehPendencia = item.categoria === "pendencia_cliente";
       const ehReengajamento = item.categoria === "reengajamento";
-      const ehClicavel = ehFollowup || ehTrafego || ehReengajamento;
+      const ehRascunho = item.categoria === "rascunho_lembrete";
+      const ehClicavel = ehFollowup || ehTrafego || ehReengajamento || ehRascunho;
       const nomeExibicao = ehPagar
         ? (item.tipo === "cartao" ? `Fatura ${item.nome}` : item.nome)
         : ehReengajamento ? item.nome_marca
-        : (ehFollowup || ehTrafego || ehPendencia) ? item.marca : item.descricao;
-      const mensagem = ehPagar ? mensagemAlertaConta(item) : ehFollowup ? mensagemAlertaFollowupAbordagem(item) : ehTrafego ? mensagemAlertaTrafegoPago(item) : ehPendencia ? mensagemPendenciaCadastroCliente() : ehReengajamento ? mensagemAlertaReengajamento(item) : mensagemAlertaRecebimento(item);
-      const classeStatus = (ehPendencia || ehReengajamento) ? "" : (ehFollowup || ehTrafego) ? (item.statusAlerta === "atrasado" ? "atrasado" : "") : (!ehPagar && item.status === "proximo" ? "proximo-receber" : item.status);
+        : (ehFollowup || ehTrafego || ehPendencia || ehRascunho) ? item.marca : item.descricao;
+      const mensagem = ehPagar ? mensagemAlertaConta(item) : ehFollowup ? mensagemAlertaFollowupAbordagem(item) : ehTrafego ? mensagemAlertaTrafegoPago(item) : ehPendencia ? mensagemPendenciaCadastroCliente() : ehReengajamento ? mensagemAlertaReengajamento(item) : ehRascunho ? mensagemAlertaRascunho(item) : mensagemAlertaRecebimento(item);
+      const classeStatus = ehRascunho ? "atrasado" : (ehPendencia || ehReengajamento) ? "" : (ehFollowup || ehTrafego) ? (item.statusAlerta === "atrasado" ? "atrasado" : "") : (!ehPagar && item.status === "proximo" ? "proximo-receber" : item.status);
       const acaoBotao = ehPagar ? "marcar-pago-notificacao" : ehFollowup ? "marcar-followup-notificacao" : ehPendencia ? "completar-cadastro-cliente" : "marcar-recebido-notificacao";
       const textoBotao = ehPagar ? "Marcar como pago" : ehFollowup ? "Marcar follow up como feito" : ehPendencia ? "Completar cadastro" : "Marcar como recebido";
-      const acaoNavegacao = ehFollowup ? "ir-abordagem-notificacao" : ehTrafego ? "ir-trabalho-notificacao" : ehReengajamento ? "ir-cliente-notificacao" : "";
+      const acaoNavegacao = (ehFollowup || ehRascunho) ? "ir-abordagem-notificacao" : ehTrafego ? "ir-trabalho-notificacao" : ehReengajamento ? "ir-cliente-notificacao" : "";
       const corpoAtributos = ehClicavel ? `data-acao="${acaoNavegacao}" data-id="${item.id}" tabindex="0" role="button"` : "";
 
       return `
@@ -4945,9 +4964,10 @@
             ${ehFollowup ? `<p class="notificacao-popup-ver-mais">Ver anotação da abordagem ›</p>` : ""}
             ${ehTrafego ? `<p class="notificacao-popup-ver-mais">Ver trabalho no UGC Creator ›</p>` : ""}
             ${ehReengajamento ? `<p class="notificacao-popup-ver-mais">Ver cliente ›</p>` : ""}
+            ${ehRascunho ? `<p class="notificacao-popup-ver-mais">Ver abordagem ›</p>` : ""}
           </div>
           <div class="notificacao-popup-acoes">
-            ${(ehTrafego || ehReengajamento) ? "" : `<button type="button" class="notificacao-popup-botao-pago" data-acao="${acaoBotao}">${textoBotao}</button>`}
+            ${(ehTrafego || ehReengajamento || ehRascunho) ? "" : `<button type="button" class="notificacao-popup-botao-pago" data-acao="${acaoBotao}">${textoBotao}</button>`}
             <button type="button" class="notificacao-popup-botao-adiar" data-acao="adiar-notificacao">Lembrar em 1h</button>
           </div>
         </div>
@@ -6064,14 +6084,17 @@
   function chaveColunaAbordagem(item, campo){
     if (campo === "status") return item.status;
     if (campo === "nicho") return formatarNichoAbordagem(item);
-    if (campo === "data_abordagem") return item.data_abordagem || "";
+    if (campo === "data_abordagem") return item.data_abordagem || item.data_rascunho || "";
     return item.marca || "";
   }
 
   function rotuloColunaAbordagem(item, campo){
     if (campo === "status") return nomeStatusAbordagem(item.status);
     if (campo === "nicho") return formatarNichoAbordagem(item);
-    if (campo === "data_abordagem") return item.data_abordagem ? formatarDataCurta(item.data_abordagem) : "Sem data";
+    if (campo === "data_abordagem"){
+      const data = item.data_abordagem || item.data_rascunho;
+      return data ? formatarDataCurta(data) : "Sem data";
+    }
     return item.marca || "Sem marca";
   }
 
@@ -6145,6 +6168,7 @@
     if (chave === "fechada") return "pago";
     if (chave === "sem_retorno") return "sem-retorno";
     if (chave === "realizada") return "realizada";
+    if (chave === "rascunho") return "rascunho";
     return "andamento";
   }
 
@@ -6152,6 +6176,18 @@
   // negociação está rolando ("andamento") — não depois de fechada ou sem retorno.
   function precisaFollowupAbordagem(status){
     return status === "realizada" || status === "andamento";
+  }
+
+  // Enquanto o status é "Rascunho" ainda não existe abordagem de verdade, então mostra
+  // só "Data de cadastro" (usada no lembrete de 3 dias); qualquer outro status mostra os
+  // campos normais de "Data da abordagem"/"Data do follow up". Reaproveitado no form de
+  // "nova abordagem" e em cada linha de edição, por isso recebe os elementos prontos
+  // (e não IDs fixos) — os dois formulários têm prefixos de ID diferentes.
+  function atualizarVisibilidadeCamposDataAbordagem(status, wrapRascunho, wrapData, wrapFollowup){
+    const ehRascunho = status === "rascunho";
+    wrapRascunho.classList.toggle("oculto", !ehRascunho);
+    wrapData.classList.toggle("oculto", ehRascunho);
+    wrapFollowup.classList.toggle("oculto", ehRascunho);
   }
 
   // Liga o toggle de canal (Formulário/Instagram/E-mail/Plataforma) ao campo de detalhe:
@@ -6224,19 +6260,23 @@
           <label id="abordagemEdicaoCanalDetalheLabel-${item.id}">${item.canal ? ABORDAGEM_CANAL_CONFIG[item.canal].label : "Detalhe"}</label>
           <input type="text" id="abordagemEdicaoCanalDetalhe-${item.id}" value="${item.canal_detalhe || ""}" placeholder="${item.canal ? ABORDAGEM_CANAL_CONFIG[item.canal].placeholder : ""}">
         </div>
-        <div class="ugc-campo">
-          <label>Data da abordagem</label>
-          <input type="date" id="abordagemEdicaoData-${item.id}" value="${item.data_abordagem || ""}">
-        </div>
-        <div class="ugc-campo">
-          <label>Data do follow up</label>
-          <input type="text" id="abordagemEdicaoFollowup-${item.id}" value="${item.data_followup ? formatarDataCurta(item.data_followup) : ""}" disabled>
-        </div>
         <div class="ugc-campo largo">
           <label>Status</label>
           <div class="ugc-origem-toggle" id="abordagemEdicaoStatus-${item.id}">
             ${ABORDAGEM_STATUS.map(s => `<span class="${s.chave === item.status ? "ativo" : ""}" data-status="${s.chave}">${s.nome}</span>`).join("")}
           </div>
+        </div>
+        <div class="ugc-campo${item.status === "rascunho" ? "" : " oculto"}" id="abordagemEdicaoDataRascunhoWrap-${item.id}">
+          <label>Data de cadastro</label>
+          <input type="date" id="abordagemEdicaoDataRascunho-${item.id}" value="${item.data_rascunho || ""}">
+        </div>
+        <div class="ugc-campo${item.status === "rascunho" ? " oculto" : ""}" id="abordagemEdicaoDataWrap-${item.id}">
+          <label>Data da abordagem</label>
+          <input type="date" id="abordagemEdicaoData-${item.id}" value="${item.data_abordagem || ""}">
+        </div>
+        <div class="ugc-campo${item.status === "rascunho" ? " oculto" : ""}" id="abordagemEdicaoFollowupWrap-${item.id}">
+          <label>Data do follow up</label>
+          <input type="text" id="abordagemEdicaoFollowup-${item.id}" value="${item.data_followup ? formatarDataCurta(item.data_followup) : ""}" disabled>
         </div>
         <div class="ugc-campo largo">
           <label>Follow up feito?</label>
@@ -6262,6 +6302,7 @@
     const gerenciarHtml = renderGerenciarAbordagemHtml(item);
     if (abordagemEditando.has(item.id)) return gerenciarHtml + renderFormEdicaoAbordagemHtml(item);
 
+    const ehRascunho = item.status === "rascunho";
     const diasFollowup = diasParaFollowupAbordagem(item);
     const atrasado = precisaFollowupAbordagem(item.status) && !item.followup_feito && diasFollowup !== null && diasFollowup < 0;
     const badgeFollowup = item.followup_feito ? "aprovado" : (atrasado ? "atrasado" : "aguardando");
@@ -6271,25 +6312,32 @@
         ? `Follow up atrasado há ${Math.abs(diasFollowup)} dia${Math.abs(diasFollowup) === 1 ? "" : "s"}`
         : "Follow up pendente";
 
+    const linhasData = ehRascunho
+      ? `<div class="ugc-detalhe-linha"><span class="rotulo">Data de cadastro</span><span class="valor">${item.data_rascunho ? formatarDataCurta(item.data_rascunho) : "—"}</span></div>`
+      : `<div class="ugc-detalhe-linha"><span class="rotulo">Data da abordagem</span><span class="valor">${item.data_abordagem ? formatarDataCurta(item.data_abordagem) : "—"}</span></div>
+         <div class="ugc-detalhe-linha"><span class="rotulo">Follow up</span><span class="valor">${item.data_followup ? formatarDataCurta(item.data_followup) : "—"}</span></div>`;
+
     return gerenciarHtml + `
       <div class="ugc-detalhe-linha"><span class="rotulo">Produto</span><span class="valor">${item.produto || "—"}</span></div>
       ${item.canal ? `<div class="ugc-detalhe-linha"><span class="rotulo">Canal</span><span class="valor">${ABORDAGEM_CANAL_CONFIG[item.canal].nome}${item.canal_detalhe ? ` (${item.canal_detalhe})` : ""}</span></div>` : ""}
-      <div class="ugc-detalhe-linha"><span class="rotulo">Data da abordagem</span><span class="valor">${item.data_abordagem ? formatarDataCurta(item.data_abordagem) : "—"}</span></div>
-      <div class="ugc-detalhe-linha"><span class="rotulo">Follow up</span><span class="valor">${item.data_followup ? formatarDataCurta(item.data_followup) : "—"}</span></div>
+      ${linhasData}
       <div class="ugc-detalhe-linha"><span class="rotulo">Status</span><span class="ugc-etapa-pill ${classeStatusAbordagem(item.status)}">${nomeStatusAbordagem(item.status)}</span></div>
       ${item.abordagem ? `<div class="abordagem-bloco"><span class="rotulo">Abordagem</span><p>${item.abordagem}</p></div>` : ""}
       ${item.observacao ? `<div class="abordagem-bloco"><span class="rotulo">Observação</span><p>${item.observacao}</p></div>` : ""}
+      ${ehRascunho ? "" : `
       <div class="ugc-status-aprovacao">
         <span class="ugc-badge ${badgeFollowup}">${textoFollowup}</span>
         <button type="button" class="ugc-btn" data-acao="abordagem-toggle-followup" data-id="${item.id}">${item.followup_feito ? "Marcar como pendente" : "Marcar como feito"}</button>
-      </div>
+      </div>`}
     `;
   }
 
   function renderLinhaAbordagemHtml(item){
     const aberta = abordagemAbertos.has(item.id) ? " open" : "";
     const dataTexto = item.data_followup ? formatarDataCurta(item.data_followup) : "—";
-    const dataAbordagemTexto = item.data_abordagem ? formatarDataCurta(item.data_abordagem) : "—";
+    const dataAbordagemTexto = item.data_abordagem
+      ? formatarDataCurta(item.data_abordagem)
+      : (item.data_rascunho ? formatarDataCurta(item.data_rascunho) : "—");
     const diasFollowup = diasParaFollowupAbordagem(item);
     const atrasado = precisaFollowupAbordagem(item.status) && !item.followup_feito && diasFollowup !== null && diasFollowup < 0;
 
@@ -6332,11 +6380,26 @@
     container.querySelectorAll("[data-acao='abordagem-toggle-followup']").forEach(btn => {
       btn.addEventListener("click", () => alternarFollowupFeitoAbordagem(btn.dataset.id));
     });
-    container.querySelectorAll("[id^='abordagemEdicaoStatus-'], [id^='abordagemEdicaoFollowupFeito-']").forEach(toggle => {
+    container.querySelectorAll("[id^='abordagemEdicaoFollowupFeito-']").forEach(toggle => {
       toggle.querySelectorAll("span").forEach(span => {
         span.addEventListener("click", () => {
           toggle.querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
           span.classList.add("ativo");
+        });
+      });
+    });
+    container.querySelectorAll("[id^='abordagemEdicaoStatus-']").forEach(toggle => {
+      const id = toggle.id.replace("abordagemEdicaoStatus-", "");
+      toggle.querySelectorAll("span").forEach(span => {
+        span.addEventListener("click", () => {
+          toggle.querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
+          span.classList.add("ativo");
+          atualizarVisibilidadeCamposDataAbordagem(
+            span.dataset.status,
+            document.getElementById(`abordagemEdicaoDataRascunhoWrap-${id}`),
+            document.getElementById(`abordagemEdicaoDataWrap-${id}`),
+            document.getElementById(`abordagemEdicaoFollowupWrap-${id}`)
+          );
         });
       });
     });
@@ -6482,7 +6545,9 @@
     const marca = campoMarca.value.trim();
     if (!marca) return;
 
+    const ehRascunho = abordagemStatusSelecionado === "rascunho";
     const dataAbordagem = document.getElementById("abordagemCampoData").value || null;
+    const dataRascunho = document.getElementById("abordagemCampoDataRascunho").value || null;
 
     const nicho = document.getElementById("abordagemCampoNicho").value || null;
 
@@ -6492,8 +6557,9 @@
       nicho: nicho,
       nicho_detalhe: nicho === "Outro" ? (document.getElementById("abordagemCampoNichoOutro").value.trim() || null) : null,
       abordagem: document.getElementById("abordagemCampoTexto").value.trim() || null,
-      data_abordagem: dataAbordagem,
-      data_followup: dataAbordagem ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null,
+      data_rascunho: ehRascunho ? dataRascunho : null,
+      data_abordagem: ehRascunho ? null : dataAbordagem,
+      data_followup: (!ehRascunho && dataAbordagem) ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null,
       observacao: document.getElementById("abordagemCampoObs").value.trim() || null,
       status: abordagemStatusSelecionado,
       canal: abordagemCanalSelecionado,
@@ -6508,14 +6574,20 @@
 
     if (!error && inserido){
       abordagensCache = abordagensCache.concat(inserido);
-      ["abordagemCampoMarca", "abordagemCampoProduto", "abordagemCampoTexto", "abordagemCampoData", "abordagemCampoFollowup", "abordagemCampoObs", "abordagemCanalDetalhe", "abordagemCampoNichoOutro"].forEach(id => {
+      ["abordagemCampoMarca", "abordagemCampoProduto", "abordagemCampoTexto", "abordagemCampoData", "abordagemCampoFollowup", "abordagemCampoObs", "abordagemCanalDetalhe", "abordagemCampoNichoOutro", "abordagemCampoDataRascunho"].forEach(id => {
         document.getElementById(id).value = "";
       });
       document.getElementById("abordagemCampoNicho").value = "";
       document.getElementById("abordagemCampoNichoOutroWrap").classList.add("oculto");
       document.getElementById("abordagemStatusToggle").querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
-      document.getElementById("abordagemStatusToggle").querySelector("[data-status='realizada']").classList.add("ativo");
-      abordagemStatusSelecionado = "realizada";
+      document.getElementById("abordagemStatusToggle").querySelector("[data-status='rascunho']").classList.add("ativo");
+      abordagemStatusSelecionado = "rascunho";
+      atualizarVisibilidadeCamposDataAbordagem(
+        "rascunho",
+        document.getElementById("abordagemCampoDataRascunhoWrap"),
+        document.getElementById("abordagemCampoDataWrap"),
+        document.getElementById("abordagemCampoFollowupWrap")
+      );
       document.getElementById("abordagemCanalToggle").querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
       document.getElementById("abordagemCanalDetalheWrap").classList.add("oculto");
       abordagemCanalSelecionado = null;
@@ -6555,8 +6627,11 @@
     const marca = document.getElementById(`abordagemEdicaoMarca-${id}`).value.trim();
     if (!marca) return;
 
-    const dataAbordagem = document.getElementById(`abordagemEdicaoData-${id}`).value || null;
     const statusAtivo = document.querySelector(`#abordagemEdicaoStatus-${id} .ativo`);
+    const status = statusAtivo ? statusAtivo.dataset.status : "rascunho";
+    const ehRascunho = status === "rascunho";
+    const dataAbordagem = document.getElementById(`abordagemEdicaoData-${id}`).value || null;
+    const dataRascunho = document.getElementById(`abordagemEdicaoDataRascunho-${id}`).value || null;
     const followupAtivo = document.querySelector(`#abordagemEdicaoFollowupFeito-${id} .ativo`);
     const canalAtivo = document.querySelector(`#abordagemEdicaoCanal-${id} .ativo`);
     const nicho = document.getElementById(`abordagemEdicaoNicho-${id}`).value || null;
@@ -6569,10 +6644,11 @@
       abordagem: document.getElementById(`abordagemEdicaoTexto-${id}`).value.trim() || null,
       canal: canalAtivo ? canalAtivo.dataset.canal : null,
       canal_detalhe: document.getElementById(`abordagemEdicaoCanalDetalhe-${id}`).value.trim() || null,
-      data_abordagem: dataAbordagem,
-      data_followup: dataAbordagem ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null,
+      data_rascunho: ehRascunho ? dataRascunho : null,
+      data_abordagem: ehRascunho ? null : dataAbordagem,
+      data_followup: (!ehRascunho && dataAbordagem) ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null,
       observacao: document.getElementById(`abordagemEdicaoObs-${id}`).value.trim() || null,
-      status: statusAtivo ? statusAtivo.dataset.status : "realizada",
+      status: status,
       followup_feito: followupAtivo ? followupAtivo.dataset.followup === "feito" : false
     };
 
@@ -6651,6 +6727,32 @@
     if (item.diasParaVencer === 0) return "Follow up é hoje";
     if (item.diasParaVencer === 1) return "Follow up é amanhã";
     return `Follow up em ${item.diasParaVencer} dias`;
+  }
+
+  // Lembrete pra sair do Rascunho: passou de DIAS_LEMBRETE_RASCUNHO dias desde que a
+  // marca foi cadastrada como rascunho e ainda não virou "Abordagem realizada". Continua
+  // aparecendo todo dia (não só uma vez) até a usuária mudar o status pra alguma coisa.
+  function obterAlertasRascunho(){
+    const hoje = new Date();
+    const hojeSemHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+
+    const alertas = [];
+    abordagensCache.forEach(item => {
+      if (item.status !== "rascunho" || item.arquivado || !item.data_rascunho) return;
+      const [ano, mes, dia] = item.data_rascunho.split("-").map(Number);
+      const dataCadastro = new Date(ano, mes - 1, dia);
+      const diasDesde = Math.round((hojeSemHora - dataCadastro) / (1000 * 60 * 60 * 24));
+      if (diasDesde >= DIAS_LEMBRETE_RASCUNHO){
+        alertas.push({ ...item, diasDesdeRascunho: diasDesde, diasParaVencer: -diasDesde });
+      }
+    });
+
+    alertas.sort((a, b) => b.diasDesdeRascunho - a.diasDesdeRascunho);
+    return alertas;
+  }
+
+  function mensagemAlertaRascunho(item){
+    return `Cadastrada como rascunho há ${item.diasDesdeRascunho} dia${item.diasDesdeRascunho === 1 ? "" : "s"} — hora de abordar de verdade?`;
   }
 
   // Pendência administrativa permanente: negociação fechada que ainda não virou
