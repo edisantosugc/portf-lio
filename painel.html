@@ -1687,6 +1687,7 @@
   .btn-fantasma:hover{ border-color: var(--coral); color: var(--coral); }
 
   .clientes-cards-resumo{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 20px; }
+  .abordagem-cards-metricas{ grid-template-columns: repeat(3, 1fr); margin-top: 0; margin-bottom: 20px; }
   .cliente-card-resumo{ background: var(--branco); border: 1px solid var(--borda); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
   .cliente-card-resumo .topo{ display: flex; align-items: center; justify-content: space-between; }
   .cliente-card-resumo .rotulo{ font-size: .64rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--texto-suave); }
@@ -2244,6 +2245,24 @@
 
     <!-- ===================== ABA: ABORDAGEM ===================== -->
     <section id="painelAbordagem" class="painel-tab oculto">
+      <div class="clientes-cards-resumo abordagem-cards-metricas">
+        <div class="cliente-card-resumo">
+          <div class="topo"><span class="rotulo">Esta Semana</span><span class="bolinha" style="background:var(--dourado)"></span></div>
+          <span class="valor" id="abordagemMetricaSemana">0</span>
+          <span class="legenda">Abordagens realizadas</span>
+        </div>
+        <div class="cliente-card-resumo">
+          <div class="topo"><span class="rotulo">Este Mês</span><span class="bolinha" style="background:var(--coral)"></span></div>
+          <span class="valor" id="abordagemMetricaMes">0</span>
+          <span class="legenda">Abordagens realizadas</span>
+        </div>
+        <div class="cliente-card-resumo">
+          <div class="topo"><span class="rotulo">Este Ano</span><span class="bolinha" style="background:var(--verde)"></span></div>
+          <span class="valor" id="abordagemMetricaAno">0</span>
+          <span class="legenda">Abordagens realizadas</span>
+        </div>
+      </div>
+
       <div class="sub-abas-negocio" id="subAbasAbordagem">
         <button type="button" class="sub-aba-btn ativo" data-subaba="ativas">Abordagens</button>
         <button type="button" class="sub-aba-btn" data-subaba="arquivados">Arquivados</button>
@@ -6502,6 +6521,38 @@
   function renderizarAbordagens(){
     renderListaAbordagens();
     renderArquivoAbordagens();
+    calcularMetricasAbordagem();
+  }
+
+  // Conta quantas abordagens já saíram de "Rascunho" (viraram abordagem de verdade),
+  // agrupadas por semana/mês/ano atuais, usando data_abordagem como referência. Uma
+  // abordagem só entra na contagem quando tem data_abordagem preenchida — o que já
+  // acontece automaticamente assim que o status deixa de ser "Rascunho".
+  function calcularMetricasAbordagem(){
+    const elSemana = document.getElementById("abordagemMetricaSemana");
+    if (!elSemana) return;
+
+    const hoje = new Date();
+    const hojeSemHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    const diaSemana = hojeSemHora.getDay(); // 0 = domingo
+    const inicioSemana = new Date(hojeSemHora);
+    inicioSemana.setDate(inicioSemana.getDate() - (diaSemana === 0 ? 6 : diaSemana - 1)); // volta até a segunda-feira
+
+    let semana = 0, mes = 0, ano = 0;
+    abordagensCache.forEach(item => {
+      if (item.status === "rascunho" || !item.data_abordagem) return;
+      const [anoItem, mesItem, diaItem] = item.data_abordagem.split("-").map(Number);
+      const data = new Date(anoItem, mesItem - 1, diaItem);
+      if (data > hojeSemHora) return; // não conta datas futuras
+
+      if (data >= inicioSemana) semana++;
+      if (anoItem === hoje.getFullYear() && mesItem - 1 === hoje.getMonth()) mes++;
+      if (anoItem === hoje.getFullYear()) ano++;
+    });
+
+    elSemana.textContent = semana;
+    document.getElementById("abordagemMetricaMes").textContent = mes;
+    document.getElementById("abordagemMetricaAno").textContent = ano;
   }
 
   async function alternarArquivadoAbordagem(id){
