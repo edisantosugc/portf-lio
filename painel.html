@@ -997,7 +997,7 @@
     gap: 10px;
     margin-bottom: 10px;
   }
-  .form-lancamento input:not([type="checkbox"]), .form-lancamento select{
+  .form-lancamento input:not([type="checkbox"]), .form-lancamento select, .form-lancamento .campo-data-exibicao{
     padding: 10px 12px;
     border-radius: 10px;
     border: 1px solid var(--borda);
@@ -1013,21 +1013,25 @@
     flex-shrink: 0;
   }
   .form-lancamento input:focus, .form-lancamento select:focus{ outline: none; border-color: var(--coral); }
-  /* Campos de data no iOS: o texto formatado ("27 de jul. de 2026") vem de um
-     controle interno do Safari que ignora parte do padding normal do input,
-     ficando colado nas bordas. Reforça o espaçamento e alinha à esquerda. */
-  .form-lancamento input[type="date"]{
-    padding: 0;
-    min-height: 40px;
-    max-width: 100%;
+  /* Campo de data no iOS: o Safari não deixa controlar o padding interno do
+     type="date" de forma confiável (já tentamos 3 vezes). Solução definitiva:
+     o input real fica invisível por cima (continua funcional, abre o seletor
+     nativo ao tocar), e quem aparece de verdade é esse span, estilizado
+     exatamente igual aos campos vizinhos (herda do seletor acima). */
+  .campo-data-wrapper{ position: relative; box-sizing: border-box; }
+  .campo-data-wrapper input[type="date"]{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    z-index: 2;
+    cursor: pointer;
+  }
+  .campo-data-exibicao{
+    display: flex;
+    align-items: center;
     box-sizing: border-box;
-  }
-  .form-lancamento input[type="date"]::-webkit-datetime-edit{
-    padding: 10px 12px;
-  }
-  .form-lancamento input[type="date"]::-webkit-date-and-time-value{
-    text-align: left;
-    margin: 0;
   }
   .form-lancamento-parcelas{
     display: none;
@@ -2184,7 +2188,10 @@
           <input type="text" id="campoLancDescricao" placeholder="Descrição da compra" required>
           <select id="campoLancCartao"></select>
           <select id="campoLancPessoa"></select>
-          <input type="date" id="campoLancData" required>
+          <div class="campo-data-wrapper">
+            <input type="date" id="campoLancData" required>
+            <span class="campo-data-exibicao" id="campoLancDataExibicao"></span>
+          </div>
           <input type="number" id="campoLancValor" placeholder="Valor R$" step="0.01" min="0" required>
 
           <label class="form-lancamento-check">
@@ -2257,7 +2264,10 @@
               <option value="investimento">Investimento</option>
               <option value="ganho">Ganho</option>
             </select>
-            <input type="date" id="campoNegocioData" required>
+            <div class="campo-data-wrapper">
+              <input type="date" id="campoNegocioData" required>
+              <span class="campo-data-exibicao" id="campoNegocioDataExibicao"></span>
+            </div>
             <input type="number" id="campoNegocioValor" placeholder="Valor R$" step="0.01" min="0" required>
 
             <label class="form-lancamento-check oculto" id="labelNegocioRecebido">
@@ -3011,6 +3021,45 @@
     return `${ano}-${mes}-${dia}`;
   }
 
+  /* =========================================================================
+     CAMPO DE DATA COM EXIBIÇÃO PRÓPRIA (campo-data-wrapper)
+     O <input type="date"> real fica invisível (mas continua funcional, abre
+     o seletor nativo ao tocar); quem aparece de verdade é o <span> ao lado,
+     estilizado igual aos outros campos do formulário. Isso existe porque o
+     Safari/iOS não permite controlar o padding interno do campo nativo.
+     ========================================================================= */
+  function formatarDataExibicaoLonga(dataISO){
+    if (!dataISO) return "";
+    const [ano, mes, dia] = dataISO.split("-").map(Number);
+    return new Date(ano, mes - 1, dia).toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  function atualizarExibicaoData(inputEl, exibicaoEl){
+    if (!exibicaoEl) return;
+    exibicaoEl.textContent = formatarDataExibicaoLonga(inputEl.value) || "Selecionar data";
+  }
+
+  // Liga um <input type="date"> ao seu <span> de exibição: atualiza o texto sempre
+  // que a usuária escolhe uma data nova no seletor nativo, e já mostra o valor inicial.
+  function configurarCampoDataComExibicao(inputId, exibicaoId){
+    const input = document.getElementById(inputId);
+    const exibicao = document.getElementById(exibicaoId);
+    if (!input || !exibicao) return;
+    input.addEventListener("input", () => atualizarExibicaoData(input, exibicao));
+    input.addEventListener("change", () => atualizarExibicaoData(input, exibicao));
+    atualizarExibicaoData(input, exibicao);
+  }
+
+  // Usado sempre que o valor é definido por código (não pela usuária escolhendo no
+  // seletor) — nesses casos o evento "change" não dispara sozinho, então atualiza
+  // a exibição na mão.
+  function definirDataComExibicao(inputId, exibicaoId, valorISO){
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    input.value = valorISO;
+    atualizarExibicaoData(input, document.getElementById(exibicaoId));
+  }
+
   // Soma "quantidade" de dias a uma data (AAAA-MM-DD), devolvendo também em AAAA-MM-DD
   function somarDias(dataISO, quantidade){
     const [ano, mes, dia] = dataISO.split("-").map(Number);
@@ -3191,6 +3240,9 @@
      INTERFACE: ABAS, PERÍODO, MENU MOBILE, SAIR
      ========================================================================= */
   function configurarEventosDeInterface(){
+    configurarCampoDataComExibicao("campoLancData", "campoLancDataExibicao");
+    configurarCampoDataComExibicao("campoNegocioData", "campoNegocioDataExibicao");
+
     document.querySelectorAll(".menu-item").forEach(btn => {
       btn.addEventListener("click", () => trocarAba(btn.dataset.tab));
     });
@@ -3281,7 +3333,7 @@
       anoNegocioVisivel = hoje.getFullYear();
       renderizarNegocio();
     });
-    document.getElementById("campoNegocioData").value = formatarDataISO(new Date());
+    definirDataComExibicao("campoNegocioData", "campoNegocioDataExibicao", formatarDataISO(new Date()));
     document.getElementById("formNegocio").addEventListener("submit", adicionarLancamentoNegocio);
 
     document.getElementById("campoNegocioTipo").addEventListener("change", (e) => {
@@ -4475,7 +4527,7 @@
       CARTOES.map(c => `<option value="${c}">${c}</option>`).join("");
     document.getElementById("campoLancPessoa").innerHTML =
       PESSOAS.map(p => `<option value="${p}">${p}</option>`).join("");
-    document.getElementById("campoLancData").value = formatarDataISO(new Date());
+    definirDataComExibicao("campoLancData", "campoLancDataExibicao", formatarDataISO(new Date()));
   }
 
   function formatarMoeda(valor){
@@ -5514,7 +5566,7 @@
     if (!error && inserido){
       negocioCache = negocioCache.concat(inserido);
       document.getElementById("formNegocio").reset();
-      document.getElementById("campoNegocioData").value = formatarDataISO(new Date());
+      definirDataComExibicao("campoNegocioData", "campoNegocioDataExibicao", formatarDataISO(new Date()));
       document.getElementById("labelNegocioRecebido").classList.add("oculto");
       document.getElementById("campoNegocioDataPrevista").classList.add("oculto");
       renderizarTudoNegocio();
