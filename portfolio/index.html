@@ -2412,8 +2412,12 @@ function definirIdioma(idioma){
 function obterOrigemPortfolio(){
   // "direto" pode vir marcado na sessão (link /ugcportfolio, sem aparecer na URL) ou,
   // se alguém compartilhar um link com "?origem=direto" na mão, por aí também.
+  // "bio" vem sempre pela URL: o link do biosite abre em nova aba (target="_blank"
+  // rel="noopener"), e rel="noopener" impede a nova aba de herdar o sessionStorage
+  // da aba de origem — por isso não dá pra confiar em sessionStorage para essa marcação.
   const paramsUrl = new URLSearchParams(window.location.search);
-  if (paramsUrl.get("origem") === "direto") return "direto";
+  const origemUrl = paramsUrl.get("origem");
+  if (origemUrl === "direto" || origemUrl === "bio") return origemUrl;
   try {
     const origemSalva = sessionStorage.getItem("origem_portfolio");
     if (origemSalva === "direto" || origemSalva === "bio") return origemSalva;
