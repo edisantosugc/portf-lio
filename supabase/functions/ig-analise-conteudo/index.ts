@@ -8,7 +8,16 @@
 // já que cada chamada tem custo de IA. Mantém a verificação de JWT do
 // Supabase ligada, como a ia-assistente.
 
-import { criarClienteSupabase } from "../_shared/ig.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+// Cliente do Supabase montado aqui mesmo (em vez de importar de _shared/ig.ts):
+// essa função foi criada direto pelo editor do site da Supabase, que não enxerga
+// arquivos fora da própria pasta da função, então ela precisa ser autossuficiente.
+function criarClienteSupabase() {
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+  const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+}
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const ANTHROPIC_VERSION = "2023-06-01";
