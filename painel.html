@@ -2236,6 +2236,20 @@
   .link-contrato-tabela{ display: inline-flex; align-items: center; gap: 6px; color: var(--coral); font-weight: 600; text-decoration: none; font-size: .82rem; }
   .link-contrato-tabela:hover{ text-decoration: underline; }
   .cnpj-mono{ font-variant-numeric: tabular-nums; color: var(--texto-suave); }
+
+  /* Modal de motivo de arquivamento (Abordagem) */
+  .lista-motivos-arquivamento{ display: flex; flex-direction: column; gap: 8px; }
+  .botao-motivo-arquivamento{
+    text-align: left; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--borda);
+    background: var(--creme); color: var(--grafite); font-family: 'Outfit', sans-serif; font-size: .88rem; font-weight: 600; cursor: pointer;
+  }
+  .botao-motivo-arquivamento:hover{ border-color: var(--coral); background: rgba(0,0,128,.05); color: var(--coral); }
+
+  .selo-motivo-arquivado{
+    display: inline-flex; align-items: center; gap: 5px; font-size: .74rem; font-weight: 700;
+    background: rgba(107,100,92,.1); color: var(--texto-suave); border-radius: 50px; padding: 3px 11px; white-space: nowrap;
+  }
+  .selo-motivo-arquivado.automatico{ background: rgba(201,166,107,.18); color: #8a6a2c; }
 </style>
 </head>
 <body>
@@ -2354,6 +2368,19 @@
     <div class="cliente-modal-rodape">
       <button type="button" class="btn-fantasma" id="licenciamentoPreencherDepois">Preencher depois</button>
       <button type="button" class="botao-add-tarefa" id="licenciamentoSalvar">Salvar licenciamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Motivo do arquivamento (Abordagem) ===== -->
+<div class="ugc-modal-overlay oculto" id="modalMotivoArquivamento" role="dialog" aria-modal="true" aria-labelledby="modalMotivoArquivamentoTitulo">
+  <div class="cliente-modal-cartao">
+    <div class="cliente-modal-topo">
+      <h2 id="modalMotivoArquivamentoTitulo">🗄 Por que está arquivando?</h2>
+      <button type="button" class="cliente-modal-fechar" id="motivoArquivamentoFechar" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="cliente-modal-corpo">
+      <div class="lista-motivos-arquivamento" id="listaMotivosArquivamento"></div>
     </div>
   </div>
 </div>
@@ -3681,6 +3708,22 @@
     { chave: "fechada", nome: "Negociação fechada" },
     { chave: "sem_retorno", nome: "Sem retorno" }
   ];
+
+  // Motivos possíveis de arquivamento. "prazo_expirado" é o único usado pelo arquivamento
+  // automático (virada de mês, ver arquivarAbordagensMesAnterior) — os outros três só saem
+  // do modal de arquivamento manual.
+  const MOTIVOS_ARQUIVAMENTO = [
+    { chave: "recusou", nome: "Marca recusou" },
+    { chave: "sem_retorno", nome: "Sem retorno" },
+    { chave: "banco_fechado", nome: "Banco de criadores fechado" },
+    { chave: "prazo_expirado", nome: "Prazo expirado" }
+  ];
+  function nomeMotivoArquivamento(chave){
+    const motivo = MOTIVOS_ARQUIVAMENTO.find(m => m.chave === chave);
+    return motivo ? motivo.nome : chave;
+  }
+
+  let abordagemArquivarAbertaId = null; // id aguardando escolha de motivo no modal de arquivamento
   // EDITE AQUI se quiser mudar depois de quantos dias sem sair do Rascunho o painel lembra
   const DIAS_LEMBRETE_RASCUNHO = 3;
   // Canais possíveis de uma abordagem — cada um define o rótulo/placeholder do
@@ -5749,6 +5792,12 @@
       if (e.target.id === "modalLicenciamento") fecharModalLicenciamento();
     });
     document.getElementById("licenciamentoSalvar").addEventListener("click", salvarLicenciamento);
+
+    // ---------- Modal: Motivo do arquivamento ----------
+    document.getElementById("motivoArquivamentoFechar").addEventListener("click", fecharModalMotivoArquivamento);
+    document.getElementById("modalMotivoArquivamento").addEventListener("click", (e) => {
+      if (e.target.id === "modalMotivoArquivamento") fecharModalMotivoArquivamento();
+    });
 
     document.querySelectorAll("#subAbasClientes .sub-aba-btn").forEach(btn => {
       btn.addEventListener("click", () => trocarSubAbaClientes(btn.dataset.subaba));
@@ -8677,6 +8726,7 @@
       ${item.canal ? `<div class="ugc-detalhe-linha"><span class="rotulo">Canal</span><span class="valor">${ABORDAGEM_CANAL_CONFIG[item.canal].nome}${item.canal_detalhe ? ` (${item.canal_detalhe})` : ""}</span></div>` : ""}
       ${linhasData}
       <div class="ugc-detalhe-linha"><span class="rotulo">Status</span><span class="ugc-etapa-pill ${classeStatusAbordagem(item.status)}">${nomeStatusAbordagem(item.status)}</span></div>
+      ${item.arquivado ? `<div class="ugc-detalhe-linha"><span class="rotulo">Motivo do arquivamento</span><span class="selo-motivo-arquivado ${item.arquivado_automaticamente ? "automatico" : ""}">${item.arquivado_automaticamente ? "🤖 " : ""}${item.motivo_arquivamento ? nomeMotivoArquivamento(item.motivo_arquivamento) : "Não informado"}</span></div>` : ""}
       ${item.abordagem ? `<div class="abordagem-bloco"><span class="rotulo">Abordagem</span><p>${item.abordagem}</p></div>` : ""}
       ${item.observacao ? `<div class="abordagem-bloco"><span class="rotulo">Observação</span><p>${item.observacao}</p></div>` : ""}
       ${precisaFollowupAbordagem(item.status) ? `
@@ -8708,7 +8758,9 @@
           <span class="ugc-marca">${item.marca}</span>
           <span class="ugc-nicho">${formatarNichoAbordagem(item)}</span>
           <span class="ugc-data ${atrasado ? "vencida" : ""}">${dataTexto}</span>
-          <span class="ugc-etapa-pill ${vencendo ? "vencida" : classeStatusAbordagem(item.status)}">${atrasado ? "Follow up atrasado" : rascunhoVencendo ? "Rascunho parado" : nomeStatusAbordagem(item.status)}</span>
+          ${item.arquivado
+            ? `<span class="selo-motivo-arquivado ${item.arquivado_automaticamente ? "automatico" : ""}">${item.arquivado_automaticamente ? "🤖 " : ""}${item.motivo_arquivamento ? nomeMotivoArquivamento(item.motivo_arquivamento) : "Arquivado"}</span>`
+            : `<span class="ugc-etapa-pill ${vencendo ? "vencida" : classeStatusAbordagem(item.status)}">${atrasado ? "Follow up atrasado" : rascunhoVencendo ? "Rascunho parado" : nomeStatusAbordagem(item.status)}</span>`}
           <span class="ugc-seta">›</span>
         </summary>
         <div class="ugc-detalhe">${renderDetalheAbordagemHtml(item)}</div>
@@ -8918,16 +8970,47 @@
     document.getElementById("abordagemMetricaLegenda").textContent = ABORDAGEM_PERIODO_LEGENDA[abordagemPeriodoAtual];
   }
 
+  // Arquivar pede o motivo (abre o modal); desarquivar não pede nada — some direto
+  // (e limpa o motivo/origem, pra se ela arquivar de novo depois o modal abrir do zero).
   async function alternarArquivadoAbordagem(id){
     const item = abordagensCache.find(a => a.id === id);
     if (!item) return;
-    await atualizarAbordagem(id, { arquivado: !item.arquivado });
+    if (item.arquivado){
+      await atualizarAbordagem(id, { arquivado: false, motivo_arquivamento: null, arquivado_automaticamente: false });
+    } else {
+      abrirModalMotivoArquivamento(id);
+    }
+  }
+
+  function abrirModalMotivoArquivamento(id){
+    abordagemArquivarAbertaId = id;
+    document.getElementById("listaMotivosArquivamento").innerHTML = MOTIVOS_ARQUIVAMENTO
+      .map(m => `<button type="button" class="botao-motivo-arquivamento" data-motivo="${m.chave}">${m.nome}</button>`)
+      .join("");
+    document.getElementById("listaMotivosArquivamento").querySelectorAll("[data-motivo]").forEach(btn => {
+      btn.addEventListener("click", () => confirmarArquivamento(btn.dataset.motivo));
+    });
+    document.getElementById("modalMotivoArquivamento").classList.remove("oculto");
+  }
+
+  function fecharModalMotivoArquivamento(){
+    document.getElementById("modalMotivoArquivamento").classList.add("oculto");
+    abordagemArquivarAbertaId = null;
+  }
+
+  async function confirmarArquivamento(motivo){
+    const id = abordagemArquivarAbertaId;
+    if (!id) return;
+    fecharModalMotivoArquivamento();
+    await atualizarAbordagem(id, { arquivado: true, motivo_arquivamento: motivo, arquivado_automaticamente: false });
   }
 
   // Roda uma vez a cada carregamento do painel: qualquer abordagem cuja data seja de um
   // mês anterior ao atual é arquivada sozinha, sem precisar clicar em "Arquivar". Como não
   // existe um cron no servidor, isso é o mais perto de "vira o mês, arquiva" que dá pra
-  // fazer aqui — funciona toda vez que o painel é aberto depois da virada do mês.
+  // fazer aqui — funciona toda vez que o painel é aberto depois da virada do mês. Motivo
+  // sempre "prazo_expirado" e marcado como automático, pra distinguir do arquivamento manual
+  // na aba Arquivados.
   async function arquivarAbordagensMesAnterior(){
     const hoje = new Date();
     const chaveAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
@@ -8939,10 +9022,14 @@
 
     const { error } = await Auth.client
       .from("painel_abordagens")
-      .update({ arquivado: true })
+      .update({ arquivado: true, motivo_arquivamento: "prazo_expirado", arquivado_automaticamente: true })
       .in("id", paraArquivar.map(item => item.id));
 
-    if (!error) paraArquivar.forEach(item => { item.arquivado = true; });
+    if (!error) paraArquivar.forEach(item => {
+      item.arquivado = true;
+      item.motivo_arquivamento = "prazo_expirado";
+      item.arquivado_automaticamente = true;
+    });
   }
 
   // Chamado ao clicar no lembrete de follow up: troca pra aba Abordagem, abre

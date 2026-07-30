@@ -402,19 +402,11 @@ alter table public.painel_abordagens add column if not exists canal_detalhe text
 alter table public.painel_abordagens add column if not exists nicho text;
 alter table public.painel_abordagens add column if not exists nicho_detalhe text;
 
--- Novo status inicial "realizada": a abordagem nasce como "só enviei, ainda sem resposta"
--- e só vira "andamento" quando a marca responder. Recria a constraint pra aceitar o valor
--- novo (não dá pra só "adicionar" um valor a um check existente no Postgres) e atualiza o
--- default. Isso não altera nenhuma linha já existente, só o que passa a ser aceito daqui pra frente.
-alter table public.painel_abordagens drop constraint if exists painel_abordagens_status_check;
-alter table public.painel_abordagens add constraint painel_abordagens_status_check
-  check (status in ('realizada', 'andamento', 'fechada', 'sem_retorno'));
-alter table public.painel_abordagens alter column status set default 'realizada';
-
--- Status "Rascunho": vem antes de "Abordagem realizada", pra marcas já pesquisadas mas
--- ainda não abordadas de verdade (evita abordar todas de uma vez). data_rascunho guarda
--- quando foi cadastrada como rascunho — o painel lembra depois de 3 dias sem virar
--- "Abordagem realizada". Recria a constraint de novo pra incluir esse valor.
+-- Status foi evoluindo em duas rodadas (nasceu com 'andamento/fechada/sem_retorno', depois
+-- ganhou 'realizada', depois ganhou 'rascunho') — mas recriar a constraint em duas etapas
+-- separadas, cada uma com uma lista de valores incompleta, trava ao rodar de novo assim que
+-- já existem linhas reais com status='rascunho' (a etapa intermediária ainda não aceitava
+-- esse valor). Por isso agora é uma única troca, direto pra lista final.
 alter table public.painel_abordagens drop constraint if exists painel_abordagens_status_check;
 alter table public.painel_abordagens add constraint painel_abordagens_status_check
   check (status in ('rascunho', 'realizada', 'andamento', 'fechada', 'sem_retorno'));
@@ -1030,3 +1022,14 @@ create policy "Usuaria autenticada remove de documentos-juridicos"
   on storage.objects for delete
   to authenticated
   using (bucket_id = 'documentos-juridicos');
+
+-- =====================================================================
+-- ABORDAGEM: motivo do arquivamento
+-- Toda abordagem arquivada (manual ou automaticamente) guarda por quê.
+-- arquivado_automaticamente diferencia as duas origens na aba Arquivados —
+-- o arquivamento automático (virada de mês, ver arquivarAbordagensMesAnterior
+-- no painel.html) sempre usa motivo 'prazo_expirado'.
+-- =====================================================================
+alter table public.painel_abordagens add column if not exists motivo_arquivamento text
+  check (motivo_arquivamento in ('recusou', 'sem_retorno', 'banco_fechado', 'prazo_expirado'));
+alter table public.painel_abordagens add column if not exists arquivado_automaticamente boolean not null default false;
