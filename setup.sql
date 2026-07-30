@@ -451,3 +451,410 @@ create policy "Usuaria autenticada gerencia suas notas"
   with check (true);
 
 grant select, insert, update, delete on public.painel_notas to authenticated;
+
+-- =====================================================================
+-- INSTAGRAM: AUTOMAÇÃO DE DM (aba "Instagram > Automações" do painel)
+-- Motor de automação estilo ManyChat: um comentário com palavra-chave
+-- dispara uma DM com botões, e a pessoa pode continuar tocando neles.
+-- As Edge Functions (instagram-webhook, ig-scheduler, ig-token-refresh,
+-- ig-insights, ig-media) usam a chave de service_role pra ler/escrever
+-- aqui, então funcionam mesmo com o RLS ligado.
+-- =====================================================================
+
+-- Automações cadastradas no editor visual do painel. flow guarda a
+-- conversa inteira em jsonb (a Mensagem 1 é sempre o primeiro item do
+-- array flow->steps), no formato montado por igMontarFlow() no
+-- painel.html. Não existem colunas separadas de "mensagem"/"link": tudo
+-- mora dentro de flow, pra não duplicar caminhos.
+create table if not exists public.ig_automations (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null default 'Sem nome',
+  keyword text not null default '',           -- palavras separadas por vírgula, vazio quando match_any = true
+  match_any boolean not null default false,
+  active boolean not null default true,
+  media_ids text[] not null default '{}',     -- posts em que a automação vale; vazio = todos os posts
+  public_reply text not null default '',
+  public_reply_variants text[] not null default '{}',
+  flow jsonb not null default '{"steps":[]}'::jsonb,
+  asset_ids text[] not null default '{}',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_ig_automations_active on public.ig_automations (active);
+
+alter table public.ig_automations enable row level security;
+
+create policy "Usuaria autenticada gerencia as automacoes do Instagram"
+  on public.ig_automations
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.ig_automations to authenticated;
+
+-- Leads/contatos capturados pelas automações: uma linha por pessoa do
+-- Instagram que já interagiu. flow_step guarda em que passo da conversa
+-- ela está (pro postback saber pra onde avançar) e expecting guarda
+-- quando um passo está esperando ela responder com um dado (e-mail/telefone).
+create table if not exists public.ig_leads (
+  ig_user_id text primary key,
+  username text,
+  last_source text check (last_source in ('comment', 'dm', 'story_reply')),
+  last_keyword text,
+  automation_id uuid references public.ig_automations(id) on delete set null,
+  flow_step text,
+  link_sent boolean not null default false,
+  expecting jsonb,
+  tags text[] not null default '{}',
+  email text,
+  telefone text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_ig_leads_automation on public.ig_leads (automation_id);
+create index if not exists idx_ig_leads_updated_at on public.ig_leads (updated_at desc);
+
+alter table public.ig_leads enable row level security;
+
+create policy "Usuaria autenticada le e gerencia os leads do Instagram"
+  on public.ig_leads
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.ig_leads to authenticated;
+
+-- Log de cada envio (sucesso, erro ou colocado na fila), pra auditoria e
+-- pra debugar quando uma automação "não está funcionando".
+create table if not exists public.ig_deliveries (
+  id uuid primary key default gen_random_uuid(),
+  ig_user_id text,
+  automation_id uuid references public.ig_automations(id) on delete set null,
+  canal text check (canal in ('private_reply', 'dm')),
+  tipo text check (tipo in ('flow', 'link', 'text')),
+  status text not null check (status in ('ok', 'erro', 'na_fila')),
+  motivo text,
+  ts timestamptz not null default now()
+);
+
+create index if not exists idx_ig_deliveries_ts on public.ig_deliveries (ts desc);
+create index if not exists idx_ig_deliveries_automation on public.ig_deliveries (automation_id);
+
+alter table public.ig_deliveries enable row level security;
+
+create policy "Usuaria autenticada le os envios do Instagram"
+  on public.ig_deliveries
+  for select
+  to authenticated
+  using (true);
+
+grant select on public.ig_deliveries to authenticated;
+
+-- Fila de envios represados pelo freio (rate limit). O ig-scheduler
+-- esvazia essa fila a cada 1 minuto, respeitando o teto de envio.
+create table if not exists public.ig_send_queue (
+  id uuid primary key default gen_random_uuid(),
+  comment_id text unique not null,
+  automation_id uuid references public.ig_automations(id) on delete cascade,
+  ig_user_id text not null,
+  username text,
+  status text not null default 'pendente' check (status in ('pendente', 'enviado', 'erro', 'expirado')),
+  tentativas int not null default 0,
+  created_at timestamptz not null default now(),
+  sent_at timestamptz,
+  last_error text
+);
+
+create index if not exists idx_ig_send_queue_status on public.ig_send_queue (status);
+create index if not exists idx_ig_send_queue_created_at on public.ig_send_queue (created_at);
+
+alter table public.ig_send_queue enable row level security;
+
+create policy "Usuaria autenticada le a fila de envio do Instagram"
+  on public.ig_send_queue
+  for select
+  to authenticated
+  using (true);
+
+grant select on public.ig_send_queue to authenticated;
+
+-- O CONTADOR do freio (token bucket). Uma linha só por "chave" de envio
+-- (usamos "private_reply" como chave única). As funções
+-- take_send_slot/record_send_result abaixo leem e escrevem aqui com
+-- trava atômica (FOR UPDATE), pra não estourar o teto mesmo com dois
+-- envios acontecendo ao mesmo tempo.
+create table if not exists public.ig_send_budget (
+  id text primary key,
+  minuto_inicio timestamptz not null default now(),
+  minuto_contagem int not null default 0,
+  hora_inicio timestamptz not null default now(),
+  hora_contagem int not null default 0,
+  dia_inicio timestamptz not null default now(),
+  dia_contagem int not null default 0,
+  falhas_seguidas int not null default 0,
+  pausado_ate timestamptz,
+  teto_minuto int not null default 6,
+  teto_hora int not null default 60,
+  teto_dia int not null default 180,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.ig_send_budget enable row level security;
+
+create policy "Usuaria autenticada le o freio de envio do Instagram"
+  on public.ig_send_budget
+  for select
+  to authenticated
+  using (true);
+
+grant select on public.ig_send_budget to authenticated;
+
+-- Linha inicial do freio (seed). "on conflict do nothing" faz esse bloco
+-- ser seguro de rodar de novo sem duplicar ou resetar contadores já em uso.
+insert into public.ig_send_budget (id, teto_minuto, teto_hora, teto_dia)
+values ('private_reply', 6, 60, 180)
+on conflict (id) do nothing;
+
+-- Passos com atraso: quando um passo do flow tem { delay: { seconds, next } },
+-- o envio dele fica agendado aqui e o ig-scheduler manda quando a hora chegar.
+create table if not exists public.ig_scheduled (
+  id uuid primary key default gen_random_uuid(),
+  ig_user_id text not null,
+  automation_id uuid references public.ig_automations(id) on delete cascade,
+  step_id int not null,
+  send_at timestamptz not null,
+  sent boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_ig_scheduled_pendentes on public.ig_scheduled (send_at) where sent = false;
+
+alter table public.ig_scheduled enable row level security;
+
+create policy "Usuaria autenticada le os passos agendados do Instagram"
+  on public.ig_scheduled
+  for select
+  to authenticated
+  using (true);
+
+grant select on public.ig_scheduled to authenticated;
+
+-- Arquivos (PDF, áudio, foto, vídeo) que podem ser anexados a um passo da
+-- automação. A biblioteca de upload em si é uma fase futura; a tabela já
+-- fica pronta.
+create table if not exists public.ig_assets (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  tipo text not null check (tipo in ('image', 'audio', 'video', 'file')),
+  public_url text not null,
+  attachment_id text,          -- cache do id que o Instagram devolve depois do 1º envio, evita reenviar o arquivo toda vez
+  size_bytes bigint,
+  created_at timestamptz not null default now()
+);
+
+alter table public.ig_assets enable row level security;
+
+create policy "Usuaria autenticada gerencia os arquivos do Instagram"
+  on public.ig_assets
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.ig_assets to authenticated;
+
+-- Status do token de acesso de longa duração (~60 dias). O ig-token-refresh
+-- roda 1x por semana e atualiza essa linha.
+create table if not exists public.ig_token_status (
+  id text primary key default 'main',
+  expires_at timestamptz,
+  last_ok boolean not null default true,
+  last_error text,
+  last_refreshed_at timestamptz,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.ig_token_status enable row level security;
+
+create policy "Usuaria autenticada le o status do token do Instagram"
+  on public.ig_token_status
+  for select
+  to authenticated
+  using (true);
+
+grant select on public.ig_token_status to authenticated;
+
+insert into public.ig_token_status (id) values ('main') on conflict (id) do nothing;
+
+-- Ids das mensagens que o PRÓPRIO sistema mandou (mid do Instagram). O
+-- webhook grava aqui cada mid enviado e, ao receber um evento de "echo"
+-- (mensagem que a própria conta mandou), confere essa tabela pra não se
+-- confundir uma resposta manual com um envio automático.
+create table if not exists public.ig_bot_sends (
+  mid text primary key,
+  created_at timestamptz not null default now()
+);
+
+alter table public.ig_bot_sends enable row level security;
+
+create policy "Usuaria autenticada le os envios do bot"
+  on public.ig_bot_sends
+  for select
+  to authenticated
+  using (true);
+
+grant select on public.ig_bot_sends to authenticated;
+
+-- =====================================================================
+-- FREIO DE ENVIO (token bucket + disjuntor)
+--
+-- take_send_slot: tenta pegar uma ficha de envio. Reseta os contadores
+-- quando o minuto/hora/dia atual já virou, e nega (retorna false) se
+-- qualquer um dos tetos já foi atingido ou se o disjuntor está pausando.
+-- SEM ESSA FUNÇÃO, o freio falha fechado e nenhuma DM por comentário sai:
+-- é o passo que não pode faltar.
+--
+-- record_send_result: registra se o envio deu certo ou não, pra alimentar
+-- o disjuntor. p_hard = true é uma falha "dura" (ex: bloqueio da Meta);
+-- 3 falhas duras seguidas pausam os envios por 3 horas.
+-- =====================================================================
+
+create or replace function public.take_send_slot(p_key text)
+returns boolean
+language plpgsql
+as $$
+declare
+  linha public.ig_send_budget%rowtype;
+  agora timestamptz := now();
+begin
+  select * into linha from public.ig_send_budget where id = p_key for update;
+
+  if not found then
+    insert into public.ig_send_budget (id) values (p_key)
+    on conflict (id) do nothing;
+    select * into linha from public.ig_send_budget where id = p_key for update;
+  end if;
+
+  -- Disjuntor: se está pausado, nega direto
+  if linha.pausado_ate is not null and linha.pausado_ate > agora then
+    return false;
+  end if;
+
+  -- Reseta as janelas que já viraram
+  if agora - linha.minuto_inicio >= interval '1 minute' then
+    linha.minuto_inicio := agora;
+    linha.minuto_contagem := 0;
+  end if;
+  if agora - linha.hora_inicio >= interval '1 hour' then
+    linha.hora_inicio := agora;
+    linha.hora_contagem := 0;
+  end if;
+  if agora - linha.dia_inicio >= interval '1 day' then
+    linha.dia_inicio := agora;
+    linha.dia_contagem := 0;
+  end if;
+
+  -- Nega se qualquer teto já foi atingido, mas ainda assim persiste os
+  -- resets de janela acima (senão a janela nunca vira quando o teto está cheio)
+  if linha.minuto_contagem >= linha.teto_minuto
+     or linha.hora_contagem >= linha.teto_hora
+     or linha.dia_contagem >= linha.teto_dia then
+    update public.ig_send_budget set
+      minuto_inicio = linha.minuto_inicio, minuto_contagem = linha.minuto_contagem,
+      hora_inicio = linha.hora_inicio, hora_contagem = linha.hora_contagem,
+      dia_inicio = linha.dia_inicio, dia_contagem = linha.dia_contagem,
+      updated_at = agora
+    where id = p_key;
+    return false;
+  end if;
+
+  -- Ficha concedida: soma 1 em todas as janelas
+  update public.ig_send_budget set
+    minuto_inicio = linha.minuto_inicio, minuto_contagem = linha.minuto_contagem + 1,
+    hora_inicio = linha.hora_inicio, hora_contagem = linha.hora_contagem + 1,
+    dia_inicio = linha.dia_inicio, dia_contagem = linha.dia_contagem + 1,
+    updated_at = agora
+  where id = p_key;
+
+  return true;
+end;
+$$;
+
+create or replace function public.record_send_result(p_key text, p_ok boolean, p_hard boolean)
+returns void
+language plpgsql
+as $$
+declare
+  linha public.ig_send_budget%rowtype;
+  agora timestamptz := now();
+begin
+  select * into linha from public.ig_send_budget where id = p_key for update;
+  if not found then
+    return;
+  end if;
+
+  if p_ok then
+    update public.ig_send_budget set falhas_seguidas = 0, updated_at = agora where id = p_key;
+    return;
+  end if;
+
+  if p_hard then
+    if linha.falhas_seguidas + 1 >= 3 then
+      update public.ig_send_budget set
+        falhas_seguidas = 0,
+        pausado_ate = agora + interval '3 hours',
+        updated_at = agora
+      where id = p_key;
+    else
+      update public.ig_send_budget set
+        falhas_seguidas = linha.falhas_seguidas + 1,
+        updated_at = agora
+      where id = p_key;
+    end if;
+  end if;
+end;
+$$;
+
+grant execute on function public.take_send_slot(text) to service_role;
+grant execute on function public.record_send_result(text, boolean, boolean) to service_role;
+
+-- =====================================================================
+-- AGENDAMENTO (pg_cron + pg_net)
+-- Chama o ig-scheduler a cada 1 minuto e o ig-token-refresh 1x por semana.
+--
+-- EDITE AQUI antes de rodar: troque SEU_PROJETO pela referência do seu
+-- projeto Supabase (aparece na URL do painel do projeto, ex:
+-- dqtoxxngjqyoibdgmrjr) e SEU_SCHED_SECRET pelo mesmo valor que você
+-- configurar no segredo SCHED_SECRET das Edge Functions (ver LEIA-ME).
+-- Rode este bloco por último, depois de publicar as duas funções.
+-- =====================================================================
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+
+select cron.schedule(
+  'ig-scheduler-cada-minuto',
+  '* * * * *',
+  $$
+  select net.http_post(
+    url := 'https://SEU_PROJETO.supabase.co/functions/v1/ig-scheduler',
+    headers := jsonb_build_object('x-sched-key', 'SEU_SCHED_SECRET', 'Content-Type', 'application/json'),
+    body := '{}'::jsonb
+  );
+  $$
+);
+
+select cron.schedule(
+  'ig-token-refresh-semanal',
+  '0 3 * * 1',
+  $$
+  select net.http_post(
+    url := 'https://SEU_PROJETO.supabase.co/functions/v1/ig-token-refresh',
+    headers := jsonb_build_object('x-sched-key', 'SEU_SCHED_SECRET', 'Content-Type', 'application/json'),
+    body := '{}'::jsonb
+  );
+  $$
+);
