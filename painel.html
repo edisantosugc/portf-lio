@@ -1906,6 +1906,19 @@
   }
   .ig-emoji-bar button:hover{ border-color: var(--coral); background: var(--branco); }
 
+  /* Lista de posts (checkbox + miniatura) pra restringir a automação */
+  .ig-lista-posts{
+    display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto;
+    border: 1px solid var(--borda); border-radius: 10px; padding: 8px; background: var(--creme);
+  }
+  .ig-post-item{
+    display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 8px; cursor: pointer;
+  }
+  .ig-post-item:hover{ background: var(--branco); }
+  .ig-post-item input[type="checkbox"]{ flex-shrink: 0; width: 16px; height: 16px; }
+  .ig-post-item img{ width: 40px; height: 40px; object-fit: cover; border-radius: 6px; flex-shrink: 0; background: var(--borda); }
+  .ig-post-item span{ font-size: .78rem; color: var(--grafite); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
   /* Nota / aviso de recurso ainda não conectado, dentro do editor */
   .ig-nota{
     background: rgba(201,166,107,.14); border: 1px solid var(--dourado); border-radius: 10px; padding: 10px 12px;
@@ -2191,10 +2204,10 @@
 
           <div class="ugc-campo largo">
             <label>Em quais posts</label>
-            <select disabled>
-              <option>Todos os posts</option>
-            </select>
-            <p class="ig-nota">Conecte o Instagram (ver LEIA-ME) pra escolher posts específicos. Por enquanto, a automação vale pra todos os posts.</p>
+            <div class="ig-lista-posts" id="igListaPosts">
+              <p class="texto-vazio">Carregando posts...</p>
+            </div>
+            <p class="ig-nota">Marque um ou mais posts pra restringir a automação a eles. Nenhum marcado (padrão) vale pra todos os posts.</p>
           </div>
 
           <div class="ugc-campo largo">
@@ -3276,6 +3289,8 @@
   let igDestinoBotao1 = "link";   // "link" | "conversa" — o que o botão da Mensagem 1 faz
   let igEstadoPassos = [];        // mensagens 2, 3... do construtor de sequência
   let igProximoPassoId = 2;       // gerador de id de passo (o id 1 é sempre a Mensagem 1)
+  let igPostsCache = [];          // posts do Instagram (via ig-media), pro seletor "Em quais posts"
+  let igEstadoMediaIds = [];      // ids dos posts marcados no editor (vazio = vale pra todos)
   const IG_EMOJIS = ["🫶","👀","😍","🥰","😂","😮","🔥","✨","💌","👉","🙌","💕"];
 
   // Estado das conversas de IA da Negociação: uma entrada por contexto, cada
@@ -3535,6 +3550,13 @@
       } catch (erroInstagramMetricas) {
         console.error("Erro ao carregar/renderizar Métricas do Instagram:", erroInstagramMetricas);
       }
+      try {
+        // Isolado do carregamento principal: mesma lógica acima, pro seletor "Em quais
+        // posts" do editor de automação (usa a Edge Function ig-media).
+        await carregarInstagramPosts();
+      } catch (erroInstagramPosts) {
+        console.error("Erro ao carregar posts do Instagram:", erroInstagramPosts);
+      }
     } catch (erro) {
       console.error(erro);
       document.getElementById("areaCarregando").classList.add("oculto");
@@ -3613,6 +3635,36 @@
       // (ou a Edge Function ig-insights ainda não existir), fica no estado vazio.
       console.error("Erro ao carregar métricas do Instagram:", erro);
     }
+  }
+
+  async function carregarInstagramPosts(){
+    try {
+      const { data, error } = await Auth.client.functions.invoke("ig-media");
+      if (error) throw error;
+      if (!data || data.error) throw new Error((data && data.error) || "resposta vazia");
+      igPostsCache = data.posts || [];
+    } catch (erro) {
+      // Sem quebrar a tela: se a API do Instagram ainda não estiver conectada
+      // (ou a Edge Function ig-media ainda não existir), a lista fica vazia
+      // e o seletor de posts do editor mostra um aviso em vez de travar.
+      console.error("Erro ao carregar posts do Instagram:", erro);
+      igPostsCache = [];
+    }
+  }
+
+  function renderizarListaPostsEditor(){
+    const container = document.getElementById("igListaPosts");
+    if (!igPostsCache.length){
+      container.innerHTML = `<p class="texto-vazio">Nenhum post encontrado ainda (confira se o Instagram está conectado, ver LEIA-ME).</p>`;
+      return;
+    }
+    container.innerHTML = igPostsCache.map(post => `
+      <label class="ig-post-item">
+        <input type="checkbox" value="${post.id}" data-acao="ig-toggle-post" ${igEstadoMediaIds.includes(post.id) ? "checked" : ""}>
+        <img src="${igEscaparHtml(post.miniatura || "")}" alt="" loading="lazy">
+        <span>${igEscaparHtml(post.legenda || "(sem legenda)")}</span>
+      </label>
+    `).join("");
   }
 
   function renderizarInstagramMetricas(dados){
@@ -3717,6 +3769,7 @@
     igDestinoBotao1 = "link";
     igEstadoPassos = [];
     igProximoPassoId = 2;
+    igEstadoMediaIds = automacao && automacao.media_ids ? automacao.media_ids.slice() : [];
 
     document.getElementById("igCampoNome").value = automacao ? (automacao.nome || "") : "";
     document.getElementById("igCampoMatchAny").checked = automacao ? !!automacao.match_any : false;
@@ -3775,6 +3828,7 @@
 
     igRenderizarVariantes();
     igRenderizarTags();
+    renderizarListaPostsEditor();
     igAtualizarContadorBotao1();
     igAtualizarAreaBotao1();
     igAtualizarDestinoVisual();
@@ -4019,7 +4073,7 @@
       keyword: matchAny ? "" : igEstadoKeywords.join(","),
       match_any: matchAny,
       active: automacaoAnterior ? automacaoAnterior.active : true,
-      media_ids: [],
+      media_ids: igEstadoMediaIds,
       public_reply: variantesPreenchidas[0] || "",
       public_reply_variants: variantesPreenchidas,
       flow: igMontarFlow(),
@@ -4111,6 +4165,16 @@
       if (e.target.tagName !== "BUTTON") return;
       igEstadoKeywords.splice(parseInt(e.target.dataset.indice, 10), 1);
       igRenderizarTags();
+    });
+
+    document.getElementById("igListaPosts").addEventListener("change", (e) => {
+      if (e.target.dataset.acao !== "ig-toggle-post") return;
+      const id = e.target.value;
+      if (e.target.checked){
+        if (!igEstadoMediaIds.includes(id)) igEstadoMediaIds.push(id);
+      } else {
+        igEstadoMediaIds = igEstadoMediaIds.filter(mid => mid !== id);
+      }
     });
 
     document.getElementById("igBotaoAddVariante").addEventListener("click", () => {
