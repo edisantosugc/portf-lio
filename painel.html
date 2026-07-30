@@ -3629,7 +3629,18 @@
       const { data, error } = await Auth.client.functions.invoke("ig-insights");
       if (error) throw error;
       if (!data || data.error) throw new Error((data && data.error) || "resposta vazia");
-      renderizarInstagramMetricas(data);
+
+      // Leads captados vem do nosso próprio banco (ig_leads), não da API do Instagram.
+      // Isolado num try próprio: se essa contagem falhar, ainda mostra o resto das métricas.
+      let leadsCaptados = 0;
+      try {
+        const { count } = await Auth.client.from("ig_leads").select("*", { count: "exact", head: true });
+        leadsCaptados = count || 0;
+      } catch (erroLeads) {
+        console.error("Erro ao contar leads do Instagram:", erroLeads);
+      }
+
+      renderizarInstagramMetricas(data, leadsCaptados);
     } catch (erro) {
       // Sem quebrar a tela: se a API do Instagram ainda não estiver conectada
       // (ou a Edge Function ig-insights ainda não existir), fica no estado vazio.
@@ -3667,14 +3678,25 @@
     `).join("");
   }
 
-  function renderizarInstagramMetricas(dados){
+  function renderizarInstagramMetricas(dados, leadsCaptados){
     document.getElementById("igMetricasVazio").classList.add("oculto");
     document.getElementById("igMetricasConteudo").classList.remove("oculto");
+
+    const novosEm15Dias = (dados.novosSeguidoresPorDia || [])
+      .reduce((soma, ponto) => soma + (Number(ponto.valor) || 0), 0);
 
     document.getElementById("igCartoesNumeros").innerHTML = `
       <div class="cartao cartao-numero destaque">
         <p class="numero-grande">${Number(dados.seguidores ?? 0).toLocaleString("pt-BR")}</p>
         <p class="numero-rotulo">Seguidores</p>
+      </div>
+      <div class="cartao cartao-numero">
+        <p class="numero-grande">${novosEm15Dias.toLocaleString("pt-BR")}</p>
+        <p class="numero-rotulo">Novos em 15 dias</p>
+      </div>
+      <div class="cartao cartao-numero">
+        <p class="numero-grande">${Number(leadsCaptados || 0).toLocaleString("pt-BR")}</p>
+        <p class="numero-rotulo">Leads captados</p>
       </div>
     `;
 
