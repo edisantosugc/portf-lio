@@ -73,12 +73,14 @@ alter table public.portfolio_leads enable row level security;
 -- Permite que qualquer usuário AUTENTICADO (você, logada no painel) possa LER
 -- os dados das duas tabelas. Sem essa policy, o painel não consegue ler nada
 -- mesmo você estando logada.
+drop policy if exists "Usuarios autenticados podem ler eventos" on public.portfolio_events;
 create policy "Usuarios autenticados podem ler eventos"
   on public.portfolio_events
   for select
   to authenticated
   using (true);
 
+drop policy if exists "Usuarios autenticados podem ler leads" on public.portfolio_leads;
 create policy "Usuarios autenticados podem ler leads"
   on public.portfolio_leads
   for select
@@ -86,6 +88,7 @@ create policy "Usuarios autenticados podem ler leads"
   using (true);
 
 -- Permite marcar mensagens como lidas (bolinha vermelha de não lidas no painel)
+drop policy if exists "Usuarios autenticados podem atualizar leads" on public.portfolio_leads;
 create policy "Usuarios autenticados podem atualizar leads"
   on public.portfolio_leads
   for update
@@ -114,12 +117,14 @@ grant select, update on public.portfolio_leads to authenticated;
 -- servidor; o único risco real é alguém conseguir inserir eventos falsos
 -- (poluindo as estatísticas), não vazamento de dados.
 -- =====================================================================
+drop policy if exists "Visitantes podem registrar eventos" on public.portfolio_events;
 create policy "Visitantes podem registrar eventos"
   on public.portfolio_events
   for insert
   to anon
   with check (true);
 
+drop policy if exists "Visitantes podem enviar mensagens" on public.portfolio_leads;
 create policy "Visitantes podem enviar mensagens"
   on public.portfolio_leads
   for insert
@@ -149,6 +154,7 @@ create index if not exists idx_painel_tarefas_data on public.painel_tarefas (dat
 
 alter table public.painel_tarefas enable row level security;
 
+drop policy if exists "Usuaria autenticada gerencia suas tarefas" on public.painel_tarefas;
 create policy "Usuaria autenticada gerencia suas tarefas"
   on public.painel_tarefas
   for all
@@ -191,6 +197,7 @@ alter table public.painel_clientes add column if not exists nicho_detalhe text;
 
 alter table public.painel_clientes enable row level security;
 
+drop policy if exists "Usuaria autenticada gerencia seus clientes" on public.painel_clientes;
 create policy "Usuaria autenticada gerencia seus clientes"
   on public.painel_clientes
   for all
@@ -220,6 +227,7 @@ create index if not exists idx_painel_projetos_cliente on public.painel_projetos
 
 alter table public.painel_projetos enable row level security;
 
+drop policy if exists "Usuaria autenticada gerencia seus projetos" on public.painel_projetos;
 create policy "Usuaria autenticada gerencia seus projetos"
   on public.painel_projetos
   for all
@@ -249,6 +257,7 @@ create index if not exists idx_painel_banco_criativo_projeto on public.painel_ba
 
 alter table public.painel_banco_criativo enable row level security;
 
+drop policy if exists "Usuaria autenticada gerencia seu banco criativo" on public.painel_banco_criativo;
 create policy "Usuaria autenticada gerencia seu banco criativo"
   on public.painel_banco_criativo
   for all
@@ -305,6 +314,7 @@ create index if not exists idx_painel_ugc_trabalhos_cliente on public.painel_ugc
 
 alter table public.painel_ugc_trabalhos enable row level security;
 
+drop policy if exists "Usuaria autenticada gerencia seus trabalhos UGC" on public.painel_ugc_trabalhos;
 create policy "Usuaria autenticada gerencia seus trabalhos UGC"
   on public.painel_ugc_trabalhos
   for all
@@ -338,6 +348,7 @@ create index if not exists idx_painel_ia_mensagens_contexto on public.painel_ia_
 
 alter table public.painel_ia_mensagens enable row level security;
 
+drop policy if exists "Usuaria autenticada gerencia suas mensagens de IA" on public.painel_ia_mensagens;
 create policy "Usuaria autenticada gerencia suas mensagens de IA"
   on public.painel_ia_mensagens
   for all
@@ -412,6 +423,7 @@ alter table public.painel_abordagens add column if not exists data_rascunho date
 
 alter table public.painel_abordagens enable row level security;
 
+drop policy if exists "Usuaria autenticada gerencia suas abordagens" on public.painel_abordagens;
 create policy "Usuaria autenticada gerencia suas abordagens"
   on public.painel_abordagens
   for all
@@ -443,6 +455,7 @@ alter table public.painel_notas add column if not exists fechada boolean not nul
 
 alter table public.painel_notas enable row level security;
 
+drop policy if exists "Usuaria autenticada gerencia suas notas" on public.painel_notas;
 create policy "Usuaria autenticada gerencia suas notas"
   on public.painel_notas
   for all
@@ -469,6 +482,7 @@ create table if not exists public.painel_lembretes_snooze (
 
 alter table public.painel_lembretes_snooze enable row level security;
 
+drop policy if exists "Usuaria autenticada gerencia lembretes_snooze" on public.painel_lembretes_snooze;
 create policy "Usuaria autenticada gerencia lembretes_snooze"
   on public.painel_lembretes_snooze
   for all
@@ -511,6 +525,7 @@ create index if not exists idx_ig_automations_active on public.ig_automations (a
 
 alter table public.ig_automations enable row level security;
 
+drop policy if exists "Usuaria autenticada gerencia as automacoes do Instagram" on public.ig_automations;
 create policy "Usuaria autenticada gerencia as automacoes do Instagram"
   on public.ig_automations
   for all
@@ -545,6 +560,7 @@ create index if not exists idx_ig_leads_updated_at on public.ig_leads (updated_a
 
 alter table public.ig_leads enable row level security;
 
+drop policy if exists "Usuaria autenticada le e gerencia os leads do Instagram" on public.ig_leads;
 create policy "Usuaria autenticada le e gerencia os leads do Instagram"
   on public.ig_leads
   for all
@@ -572,6 +588,7 @@ create index if not exists idx_ig_deliveries_automation on public.ig_deliveries 
 
 alter table public.ig_deliveries enable row level security;
 
+drop policy if exists "Usuaria autenticada le os envios do Instagram" on public.ig_deliveries;
 create policy "Usuaria autenticada le os envios do Instagram"
   on public.ig_deliveries
   for select
@@ -600,6 +617,7 @@ create index if not exists idx_ig_send_queue_created_at on public.ig_send_queue 
 
 alter table public.ig_send_queue enable row level security;
 
+drop policy if exists "Usuaria autenticada le a fila de envio do Instagram" on public.ig_send_queue;
 create policy "Usuaria autenticada le a fila de envio do Instagram"
   on public.ig_send_queue
   for select
@@ -631,6 +649,7 @@ create table if not exists public.ig_send_budget (
 
 alter table public.ig_send_budget enable row level security;
 
+drop policy if exists "Usuaria autenticada le o freio de envio do Instagram" on public.ig_send_budget;
 create policy "Usuaria autenticada le o freio de envio do Instagram"
   on public.ig_send_budget
   for select
@@ -661,6 +680,7 @@ create index if not exists idx_ig_scheduled_pendentes on public.ig_scheduled (se
 
 alter table public.ig_scheduled enable row level security;
 
+drop policy if exists "Usuaria autenticada le os passos agendados do Instagram" on public.ig_scheduled;
 create policy "Usuaria autenticada le os passos agendados do Instagram"
   on public.ig_scheduled
   for select
@@ -684,6 +704,7 @@ create table if not exists public.ig_assets (
 
 alter table public.ig_assets enable row level security;
 
+drop policy if exists "Usuaria autenticada gerencia os arquivos do Instagram" on public.ig_assets;
 create policy "Usuaria autenticada gerencia os arquivos do Instagram"
   on public.ig_assets
   for all
@@ -706,6 +727,7 @@ create table if not exists public.ig_token_status (
 
 alter table public.ig_token_status enable row level security;
 
+drop policy if exists "Usuaria autenticada le o status do token do Instagram" on public.ig_token_status;
 create policy "Usuaria autenticada le o status do token do Instagram"
   on public.ig_token_status
   for select
@@ -727,6 +749,7 @@ create table if not exists public.ig_bot_sends (
 
 alter table public.ig_bot_sends enable row level security;
 
+drop policy if exists "Usuaria autenticada le os envios do bot" on public.ig_bot_sends;
 create policy "Usuaria autenticada le os envios do bot"
   on public.ig_bot_sends
   for select
@@ -756,6 +779,7 @@ create index if not exists idx_ig_comments_ig_user_id on public.ig_comments (ig_
 
 alter table public.ig_comments enable row level security;
 
+drop policy if exists "Usuaria autenticada le os comentarios do Instagram" on public.ig_comments;
 create policy "Usuaria autenticada le os comentarios do Instagram"
   on public.ig_comments
   for select
@@ -942,6 +966,7 @@ create table if not exists public.painel_documentos_pessoais (
 
 alter table public.painel_documentos_pessoais enable row level security;
 
+drop policy if exists "Usuaria autenticada gerencia seus documentos pessoais" on public.painel_documentos_pessoais;
 create policy "Usuaria autenticada gerencia seus documentos pessoais"
   on public.painel_documentos_pessoais
   for all
@@ -963,6 +988,7 @@ create table if not exists public.painel_documentos_avulsos (
 
 alter table public.painel_documentos_avulsos enable row level security;
 
+drop policy if exists "Usuaria autenticada gerencia seus documentos avulsos" on public.painel_documentos_avulsos;
 create policy "Usuaria autenticada gerencia seus documentos avulsos"
   on public.painel_documentos_avulsos
   for all
@@ -981,21 +1007,25 @@ insert into storage.buckets (id, name, public)
 values ('documentos-juridicos', 'documentos-juridicos', false)
 on conflict (id) do nothing;
 
+drop policy if exists "Usuaria autenticada le documentos-juridicos" on storage.objects;
 create policy "Usuaria autenticada le documentos-juridicos"
   on storage.objects for select
   to authenticated
   using (bucket_id = 'documentos-juridicos');
 
+drop policy if exists "Usuaria autenticada envia pra documentos-juridicos" on storage.objects;
 create policy "Usuaria autenticada envia pra documentos-juridicos"
   on storage.objects for insert
   to authenticated
   with check (bucket_id = 'documentos-juridicos');
 
+drop policy if exists "Usuaria autenticada substitui em documentos-juridicos" on storage.objects;
 create policy "Usuaria autenticada substitui em documentos-juridicos"
   on storage.objects for update
   to authenticated
   using (bucket_id = 'documentos-juridicos');
 
+drop policy if exists "Usuaria autenticada remove de documentos-juridicos" on storage.objects;
 create policy "Usuaria autenticada remove de documentos-juridicos"
   on storage.objects for delete
   to authenticated
