@@ -236,6 +236,7 @@
   /* ===================== POP-UP DE ALERTAS (aparece por cima, ao abrir o painel) ===================== */
   .notificacoes-popup{
     position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0; /* fallback: alguns WebViews mobile (apps de rede social, Android antigo) não entendem "inset" */
     inset: 0;
     z-index: 2000;
     background: rgba(26,24,22,.5);
@@ -1575,6 +1576,12 @@
   @keyframes ugcFlash{ 0%{ background: rgba(201,166,107,.25); } 100%{ background: transparent; } }
   @media (prefers-reduced-motion: reduce){ .ugc-linha-flash{ animation: none; } }
 
+  /* Igual ao flash acima, mas em vermelho: usado quando a linha destacada já está
+     vencida/atrasada (ex: vindo de um lembrete de abordagem), pra chamar mais atenção. */
+  .ugc-linha-flash-atrasado{ animation: ugcFlashAtrasado 2.2s ease; }
+  @keyframes ugcFlashAtrasado{ 0%{ background: rgba(196,69,60,.28); } 100%{ background: transparent; } }
+  @media (prefers-reduced-motion: reduce){ .ugc-linha-flash-atrasado{ animation: none; } }
+
   /* ===================== CHAT IA (Crô + Negociação) ===================== */
   .chat-ia{ display: flex; flex-direction: column; height: 50vh; min-height: 340px; }
   .chat-ia-mensagens{
@@ -2412,6 +2419,7 @@
       <button class="menu-item" data-tab="agenda">
         <svg viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5ZM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1Z"/></svg>
         Agenda
+        <span class="badge-alerta-sidebar oculto" id="badgeAlertaAgenda"></span>
       </button>
       <p class="menu-rotulo">Empresa</p>
       <button class="menu-item" data-tab="portfolio">
@@ -2426,10 +2434,12 @@
       <button class="menu-item" data-tab="abordagem">
         <svg viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.259.408a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg>
         Abordagem
+        <span class="badge-alerta-sidebar oculto" id="badgeAlertaAbordagem"></span>
       </button>
       <button class="menu-item" data-tab="clientes">
         <svg viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
         Clientes
+        <span class="badge-alerta-sidebar oculto" id="badgeAlertaClientes"></span>
       </button>
       <button class="menu-item" data-tab="negociacao">
         <svg viewBox="0 0 16 16"><path d="M2 1a1 1 0 0 0-1 1v4.586a1 1 0 0 0 .293.707l7 7a1 1 0 0 0 1.414 0l4.586-4.586a1 1 0 0 0 0-1.414l-7-7A1 1 0 0 0 6.586 1H2zm4 3.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
@@ -2438,6 +2448,7 @@
       <button class="menu-item" data-tab="ugc-creator">
         <svg viewBox="0 0 16 16"><path d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5z"/></svg>
         UGC Creator
+        <span class="badge-alerta-sidebar oculto" id="badgeAlertaUgcCreator"></span>
       </button>
       <button class="menu-item" data-tab="projetos">
         <svg viewBox="0 0 16 16"><path d="M13.5 1h-11a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm-11 1h3v12h-3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm4 0h3v7h-3V2zm4 0h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3V2z"/></svg>
@@ -2446,6 +2457,7 @@
       <button class="menu-item" data-tab="negocio">
         <svg viewBox="0 0 16 16"><path d="M12.136.326A1.5 1.5 0 0 1 14 1.78V3h.5A1.5 1.5 0 0 1 16 4.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 13.5v-9a1.5 1.5 0 0 1 1.432-1.499L12.136.326zM5.562 3H13V1.78a.5.5 0 0 0-.621-.484L5.562 3zM1.5 4a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-13z"/></svg>
         Financeiro UGC
+        <span class="badge-alerta-sidebar oculto" id="badgeAlertaNegocio"></span>
       </button>
       <button class="menu-item" data-tab="banco-criativo">
         <svg viewBox="0 0 16 16"><path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13a.5.5 0 0 1 0 1 .5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1 0-1 .5.5 0 0 1 0-1 .5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6zm6-5a5 5 0 0 0-3.479 8.592c.263.254.514.564.676.941L5.83 12h4.342l.632-1.467c.162-.377.413-.687.676-.941A5 5 0 0 0 8 1z"/></svg>
@@ -3601,14 +3613,28 @@
   // Guarda se a fatura de cada cartão, num mês/ano específico, já foi marcada como paga
   let cartoesPagosCache = {};
 
-  // Guarda quais notificações pop-up já foram fechadas (no X) nessa visita ao painel,
-  // pra não reaparecerem sozinhas enquanto a página não for recarregada.
-  let notificacoesPopupFechadas = new Set();
+  // Guarda quais GRUPOS de lembrete já foram fechados (no X) nessa visita ao painel,
+  // pra não reaparecerem sozinhos enquanto a página não for recarregada. Ao contrário
+  // do adiamento ("Lembrar em 1h"), fechar no X não precisa sobreviver a um F5.
+  let gruposFechadosSessao = new Set();
 
-  // Guarda até que horário (timestamp) cada notificação adiada ("lembrar mais tarde")
-  // deve continuar escondida. Passado esse horário, ela volta a aparecer sozinha.
+  // Até que horário (timestamp em ms) cada GRUPO de lembrete foi adiado via "Lembrar em
+  // 1h". Vem de painel_lembretes_snooze (carregado no início, ver iniciar()) e é
+  // atualizado via upsert nessa mesma tabela — por isso sobrevive a F5 e funciona
+  // igual em qualquer aparelho, diferente do antigo notificacoesPopupAdiadas (que era
+  // só uma variável em memória, perdida a cada recarregamento).
   const NOTIFICACAO_ADIAR_MS = 60 * 60 * 1000;
-  let notificacoesPopupAdiadas = {};
+  let lembretesSnoozeCache = {};
+
+  async function adiarGrupoLembrete(grupo){
+    const adiadoAte = new Date(Date.now() + NOTIFICACAO_ADIAR_MS).toISOString();
+    lembretesSnoozeCache[grupo] = Date.now() + NOTIFICACAO_ADIAR_MS;
+    const { error } = await Auth.client
+      .from("painel_lembretes_snooze")
+      .upsert({ grupo: grupo, adiado_ate: adiadoAte, updated_at: new Date().toISOString() }, { onConflict: "grupo" });
+    if (error) console.error("Erro ao adiar lembrete:", error);
+    setTimeout(renderizarNotificacoesPopup, NOTIFICACAO_ADIAR_MS + 500);
+  }
 
   // Guarda quais anos estão com o detalhe expandido na aba Finanças UGC > Anual
   let anosNegocioExpandidos = new Set();
@@ -3730,6 +3756,19 @@
       pagamentosCartao.forEach(p => {
         cartoesPagosCache[`${p.cartao}-${p.ano}-${p.mes}`] = p.pago;
       });
+
+      try {
+        // Isolado do carregamento principal: a tabela painel_lembretes_snooze só existe
+        // depois que esse SQL for rodado no Supabase, então essa busca pode falhar sem
+        // travar o resto do painel (os lembretes simplesmente não terão adiamento
+        // persistido até a tabela existir).
+        const lembretesSnooze = await comRetry(() => buscarTudo("painel_lembretes_snooze"));
+        lembretesSnooze.forEach(l => {
+          if (l.adiado_ate) lembretesSnoozeCache[l.grupo] = new Date(l.adiado_ate).getTime();
+        });
+      } catch (erroLembretes) {
+        console.error("Erro ao carregar adiamentos de lembrete:", erroLembretes);
+      }
 
       document.getElementById("areaCarregando").classList.add("oculto");
       renderizarTudo();
@@ -6933,24 +6972,16 @@
     return `Vence em ${item.diasParaVencer} dias`;
   }
 
-  // Número vermelho ao lado de "Finanças" na barra lateral, com a quantidade de contas atrasadas
-  function atualizarBadgeFinancas(quantidade){
-    const badge = document.getElementById("badgeAlertaFinancas");
-    if (!badge) return;
-    badge.textContent = quantidade;
-    badge.classList.toggle("oculto", quantidade === 0);
-  }
-
   // Só as contas atrasadas aparecem aqui (dentro da aba Finanças); as que ainda vão
-  // vencer (3 dias antes, 1 dia antes, no dia) aparecem só no pop-up flutuante.
+  // vencer (3 dias antes, 1 dia antes, no dia) aparecem só no pop-up flutuante. O badge
+  // de "Financeiro" na barra lateral é atualizado à parte, por atualizarBadgeGrupo()
+  // dentro de renderizarNotificacoesPopup() (que roda sempre logo depois desta função).
   function renderizarAlertasContas(){
     const container = document.getElementById("areaAlertasContas");
     if (!container) return;
 
     const { alertas: todosAlertas, anoAtual, mesAtual } = obterAlertasContas();
     const alertas = todosAlertas.filter(item => item.status === "atrasado");
-
-    atualizarBadgeFinancas(alertas.length);
 
     if (alertas.length === 0){
       container.innerHTML = "";
@@ -6983,179 +7014,155 @@
     });
   }
 
-  // Pop-up flutuante (canto da tela) com dois tipos de aviso:
-  // - Contas a pagar que ainda vão vencer (3 dias antes, 1 dia antes, no dia) — as
-  //   atrasadas não aparecem mais aqui, só dentro da aba Finanças.
-  // - Ganhos da Finanças UGC ainda não recebidos, próximos da data prevista ou já
-  //   atrasados (esses continuam aparecendo até você marcar como recebido).
-  // Fechar no X só esconde até a próxima vez que a página for recarregada.
+  // Rótulo do botão "Ver X" e do badge de cada grupo de lembrete, igual ao texto do
+  // menu lateral.
+  const LABEL_ABA_LEMBRETE = {
+    abordagem: "Abordagem",
+    financas: "Financeiro",
+    agenda: "Agenda",
+    portfolio: "Portfólio",
+    clientes: "Clientes",
+    "ugc-creator": "UGC Creator",
+    negocio: "Financeiro UGC"
+  };
+
+  // Id do badge de cada grupo na barra lateral. "portfolio" fica de fora de propósito:
+  // o badge de mensagens do Portfólio já é mantido por atualizarBadgesMensagens()
+  // (mesma fonte de dados, leadsCache), não precisa de uma segunda função escrevendo
+  // no mesmo elemento.
+  const BADGE_ID_POR_GRUPO = {
+    abordagem: "badgeAlertaAbordagem",
+    financas: "badgeAlertaFinancas",
+    agenda: "badgeAlertaAgenda",
+    clientes: "badgeAlertaClientes",
+    "ugc-creator": "badgeAlertaUgcCreator",
+    negocio: "badgeAlertaNegocio"
+  };
+
+  function atualizarBadgeGrupo(grupo, quantidade){
+    const badge = document.getElementById(BADGE_ID_POR_GRUPO[grupo]);
+    if (!badge) return;
+    badge.textContent = quantidade;
+    badge.classList.toggle("oculto", quantidade === 0);
+  }
+
+  // Config central: cada grupo de lembrete tem uma função que retorna os itens
+  // pendentes e o texto (singular/plural) do aviso. Única fonte de verdade tanto pro
+  // pop-up quanto pros badges do menu lateral (atualizarBadgeGrupo).
+  const CONFIG_GRUPOS_LEMBRETE = [
+    {
+      grupo: "abordagem",
+      obter: () => obterAlertasRascunho().concat(obterAlertasFollowupAbordagem()).concat(obterAlertasCompletarCadastroCliente()),
+      rotulo: (n) => n === 1 ? "lembrete de abordagem" : "lembretes de abordagem"
+    },
+    {
+      grupo: "financas",
+      obter: () => obterAlertasContas().alertas,
+      rotulo: (n) => n === 1 ? "conta a pagar" : "contas a pagar"
+    },
+    {
+      grupo: "agenda",
+      obter: obterAlertasTarefasHoje,
+      rotulo: (n) => n === 1 ? "tarefa pendente hoje" : "tarefas pendentes hoje"
+    },
+    {
+      grupo: "portfolio",
+      obter: obterAlertasMensagensPortfolio,
+      rotulo: (n) => n === 1 ? "mensagem no Portfólio" : "mensagens no Portfólio"
+    },
+    {
+      grupo: "clientes",
+      obter: obterAlertasReengajamentoClientes,
+      rotulo: (n) => n === 1 ? "cliente pra reengajar" : "clientes pra reengajar"
+    },
+    {
+      grupo: "ugc-creator",
+      obter: obterAlertasTrafegoPago,
+      rotulo: (n) => n === 1 ? "tráfego pago vencendo" : "tráfegos pagos vencendo"
+    },
+    {
+      grupo: "negocio",
+      obter: obterAlertasRecebimentos,
+      rotulo: (n) => n === 1 ? "recebimento pendente" : "recebimentos pendentes"
+    }
+  ];
+
+  // "Ver X": navega pra aba do grupo. Quando existe um jeito de já rolar até o item
+  // mais urgente (abordagem/clientes/ugc-creator já tinham esse helper), reaproveita —
+  // senão só troca de aba mesmo.
+  function navegarParaGrupoLembrete(grupo, itemMaisUrgente){
+    if (grupo === "abordagem") return irParaAbordagem(itemMaisUrgente.id);
+    if (grupo === "clientes") return irParaCliente(itemMaisUrgente.id);
+    if (grupo === "ugc-creator") return irParaTrabalhoUgc(itemMaisUrgente.id);
+    if (grupo === "portfolio"){
+      trocarAba("portfolio");
+      requestAnimationFrame(() => {
+        document.getElementById("cartaoMensagensRecebidas")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      return;
+    }
+    trocarAba(grupo);
+  }
+
+  // Pop-up flutuante (centro da tela): mostra UM card por vez, resumindo o grupo de
+  // lembrete mais urgente que ainda estiver pendente (não resolvido, não adiado, não
+  // fechado nesta sessão). Ao resolver/adiar/fechar, o próximo grupo pendente da fila
+  // aparece sozinho. Os badges do menu lateral são atualizados aqui também, sempre,
+  // pra refletir a pendência real independente do pop-up estar visível ou não.
   function renderizarNotificacoesPopup(){
     const container = document.getElementById("areaNotificacoesPopup");
     if (!container) return;
 
-    const { alertas: alertasContas, anoAtual, mesAtual } = obterAlertasContas();
-
-    const itensContas = alertasContas
-      .filter(item => item.status === "proximo")
-      .map(item => ({ ...item, categoria: "pagar", chave: `pagar-${item.tipo}-${item.nome}` }));
-
-    const itensRecebimentos = obterAlertasRecebimentos()
-      .map(item => ({ ...item, categoria: "receber", chave: `receber-${item.id}` }));
-
-    const itensFollowup = obterAlertasFollowupAbordagem()
-      .map(item => ({ ...item, categoria: "followup", chave: `followup-${item.id}` }));
-
-    const itensTrafegoPago = obterAlertasTrafegoPago()
-      .map(item => ({ ...item, categoria: "trafego_pago", chave: `trafego-${item.id}` }));
-
-    const itensPendenciaCadastro = obterAlertasCompletarCadastroCliente()
-      .map(item => ({ ...item, categoria: "pendencia_cliente", chave: `pendencia-${item.id}` }));
-
-    const itensReengajamento = obterAlertasReengajamentoClientes()
-      .map(item => ({ ...item, categoria: "reengajamento", chave: `reengajamento-${item.id}` }));
-
-    const itensRascunho = obterAlertasRascunho()
-      .map(item => ({ ...item, categoria: "rascunho_lembrete", chave: `rascunho-${item.id}` }));
-
     const agora = Date.now();
-    const visiveis = itensContas.concat(itensRecebimentos).concat(itensFollowup).concat(itensTrafegoPago).concat(itensPendenciaCadastro).concat(itensReengajamento).concat(itensRascunho)
-      .filter(item => !notificacoesPopupFechadas.has(item.chave))
-      .filter(item => !(notificacoesPopupAdiadas[item.chave] && agora < notificacoesPopupAdiadas[item.chave]))
-      .sort((a, b) => a.diasParaVencer - b.diasParaVencer);
+    const grupos = CONFIG_GRUPOS_LEMBRETE.map(config => ({ config, itens: config.obter() }));
 
-    if (visiveis.length === 0){
+    grupos.forEach(({ config, itens }) => atualizarBadgeGrupo(config.grupo, itens.length));
+
+    const fila = grupos
+      .filter(({ itens }) => itens.length > 0)
+      .filter(({ config }) => !gruposFechadosSessao.has(config.grupo))
+      .filter(({ config }) => !(lembretesSnoozeCache[config.grupo] && agora < lembretesSnoozeCache[config.grupo]))
+      .sort((a, b) => {
+        const urgenciaA = Math.min(...a.itens.map(i => i.diasParaVencer ?? 0));
+        const urgenciaB = Math.min(...b.itens.map(i => i.diasParaVencer ?? 0));
+        return urgenciaA - urgenciaB;
+      });
+
+    if (fila.length === 0){
       container.innerHTML = "";
       return;
     }
 
-    container.innerHTML = visiveis.map(item => {
-      const ehPagar = item.categoria === "pagar";
-      const ehFollowup = item.categoria === "followup";
-      const ehTrafego = item.categoria === "trafego_pago";
-      const ehPendencia = item.categoria === "pendencia_cliente";
-      const ehReengajamento = item.categoria === "reengajamento";
-      const ehRascunho = item.categoria === "rascunho_lembrete";
-      const ehClicavel = ehFollowup || ehTrafego || ehReengajamento || ehRascunho;
-      const nomeExibicao = ehPagar
-        ? (item.tipo === "cartao" ? `Fatura ${item.nome}` : item.nome)
-        : ehReengajamento ? item.nome_marca
-        : (ehFollowup || ehTrafego || ehPendencia || ehRascunho) ? item.marca : item.descricao;
-      const mensagem = ehPagar ? mensagemAlertaConta(item) : ehFollowup ? mensagemAlertaFollowupAbordagem(item) : ehTrafego ? mensagemAlertaTrafegoPago(item) : ehPendencia ? mensagemPendenciaCadastroCliente() : ehReengajamento ? mensagemAlertaReengajamento(item) : ehRascunho ? mensagemAlertaRascunho(item) : mensagemAlertaRecebimento(item);
-      const classeStatus = ehRascunho ? "atrasado" : (ehPendencia || ehReengajamento) ? "" : (ehFollowup || ehTrafego) ? (item.statusAlerta === "atrasado" ? "atrasado" : "") : (!ehPagar && item.status === "proximo" ? "proximo-receber" : item.status);
-      const acaoBotao = ehPagar ? "marcar-pago-notificacao" : ehFollowup ? "marcar-followup-notificacao" : ehPendencia ? "completar-cadastro-cliente" : "marcar-recebido-notificacao";
-      const textoBotao = ehPagar ? "Marcar como pago" : ehFollowup ? "Marcar follow up como feito" : ehPendencia ? "Completar cadastro" : "Marcar como recebido";
-      const acaoNavegacao = (ehFollowup || ehRascunho) ? "ir-abordagem-notificacao" : ehTrafego ? "ir-trabalho-notificacao" : ehReengajamento ? "ir-cliente-notificacao" : "";
-      const corpoAtributos = ehClicavel ? `data-acao="${acaoNavegacao}" data-id="${item.id}" tabindex="0" role="button"` : "";
+    const { config, itens } = fila[0];
+    const itemMaisUrgente = itens.slice().sort((a, b) => (a.diasParaVencer ?? 0) - (b.diasParaVencer ?? 0))[0];
+    const titulo = `Você tem ${itens.length > 1 ? itens.length + " " : ""}${config.rotulo(itens.length)}`;
 
-      return `
-        <div class="notificacao-popup ${classeStatus}" data-chave="${item.chave}" data-categoria="${item.categoria}" data-nome="${item.nome || ""}" data-tipo="${item.tipo || ""}" data-id="${item.id || ""}">
-          <button type="button" class="notificacao-popup-fechar" data-acao="fechar-notificacao" aria-label="Fechar aviso">&times;</button>
-          <div class="notificacao-popup-corpo${ehClicavel ? " clicavel" : ""}" ${corpoAtributos}>
-            <p class="notificacao-popup-nome">${nomeExibicao}</p>
-            <p class="notificacao-popup-mensagem">${mensagem}${item.valor != null ? " · " + formatarMoeda(Number(item.valor)) : ""}</p>
-            ${ehFollowup ? `<p class="notificacao-popup-ver-mais">Ver anotação da abordagem ›</p>` : ""}
-            ${ehTrafego ? `<p class="notificacao-popup-ver-mais">Ver trabalho no UGC Creator ›</p>` : ""}
-            ${ehReengajamento ? `<p class="notificacao-popup-ver-mais">Ver cliente ›</p>` : ""}
-            ${ehRascunho ? `<p class="notificacao-popup-ver-mais">Ver abordagem ›</p>` : ""}
-          </div>
-          <div class="notificacao-popup-acoes">
-            ${(ehTrafego || ehReengajamento || ehRascunho) ? "" : `<button type="button" class="notificacao-popup-botao-pago" data-acao="${acaoBotao}">${textoBotao}</button>`}
-            <button type="button" class="notificacao-popup-botao-adiar" data-acao="adiar-notificacao">Lembrar em 1h</button>
-          </div>
+    container.innerHTML = `
+      <div class="notificacao-popup" data-grupo="${config.grupo}">
+        <button type="button" class="notificacao-popup-fechar" data-acao="fechar-notificacao" aria-label="Fechar aviso">&times;</button>
+        <div class="notificacao-popup-corpo">
+          <p class="notificacao-popup-nome">${titulo}</p>
         </div>
-      `;
-    }).join("");
+        <div class="notificacao-popup-acoes">
+          <button type="button" class="notificacao-popup-botao-pago" data-acao="ver-grupo-notificacao">Ver ${LABEL_ABA_LEMBRETE[config.grupo]}</button>
+          <button type="button" class="notificacao-popup-botao-adiar" data-acao="adiar-notificacao">Lembrar em 1h</button>
+        </div>
+      </div>
+    `;
 
-    // Remove um card e, se não sobrar nenhum, limpa o container inteiro — garante que o
-    // fundo escurecido do pop-up não fique preso na tela bloqueando o resto do painel.
-    function removerCartaoNotificacao(cartaoEl){
-      cartaoEl.remove();
-      if (!container.querySelector(".notificacao-popup")) container.innerHTML = "";
-    }
-
-    container.querySelectorAll("[data-acao='fechar-notificacao']").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const cartaoEl = btn.closest(".notificacao-popup");
-        notificacoesPopupFechadas.add(cartaoEl.dataset.chave);
-        removerCartaoNotificacao(cartaoEl);
-      });
+    container.querySelector("[data-acao='fechar-notificacao']").addEventListener("click", () => {
+      gruposFechadosSessao.add(config.grupo);
+      renderizarNotificacoesPopup();
     });
 
-    container.querySelectorAll("[data-acao='adiar-notificacao']").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const cartaoEl = btn.closest(".notificacao-popup");
-        const chave = cartaoEl.dataset.chave;
-        notificacoesPopupAdiadas[chave] = Date.now() + NOTIFICACAO_ADIAR_MS;
-        removerCartaoNotificacao(cartaoEl);
-        setTimeout(renderizarNotificacoesPopup, NOTIFICACAO_ADIAR_MS + 500);
-      });
+    container.querySelector("[data-acao='adiar-notificacao']").addEventListener("click", () => {
+      adiarGrupoLembrete(config.grupo);
+      renderizarNotificacoesPopup();
     });
 
-    container.querySelectorAll("[data-acao='ir-abordagem-notificacao']").forEach(el => {
-      const irParaEntrada = () => {
-        // Fecha o pop-up inteiro (não só este card) antes de navegar — senão o fundo
-        // escurecido fica em cima da tela mesmo depois de trocar de aba.
-        container.querySelectorAll(".notificacao-popup").forEach(c => notificacoesPopupFechadas.add(c.dataset.chave));
-        container.innerHTML = "";
-        irParaAbordagem(el.dataset.id);
-      };
-      el.addEventListener("click", irParaEntrada);
-      el.addEventListener("keydown", (e) => { if (e.key === "Enter") irParaEntrada(); });
-    });
-
-    container.querySelectorAll("[data-acao='ir-trabalho-notificacao']").forEach(el => {
-      const irParaEntrada = () => {
-        container.querySelectorAll(".notificacao-popup").forEach(c => notificacoesPopupFechadas.add(c.dataset.chave));
-        container.innerHTML = "";
-        irParaTrabalhoUgc(el.dataset.id);
-      };
-      el.addEventListener("click", irParaEntrada);
-      el.addEventListener("keydown", (e) => { if (e.key === "Enter") irParaEntrada(); });
-    });
-
-    container.querySelectorAll("[data-acao='ir-cliente-notificacao']").forEach(el => {
-      const irParaEntrada = () => {
-        container.querySelectorAll(".notificacao-popup").forEach(c => notificacoesPopupFechadas.add(c.dataset.chave));
-        container.innerHTML = "";
-        irParaCliente(el.dataset.id);
-      };
-      el.addEventListener("click", irParaEntrada);
-      el.addEventListener("keydown", (e) => { if (e.key === "Enter") irParaEntrada(); });
-    });
-
-    container.querySelectorAll("[data-acao='marcar-pago-notificacao']").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const cartaoEl = btn.closest(".notificacao-popup");
-        const nome = cartaoEl.dataset.nome;
-        if (cartaoEl.dataset.tipo === "cartao"){
-          alternarCartaoPago(nome, anoAtual, mesAtual);
-        } else {
-          alternarGastoFixoPago(nome, anoAtual, mesAtual);
-        }
-      });
-    });
-
-    container.querySelectorAll("[data-acao='marcar-recebido-notificacao']").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const cartaoEl = btn.closest(".notificacao-popup");
-        alternarRecebidoNegocio(cartaoEl.dataset.id);
-      });
-    });
-
-    container.querySelectorAll("[data-acao='marcar-followup-notificacao']").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const cartaoEl = btn.closest(".notificacao-popup");
-        marcarFollowupFeitoAbordagem(cartaoEl.dataset.id);
-      });
-    });
-
-    container.querySelectorAll("[data-acao='completar-cadastro-cliente']").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const cartaoEl = btn.closest(".notificacao-popup");
-        container.querySelectorAll(".notificacao-popup").forEach(c => notificacoesPopupFechadas.add(c.dataset.chave));
-        container.innerHTML = "";
-        abrirModalClienteApartirDeAbordagem(cartaoEl.dataset.id);
-      });
+    container.querySelector("[data-acao='ver-grupo-notificacao']").addEventListener("click", () => {
+      container.innerHTML = "";
+      navegarParaGrupoLembrete(config.grupo, itemMaisUrgente);
     });
   }
 
@@ -8433,6 +8440,11 @@
     const diasFollowup = diasParaFollowupAbordagem(item);
     const atrasado = precisaFollowupAbordagem(item.status) && !item.followup_feito && diasFollowup !== null && diasFollowup < 0;
 
+    // Rascunho parado há DIAS_LEMBRETE_RASCUNHO dias ou mais: mesmo destaque vermelho do
+    // follow up atrasado (não é uma animação passageira — fica assim até o status mudar).
+    const rascunhoVencendo = item.status === "rascunho" && item.data_rascunho && diasDesde(item.data_rascunho) >= DIAS_LEMBRETE_RASCUNHO;
+    const vencendo = atrasado || rascunhoVencendo;
+
     return `
       <details class="ugc-linha" data-id="${item.id}"${aberta}>
         <summary class="ugc-linha-resumo abordagem-grade-lista">
@@ -8440,7 +8452,7 @@
           <span class="ugc-marca">${item.marca}</span>
           <span class="ugc-nicho">${formatarNichoAbordagem(item)}</span>
           <span class="ugc-data ${atrasado ? "vencida" : ""}">${dataTexto}</span>
-          <span class="ugc-etapa-pill ${atrasado ? "vencida" : classeStatusAbordagem(item.status)}">${atrasado ? "Follow up atrasado" : nomeStatusAbordagem(item.status)}</span>
+          <span class="ugc-etapa-pill ${vencendo ? "vencida" : classeStatusAbordagem(item.status)}">${atrasado ? "Follow up atrasado" : rascunhoVencendo ? "Rascunho parado" : nomeStatusAbordagem(item.status)}</span>
           <span class="ugc-seta">›</span>
         </summary>
         <div class="ugc-detalhe">${renderDetalheAbordagemHtml(item)}</div>
@@ -8679,16 +8691,27 @@
 
   // Chamado ao clicar no lembrete de follow up: troca pra aba Abordagem, abre
   // a anotação daquela marca e rola/realça a linha até ela ficar visível.
+  // Chamada só a partir do lembrete de abordagem (rascunho parado, follow up vencendo ou
+  // cadastro de cliente pendente) — por isso não abre o card, só rola até ele e destaca
+  // em vermelho, já que todo item que chega aqui por essa via está mesmo "vencendo".
   function irParaAbordagem(id){
     trocarAba("abordagem");
-    abordagemAbertos.add(id);
     renderizarAbordagens();
+
+    // Rascunho e arquivado têm sub-aba e container próprios (abordagemRascunhoCorpo /
+    // abordagemArquivoCorpo) — sem trocar de sub-aba, a linha nunca aparece na tela
+    // (fica escondida atrás de "oculto"), mesmo com o id certo.
+    const item = abordagensCache.find(a => a.id === id);
+    const subAba = item && item.arquivado ? "arquivados" : item && item.status === "rascunho" ? "rascunhos" : "ativas";
+    const containerId = subAba === "rascunhos" ? "abordagemRascunhoCorpo" : subAba === "arquivados" ? "abordagemArquivoCorpo" : "abordagemListaCorpo";
+    trocarSubAbaAbordagem(subAba);
+
     requestAnimationFrame(() => {
-      const el = document.querySelector(`#abordagemListaCorpo [data-id="${id}"]`);
+      const el = document.querySelector(`#${containerId} [data-id="${id}"]`);
       if (el){
         el.scrollIntoView({ behavior: "smooth", block: "center" });
-        el.classList.add("ugc-linha-flash");
-        setTimeout(() => el.classList.remove("ugc-linha-flash"), 1400);
+        el.classList.add("ugc-linha-flash-atrasado");
+        setTimeout(() => el.classList.remove("ugc-linha-flash-atrasado"), 2200);
       }
     });
   }
@@ -8906,6 +8929,24 @@
 
   function mensagemAlertaRascunho(item){
     return `Cadastrada como rascunho há ${item.diasDesdeRascunho} dia${item.diasDesdeRascunho === 1 ? "" : "s"} — hora de abordar de verdade?`;
+  }
+
+  // Tarefas de hoje (Agenda) ainda não concluídas — usado só pelo grupo de lembretes
+  // "agenda" (ver CONFIG_GRUPOS_LEMBRETE). Reaproveita tarefasCache, já carregado pra
+  // renderizarAgenda().
+  function obterAlertasTarefasHoje(){
+    const hojeISO = formatarDataISO(new Date());
+    return tarefasCache
+      .filter(t => t.data === hojeISO && !t.concluida)
+      .map(t => ({ ...t, diasParaVencer: 0 }));
+  }
+
+  // Mensagens do Portfólio ainda não lidas — mesma fonte que atualizarBadgesMensagens()
+  // usa pro badge do card "Mensagens recebidas".
+  function obterAlertasMensagensPortfolio(){
+    return leadsCache
+      .filter(l => !l.lida)
+      .map(l => ({ ...l, diasParaVencer: 0 }));
   }
 
   // Pendência administrativa permanente: negociação fechada que ainda não virou

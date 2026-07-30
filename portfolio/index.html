@@ -2426,8 +2426,11 @@ function obterOrigemPortfolio(){
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Registra a visita assim que a página carrega, já marcando a origem
-  registrarEvento("page_view", null, { origem: obterOrigemPortfolio() });
+  // Registra a visita assim que a página carrega, já marcando a origem.
+  // "referrer" fica registrado pra dar uma pista de onde vieram as visitas "outro"
+  // (busca, rede social, link salvo etc.) — vazio quando é digitação direta na barra
+  // do navegador ou quando o navegador simplesmente não envia essa informação.
+  registrarEvento("page_view", null, { origem: obterOrigemPortfolio(), referrer: document.referrer || null });
 
   document.documentElement.lang = idiomaAtual === "en" ? "en" : "pt-BR";
   atualizarBotoesIdioma();

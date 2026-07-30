@@ -453,6 +453,32 @@ create policy "Usuaria autenticada gerencia suas notas"
 grant select, insert, update, delete on public.painel_notas to authenticated;
 
 -- =====================================================================
+-- LEMBRETES: adiamento persistido (pop-up de notificações do painel)
+-- Uma linha por "grupo" de lembrete (abordagem, financas, agenda, portfolio,
+-- clientes, ugc-creator, negocio). Guarda até quando aquele grupo foi adiado
+-- via "Lembrar em 1h", pra sobreviver a F5 e funcionar igual em qualquer
+-- aparelho (antes isso ficava só numa variável do JavaScript, perdida a
+-- cada recarregamento da página).
+-- =====================================================================
+create table if not exists public.painel_lembretes_snooze (
+  grupo text primary key,
+  adiado_ate timestamptz,
+  created_at timestamptz not null default now(), -- exigido por buscarTudo() no painel.html, que ordena por essa coluna em toda tabela
+  updated_at timestamptz not null default now()
+);
+
+alter table public.painel_lembretes_snooze enable row level security;
+
+create policy "Usuaria autenticada gerencia lembretes_snooze"
+  on public.painel_lembretes_snooze
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_lembretes_snooze to authenticated;
+
+-- =====================================================================
 -- INSTAGRAM: AUTOMAÇÃO DE DM (aba "Instagram > Automações" do painel)
 -- Motor de automação estilo ManyChat: um comentário com palavra-chave
 -- dispara uma DM com botões, e a pessoa pode continuar tocando neles.
