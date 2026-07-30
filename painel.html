@@ -1854,6 +1854,13 @@
     display: flex; align-items: center; gap: 14px; padding: 16px 4px; border-bottom: 1px solid var(--borda);
   }
   .ig-automacao-item:last-child{ border-bottom: none; }
+  .ig-automacao-miniatura{
+    width: 44px; height: 44px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: var(--creme);
+  }
+  .ig-automacao-miniatura-vazia{
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    border: 1px dashed var(--borda); color: var(--texto-suave);
+  }
   .ig-automacao-info{ flex-grow: 1; min-width: 0; }
   .ig-automacao-nome{ font-weight: 600; font-size: .92rem; margin-bottom: 3px; }
   .ig-automacao-gatilho{ font-size: .78rem; color: var(--texto-suave); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2452,6 +2459,7 @@
       <div class="sub-abas-negocio" id="subAbasInstagram">
         <button type="button" class="sub-aba-btn ativo" data-subaba="metricas">Métricas</button>
         <button type="button" class="sub-aba-btn" data-subaba="automacoes">Automações</button>
+        <button type="button" class="sub-aba-btn" data-subaba="interacoes">Interações</button>
       </div>
 
       <!-- SUB-ABA: MÉTRICAS -->
@@ -2486,6 +2494,14 @@
 
         <div class="cartao" style="padding: 8px 20px;">
           <div id="igListaAutomacoes"></div>
+        </div>
+      </div>
+
+      <!-- SUB-ABA: INTERAÇÕES -->
+      <div id="igSubInteracoes" class="oculto">
+        <p class="ig-automacoes-legenda" style="margin-bottom: 16px;">Todas as pessoas que já interagiram com alguma automação, com o histórico de cada uma.</p>
+        <div class="cartao" style="padding: 8px 20px;">
+          <div id="igListaInteracoes"></div>
         </div>
       </div>
     </section>
@@ -3301,6 +3317,8 @@
   let igProximoPassoId = 2;       // gerador de id de passo (o id 1 é sempre a Mensagem 1)
   let igPostsCache = [];          // posts do Instagram (via ig-media), pro seletor "Em quais posts"
   let igEstadoMediaIds = [];      // ids dos posts marcados no editor (vazio = vale pra todos)
+  let igLeadsCache = [];          // leads/contatos capturados (aba Instagram > Interações)
+  let igInteracoesPorUsuario = {}; // contagem de envios (ig_deliveries) por ig_user_id
   const IG_EMOJIS = ["🫶","👀","😍","🥰","😂","😮","🔥","✨","💌","👉","🙌","💕"];
 
   // Estado das conversas de IA da Negociação: uma entrada por contexto, cada
@@ -3545,6 +3563,15 @@
         console.error("Erro ao carregar/renderizar Clientes:", erroClientes);
       }
       try {
+        // Isolado do carregamento principal: mesma lógica acima, pro seletor "Em quais
+        // posts" do editor de automação (usa a Edge Function ig-media). Carregado ANTES
+        // das automações, pra lista de automações já conseguir mostrar a miniatura do
+        // post vinculado na primeira renderização.
+        await carregarInstagramPosts();
+      } catch (erroInstagramPosts) {
+        console.error("Erro ao carregar posts do Instagram:", erroInstagramPosts);
+      }
+      try {
         // Isolado do carregamento principal: a tabela ig_automations (aba Instagram > Automações)
         // ainda não existe até essa fase do backend ser configurada no Supabase, então essa busca
         // pode falhar sem travar o resto do painel (a lista só aparece vazia).
@@ -3561,11 +3588,10 @@
         console.error("Erro ao carregar/renderizar Métricas do Instagram:", erroInstagramMetricas);
       }
       try {
-        // Isolado do carregamento principal: mesma lógica acima, pro seletor "Em quais
-        // posts" do editor de automação (usa a Edge Function ig-media).
-        await carregarInstagramPosts();
-      } catch (erroInstagramPosts) {
-        console.error("Erro ao carregar posts do Instagram:", erroInstagramPosts);
+        // Isolado do carregamento principal: aba Instagram > Interações (tabela ig_leads).
+        await carregarInstagramLeads();
+      } catch (erroInstagramLeads) {
+        console.error("Erro ao carregar/renderizar Interações do Instagram:", erroInstagramLeads);
       }
     } catch (erro) {
       console.error(erro);
@@ -3673,6 +3699,89 @@
     }
   }
 
+  async function carregarInstagramLeads(){
+    try {
+      const { data, error } = await Auth.client.from("ig_leads").select("*").order("updated_at", { ascending: false });
+      if (error) throw error;
+      igLeadsCache = data || [];
+    } catch (erro) {
+      console.error("Erro ao carregar leads do Instagram:", erro);
+      igLeadsCache = [];
+    }
+
+    try {
+      // Conta quantos envios (ig_deliveries) cada pessoa já recebeu, pra coluna "Interações".
+      const { data, error } = await Auth.client.from("ig_deliveries").select("ig_user_id");
+      if (error) throw error;
+      igInteracoesPorUsuario = {};
+      (data || []).forEach(entrega => {
+        if (!entrega.ig_user_id) return;
+        igInteracoesPorUsuario[entrega.ig_user_id] = (igInteracoesPorUsuario[entrega.ig_user_id] || 0) + 1;
+      });
+    } catch (erro) {
+      console.error("Erro ao contar interações do Instagram:", erro);
+      igInteracoesPorUsuario = {};
+    }
+
+    renderizarInstagramInteracoes();
+  }
+
+  const IG_ROTULOS_ORIGEM = { comment: "Comentário", dm: "Mensagem direta", story_reply: "Resposta de story" };
+
+  function renderizarInstagramInteracoes(){
+    const container = document.getElementById("igListaInteracoes");
+    if (!igLeadsCache.length){
+      container.innerHTML = `<p class="texto-vazio">Nenhuma interação captada ainda.</p>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="clientes-tabela-scroll">
+        <table class="clientes-tabela">
+          <thead>
+            <tr>
+              <th>Nome/user</th>
+              <th>Origem</th>
+              <th>Palavra-chave</th>
+              <th>Contato</th>
+              <th>Etiqueta</th>
+              <th>Interações</th>
+              <th>Última vez</th>
+              <th>Outras infos</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${igLeadsCache.map(lead => {
+              const automacao = igAutomacoesCache.find(a => a.id === lead.automation_id);
+              const contato = [lead.email, lead.telefone].filter(Boolean).join(" · ") || "Não informado";
+              const etiquetas = (lead.tags && lead.tags.length) ? lead.tags.join(", ") : "Sem etiqueta";
+              const interacoes = igInteracoesPorUsuario[lead.ig_user_id] || 0;
+              const ultimaVez = lead.updated_at
+                ? new Date(lead.updated_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                : "Não informado";
+              const partesOutrasInfos = [];
+              if (automacao) partesOutrasInfos.push("Automação: " + automacao.nome);
+              if (lead.flow_step) partesOutrasInfos.push("Passo " + lead.flow_step);
+              const outrasInfos = partesOutrasInfos.join(" · ") || "Nenhuma";
+              return `
+                <tr>
+                  <td>${igEscaparHtml(lead.username ? "@" + lead.username : lead.ig_user_id)}</td>
+                  <td>${igEscaparHtml(IG_ROTULOS_ORIGEM[lead.last_source] || "Não informado")}</td>
+                  <td>${igEscaparHtml(lead.last_keyword || "Nenhuma")}</td>
+                  <td>${igEscaparHtml(contato)}</td>
+                  <td>${igEscaparHtml(etiquetas)}</td>
+                  <td>${interacoes}</td>
+                  <td>${igEscaparHtml(ultimaVez)}</td>
+                  <td>${igEscaparHtml(outrasInfos)}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
   function renderizarListaPostsEditor(){
     const container = document.getElementById("igListaPosts");
     if (!igPostsCache.length){
@@ -3762,8 +3871,18 @@
       const gatilho = automacao.match_any
         ? "Qualquer comentário ativa"
         : "Palavras: " + (automacao.keyword || "(nenhuma)");
+
+      // Miniatura do primeiro post vinculado (se a automação tiver algum selecionado
+      // em "Em quais posts"). Sem post vinculado, mostra um ícone no lugar.
+      const primeiroPostId = automacao.media_ids && automacao.media_ids[0];
+      const post = primeiroPostId ? igPostsCache.find(p => p.id === primeiroPostId) : null;
+      const miniaturaHtml = post
+        ? `<img src="${igEscaparHtml(post.miniatura || "")}" alt="" class="ig-automacao-miniatura">`
+        : `<div class="ig-automacao-miniatura ig-automacao-miniatura-vazia">📋</div>`;
+
       return `
         <div class="ig-automacao-item ${automacao.active ? "" : "inativa"}">
+          ${miniaturaHtml}
           <div class="ig-automacao-info">
             <p class="ig-automacao-nome">${igEscaparHtml(automacao.nome || "Sem nome")}</p>
             <p class="ig-automacao-gatilho">${igEscaparHtml(gatilho)}</p>
@@ -4142,6 +4261,7 @@
         document.querySelectorAll("#subAbasInstagram .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === btn.dataset.subaba));
         document.getElementById("igSubMetricas").classList.toggle("oculto", btn.dataset.subaba !== "metricas");
         document.getElementById("igSubAutomacoes").classList.toggle("oculto", btn.dataset.subaba !== "automacoes");
+        document.getElementById("igSubInteracoes").classList.toggle("oculto", btn.dataset.subaba !== "interacoes");
       });
     });
 
