@@ -25,9 +25,17 @@ O que falta é só **configurar e publicar** o que já está escrito.
 ## 1. Rodar o SQL
 
 1. Abra o SQL Editor do seu projeto Supabase.
-2. Cole o conteúdo inteiro do `setup.sql` (pode rodar de novo mesmo se já
-   rodou antes, todo o script usa `if not exists`/`on conflict`, é seguro).
-3. **Não rode ainda** o bloco final "AGENDAMENTO (pg_cron + pg_net)". Ele
+2. **Se as outras abas do painel (Agenda, Clientes, Abordagem etc.) já
+   estavam funcionando antes desta automação de Instagram**, essas tabelas e
+   policies já existem no seu banco, e o Postgres não deixa recriar uma
+   policy que já existe (`create policy` não tem um "se não existir"). Nesse
+   caso, **não cole o `setup.sql` inteiro de novo**: copie só a partir do
+   comentário `-- INSTAGRAM: AUTOMAÇÃO DE DM` até a linha
+   `grant execute on function public.record_send_result(...)`, sem incluir o
+   bloco final "AGENDAMENTO". Se este for um projeto Supabase novo, sem nada
+   ainda, aí sim pode colar o arquivo inteiro.
+3. Clique em **Run**. Deve aparecer "Success. No rows returned".
+4. **Não rode ainda** o bloco final "AGENDAMENTO (pg_cron + pg_net)". Ele
    depende do `SCHED_SECRET`, que você só vai definir no passo 2. Volte nele
    no passo 4.
 
@@ -35,7 +43,14 @@ O que falta é só **configurar e publicar** o que já está escrito.
 
 No painel do Supabase: **Project Settings > Edge Functions > Secrets** (ou
 pela CLI, com `supabase secrets set NOME=valor`). Nenhum destes vai em
-arquivo nenhum do repositório:
+arquivo nenhum do repositório.
+
+⚠️ `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY` e
+`SUPABASE_DB_URL` **não entram nessa lista**: a própria Supabase já
+disponibiliza essas variáveis automaticamente dentro de toda Edge Function,
+e o painel nem deixa cadastrar um secret com o prefixo `SUPABASE_` (dá erro
+"Name must not start with the SUPABASE_ prefix"). Não precisa fazer nada
+com essas quatro.
 
 | Segredo | O que é | Onde conseguir |
 |---|---|---|
@@ -47,8 +62,6 @@ arquivo nenhum do repositório:
 | `GRAPH_API_VERSION` | Versão da Graph API | `v21.0` (já é o padrão se você não definir nada) |
 | `SCHED_SECRET` | Outra senha que você inventa, protege o `ig-scheduler`/`ig-token-refresh` | Invente uma string qualquer |
 | `TEST_IG_ACCOUNTS` | IDs numéricos (separados por vírgula) de contas de teste | O ID da sua própria conta pessoal de teste no Instagram, se quiser testar sem esperar 24h |
-| `SUPABASE_URL` | URL do seu projeto | Já aparece em `js/auth.js`, é a mesma |
-| `SUPABASE_SERVICE_ROLE_KEY` | Chave de service_role (ignora o RLS) | Project Settings > API, campo "service_role" (**nunca** a "anon") |
 
 ## 3. Publicar as Edge Functions
 

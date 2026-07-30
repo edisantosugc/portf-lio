@@ -2438,6 +2438,20 @@
           <p class="ig-estado-vazio-titulo">Conecte seu Instagram pra ver as métricas</p>
           <p class="ig-estado-vazio-texto">Seguidores, alcance e leads aparecem aqui assim que a integração com a API do Instagram estiver configurada (ver LEIA-ME).</p>
         </div>
+
+        <div id="igMetricasConteudo" class="oculto">
+          <div class="cartoes-numeros" id="igCartoesNumeros"></div>
+
+          <div class="cartao grafico-cartao">
+            <h2>Novos seguidores (últimos 15 dias)</h2>
+            <div class="grafico-barras" id="igGraficoSeguidores"></div>
+          </div>
+
+          <div class="cartao grafico-cartao">
+            <h2>Alcance por dia (últimos 15 dias)</h2>
+            <div class="grafico-barras" id="igGraficoAlcance"></div>
+          </div>
+        </div>
       </div>
 
       <!-- SUB-ABA: AUTOMAÇÕES -->
@@ -3513,6 +3527,14 @@
       } catch (erroInstagram) {
         console.error("Erro ao carregar/renderizar Instagram:", erroInstagram);
       }
+      try {
+        // Isolado do carregamento principal: a Edge Function ig-insights só responde com dados
+        // de verdade depois que a API do Instagram estiver conectada (ver LEIA-ME-INSTAGRAM.md),
+        // então essa busca pode falhar sem travar o resto do painel (fica no estado vazio).
+        await carregarInstagramMetricas();
+      } catch (erroInstagramMetricas) {
+        console.error("Erro ao carregar/renderizar Métricas do Instagram:", erroInstagramMetricas);
+      }
     } catch (erro) {
       console.error(erro);
       document.getElementById("areaCarregando").classList.add("oculto");
@@ -3578,6 +3600,54 @@
     const div = document.createElement("div");
     div.textContent = texto === null || texto === undefined ? "" : String(texto);
     return div.innerHTML;
+  }
+
+  async function carregarInstagramMetricas(){
+    try {
+      const { data, error } = await Auth.client.functions.invoke("ig-insights");
+      if (error) throw error;
+      if (!data || data.error) throw new Error((data && data.error) || "resposta vazia");
+      renderizarInstagramMetricas(data);
+    } catch (erro) {
+      // Sem quebrar a tela: se a API do Instagram ainda não estiver conectada
+      // (ou a Edge Function ig-insights ainda não existir), fica no estado vazio.
+      console.error("Erro ao carregar métricas do Instagram:", erro);
+    }
+  }
+
+  function renderizarInstagramMetricas(dados){
+    document.getElementById("igMetricasVazio").classList.add("oculto");
+    document.getElementById("igMetricasConteudo").classList.remove("oculto");
+
+    document.getElementById("igCartoesNumeros").innerHTML = `
+      <div class="cartao cartao-numero destaque">
+        <p class="numero-grande">${Number(dados.seguidores ?? 0).toLocaleString("pt-BR")}</p>
+        <p class="numero-rotulo">Seguidores</p>
+      </div>
+    `;
+
+    renderizarGraficoInstagram("igGraficoSeguidores", dados.novosSeguidoresPorDia || []);
+    renderizarGraficoInstagram("igGraficoAlcance", dados.alcancePorDia || []);
+  }
+
+  function renderizarGraficoInstagram(idContainer, serie){
+    const container = document.getElementById(idContainer);
+    if (!serie.length){
+      container.innerHTML = `<p class="texto-vazio">Sem dados nesse período ainda.</p>`;
+      return;
+    }
+    const maiorValor = Math.max(1, ...serie.map(p => Number(p.valor) || 0));
+    container.innerHTML = serie.map(ponto => {
+      const valor = Number(ponto.valor) || 0;
+      const altura = Math.max(2, Math.round((valor / maiorValor) * 100));
+      const dataFormatada = new Date(ponto.data).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+      return `
+        <div class="barra-coluna">
+          <div class="barra" style="height:${altura}%" title="${dataFormatada}: ${valor}"></div>
+          <span class="barra-legenda">${dataFormatada}</span>
+        </div>
+      `;
+    }).join("");
   }
 
   async function carregarInstagramAutomacoes(){
