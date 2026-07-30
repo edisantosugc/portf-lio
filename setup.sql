@@ -709,6 +709,35 @@ create policy "Usuaria autenticada le os envios do bot"
 
 grant select on public.ig_bot_sends to authenticated;
 
+-- Registro de TODO comentário recebido (bate ou não uma automação), usado pra
+-- montar "quem mais comenta", os números por canal e as análises de conteúdo
+-- da aba Instagram > Análises. Diferente de ig_deliveries (que só guarda
+-- os envios de fato), aqui entra o comentário mesmo quando nenhuma automação
+-- responde a ele.
+create table if not exists public.ig_comments (
+  id uuid primary key default gen_random_uuid(),
+  comment_id text unique not null,
+  ig_user_id text not null,
+  username text,
+  media_id text,
+  texto text,
+  automation_id uuid references public.ig_automations(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_ig_comments_created_at on public.ig_comments (created_at desc);
+create index if not exists idx_ig_comments_ig_user_id on public.ig_comments (ig_user_id);
+
+alter table public.ig_comments enable row level security;
+
+create policy "Usuaria autenticada le os comentarios do Instagram"
+  on public.ig_comments
+  for select
+  to authenticated
+  using (true);
+
+grant select on public.ig_comments to authenticated;
+
 -- =====================================================================
 -- FREIO DE ENVIO (token bucket + disjuntor)
 --

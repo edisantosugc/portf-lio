@@ -469,9 +469,15 @@
     gap: 6px;
     height: 160px;
     padding-top: 10px;
+    /* Em telas estreitas, colunas com muitos dias (ex: 15) não cabem encolhendo (o
+       texto da data tem uma largura mínima). Em vez de vazar pra fora do cartão,
+       o gráfico ganha rolagem horizontal suave. Em telas largas, isso não tem
+       efeito nenhum, porque tudo já cabe sem precisar rolar. */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .barra-coluna{
-    flex: 1;
+    flex: 1 0 28px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1861,6 +1867,16 @@
     display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
     border: 1px dashed var(--borda); color: var(--texto-suave);
   }
+  .ig-badge-tipo{
+    display: inline-block; font-size: .68rem; font-weight: 600; color: var(--texto-suave);
+    background: var(--creme); border-radius: 50px; padding: 2px 9px; margin-left: 8px; vertical-align: middle;
+  }
+  @media (max-width: 640px){
+    /* Em telas estreitas, o toggle e os botões de ação quebram pra uma linha nova
+       (em vez de espremer em cima do nome/badge), alinhados à direita. */
+    .ig-automacao-item{ flex-wrap: wrap; row-gap: 8px; }
+    .ig-toggle{ margin-left: auto; }
+  }
   .ig-automacao-info{ flex-grow: 1; min-width: 0; }
   .ig-automacao-nome{ font-weight: 600; font-size: .92rem; margin-bottom: 3px; }
   .ig-automacao-gatilho{ font-size: .78rem; color: var(--texto-suave); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1912,6 +1928,42 @@
     padding: 4px 8px; cursor: pointer; line-height: 1.2;
   }
   .ig-emoji-bar button:hover{ border-color: var(--coral); background: var(--branco); }
+
+  /* Barra de sub-abas do Instagram (7 abas: precisa quebrar linha/rolar, diferente
+     das outras sub-abas do painel que só têm 2-3 opções) */
+  .ig-subabas{
+    display: flex; gap: 8px; margin-bottom: 20px; background: var(--branco); border: 1px solid var(--borda);
+    border-radius: 12px; padding: 4px; max-width: 100%; overflow-x: auto;
+  }
+  .ig-subabas .sub-aba-btn{ white-space: nowrap; flex-shrink: 0; }
+  @media (max-width: 900px){ .ig-subabas{ width: 100%; } }
+
+  /* Grade dos dois gráficos grandes da Visão geral (crescimento + alcance) */
+  .grade-instagram-graficos{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  /* Sem isso, o item da grade não encolhe abaixo do conteúdo interno (o gráfico de
+     15 dias), e a coluna "1fr" vira do tamanho do conteúdo em vez do espaço disponível. */
+  .grade-instagram-graficos > .cartao{ min-width: 0; }
+  @media (max-width: 760px){ .grade-instagram-graficos{ grid-template-columns: 1fr; } }
+  .ig-grafico-subtitulo{ font-size: .78rem; color: var(--texto-suave); margin-top: -12px; margin-bottom: 12px; }
+  .ig-grafico-numero-grande{ font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
+  .ig-grafico-resumo{ font-size: .74rem; color: var(--texto-suave); margin-top: 8px; }
+
+  /* Barra segmentada de "Saúde do envio" */
+  .ig-saude-barra{ display: flex; height: 14px; border-radius: 50px; overflow: hidden; background: var(--creme); margin-bottom: 10px; }
+  .ig-saude-segmento.ok{ background: var(--verde); }
+  .ig-saude-segmento.erro{ background: var(--vermelho); }
+  .ig-saude-segmento.cancelado{ background: var(--borda); }
+  .ig-saude-legenda{ display: flex; flex-wrap: wrap; gap: 16px; font-size: .82rem; color: var(--texto-suave); margin-bottom: 12px; }
+  .ig-saude-legenda span.bolinha{ display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+  .ig-saude-erro-linha{ font-size: .78rem; color: var(--texto-suave); padding: 4px 0; }
+
+  /* Busca + exportar CSV, no topo da aba Leads */
+  .ig-leads-topo{ display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .ig-leads-topo input{
+    flex: 1; min-width: 200px; font-family: 'Outfit', sans-serif; font-size: .88rem; padding: 10px 14px;
+    border-radius: 10px; border: 1px solid var(--borda); background: var(--branco); color: var(--grafite);
+  }
+  .ig-leads-topo input:focus{ outline: none; border-color: var(--coral); }
 
   /* Cartões de métrica do Instagram (rótulo em cima, número grande, legenda embaixo) */
   .ig-metrica-rotulo{
@@ -2456,14 +2508,18 @@
 
     <!-- ===================== ABA: INSTAGRAM ===================== -->
     <section id="painelInstagram" class="painel-tab oculto">
-      <div class="sub-abas-negocio" id="subAbasInstagram">
-        <button type="button" class="sub-aba-btn ativo" data-subaba="metricas">Métricas</button>
+      <div class="ig-subabas" id="subAbasInstagram">
+        <button type="button" class="sub-aba-btn ativo" data-subaba="visao-geral">Visão geral</button>
         <button type="button" class="sub-aba-btn" data-subaba="automacoes">Automações</button>
-        <button type="button" class="sub-aba-btn" data-subaba="interacoes">Interações</button>
+        <button type="button" class="sub-aba-btn" data-subaba="leads">Leads</button>
+        <button type="button" class="sub-aba-btn" data-subaba="analises">Análises</button>
+        <button type="button" class="sub-aba-btn" data-subaba="marcas">Marcas</button>
+        <button type="button" class="sub-aba-btn" data-subaba="propostas">Propostas</button>
+        <button type="button" class="sub-aba-btn" data-subaba="sorteio">Sorteio</button>
       </div>
 
-      <!-- SUB-ABA: MÉTRICAS -->
-      <div id="igSubMetricas">
+      <!-- SUB-ABA: VISÃO GERAL -->
+      <div id="igSubVisaoGeral">
         <div class="ig-estado-vazio" id="igMetricasVazio">
           <span class="ig-estado-vazio-icone">📸</span>
           <p class="ig-estado-vazio-titulo">Conecte seu Instagram pra ver as métricas</p>
@@ -2473,14 +2529,34 @@
         <div id="igMetricasConteudo" class="oculto">
           <div class="cartoes-numeros" id="igCartoesNumeros"></div>
 
-          <div class="cartao grafico-cartao">
-            <h2>Novos seguidores (últimos 15 dias)</h2>
-            <div class="grafico-barras" id="igGraficoSeguidores"></div>
+          <div class="grade-instagram-graficos">
+            <div class="cartao grafico-cartao">
+              <h2>Crescimento do perfil</h2>
+              <p class="ig-grafico-subtitulo">Novos seguidores por dia · 15 dias · passe o mouse</p>
+              <p class="ig-grafico-numero-grande" id="igGraficoSeguidoresNumero"></p>
+              <div class="grafico-barras" id="igGraficoSeguidores"></div>
+              <p class="ig-grafico-resumo" id="igGraficoSeguidoresResumo"></p>
+            </div>
+
+            <div class="cartao grafico-cartao">
+              <h2>Alcance</h2>
+              <p class="ig-grafico-subtitulo">Contas alcançadas por dia · 15 dias · passe o mouse</p>
+              <p class="ig-grafico-numero-grande" id="igGraficoAlcanceNumero"></p>
+              <div class="grafico-barras" id="igGraficoAlcance"></div>
+              <p class="ig-grafico-resumo" id="igGraficoAlcanceResumo"></p>
+            </div>
           </div>
 
-          <div class="cartao grafico-cartao">
-            <h2>Alcance por dia (últimos 15 dias)</h2>
-            <div class="grafico-barras" id="igGraficoAlcance"></div>
+          <div class="cartao" style="margin-bottom: 20px;">
+            <h2>Saúde do envio (últimos 30 dias)</h2>
+            <div class="ig-saude-barra" id="igSaudeBarra"></div>
+            <div class="ig-saude-legenda" id="igSaudeLegenda"></div>
+            <div id="igSaudeErros"></div>
+          </div>
+
+          <div class="cartao">
+            <h2>Interações por canal (últimos 30 dias)</h2>
+            <div id="igCanalBarras"></div>
           </div>
         </div>
       </div>
@@ -2497,11 +2573,53 @@
         </div>
       </div>
 
-      <!-- SUB-ABA: INTERAÇÕES -->
-      <div id="igSubInteracoes" class="oculto">
-        <p class="ig-automacoes-legenda" style="margin-bottom: 16px;">Todas as pessoas que já interagiram com alguma automação, com o histórico de cada uma.</p>
+      <!-- SUB-ABA: LEADS -->
+      <div id="igSubLeads" class="oculto">
+        <div class="cartoes-numeros" id="igLeadsCartoes" style="margin-bottom: 20px;"></div>
+
+        <div class="ig-leads-topo">
+          <input type="text" id="igLeadsBusca" placeholder="Buscar por @ ou palavra...">
+          <button type="button" class="botao-add-tarefa" id="igBotaoExportarCsv">⬇ Exportar CSV</button>
+        </div>
+
         <div class="cartao" style="padding: 8px 20px;">
           <div id="igListaInteracoes"></div>
+        </div>
+      </div>
+
+      <!-- SUB-ABA: ANÁLISES (chega numa próxima fase) -->
+      <div id="igSubAnalises" class="oculto">
+        <div class="ig-estado-vazio">
+          <span class="ig-estado-vazio-icone">📊</span>
+          <p class="ig-estado-vazio-titulo">Análises chega na próxima fase</p>
+          <p class="ig-estado-vazio-texto">Período (7/30/90 dias), melhores posts, quem mais comenta e sugestões de conteúdo analisadas por IA.</p>
+        </div>
+      </div>
+
+      <!-- SUB-ABA: MARCAS (chega numa próxima fase) -->
+      <div id="igSubMarcas" class="oculto">
+        <div class="ig-estado-vazio">
+          <span class="ig-estado-vazio-icone">🏷️</span>
+          <p class="ig-estado-vazio-titulo">Marcas chega na próxima fase</p>
+          <p class="ig-estado-vazio-texto">Vai separar automaticamente, com IA, quem é seguidora comum de quem é marca conversando por DM, salvando o contato.</p>
+        </div>
+      </div>
+
+      <!-- SUB-ABA: PROPOSTAS (chega numa próxima fase) -->
+      <div id="igSubPropostas" class="oculto">
+        <div class="ig-estado-vazio">
+          <span class="ig-estado-vazio-icone">🤝</span>
+          <p class="ig-estado-vazio-titulo">Propostas chega na próxima fase</p>
+          <p class="ig-estado-vazio-texto">Vai organizar marcas que entraram em contato, retornaram ou passaram contato pra fechar, alimentando sua aba Abordagem automaticamente.</p>
+        </div>
+      </div>
+
+      <!-- SUB-ABA: SORTEIO -->
+      <div id="igSubSorteio" class="oculto">
+        <div class="ig-estado-vazio">
+          <span class="ig-estado-vazio-icone">🎁</span>
+          <p class="ig-estado-vazio-titulo">Em breve</p>
+          <p class="ig-estado-vazio-texto">Essa área ainda não foi construída.</p>
         </div>
       </div>
     </section>
@@ -3317,8 +3435,21 @@
   let igProximoPassoId = 2;       // gerador de id de passo (o id 1 é sempre a Mensagem 1)
   let igPostsCache = [];          // posts do Instagram (via ig-media), pro seletor "Em quais posts"
   let igEstadoMediaIds = [];      // ids dos posts marcados no editor (vazio = vale pra todos)
-  let igLeadsCache = [];          // leads/contatos capturados (aba Instagram > Interações)
+  let igLeadsCache = [];          // leads/contatos capturados (aba Instagram > Leads)
   let igInteracoesPorUsuario = {}; // contagem de envios (ig_deliveries) por ig_user_id
+  let igRecebeuPorUsuario = {};    // true pra ig_user_id com ao menos 1 envio status 'ok'
+  let igLeadsFiltro = "";         // texto da busca na aba Leads (@ ou palavra-chave)
+
+  // Mapa sub-aba -> id do conteúdo, usado pra trocar de aba dentro do Instagram
+  const IG_SUBABAS = {
+    "visao-geral": "igSubVisaoGeral",
+    "automacoes": "igSubAutomacoes",
+    "leads": "igSubLeads",
+    "analises": "igSubAnalises",
+    "marcas": "igSubMarcas",
+    "propostas": "igSubPropostas",
+    "sorteio": "igSubSorteio",
+  };
   const IG_EMOJIS = ["🫶","👀","😍","🥰","😂","😮","🔥","✨","💌","👉","🙌","💕"];
 
   // Estado das conversas de IA da Negociação: uma entrada por contexto, cada
@@ -3666,22 +3797,89 @@
       if (error) throw error;
       if (!data || data.error) throw new Error((data && data.error) || "resposta vazia");
 
-      // Leads captados vem do nosso próprio banco (ig_leads), não da API do Instagram.
-      // Isolado num try próprio: se essa contagem falhar, ainda mostra o resto das métricas.
+      // Leads captados (total e nos últimos 15 dias) vem do nosso próprio banco (ig_leads),
+      // não da API do Instagram. Isolado num try próprio: se essa contagem falhar, ainda
+      // mostra o resto das métricas.
       let leadsCaptados = 0;
+      let leadsUltimos15Dias = 0;
       try {
         const { count } = await Auth.client.from("ig_leads").select("*", { count: "exact", head: true });
         leadsCaptados = count || 0;
+        const desde15 = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString();
+        const { count: count15 } = await Auth.client
+          .from("ig_leads").select("*", { count: "exact", head: true }).gte("created_at", desde15);
+        leadsUltimos15Dias = count15 || 0;
       } catch (erroLeads) {
         console.error("Erro ao contar leads do Instagram:", erroLeads);
       }
 
-      renderizarInstagramMetricas(data, leadsCaptados);
+      renderizarInstagramMetricas(data, leadsCaptados, leadsUltimos15Dias);
     } catch (erro) {
       // Sem quebrar a tela: se a API do Instagram ainda não estiver conectada
       // (ou a Edge Function ig-insights ainda não existir), fica no estado vazio.
       console.error("Erro ao carregar métricas do Instagram:", erro);
     }
+
+    try {
+      await carregarInstagramSaudeECanais();
+    } catch (erro) {
+      console.error("Erro ao carregar saúde do envio / canais do Instagram:", erro);
+    }
+  }
+
+  async function carregarInstagramSaudeECanais(){
+    const desde30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: entregas } = await Auth.client.from("ig_deliveries").select("status, motivo, canal").gte("ts", desde30);
+    const { data: fila } = await Auth.client
+      .from("ig_send_queue").select("id").eq("status", "expirado").gte("created_at", desde30);
+
+    const listaEntregas = entregas || [];
+    const ok = listaEntregas.filter(e => e.status === "ok").length;
+    const comErro = listaEntregas.filter(e => e.status === "erro").length;
+    const cancelado = (fila || []).length;
+
+    const motivos = {};
+    listaEntregas.filter(e => e.status === "erro" && e.motivo).forEach(e => {
+      motivos[e.motivo] = (motivos[e.motivo] || 0) + 1;
+    });
+    renderizarSaudeEnvio(ok, comErro, cancelado, motivos);
+
+    const { data: comentarios } = await Auth.client.from("ig_comments").select("id").gte("created_at", desde30);
+    const totalDirect = listaEntregas.filter(e => e.canal === "dm").length;
+    renderizarCanalBarras({ comentarios: (comentarios || []).length, direct: totalDirect });
+  }
+
+  function renderizarSaudeEnvio(ok, comErro, cancelado, motivos){
+    const total = Math.max(1, ok + comErro + cancelado);
+    document.getElementById("igSaudeBarra").innerHTML = `
+      <div class="ig-saude-segmento ok" style="width:${(ok / total) * 100}%"></div>
+      <div class="ig-saude-segmento erro" style="width:${(comErro / total) * 100}%"></div>
+      <div class="ig-saude-segmento cancelado" style="width:${(cancelado / total) * 100}%"></div>
+    `;
+    document.getElementById("igSaudeLegenda").innerHTML = `
+      <span><span class="bolinha" style="background:var(--verde)"></span>${ok} entregues</span>
+      <span><span class="bolinha" style="background:var(--vermelho)"></span>${comErro} falharam</span>
+      <span><span class="bolinha" style="background:var(--borda)"></span>${cancelado} cancelados</span>
+    `;
+    const listaMotivos = Object.entries(motivos).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    document.getElementById("igSaudeErros").innerHTML = listaMotivos
+      .map(([motivo, qtd]) => `<p class="ig-saude-erro-linha">${igEscaparHtml(motivo)}: ${qtd}</p>`)
+      .join("");
+  }
+
+  function renderizarCanalBarras(dados){
+    const itens = [
+      { rotulo: "Comentários", valor: dados.comentarios || 0, cor: "" },
+      { rotulo: "Mensagens diretas", valor: dados.direct || 0, cor: "cor-verde" },
+    ];
+    const maior = Math.max(1, ...itens.map(i => i.valor));
+    document.getElementById("igCanalBarras").innerHTML = itens.map(item => `
+      <div class="item-barra">
+        <div class="item-barra-topo"><span>${item.rotulo}</span><span>${item.valor}</span></div>
+        <div class="barra-fundo"><div class="barra-preenchida ${item.cor}" style="width:${Math.round((item.valor / maior) * 100)}%"></div></div>
+      </div>
+    `).join("");
   }
 
   async function carregarInstagramPosts(){
@@ -3709,18 +3907,20 @@
       igLeadsCache = [];
     }
 
+    igInteracoesPorUsuario = {};
+    igRecebeuPorUsuario = {};
     try {
-      // Conta quantos envios (ig_deliveries) cada pessoa já recebeu, pra coluna "Interações".
-      const { data, error } = await Auth.client.from("ig_deliveries").select("ig_user_id");
+      // Conta quantos envios (ig_deliveries) cada pessoa já recebeu, pra coluna "Interações",
+      // e marca quem já recebeu ao menos um envio com sucesso, pra coluna "Recebeu?".
+      const { data, error } = await Auth.client.from("ig_deliveries").select("ig_user_id, status");
       if (error) throw error;
-      igInteracoesPorUsuario = {};
       (data || []).forEach(entrega => {
         if (!entrega.ig_user_id) return;
         igInteracoesPorUsuario[entrega.ig_user_id] = (igInteracoesPorUsuario[entrega.ig_user_id] || 0) + 1;
+        if (entrega.status === "ok") igRecebeuPorUsuario[entrega.ig_user_id] = true;
       });
     } catch (erro) {
       console.error("Erro ao contar interações do Instagram:", erro);
-      igInteracoesPorUsuario = {};
     }
 
     renderizarInstagramInteracoes();
@@ -3729,9 +3929,31 @@
   const IG_ROTULOS_ORIGEM = { comment: "Comentário", dm: "Mensagem direta", story_reply: "Resposta de story" };
 
   function renderizarInstagramInteracoes(){
+    const totalReceberam = igLeadsCache.filter(l => igRecebeuPorUsuario[l.ig_user_id]).length;
+    document.getElementById("igLeadsCartoes").innerHTML = `
+      <div class="cartao cartao-numero">
+        <p class="ig-metrica-rotulo">Leads captados</p>
+        <p class="ig-metrica-numero">${igLeadsCache.length.toLocaleString("pt-BR")}</p>
+        <p class="ig-metrica-legenda">Pessoas que a automação trouxe</p>
+      </div>
+      <div class="cartao cartao-numero">
+        <p class="ig-metrica-rotulo">Receberam a entrega</p>
+        <p class="ig-metrica-numero">${totalReceberam.toLocaleString("pt-BR")}</p>
+        <p class="ig-metrica-legenda">Confirmadas como enviadas</p>
+      </div>
+    `;
+
+    const filtro = igLeadsFiltro.trim().toLowerCase().replace(/^@/, "");
+    const listaFiltrada = filtro
+      ? igLeadsCache.filter(lead =>
+          (lead.username || "").toLowerCase().includes(filtro) ||
+          (lead.last_keyword || "").toLowerCase().includes(filtro)
+        )
+      : igLeadsCache;
+
     const container = document.getElementById("igListaInteracoes");
-    if (!igLeadsCache.length){
-      container.innerHTML = `<p class="texto-vazio">Nenhuma interação captada ainda.</p>`;
+    if (!listaFiltrada.length){
+      container.innerHTML = `<p class="texto-vazio">${igLeadsCache.length ? "Nenhum lead bate com essa busca." : "Nenhuma interação captada ainda."}</p>`;
       return;
     }
 
@@ -3745,17 +3967,19 @@
               <th>Palavra-chave</th>
               <th>Contato</th>
               <th>Etiqueta</th>
+              <th>Recebeu?</th>
               <th>Interações</th>
               <th>Última vez</th>
               <th>Outras infos</th>
             </tr>
           </thead>
           <tbody>
-            ${igLeadsCache.map(lead => {
+            ${listaFiltrada.map(lead => {
               const automacao = igAutomacoesCache.find(a => a.id === lead.automation_id);
               const contato = [lead.email, lead.telefone].filter(Boolean).join(" · ") || "Não informado";
               const etiquetas = (lead.tags && lead.tags.length) ? lead.tags.join(", ") : "Sem etiqueta";
               const interacoes = igInteracoesPorUsuario[lead.ig_user_id] || 0;
+              const recebeu = igRecebeuPorUsuario[lead.ig_user_id] ? "Sim" : "Não";
               const ultimaVez = lead.updated_at
                 ? new Date(lead.updated_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
                 : "Não informado";
@@ -3770,6 +3994,7 @@
                   <td>${igEscaparHtml(lead.last_keyword || "Nenhuma")}</td>
                   <td>${igEscaparHtml(contato)}</td>
                   <td>${igEscaparHtml(etiquetas)}</td>
+                  <td>${recebeu}</td>
                   <td>${interacoes}</td>
                   <td>${igEscaparHtml(ultimaVez)}</td>
                   <td>${igEscaparHtml(outrasInfos)}</td>
@@ -3780,6 +4005,39 @@
         </table>
       </div>
     `;
+  }
+
+  function exportarInstagramLeadsCsv(){
+    const cabecalho = ["Nome/user", "Origem", "Palavra-chave", "Contato", "Etiqueta", "Recebeu", "Interacoes", "Ultima vez", "Outras infos"];
+    const linhas = igLeadsCache.map(lead => {
+      const automacao = igAutomacoesCache.find(a => a.id === lead.automation_id);
+      const contato = [lead.email, lead.telefone].filter(Boolean).join(" | ");
+      const etiquetas = (lead.tags && lead.tags.length) ? lead.tags.join("; ") : "";
+      const interacoes = igInteracoesPorUsuario[lead.ig_user_id] || 0;
+      const recebeu = igRecebeuPorUsuario[lead.ig_user_id] ? "Sim" : "Nao";
+      const ultimaVez = lead.updated_at ? new Date(lead.updated_at).toLocaleString("pt-BR") : "";
+      const partes = [];
+      if (automacao) partes.push("Automacao: " + automacao.nome);
+      if (lead.flow_step) partes.push("Passo " + lead.flow_step);
+      return [
+        lead.username ? "@" + lead.username : lead.ig_user_id,
+        IG_ROTULOS_ORIGEM[lead.last_source] || "",
+        lead.last_keyword || "",
+        contato, etiquetas, recebeu, interacoes, ultimaVez, partes.join(" | "),
+      ];
+    });
+
+    const textoCsv = [cabecalho, ...linhas]
+      .map(linha => linha.map(campo => `"${String(campo).replace(/"/g, '""')}"`).join(","))
+      .join("\r\n");
+
+    const blob = new Blob(["﻿" + textoCsv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "leads-instagram.csv";
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   function renderizarListaPostsEditor(){
@@ -3797,33 +4055,64 @@
     `).join("");
   }
 
-  function renderizarInstagramMetricas(dados, leadsCaptados){
+  function renderizarInstagramMetricas(dados, leadsCaptados, leadsUltimos15Dias){
     document.getElementById("igMetricasVazio").classList.add("oculto");
     document.getElementById("igMetricasConteudo").classList.remove("oculto");
 
     const novosEm15Dias = (dados.novosSeguidoresPorDia || [])
+      .reduce((soma, ponto) => soma + (Number(ponto.valor) || 0), 0);
+    const alcanceTotal15Dias = (dados.alcancePorDia || [])
       .reduce((soma, ponto) => soma + (Number(ponto.valor) || 0), 0);
 
     document.getElementById("igCartoesNumeros").innerHTML = `
       <div class="cartao cartao-numero">
         <p class="ig-metrica-rotulo">Seguidores</p>
         <p class="ig-metrica-numero">${Number(dados.seguidores ?? 0).toLocaleString("pt-BR")}</p>
-        <p class="ig-metrica-legenda">${dados.usuario ? "@" + igEscaparHtml(dados.usuario) : ""}</p>
-      </div>
-      <div class="cartao cartao-numero">
-        <p class="ig-metrica-rotulo">Novos em 15 dias</p>
-        <p class="ig-metrica-numero">${novosEm15Dias.toLocaleString("pt-BR")}</p>
-        <p class="ig-metrica-legenda">Somando os novos seguidores por dia</p>
+        <p class="ig-metrica-legenda">↑ ${novosEm15Dias.toLocaleString("pt-BR")} em 15 dias</p>
       </div>
       <div class="cartao cartao-numero">
         <p class="ig-metrica-rotulo">Leads captados</p>
         <p class="ig-metrica-numero">${Number(leadsCaptados || 0).toLocaleString("pt-BR")}</p>
-        <p class="ig-metrica-legenda">Pessoas que a automação trouxe</p>
+        <p class="ig-metrica-legenda">↑ ${Number(leadsUltimos15Dias || 0).toLocaleString("pt-BR")} em 15 dias</p>
+      </div>
+      <div class="cartao cartao-numero">
+        <p class="ig-metrica-rotulo">Alcance</p>
+        <p class="ig-metrica-numero">${alcanceTotal15Dias.toLocaleString("pt-BR")}</p>
+        <p class="ig-metrica-legenda">Contas alcançadas · 15 dias</p>
       </div>
     `;
 
-    renderizarGraficoInstagram("igGraficoSeguidores", dados.novosSeguidoresPorDia || []);
-    renderizarGraficoInstagram("igGraficoAlcance", dados.alcancePorDia || []);
+    renderizarGraficoComResumo(
+      "igGraficoSeguidores", "igGraficoSeguidoresNumero", "igGraficoSeguidoresResumo",
+      dados.novosSeguidoresPorDia || [], "seguidores",
+    );
+    renderizarGraficoComResumo(
+      "igGraficoAlcance", "igGraficoAlcanceNumero", "igGraficoAlcanceResumo",
+      dados.alcancePorDia || [], "contas",
+    );
+  }
+
+  function renderizarGraficoComResumo(idGrafico, idNumero, idResumo, serie, sufixo){
+    const total = serie.reduce((soma, p) => soma + (Number(p.valor) || 0), 0);
+    document.getElementById(idNumero).textContent = `+${total.toLocaleString("pt-BR")} ${sufixo}`;
+
+    if (serie.length){
+      const media = total / serie.length;
+      const pico = serie.reduce(
+        (maiorPonto, p) => (Number(p.valor) || 0) > (maiorPonto ? Number(maiorPonto.valor) : -1) ? p : maiorPonto,
+        null,
+      );
+      const dataPico = pico
+        ? new Date(pico.data).toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" })
+        : "";
+      document.getElementById(idResumo).textContent = pico
+        ? `média ${media.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/dia · pico +${Number(pico.valor).toLocaleString("pt-BR")} em ${dataPico}`
+        : "";
+    } else {
+      document.getElementById(idResumo).textContent = "";
+    }
+
+    renderizarGraficoInstagram(idGrafico, serie);
   }
 
   function renderizarGraficoInstagram(idContainer, serie){
@@ -3880,12 +4169,17 @@
         ? `<img src="${igEscaparHtml(post.miniatura || "")}" alt="" class="ig-automacao-miniatura">`
         : `<div class="ig-automacao-miniatura ig-automacao-miniatura-vazia">📋</div>`;
 
+      // Por enquanto toda automação dispara por comentário (não temos gatilho por Direct
+      // ainda), e a contagem de posts vem de media_ids (vazio = vale pra todos os posts).
+      const qtdPosts = automacao.media_ids ? automacao.media_ids.length : 0;
+      const textoPosts = qtdPosts > 0 ? `${qtdPosts} post${qtdPosts > 1 ? "s" : ""}` : "Todos os posts";
+
       return `
         <div class="ig-automacao-item ${automacao.active ? "" : "inativa"}">
           ${miniaturaHtml}
           <div class="ig-automacao-info">
-            <p class="ig-automacao-nome">${igEscaparHtml(automacao.nome || "Sem nome")}</p>
-            <p class="ig-automacao-gatilho">${igEscaparHtml(gatilho)}</p>
+            <p class="ig-automacao-nome">${igEscaparHtml(automacao.nome || "Sem nome")}<span class="ig-badge-tipo">💬 Comentário</span></p>
+            <p class="ig-automacao-gatilho">${igEscaparHtml(gatilho)} · ${textoPosts}</p>
           </div>
           <label class="ig-toggle" title="${automacao.active ? "Desligar" : "Ligar"}">
             <input type="checkbox" ${automacao.active ? "checked" : ""} data-acao="ig-ativar" data-id="${automacao.id}">
@@ -4259,13 +4553,19 @@
     document.querySelectorAll("#subAbasInstagram .sub-aba-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         document.querySelectorAll("#subAbasInstagram .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === btn.dataset.subaba));
-        document.getElementById("igSubMetricas").classList.toggle("oculto", btn.dataset.subaba !== "metricas");
-        document.getElementById("igSubAutomacoes").classList.toggle("oculto", btn.dataset.subaba !== "automacoes");
-        document.getElementById("igSubInteracoes").classList.toggle("oculto", btn.dataset.subaba !== "interacoes");
+        Object.entries(IG_SUBABAS).forEach(([chave, idConteudo]) => {
+          document.getElementById(idConteudo).classList.toggle("oculto", chave !== btn.dataset.subaba);
+        });
       });
     });
 
     document.getElementById("igBotaoNovaAutomacao").addEventListener("click", () => igAbrirEditor(null));
+
+    document.getElementById("igLeadsBusca").addEventListener("input", (e) => {
+      igLeadsFiltro = e.target.value;
+      renderizarInstagramInteracoes();
+    });
+    document.getElementById("igBotaoExportarCsv").addEventListener("click", exportarInstagramLeadsCsv);
     document.getElementById("igEditorFechar").addEventListener("click", igFecharEditor);
     document.getElementById("igEditorCancelar").addEventListener("click", igFecharEditor);
     document.getElementById("igEditorSalvar").addEventListener("click", igSalvarAutomacao);

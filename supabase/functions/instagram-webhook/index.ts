@@ -114,6 +114,18 @@ async function handleComment(valor: any) {
 
   const { data: automacoes } = await supabase.from("ig_automations").select("*").eq("active", true);
   const automacao = acharAutomacao((automacoes ?? []) as Automacao[], texto, mediaId);
+
+  // Loga TODO comentário (bate automação ou não), pra alimentar "quem mais
+  // comenta" e as análises de conteúdo. on conflict ignora reenvios do mesmo evento.
+  await supabase.from("ig_comments").insert({
+    comment_id: comentarioId,
+    ig_user_id: autorId,
+    username: autorUsername,
+    media_id: mediaId,
+    texto,
+    automation_id: automacao?.id ?? null,
+  });
+
   if (!automacao) return;
 
   const ehContaDeTeste = TEST_IG_ACCOUNTS.includes(autorId);
