@@ -29,7 +29,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const perfilUrl = `${GRAPH_BASE}/${IG_ACCOUNT_ID}?fields=followers_count&access_token=${
+    const perfilUrl = `${GRAPH_BASE}/${IG_ACCOUNT_ID}?fields=followers_count,username&access_token=${
       encodeURIComponent(IG_ACCESS_TOKEN)
     }`;
     const respostaPerfil = await fetch(perfilUrl);
@@ -57,6 +57,7 @@ Deno.serve(async (req: Request) => {
       );
       return respostaJson({
         seguidores: perfil.followers_count ?? null,
+        usuario: perfil.username ?? null,
         novosSeguidoresPorDia: [],
         alcancePorDia: [],
         aviso: "Total de seguidores carregado, mas os gráficos por dia falharam.",
@@ -70,6 +71,7 @@ Deno.serve(async (req: Request) => {
 
     return respostaJson({
       seguidores: perfil.followers_count ?? null,
+      usuario: perfil.username ?? null,
       novosSeguidoresPorDia: extrairSerie("follower_count"),
       alcancePorDia: extrairSerie("reach"),
     });

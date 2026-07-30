@@ -1906,6 +1906,16 @@
   }
   .ig-emoji-bar button:hover{ border-color: var(--coral); background: var(--branco); }
 
+  /* Cartões de métrica do Instagram (rótulo em cima, número grande, legenda embaixo) */
+  .ig-metrica-rotulo{
+    font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--texto-suave); margin-bottom: 8px;
+  }
+  .ig-metrica-numero{
+    font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 700; line-height: 1.1; margin-bottom: 6px;
+  }
+  .ig-metrica-legenda{ font-size: .78rem; color: var(--texto-suave); }
+
   /* Lista de posts (checkbox + miniatura) pra restringir a automação */
   .ig-lista-posts{
     display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto;
@@ -3686,17 +3696,20 @@
       .reduce((soma, ponto) => soma + (Number(ponto.valor) || 0), 0);
 
     document.getElementById("igCartoesNumeros").innerHTML = `
-      <div class="cartao cartao-numero destaque">
-        <p class="numero-grande">${Number(dados.seguidores ?? 0).toLocaleString("pt-BR")}</p>
-        <p class="numero-rotulo">Seguidores</p>
+      <div class="cartao cartao-numero">
+        <p class="ig-metrica-rotulo">Seguidores</p>
+        <p class="ig-metrica-numero">${Number(dados.seguidores ?? 0).toLocaleString("pt-BR")}</p>
+        <p class="ig-metrica-legenda">${dados.usuario ? "@" + igEscaparHtml(dados.usuario) : ""}</p>
       </div>
       <div class="cartao cartao-numero">
-        <p class="numero-grande">${novosEm15Dias.toLocaleString("pt-BR")}</p>
-        <p class="numero-rotulo">Novos em 15 dias</p>
+        <p class="ig-metrica-rotulo">Novos em 15 dias</p>
+        <p class="ig-metrica-numero">${novosEm15Dias.toLocaleString("pt-BR")}</p>
+        <p class="ig-metrica-legenda">Somando os novos seguidores por dia</p>
       </div>
       <div class="cartao cartao-numero">
-        <p class="numero-grande">${Number(leadsCaptados || 0).toLocaleString("pt-BR")}</p>
-        <p class="numero-rotulo">Leads captados</p>
+        <p class="ig-metrica-rotulo">Leads captados</p>
+        <p class="ig-metrica-numero">${Number(leadsCaptados || 0).toLocaleString("pt-BR")}</p>
+        <p class="ig-metrica-legenda">Pessoas que a automação trouxe</p>
       </div>
     `;
 
