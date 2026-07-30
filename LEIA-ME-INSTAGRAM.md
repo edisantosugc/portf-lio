@@ -108,7 +108,37 @@ e o `ig-token-refresh` toda segunda-feira às 3h.
    (os três; o `messaging_postbacks` é o que faz os botões da conversa
    funcionarem).
 
-## 6. Testar
+## 6. Inscrever a conta no webhook (passo que não pode faltar)
+
+Configurar a URL e os campos do webhook no app (passo 5) não é suficiente
+sozinho: a conta profissional do Instagram também precisa ser **inscrita**
+explicitamente pra mandar os eventos pra esse webhook. Sem isso, tudo parece
+certo no painel da Meta, mas nenhum evento chega (a aba Invocations da
+função fica sem nenhum POST, só os GETs de verificação).
+
+1. Descubra o ID da sua conta (se ainda não souber): abra no navegador,
+   trocando `SEU_TOKEN` pelo `IG_ACCESS_TOKEN`:
+   ```
+   https://graph.instagram.com/v21.0/me?fields=id,username&access_token=SEU_TOKEN
+   ```
+2. Confira se já está inscrita (deve voltar `"data": []` se não estiver):
+   ```
+   https://graph.instagram.com/v21.0/SEU_ID_DE_CONTA/subscribed_apps?access_token=SEU_TOKEN
+   ```
+3. Inscreva a conta (o `&method=post` faz o navegador simular um POST,
+   já que só dá pra digitar GET direto na barra de endereço):
+   ```
+   https://graph.instagram.com/v21.0/SEU_ID_DE_CONTA/subscribed_apps?subscribed_fields=comments,messages,messaging_postbacks&access_token=SEU_TOKEN&method=post
+   ```
+   Deve responder `{"success": true}`.
+
+⚠️ Além disso, se o app ainda estiver em modo de desenvolvimento (antes da
+revisão completa da Meta), quem comentar/mandar mensagem de teste precisa
+estar cadastrado como **Testador do Instagram** em Funções do app, E ter
+aceitado esse convite pelo lado do Instagram (Configurações > Central de
+Contas > Apps e sites > aba "Convites do testador").
+
+## 7. Testar
 
 1. Com uma **segunda conta** do Instagram (a sua própria é ignorada de
    propósito, pra não responder a si mesma), comente a palavra-chave de uma
@@ -116,10 +146,12 @@ e o `ig-token-refresh` toda segunda-feira às 3h.
 2. Confira no painel do Supabase (Table Editor) se apareceu uma linha em
    `ig_send_queue` e depois em `ig_deliveries`.
 3. Toque no botão da DM recebida e confira se a conversa avança.
-4. Se algo não funcionar, veja os logs da função `instagram-webhook` em
-   Edge Functions > Logs, no painel do Supabase.
+4. Se algo não funcionar, veja a aba **Invocations** da função
+   `instagram-webhook` (Edge Functions > instagram-webhook > Invocations, no
+   painel do Supabase): se não aparecer nenhum POST ali, o problema é no
+   passo 6 acima, não no código.
 
-## 7. Ligar a trava de segurança
+## 8. Ligar a trava de segurança
 
 Depois que tudo tiver sido testado e estiver funcionando, mude o secret
 `APP_SECRET_ENFORCE` de `"false"` para `"true"`. Isso faz o webhook passar a
