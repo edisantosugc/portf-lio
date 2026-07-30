@@ -1834,6 +1834,158 @@
     .abordagem-periodo-btn{ flex: 1; padding: 8px 6px; }
   }
 
+  /* ===================== ABA: INSTAGRAM ===================== */
+
+  /* Estado vazio (sem Instagram/Supabase conectado ainda) */
+  .ig-estado-vazio{
+    background: var(--branco); border: 1px dashed var(--borda); border-radius: 20px;
+    padding: 40px 24px; text-align: center; color: var(--texto-suave);
+  }
+  .ig-estado-vazio-icone{ font-size: 2rem; display: block; margin-bottom: 10px; }
+  .ig-estado-vazio-titulo{ font-family: 'Fraunces', serif; font-size: 1.15rem; font-weight: 600; color: var(--grafite); margin-bottom: 6px; }
+  .ig-estado-vazio-texto{ font-size: .85rem; max-width: 420px; margin: 0 auto; line-height: 1.5; }
+
+  /* Cabeçalho da lista de automações */
+  .ig-automacoes-topo{ display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .ig-automacoes-legenda{ font-size: .85rem; color: var(--texto-suave); max-width: 460px; }
+
+  /* Lista de automações */
+  .ig-automacao-item{
+    display: flex; align-items: center; gap: 14px; padding: 16px 4px; border-bottom: 1px solid var(--borda);
+  }
+  .ig-automacao-item:last-child{ border-bottom: none; }
+  .ig-automacao-info{ flex-grow: 1; min-width: 0; }
+  .ig-automacao-nome{ font-weight: 600; font-size: .92rem; margin-bottom: 3px; }
+  .ig-automacao-gatilho{ font-size: .78rem; color: var(--texto-suave); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ig-automacao-item.inativa .ig-automacao-nome{ color: var(--texto-suave); }
+  .ig-automacao-acoes{ display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .ig-automacao-acoes button{
+    background: none; border: none; font-family: 'Outfit', sans-serif; font-size: .82rem; font-weight: 600;
+    color: var(--texto-suave); cursor: pointer; padding: 6px 10px; border-radius: 8px;
+  }
+  .ig-automacao-acoes button:hover{ background: var(--creme); color: var(--coral); }
+  .ig-automacao-acoes button.perigo:hover{ color: var(--vermelho); }
+
+  /* Toggle liga/desliga (interruptor) */
+  .ig-toggle{ position: relative; display: inline-block; width: 38px; height: 22px; flex-shrink: 0; }
+  .ig-toggle input{ opacity: 0; width: 0; height: 0; position: absolute; }
+  .ig-toggle-trilho{
+    position: absolute; inset: 0; background: var(--borda); border-radius: 50px; cursor: pointer; transition: background .2s ease;
+  }
+  .ig-toggle-trilho::before{
+    content: ""; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: var(--branco);
+    border-radius: 50%; transition: transform .2s ease; box-shadow: 0 1px 3px rgba(0,0,0,.25);
+  }
+  .ig-toggle input:checked + .ig-toggle-trilho{ background: var(--coral); }
+  .ig-toggle input:checked + .ig-toggle-trilho::before{ transform: translateX(16px); }
+  .ig-campo-toggle-linha{ display: flex; align-items: center; gap: 10px; font-size: .85rem; font-weight: 600; color: var(--grafite); margin: 4px 0; }
+
+  /* Campo de tags (palavras-chave) */
+  .ig-tags-input{
+    display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 10px; border: 1px solid var(--borda); border-radius: 10px;
+    background: var(--creme); align-items: center;
+  }
+  .ig-tags-input:focus-within{ border-color: var(--coral); }
+  .ig-tags-input input{
+    flex: 1; min-width: 120px; border: none; background: transparent; font-family: 'Outfit', sans-serif;
+    font-size: .85rem; padding: 4px; color: var(--grafite);
+  }
+  .ig-tags-input input:focus{ outline: none; }
+  .ig-tag{
+    display: inline-flex; align-items: center; gap: 6px; background: var(--coral); color: var(--branco);
+    font-size: .78rem; font-weight: 600; padding: 5px 6px 5px 12px; border-radius: 50px;
+  }
+  .ig-tag button{ background: rgba(255,255,255,.25); border: none; color: var(--branco); width: 16px; height: 16px; border-radius: 50%; cursor: pointer; font-size: .7rem; line-height: 1; }
+  .ig-tag button:hover{ background: rgba(255,255,255,.45); }
+
+  /* Barra de emojis rápidos */
+  .ig-emoji-bar{ display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .ig-emoji-bar button{
+    background: var(--creme); border: 1px solid var(--borda); border-radius: 8px; font-size: 1rem;
+    padding: 4px 8px; cursor: pointer; line-height: 1.2;
+  }
+  .ig-emoji-bar button:hover{ border-color: var(--coral); background: var(--branco); }
+
+  /* Nota / aviso de recurso ainda não conectado, dentro do editor */
+  .ig-nota{
+    background: rgba(201,166,107,.14); border: 1px solid var(--dourado); border-radius: 10px; padding: 10px 12px;
+    font-size: .76rem; line-height: 1.5; color: var(--texto-suave); margin-top: 6px;
+  }
+
+  /* Editor de automação (tela cheia) */
+  .ig-editor-cartao{
+    background: var(--branco); border-radius: 18px; width: 100%; max-width: 1120px; height: 92vh;
+    box-shadow: 0 30px 70px rgba(26,24,22,.3); text-align: left; display: flex; flex-direction: column;
+  }
+  .ig-editor-corpo{ display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 0; flex: 1; min-height: 0; }
+  .ig-editor-form{ padding: 20px 22px; overflow-y: auto; display: flex; flex-direction: column; gap: 22px; }
+  .ig-editor-secao{ padding-bottom: 20px; border-bottom: 1px solid var(--borda); display: flex; flex-direction: column; gap: 12px; }
+  .ig-editor-secao:last-child{ border-bottom: none; padding-bottom: 0; }
+  .ig-campo-label{ font-size: .78rem; font-weight: 600; color: var(--texto-suave); display: block; margin-bottom: 5px; }
+  .ig-contador-caracteres{ font-weight: 400; color: var(--texto-suave); float: right; }
+
+  .ig-editor-preview{
+    background: var(--creme); padding: 20px 18px; overflow-y: auto; border-left: 1px solid var(--borda);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .ig-preview-rotulo{ font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--texto-suave); margin-bottom: 14px; align-self: flex-start; }
+
+  /* Mockup de celular pra prévia ao vivo da conversa */
+  .ig-phone{
+    width: 100%; max-width: 250px; background: var(--grafite); border-radius: 30px; padding: 10px;
+    box-shadow: 0 16px 40px rgba(26,24,22,.25);
+  }
+  .ig-phone-tela{
+    background: var(--branco); border-radius: 20px; min-height: 420px; padding: 14px 10px;
+    display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 60vh;
+  }
+  .ig-bolha{
+    background: var(--creme); border-radius: 16px 16px 16px 4px; padding: 10px 12px; max-width: 92%;
+    align-self: flex-start; font-size: .78rem; line-height: 1.4; color: var(--grafite);
+  }
+  .ig-bolha-botoes{ display: flex; flex-direction: column; border-top: 1px solid var(--borda); margin: 8px -12px -10px; }
+  .ig-bolha-botao{
+    padding: 9px 12px; font-size: .76rem; font-weight: 700; color: var(--coral); text-align: center;
+    border-top: 1px solid var(--borda); display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .ig-bolha-botoes .ig-bolha-botao:first-child{ border-top: none; }
+  .ig-preview-vazio{ font-size: .78rem; color: var(--texto-suave); text-align: center; margin-top: 30px; }
+
+  /* Construtor de sequência (mini-chat) */
+  .ig-passo-referencia{ background: var(--creme); border-radius: 10px; padding: 10px 12px; }
+  .ig-passo-referencia-rotulo{ font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--texto-suave); margin-bottom: 4px; }
+  .ig-passo-mensagem{ border: 1px solid var(--borda); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .ig-passo-mensagem-topo{ display: flex; align-items: center; justify-content: space-between; }
+  .ig-passo-mensagem-titulo{ font-size: .8rem; font-weight: 700; color: var(--grafite); }
+  .ig-passo-remover{ background: none; border: none; color: var(--vermelho); font-size: .78rem; font-weight: 600; cursor: pointer; }
+  .ig-passo-botao-linha{
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--creme);
+    border-radius: 10px; padding: 8px; border: 1px solid var(--borda);
+  }
+  .ig-passo-botao-linha input.ig-botao-titulo{ flex: 1 1 140px; }
+  .ig-passo-botao-linha select.ig-botao-destino{ flex: 0 1 160px; }
+  .ig-passo-botao-linha input.ig-botao-titulo,
+  .ig-passo-botao-linha select.ig-botao-destino,
+  .ig-passo-botao-linha select.ig-botao-next{
+    font-family: 'Outfit', sans-serif; font-size: .82rem; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid var(--borda); background: var(--branco); color: var(--grafite);
+  }
+  .ig-passo-botao-destino-extra{ flex-basis: 100%; }
+  .ig-passo-botao-destino-extra select,
+  .ig-passo-botao-destino-extra textarea{
+    width: 100%; font-family: 'Outfit', sans-serif; font-size: .82rem; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid var(--borda); background: var(--branco); color: var(--grafite); resize: vertical;
+  }
+  .ig-passo-remover-botao{ background: none; border: none; color: var(--texto-suave); cursor: pointer; font-size: .9rem; padding: 0 4px; margin-left: auto; }
+  .ig-passo-remover-botao:hover{ color: var(--vermelho); }
+
+  @media (max-width: 900px){
+    .ig-editor-cartao{ height: 96vh; max-width: 100%; }
+    .ig-editor-corpo{ grid-template-columns: 1fr; }
+    .ig-editor-preview{ border-left: none; border-top: 1px solid var(--borda); }
+    .ig-phone{ max-width: 220px; }
+  }
+
   /* ===================== RESPONSIVO ===================== */
   @media (max-width: 900px){
     .sidebar{
@@ -2002,6 +2154,132 @@
   </div>
 </div>
 
+<!-- ===== Modal: Editor de Automação do Instagram ===== -->
+<div class="ugc-modal-overlay oculto" id="igEditorOverlay" role="dialog" aria-modal="true" aria-labelledby="igEditorTitulo">
+  <div class="ig-editor-cartao">
+    <div class="cliente-modal-topo">
+      <h2 id="igEditorTitulo">Nova automação</h2>
+      <button type="button" class="cliente-modal-fechar" id="igEditorFechar" aria-label="Fechar">&times;</button>
+    </div>
+
+    <div class="ig-editor-corpo">
+      <div class="ig-editor-form">
+
+        <!-- BLOCO 1: O GATILHO -->
+        <div class="ig-editor-secao">
+          <p class="cliente-secao-rotulo">O gatilho</p>
+
+          <div class="ugc-campo largo">
+            <label for="igCampoNome">Nome da automação</label>
+            <input type="text" id="igCampoNome" placeholder="Ex: Promoção de verão">
+          </div>
+
+          <div class="ig-campo-toggle-linha">
+            <label class="ig-toggle">
+              <input type="checkbox" id="igCampoMatchAny">
+              <span class="ig-toggle-trilho"></span>
+            </label>
+            <span>Qualquer palavra ativa a automação</span>
+          </div>
+
+          <div class="ugc-campo largo" id="igAreaPalavrasChave">
+            <label>Palavras que ativam</label>
+            <div class="ig-tags-input" id="igTagsKeyword">
+              <input type="text" id="igCampoKeywordNova" placeholder="Digite uma palavra e aperte Enter">
+            </div>
+          </div>
+
+          <div class="ugc-campo largo">
+            <label>Em quais posts</label>
+            <select disabled>
+              <option>Todos os posts</option>
+            </select>
+            <p class="ig-nota">Conecte o Instagram (ver LEIA-ME) pra escolher posts específicos. Por enquanto, a automação vale pra todos os posts.</p>
+          </div>
+
+          <div class="ugc-campo largo">
+            <label>Resposta pública no comentário</label>
+            <div id="igVariantesResposta"></div>
+            <button type="button" class="ugc-linha-add" id="igBotaoAddVariante" style="margin-top: 8px; margin-bottom: 0;">+ Adicionar variação A/B</button>
+          </div>
+        </div>
+
+        <!-- BLOCO 2: A RESPOSTA -->
+        <div class="ig-editor-secao">
+          <p class="cliente-secao-rotulo">A resposta (DM)</p>
+
+          <div class="ugc-campo largo">
+            <label>Sua mensagem</label>
+            <textarea id="igCampoMensagem1" rows="3" placeholder="Ex: Que bom que você quer saber mais! 🫶"></textarea>
+            <div class="ig-emoji-bar" id="igEmojiBarMensagem1"></div>
+          </div>
+
+          <div class="ig-campo-toggle-linha">
+            <label class="ig-toggle">
+              <input type="checkbox" id="igCampoBotaoAtivo" checked>
+              <span class="ig-toggle-trilho"></span>
+            </label>
+            <span>Botão na mensagem</span>
+          </div>
+
+          <div id="igAreaBotao1">
+            <div class="ugc-campo largo">
+              <label>Texto do botão <span class="ig-contador-caracteres" id="igContadorBotao1">0/20</span></label>
+              <input type="text" id="igCampoTextoBotao1" maxlength="20" placeholder="Ex: Quero saber">
+            </div>
+
+            <div class="ugc-campo largo">
+              <label>O que o botão faz quando ela toca</label>
+              <div class="ugc-origem-toggle" id="igDestinoSeletor">
+                <span class="ativo" data-destino="link">Um link</span>
+                <span data-destino="conversa">Continua a conversa</span>
+              </div>
+            </div>
+
+            <div class="ugc-campo largo" id="igAreaLink1">
+              <label>Link</label>
+              <textarea id="igCampoLink1" rows="2" placeholder="https://..."></textarea>
+            </div>
+          </div>
+
+          <div class="ugc-campo largo">
+            <label>Anexar um arquivo (opcional)</label>
+            <p class="ig-nota">A biblioteca de arquivos (PDF, áudio, foto, vídeo) chega numa próxima fase, junto com o restante do backend.</p>
+          </div>
+        </div>
+
+        <!-- CONSTRUTOR DE SEQUÊNCIA (mini-chat) -->
+        <div class="ig-editor-secao oculto" id="igConstrutorConversa">
+          <p class="cliente-secao-rotulo">A conversa</p>
+
+          <div class="ig-passo-referencia">
+            <p class="ig-passo-referencia-rotulo">Mensagem 1 (editada acima)</p>
+            <p id="igReferenciaMensagem1"></p>
+          </div>
+
+          <div id="igListaPassos" style="display: flex; flex-direction: column; gap: 14px;"></div>
+
+          <button type="button" class="ugc-linha-add" id="igBotaoAddPasso" style="margin-bottom: 0;">+ Adicionar mensagem</button>
+        </div>
+
+      </div>
+
+      <div class="ig-editor-preview">
+        <p class="ig-preview-rotulo">Prévia ao vivo</p>
+        <div class="ig-phone">
+          <div class="ig-phone-tela" id="igPreviewTela"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cliente-modal-rodape">
+      <span class="ig-nota" id="igEditorAviso" style="display:none; margin-right: auto; align-self: center;"></span>
+      <button type="button" class="btn-fantasma" id="igEditorCancelar">Cancelar</button>
+      <button type="button" class="botao-add-tarefa" id="igEditorSalvar">Salvar automação</button>
+    </div>
+  </div>
+</div>
+
 <div class="app">
 
   <!-- ===================== SIDEBAR ===================== -->
@@ -2024,6 +2302,10 @@
         <svg viewBox="0 0 16 16"><path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/></svg>
         Portfólio
         <span class="badge-alerta-sidebar oculto" id="badgeMensagensPortfolio"></span>
+      </button>
+      <button class="menu-item" data-tab="instagram">
+        <svg viewBox="0 0 16 16"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.556 0 5.83 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.444.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.83 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.444-.445.719-.891.923-1.417.198-.509.333-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.174-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 8 0zm0 1.441c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.232s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.232s.008-2.389.046-3.232c.036-.78.166-1.204.276-1.485.145-.374.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.843-.038 1.096-.046 3.232-.046zm0 2.451a4.108 4.108 0 1 0 0 8.216 4.108 4.108 0 0 0 0-8.216zm0 6.775a2.667 2.667 0 1 1 0-5.334 2.667 2.667 0 0 1 0 5.334zm5.23-6.937a.96.96 0 1 1-1.92 0 .96.96 0 0 1 1.92 0z"/></svg>
+        Instagram
       </button>
       <button class="menu-item" data-tab="abordagem">
         <svg viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.259.408a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg>
@@ -2138,6 +2420,35 @@
         <div class="cartao" id="cartaoMensagensRecebidas">
           <h2>Mensagens recebidas</h2>
           <div id="listaMensagens"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ABA: INSTAGRAM ===================== -->
+    <section id="painelInstagram" class="painel-tab oculto">
+      <div class="sub-abas-negocio" id="subAbasInstagram">
+        <button type="button" class="sub-aba-btn ativo" data-subaba="metricas">Métricas</button>
+        <button type="button" class="sub-aba-btn" data-subaba="automacoes">Automações</button>
+      </div>
+
+      <!-- SUB-ABA: MÉTRICAS -->
+      <div id="igSubMetricas">
+        <div class="ig-estado-vazio" id="igMetricasVazio">
+          <span class="ig-estado-vazio-icone">📸</span>
+          <p class="ig-estado-vazio-titulo">Conecte seu Instagram pra ver as métricas</p>
+          <p class="ig-estado-vazio-texto">Seguidores, alcance e leads aparecem aqui assim que a integração com a API do Instagram estiver configurada (ver LEIA-ME).</p>
+        </div>
+      </div>
+
+      <!-- SUB-ABA: AUTOMAÇÕES -->
+      <div id="igSubAutomacoes" class="oculto">
+        <div class="ig-automacoes-topo">
+          <p class="ig-automacoes-legenda">Crie respostas automáticas de DM a partir de comentários nos seus posts, com botões, links e captura de leads.</p>
+          <button type="button" class="botao-add-tarefa" id="igBotaoNovaAutomacao">+ Nova automação</button>
+        </div>
+
+        <div class="cartao" style="padding: 8px 20px;">
+          <div id="igListaAutomacoes"></div>
         </div>
       </div>
     </section>
@@ -2938,6 +3249,21 @@
   let clienteAbordagemOrigemId = null; // de qual abordagem veio o "Completar cadastro", pra linkar de volta depois de salvar
   let clienteFiltroResumoAtivo = null; // 'carteira' | 'ativa' | 'abordagem' | null — filtro pelos cards do topo, tem prioridade sobre a sub-aba
 
+  // Estado da aba Instagram > Automações: lista carregada da tabela ig_automations
+  // (existe só depois que o SQL dessa fase for rodado no Supabase, por isso o
+  // carregamento é isolado e tolerante a falha, igual Clientes/Notas/Abordagem acima)
+  // e o estado do editor de automação (o "ManyChat"), reconstruído do zero a cada
+  // abertura a partir da automação escolhida (ou vazio, pra uma nova).
+  let igAutomacoesCache = [];
+  let igEditando = null;          // id da automação em edição, ou null quando é uma nova
+  let igEditorSujo = false;       // true assim que a pessoa mexe em algum campo do editor, sem salvar ainda
+  let igEstadoKeywords = [];      // palavras-chave (tags) do gatilho
+  let igEstadoVariantes = [""];   // variações A/B da resposta pública no comentário
+  let igDestinoBotao1 = "link";   // "link" | "conversa" — o que o botão da Mensagem 1 faz
+  let igEstadoPassos = [];        // mensagens 2, 3... do construtor de sequência
+  let igProximoPassoId = 2;       // gerador de id de passo (o id 1 é sempre a Mensagem 1)
+  const IG_EMOJIS = ["🫶","👀","😍","🥰","😂","😮","🔥","✨","💌","👉","🙌","💕"];
+
   // Estado das conversas de IA da Negociação: uma entrada por contexto, cada
   // uma é a lista de mensagens daquela conversa, em ordem cronológica.
   // (O Crô usaria esse mesmo mecanismo, mas foi deixado de fora por enquanto.)
@@ -3179,6 +3505,14 @@
       } catch (erroClientes) {
         console.error("Erro ao carregar/renderizar Clientes:", erroClientes);
       }
+      try {
+        // Isolado do carregamento principal: a tabela ig_automations (aba Instagram > Automações)
+        // ainda não existe até essa fase do backend ser configurada no Supabase, então essa busca
+        // pode falhar sem travar o resto do painel (a lista só aparece vazia).
+        await carregarInstagramAutomacoes();
+      } catch (erroInstagram) {
+        console.error("Erro ao carregar/renderizar Instagram:", erroInstagram);
+      }
     } catch (erro) {
       console.error(erro);
       document.getElementById("areaCarregando").classList.add("oculto");
@@ -3229,6 +3563,618 @@
   }
 
   /* =========================================================================
+     ABA: INSTAGRAM > AUTOMAÇÕES (o "ManyChat")
+
+     Nesta fase só o frontend existe: o banco (tabela ig_automations), as regras
+     de acesso e as Edge Functions que de fato conversam com a API do Instagram
+     ainda não foram criados (fica pra uma próxima fase, documentada à parte).
+     Por isso toda leitura/escrita aqui é tolerante a falha: se a tabela não
+     existir ainda, a lista aparece vazia em vez de quebrar o painel, e o editor
+     continua 100% navegável (só o "Salvar" de verdade depende do banco existir).
+     ========================================================================= */
+
+  // Evita que texto digitado pela pessoa vire HTML sem querer ao montar a tela
+  function igEscaparHtml(texto){
+    const div = document.createElement("div");
+    div.textContent = texto === null || texto === undefined ? "" : String(texto);
+    return div.innerHTML;
+  }
+
+  async function carregarInstagramAutomacoes(){
+    try {
+      const { data, error } = await Auth.client
+        .from("ig_automations")
+        .select("*")
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      igAutomacoesCache = data || [];
+    } catch (erro) {
+      console.error("Erro ao carregar automações do Instagram (tabela ainda não configurada?):", erro);
+      igAutomacoesCache = [];
+    }
+    renderizarListaAutomacoes();
+  }
+
+  function renderizarListaAutomacoes(){
+    const lista = document.getElementById("igListaAutomacoes");
+    if (!igAutomacoesCache.length){
+      lista.innerHTML = `<p class="texto-vazio">Nenhuma automação ainda. Clique em "Nova automação" pra criar a primeira.</p>`;
+      return;
+    }
+    lista.innerHTML = igAutomacoesCache.map(automacao => {
+      const gatilho = automacao.match_any
+        ? "Qualquer comentário ativa"
+        : "Palavras: " + (automacao.keyword || "(nenhuma)");
+      return `
+        <div class="ig-automacao-item ${automacao.active ? "" : "inativa"}">
+          <div class="ig-automacao-info">
+            <p class="ig-automacao-nome">${igEscaparHtml(automacao.nome || "Sem nome")}</p>
+            <p class="ig-automacao-gatilho">${igEscaparHtml(gatilho)}</p>
+          </div>
+          <label class="ig-toggle" title="${automacao.active ? "Desligar" : "Ligar"}">
+            <input type="checkbox" ${automacao.active ? "checked" : ""} data-acao="ig-ativar" data-id="${automacao.id}">
+            <span class="ig-toggle-trilho"></span>
+          </label>
+          <div class="ig-automacao-acoes">
+            <button type="button" data-acao="ig-editar" data-id="${automacao.id}">Editar</button>
+            <button type="button" class="perigo" data-acao="ig-apagar" data-id="${automacao.id}">Apagar</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  async function igRecarregarAutomacoes(){
+    try {
+      const { data, error } = await Auth.client
+        .from("ig_automations")
+        .select("*")
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      igAutomacoesCache = data || [];
+    } catch (erro) {
+      console.error("Erro ao recarregar automações do Instagram:", erro);
+    }
+    renderizarListaAutomacoes();
+  }
+
+  /* ---------- Abrir/fechar o editor ---------- */
+
+  function igAbrirEditor(automacao){
+    igEditando = automacao ? automacao.id : null;
+    igEditorSujo = false;
+    igEstadoVariantes = [""];
+    igDestinoBotao1 = "link";
+    igEstadoPassos = [];
+    igProximoPassoId = 2;
+
+    document.getElementById("igCampoNome").value = automacao ? (automacao.nome || "") : "";
+    document.getElementById("igCampoMatchAny").checked = automacao ? !!automacao.match_any : false;
+    igEstadoKeywords = automacao && automacao.keyword
+      ? automacao.keyword.split(",").map(k => k.trim()).filter(Boolean)
+      : [];
+
+    if (automacao && automacao.public_reply_variants && automacao.public_reply_variants.length){
+      igEstadoVariantes = automacao.public_reply_variants.slice();
+    } else if (automacao && automacao.public_reply){
+      igEstadoVariantes = [automacao.public_reply];
+    }
+
+    document.getElementById("igCampoMensagem1").value = "";
+    document.getElementById("igCampoBotaoAtivo").checked = true;
+    document.getElementById("igCampoTextoBotao1").value = "";
+    document.getElementById("igCampoLink1").value = "";
+
+    const steps = automacao && automacao.flow && Array.isArray(automacao.flow.steps) ? automacao.flow.steps : null;
+    if (steps && steps.length){
+      const passo1 = steps[0];
+      document.getElementById("igCampoMensagem1").value = passo1.message || "";
+      const botao1 = (passo1.buttons || [])[0];
+      if (botao1){
+        document.getElementById("igCampoBotaoAtivo").checked = true;
+        document.getElementById("igCampoTextoBotao1").value = botao1.title || "";
+        if (botao1.url !== undefined){
+          igDestinoBotao1 = "link";
+          document.getElementById("igCampoLink1").value = botao1.url || "";
+        } else {
+          igDestinoBotao1 = "conversa";
+        }
+      } else {
+        document.getElementById("igCampoBotaoAtivo").checked = false;
+      }
+
+      igEstadoPassos = steps.slice(1).map(passo => ({
+        id: passo.id,
+        message: passo.message || "",
+        buttons: (passo.buttons || []).map(b => ({
+          title: b.title || "",
+          tipo: b.url !== undefined ? "url" : (b.next !== undefined ? "next" : "end"),
+          next: b.next,
+          url: b.url
+        }))
+      }));
+      if (steps.length){
+        igProximoPassoId = Math.max(2, ...steps.map(s => (Number(s.id) || 0) + 1));
+      }
+    }
+
+    document.getElementById("igEditorTitulo").textContent = automacao ? "Editar automação" : "Nova automação";
+    const aviso = document.getElementById("igEditorAviso");
+    aviso.style.display = "none";
+    aviso.textContent = "";
+
+    igRenderizarVariantes();
+    igRenderizarTags();
+    igAtualizarContadorBotao1();
+    igAtualizarAreaBotao1();
+    igAtualizarDestinoVisual();
+    igRenderizarPassos();
+    igAtualizarPreview();
+    igEditorSujo = false;
+
+    document.getElementById("igEditorOverlay").classList.remove("oculto");
+  }
+
+  function igFecharEditor(){
+    if (igEditorSujo && !confirm("Você tem alterações não salvas nessa automação. Sair mesmo assim?")) return;
+    document.getElementById("igEditorOverlay").classList.add("oculto");
+  }
+
+  /* ---------- Palavras-chave (tags) ---------- */
+
+  function igRenderizarTags(){
+    const container = document.getElementById("igTagsKeyword");
+    const input = document.getElementById("igCampoKeywordNova");
+    container.querySelectorAll(".ig-tag").forEach(el => el.remove());
+    igEstadoKeywords.forEach((palavra, indice) => {
+      const tag = document.createElement("span");
+      tag.className = "ig-tag";
+      tag.innerHTML = `${igEscaparHtml(palavra)} <button type="button" data-indice="${indice}" aria-label="Remover">&times;</button>`;
+      container.insertBefore(tag, input);
+    });
+  }
+
+  /* ---------- Variações A/B da resposta pública ---------- */
+
+  function igRenderizarVariantes(){
+    const container = document.getElementById("igVariantesResposta");
+    container.innerHTML = igEstadoVariantes.map((texto, indice) => `
+      <div style="display:flex; gap:8px; align-items:flex-start; margin-bottom:8px;">
+        <textarea rows="2" data-indice="${indice}" class="ig-variante-texto"
+          placeholder="Ex: te chamei no direto 💌" style="flex:1;">${igEscaparHtml(texto)}</textarea>
+        ${igEstadoVariantes.length > 1
+          ? `<button type="button" class="ig-passo-remover-botao" data-indice="${indice}" data-acao="ig-remover-variante" title="Remover variação">&times;</button>`
+          : ""}
+      </div>
+    `).join("");
+  }
+
+  /* ---------- Botão da Mensagem 1 (ativo/inativo, destino, contador) ---------- */
+
+  function igAtualizarAreaBotao1(){
+    const ativo = document.getElementById("igCampoBotaoAtivo").checked;
+    document.getElementById("igAreaBotao1").classList.toggle("oculto", !ativo);
+  }
+
+  function igAtualizarContadorBotao1(){
+    const valor = document.getElementById("igCampoTextoBotao1").value;
+    document.getElementById("igContadorBotao1").textContent = `${valor.length}/20`;
+  }
+
+  function igAtualizarDestinoVisual(){
+    document.querySelectorAll("#igDestinoSeletor span").forEach(span => {
+      span.classList.toggle("ativo", span.dataset.destino === igDestinoBotao1);
+    });
+    document.getElementById("igAreaLink1").classList.toggle("oculto", igDestinoBotao1 !== "link");
+    document.getElementById("igConstrutorConversa").classList.toggle("oculto", igDestinoBotao1 !== "conversa");
+  }
+
+  /* ---------- Construtor de sequência (mini-chat) ---------- */
+
+  function igRenderizarPassos(){
+    document.getElementById("igReferenciaMensagem1").textContent =
+      document.getElementById("igCampoMensagem1").value.trim() || "(sem texto ainda)";
+
+    const container = document.getElementById("igListaPassos");
+    container.innerHTML = igEstadoPassos.map((passo, indicePasso) => {
+      const botoesHtml = passo.buttons.map((botao, indiceBotao) => {
+        let extra = "";
+        if (botao.tipo === "next"){
+          const opcoes = igEstadoPassos
+            .map((p, i) => ({ p, numero: i + 2 }))
+            .filter(item => item.p !== passo)
+            .map(item => `<option value="${item.p.id}" ${botao.next === item.p.id ? "selected" : ""}>Mensagem ${item.numero}</option>`)
+            .join("");
+          extra = `
+            <div class="ig-passo-botao-destino-extra">
+              <select class="ig-botao-next" data-passo="${indicePasso}" data-botao="${indiceBotao}">
+                <option value="">Escolha a mensagem...</option>
+                ${opcoes}
+              </select>
+            </div>`;
+        } else if (botao.tipo === "url"){
+          extra = `
+            <div class="ig-passo-botao-destino-extra">
+              <textarea class="ig-botao-url" rows="2" placeholder="https://..." data-passo="${indicePasso}" data-botao="${indiceBotao}">${igEscaparHtml(botao.url || "")}</textarea>
+            </div>`;
+        }
+        return `
+          <div class="ig-passo-botao-linha">
+            <input type="text" class="ig-botao-titulo" value="${igEscaparHtml(botao.title)}" placeholder="Nome do botão" maxlength="20" data-passo="${indicePasso}" data-botao="${indiceBotao}">
+            <select class="ig-botao-destino" data-passo="${indicePasso}" data-botao="${indiceBotao}">
+              <option value="next" ${botao.tipo === "next" ? "selected" : ""}>Ir pra outra mensagem</option>
+              <option value="url" ${botao.tipo === "url" ? "selected" : ""}>Abrir um link</option>
+              <option value="end" ${botao.tipo === "end" ? "selected" : ""}>Encerrar</option>
+            </select>
+            <button type="button" class="ig-passo-remover-botao" data-passo="${indicePasso}" data-botao="${indiceBotao}" data-acao="ig-remover-botao" title="Remover botão">&times;</button>
+            ${extra}
+          </div>
+        `;
+      }).join("");
+
+      return `
+        <div class="ig-passo-mensagem" data-passo="${indicePasso}">
+          <div class="ig-passo-mensagem-topo">
+            <span class="ig-passo-mensagem-titulo">Mensagem ${indicePasso + 2}</span>
+            <button type="button" class="ig-passo-remover" data-passo="${indicePasso}" data-acao="ig-remover-passo">Remover mensagem</button>
+          </div>
+          <textarea class="ig-passo-texto" rows="2" placeholder="Texto dessa mensagem" data-passo="${indicePasso}">${igEscaparHtml(passo.message)}</textarea>
+          <div style="display:flex; flex-direction:column; gap:8px;">${botoesHtml}</div>
+          <button type="button" class="ugc-linha-add" data-passo="${indicePasso}" data-acao="ig-add-botao" style="margin:0;">+ Adicionar botão</button>
+        </div>
+      `;
+    }).join("");
+  }
+
+  /* ---------- Prévia ao vivo (mockup de celular) ---------- */
+
+  function igMontarBolhaHtml(texto, botoes){
+    const botoesHtml = botoes.length ? `
+      <div class="ig-bolha-botoes">
+        ${botoes.map(b => `<div class="ig-bolha-botao">${b.ehLink ? "🔗 " : ""}${igEscaparHtml(b.titulo || "(sem nome)")}</div>`).join("")}
+      </div>` : "";
+    return `<div class="ig-bolha">${igEscaparHtml(texto || "(sem texto ainda)")}${botoesHtml}</div>`;
+  }
+
+  function igAtualizarPreview(){
+    const tela = document.getElementById("igPreviewTela");
+    const mensagem1 = document.getElementById("igCampoMensagem1").value.trim();
+
+    if (!mensagem1){
+      tela.innerHTML = `<p class="ig-preview-vazio">Escreva a mensagem pra ver a prévia aqui.</p>`;
+      return;
+    }
+
+    const botaoAtivo = document.getElementById("igCampoBotaoAtivo").checked;
+    const textoBotao1 = document.getElementById("igCampoTextoBotao1").value.trim();
+
+    const bolhas = [];
+    const botoesPasso1 = [];
+    if (botaoAtivo && textoBotao1){
+      botoesPasso1.push({ titulo: textoBotao1, ehLink: igDestinoBotao1 === "link" });
+    }
+    bolhas.push(igMontarBolhaHtml(mensagem1, botoesPasso1));
+
+    if (igDestinoBotao1 === "conversa"){
+      igEstadoPassos.forEach(passo => {
+        const botoesVisiveis = passo.buttons
+          .filter(b => b.tipo === "next" || b.tipo === "url")
+          .map(b => ({ titulo: b.title, ehLink: b.tipo === "url" }));
+        if (passo.message || botoesVisiveis.length){
+          bolhas.push(igMontarBolhaHtml(passo.message, botoesVisiveis));
+        }
+      });
+    }
+
+    tela.innerHTML = bolhas.join("");
+  }
+
+  /* ---------- Montar o flow (jsonb) e validar antes de salvar ---------- */
+
+  function igMontarFlow(){
+    const mensagem1 = document.getElementById("igCampoMensagem1").value.trim();
+    const botaoAtivo = document.getElementById("igCampoBotaoAtivo").checked;
+    const textoBotao1 = document.getElementById("igCampoTextoBotao1").value.trim();
+    const linkBotao1 = document.getElementById("igCampoLink1").value.trim();
+
+    const passo1 = { id: 1, message: mensagem1, buttons: [] };
+    if (botaoAtivo && textoBotao1){
+      if (igDestinoBotao1 === "link"){
+        passo1.buttons.push({ title: textoBotao1, url: linkBotao1 });
+      } else if (igEstadoPassos[0]){
+        passo1.buttons.push({ title: textoBotao1, next: igEstadoPassos[0].id });
+      }
+    }
+
+    const steps = [passo1];
+    igEstadoPassos.forEach(passo => {
+      const buttons = passo.buttons
+        .filter(b => b.tipo === "next" || b.tipo === "url")
+        .map(b => b.tipo === "url" ? { title: b.title, url: b.url || "" } : { title: b.title, next: b.next });
+      steps.push({ id: passo.id, message: passo.message, buttons });
+    });
+
+    return { steps };
+  }
+
+  function igValidarAntesSalvar(){
+    const matchAny = document.getElementById("igCampoMatchAny").checked;
+    if (!matchAny && !igEstadoKeywords.length){
+      return "Adicione pelo menos uma palavra-chave, ou ligue \"qualquer palavra ativa\".";
+    }
+    if (!document.getElementById("igCampoMensagem1").value.trim()){
+      return "Escreva a mensagem que a pessoa recebe na DM.";
+    }
+    const botaoAtivo = document.getElementById("igCampoBotaoAtivo").checked;
+    if (botaoAtivo){
+      if (!document.getElementById("igCampoTextoBotao1").value.trim()){
+        return "Escreva o texto do botão, ou desligue o botão da mensagem.";
+      }
+      if (igDestinoBotao1 === "link" && !document.getElementById("igCampoLink1").value.trim()){
+        return "Cole o link que o botão vai abrir.";
+      }
+      if (igDestinoBotao1 === "conversa" && !igEstadoPassos.length){
+        return "Adicione pelo menos uma mensagem seguinte, ou escolha \"Um link\" no botão.";
+      }
+    }
+    for (const passo of igEstadoPassos){
+      for (const botao of passo.buttons){
+        if (botao.tipo === "url" && !(botao.url || "").trim()){
+          return "Preencha o link de um dos botões da conversa.";
+        }
+        if (botao.tipo === "next" && !botao.next){
+          return "Escolha pra qual mensagem um dos botões da conversa deve levar.";
+        }
+      }
+    }
+    return null;
+  }
+
+  async function igSalvarAutomacao(){
+    const erroValidacao = igValidarAntesSalvar();
+    const aviso = document.getElementById("igEditorAviso");
+    if (erroValidacao){
+      aviso.textContent = erroValidacao;
+      aviso.style.display = "inline";
+      return;
+    }
+
+    const nome = document.getElementById("igCampoNome").value.trim() || "Sem nome";
+    const matchAny = document.getElementById("igCampoMatchAny").checked;
+    const variantesPreenchidas = igEstadoVariantes.map(v => v.trim()).filter(Boolean);
+    const automacaoAnterior = igEditando ? igAutomacoesCache.find(a => a.id === igEditando) : null;
+
+    const registro = {
+      nome,
+      keyword: matchAny ? "" : igEstadoKeywords.join(","),
+      match_any: matchAny,
+      active: automacaoAnterior ? automacaoAnterior.active : true,
+      media_ids: [],
+      public_reply: variantesPreenchidas[0] || "",
+      public_reply_variants: variantesPreenchidas,
+      flow: igMontarFlow(),
+      asset_ids: [],
+      updated_at: new Date().toISOString()
+    };
+
+    try {
+      if (igEditando){
+        const { error } = await Auth.client.from("ig_automations").update(registro).eq("id", igEditando);
+        if (error) throw error;
+      } else {
+        const { error } = await Auth.client.from("ig_automations").insert(registro);
+        if (error) throw error;
+      }
+      igEditorSujo = false;
+      document.getElementById("igEditorOverlay").classList.add("oculto");
+      await igRecarregarAutomacoes();
+    } catch (erro) {
+      console.error("Erro ao salvar automação do Instagram:", erro);
+      aviso.textContent = "Ainda não deu pra salvar de verdade (o banco dessa automação ainda não foi configurado, ver LEIA-ME). Detalhe técnico: " + (erro.message || erro);
+      aviso.style.display = "inline";
+    }
+  }
+
+  /* ---------- Amarra todos os eventos da aba Instagram ---------- */
+
+  function configurarEventosInstagram(){
+    document.querySelectorAll("#subAbasInstagram .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#subAbasInstagram .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === btn.dataset.subaba));
+        document.getElementById("igSubMetricas").classList.toggle("oculto", btn.dataset.subaba !== "metricas");
+        document.getElementById("igSubAutomacoes").classList.toggle("oculto", btn.dataset.subaba !== "automacoes");
+      });
+    });
+
+    document.getElementById("igBotaoNovaAutomacao").addEventListener("click", () => igAbrirEditor(null));
+    document.getElementById("igEditorFechar").addEventListener("click", igFecharEditor);
+    document.getElementById("igEditorCancelar").addEventListener("click", igFecharEditor);
+    document.getElementById("igEditorSalvar").addEventListener("click", igSalvarAutomacao);
+
+    document.getElementById("igListaAutomacoes").addEventListener("click", async (e) => {
+      const acao = e.target.dataset.acao;
+      const id = e.target.dataset.id;
+      if (acao === "ig-editar"){
+        igAbrirEditor(igAutomacoesCache.find(a => String(a.id) === String(id)) || null);
+      } else if (acao === "ig-apagar"){
+        if (!confirm("Apagar essa automação? Essa ação não pode ser desfeita.")) return;
+        try {
+          const { error } = await Auth.client.from("ig_automations").delete().eq("id", id);
+          if (error) throw error;
+          await igRecarregarAutomacoes();
+        } catch (erro) {
+          console.error("Erro ao apagar automação do Instagram:", erro);
+          alert("Não foi possível apagar agora: " + (erro.message || erro));
+        }
+      }
+    });
+
+    document.getElementById("igListaAutomacoes").addEventListener("change", async (e) => {
+      if (e.target.dataset.acao !== "ig-ativar") return;
+      const id = e.target.dataset.id;
+      const ativo = e.target.checked;
+      try {
+        const { error } = await Auth.client.from("ig_automations").update({ active: ativo }).eq("id", id);
+        if (error) throw error;
+        const automacao = igAutomacoesCache.find(a => String(a.id) === String(id));
+        if (automacao) automacao.active = ativo;
+        renderizarListaAutomacoes();
+      } catch (erro) {
+        console.error("Erro ao ativar/desativar automação do Instagram:", erro);
+        e.target.checked = !ativo;
+        alert("Não foi possível atualizar agora: " + (erro.message || erro));
+      }
+    });
+
+    // ---------- Bloco 1: gatilho ----------
+    document.getElementById("igCampoKeywordNova").addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const valor = e.target.value.trim();
+      if (valor){
+        igEstadoKeywords.push(valor);
+        e.target.value = "";
+        igRenderizarTags();
+      }
+    });
+    document.getElementById("igTagsKeyword").addEventListener("click", (e) => {
+      if (e.target.tagName !== "BUTTON") return;
+      igEstadoKeywords.splice(parseInt(e.target.dataset.indice, 10), 1);
+      igRenderizarTags();
+    });
+
+    document.getElementById("igBotaoAddVariante").addEventListener("click", () => {
+      igEstadoVariantes.push("");
+      igRenderizarVariantes();
+    });
+    document.getElementById("igVariantesResposta").addEventListener("input", (e) => {
+      if (!e.target.classList.contains("ig-variante-texto")) return;
+      igEstadoVariantes[parseInt(e.target.dataset.indice, 10)] = e.target.value;
+    });
+    document.getElementById("igVariantesResposta").addEventListener("click", (e) => {
+      if (e.target.dataset.acao !== "ig-remover-variante") return;
+      igEstadoVariantes.splice(parseInt(e.target.dataset.indice, 10), 1);
+      igRenderizarVariantes();
+    });
+
+    // ---------- Bloco 2: resposta ----------
+    document.getElementById("igEmojiBarMensagem1").innerHTML =
+      IG_EMOJIS.map(emoji => `<button type="button" data-emoji="${emoji}">${emoji}</button>`).join("");
+    document.getElementById("igEmojiBarMensagem1").addEventListener("click", (e) => {
+      const emoji = e.target.dataset.emoji;
+      if (!emoji) return;
+      const campo = document.getElementById("igCampoMensagem1");
+      const inicio = campo.selectionStart ?? campo.value.length;
+      const fim = campo.selectionEnd ?? campo.value.length;
+      campo.value = campo.value.slice(0, inicio) + emoji + campo.value.slice(fim);
+      campo.focus();
+      campo.selectionStart = campo.selectionEnd = inicio + emoji.length;
+      igAtualizarPreview();
+    });
+
+    document.getElementById("igCampoMensagem1").addEventListener("input", igAtualizarPreview);
+    document.getElementById("igCampoBotaoAtivo").addEventListener("change", () => {
+      igAtualizarAreaBotao1();
+      igAtualizarPreview();
+    });
+    document.getElementById("igCampoTextoBotao1").addEventListener("input", () => {
+      igAtualizarContadorBotao1();
+      igAtualizarPreview();
+    });
+    document.getElementById("igCampoLink1").addEventListener("input", igAtualizarPreview);
+
+    document.querySelectorAll("#igDestinoSeletor span").forEach(span => {
+      span.addEventListener("click", () => {
+        const novoDestino = span.dataset.destino;
+        // Se a pessoa colou um link no campo do NOME do botão, ao escolher "Um link"
+        // o sistema move o link pro campo certo e devolve um nome padrão pro botão.
+        if (novoDestino === "link"){
+          const tituloAtual = document.getElementById("igCampoTextoBotao1").value.trim();
+          if (/^https?:\/\//i.test(tituloAtual)){
+            document.getElementById("igCampoLink1").value = tituloAtual;
+            document.getElementById("igCampoTextoBotao1").value = "Acessar";
+            igAtualizarContadorBotao1();
+          }
+        }
+        igDestinoBotao1 = novoDestino;
+        igAtualizarDestinoVisual();
+        igAtualizarPreview();
+      });
+    });
+
+    // ---------- Construtor de sequência ----------
+    document.getElementById("igBotaoAddPasso").addEventListener("click", () => {
+      igEstadoPassos.push({ id: igProximoPassoId++, message: "", buttons: [] });
+      igRenderizarPassos();
+      igAtualizarPreview();
+    });
+
+    document.getElementById("igListaPassos").addEventListener("input", (e) => {
+      const indicePasso = parseInt(e.target.dataset.passo, 10);
+      const passo = igEstadoPassos[indicePasso];
+      if (!passo) return;
+      if (e.target.classList.contains("ig-passo-texto")){
+        passo.message = e.target.value;
+        igAtualizarPreview();
+      } else if (e.target.classList.contains("ig-botao-titulo")){
+        passo.buttons[parseInt(e.target.dataset.botao, 10)].title = e.target.value;
+        igAtualizarPreview();
+      } else if (e.target.classList.contains("ig-botao-url")){
+        passo.buttons[parseInt(e.target.dataset.botao, 10)].url = e.target.value;
+        igAtualizarPreview();
+      }
+    });
+
+    document.getElementById("igListaPassos").addEventListener("change", (e) => {
+      const indicePasso = parseInt(e.target.dataset.passo, 10);
+      const passo = igEstadoPassos[indicePasso];
+      if (!passo) return;
+      const indiceBotao = parseInt(e.target.dataset.botao, 10);
+
+      if (e.target.classList.contains("ig-botao-destino")){
+        const botao = passo.buttons[indiceBotao];
+        const novoTipo = e.target.value;
+        // Mesma regra do botão da Mensagem 1: link colado no nome vira o link de verdade
+        if (novoTipo === "url" && /^https?:\/\//i.test((botao.title || "").trim())){
+          botao.url = botao.title.trim();
+          botao.title = "Acessar";
+        }
+        botao.tipo = novoTipo;
+        igRenderizarPassos();
+        igAtualizarPreview();
+      } else if (e.target.classList.contains("ig-botao-next")){
+        passo.buttons[indiceBotao].next = e.target.value ? parseInt(e.target.value, 10) : null;
+        igAtualizarPreview();
+      }
+    });
+
+    document.getElementById("igListaPassos").addEventListener("click", (e) => {
+      const acao = e.target.dataset.acao;
+      if (!acao) return;
+      const indicePasso = parseInt(e.target.dataset.passo, 10);
+      const passo = igEstadoPassos[indicePasso];
+      if (!passo) return;
+
+      if (acao === "ig-remover-passo"){
+        igEstadoPassos.splice(indicePasso, 1);
+        igRenderizarPassos();
+        igAtualizarPreview();
+      } else if (acao === "ig-add-botao"){
+        passo.buttons.push({ title: "", tipo: "end" });
+        igRenderizarPassos();
+      } else if (acao === "ig-remover-botao"){
+        passo.buttons.splice(parseInt(e.target.dataset.botao, 10), 1);
+        igRenderizarPassos();
+        igAtualizarPreview();
+      }
+    });
+
+    // Marca o editor como "sujo" (com alterações não salvas) a qualquer mexida
+    document.querySelector(".ig-editor-form").addEventListener("input", () => { igEditorSujo = true; });
+    document.querySelector(".ig-editor-form").addEventListener("change", () => { igEditorSujo = true; });
+  }
+
+  /* =========================================================================
      MÁSCARAS DE INPUT (CNPJ, telefone) — formata enquanto a usuária digita
      ========================================================================= */
   function aplicarMascaraCnpj(valor){
@@ -3263,6 +4209,8 @@
     });
 
     document.getElementById("botaoSair").addEventListener("click", () => Auth.logout());
+
+    configurarEventosInstagram();
 
     document.getElementById("botaoMenuMobile").addEventListener("click", () => {
       document.getElementById("sidebar").classList.add("aberta");
@@ -3650,12 +4598,13 @@
     document.getElementById("painelUgcCreator").classList.toggle("oculto", aba !== "ugc-creator");
     document.getElementById("painelProjetos").classList.toggle("oculto", aba !== "projetos");
     document.getElementById("painelBancoCriativo").classList.toggle("oculto", aba !== "banco-criativo");
+    document.getElementById("painelInstagram").classList.toggle("oculto", aba !== "instagram");
 
-    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", negociacao: "Negociação", "ugc-creator": "UGC Creator", projetos: "Manager", "banco-criativo": "Ideias Criativas" };
+    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", negociacao: "Negociação", "ugc-creator": "UGC Creator", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram" };
     document.getElementById("tituloTopo").textContent = titulos[aba];
 
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
-    const abasSemFiltroPeriodo = ["agenda", "financas", "negocio", "abordagem", "clientes", "negociacao", "ugc-creator", "projetos", "banco-criativo"];
+    const abasSemFiltroPeriodo = ["agenda", "financas", "negocio", "abordagem", "clientes", "negociacao", "ugc-creator", "projetos", "banco-criativo", "instagram"];
     document.getElementById("filtroPeriodo").classList.toggle("oculto", abasSemFiltroPeriodo.includes(aba));
 
     fecharGaveta();
