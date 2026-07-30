@@ -1822,7 +1822,7 @@
   .cliente-modal-rodape{ display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--borda); }
   .cliente-secao-rotulo{ font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--texto-suave); }
   .cliente-area-upload{
-    border: 1.5px dashed var(--borda); border-radius: 14px; padding: 24px 16px; text-align: center; cursor: pointer;
+    display: block; border: 1.5px dashed var(--borda); border-radius: 14px; padding: 24px 16px; text-align: center; cursor: pointer;
     color: var(--texto-suave); background: var(--creme); font-size: .82rem;
   }
   .cliente-area-upload:hover{ border-color: var(--coral); color: var(--coral); }
@@ -2173,6 +2173,69 @@
     .cartoes-numeros{ grid-template-columns: repeat(2, 1fr); }
     .form-lancamento{ grid-template-columns: 1fr; }
   }
+
+  /* =========================================================================
+     ABA: ADMINISTRATIVO (Meus Documentos + Jurídico)
+     ========================================================================= */
+  .admin-subpainel{ display: none; }
+  .admin-subpainel.ativo{ display: block; }
+
+  .doc-bloco{ margin-bottom: 18px; }
+  .doc-bloco-topo{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; }
+  .doc-bloco-topo h2{ font-size: 1.02rem; }
+  .doc-selo-opcional{ font-size: .68rem; font-weight: 700; color: var(--texto-suave); background: var(--creme); border-radius: 50px; padding: 4px 11px; white-space: nowrap; }
+  .doc-linha-avulso{
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 12px 14px; border: 1px dashed var(--borda); border-radius: 10px; font-size: .84rem; margin-bottom: 8px;
+  }
+  .doc-linha-avulso .nome{ display: flex; align-items: center; gap: 8px; color: var(--grafite); font-weight: 600; }
+  .doc-linha-avulso .arquivo-info{ color: var(--texto-suave); font-size: .78rem; }
+  .doc-linha-avulso a{ color: var(--coral); font-weight: 700; text-decoration: none; }
+  .doc-linha-avulso a:hover{ text-decoration: underline; }
+  .doc-avulso-form-novo{ display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+  .doc-avulso-form-novo input[type="text"]{
+    flex: 1; min-width: 160px; padding: 9px 12px; border-radius: 9px; border: 1px solid var(--borda);
+    background: var(--creme); font-family: 'Outfit', sans-serif; font-size: .83rem; color: var(--grafite);
+  }
+
+  .jur-resumo{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 22px; }
+  @media (max-width: 900px){ .jur-resumo{ grid-template-columns: repeat(2, 1fr); } }
+  .jur-resumo .cliente-card-resumo .valor{ color: var(--coral); }
+  .jur-resumo .cliente-card-resumo.expirado .valor{ color: var(--vermelho); }
+  .jur-resumo .cliente-card-resumo.vencendo .valor{ color: var(--dourado); }
+  .jur-resumo .cliente-card-resumo.ativas .valor{ color: var(--verde); }
+
+  .card-licenca{ background: var(--branco); border: 1px solid var(--borda); border-radius: 16px; padding: 18px 20px; margin-bottom: 14px; }
+  .card-licenca-topo{ display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .card-licenca-marca{ display: flex; align-items: center; gap: 12px; }
+  .card-licenca-avatar{
+    width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: #fff; font-size: .9rem; flex-shrink: 0; background: var(--coral);
+  }
+  .card-licenca-marca .nome{ font-weight: 700; font-size: .95rem; }
+  .card-licenca-marca .sub{ font-size: .76rem; color: var(--texto-suave); }
+  .selo-status-licenca{ border-radius: 50px; padding: 4px 12px; font-size: .74rem; font-weight: 700; white-space: nowrap; }
+  .selo-status-licenca.ok{ background: rgba(45,122,79,.12); color: var(--verde); }
+  .selo-status-licenca.atencao{ background: rgba(201,166,107,.18); color: #8a6a2c; }
+  .selo-status-licenca.expirado{ background: rgba(196,69,60,.12); color: var(--vermelho); }
+  .card-licenca-datas{ display: flex; justify-content: space-between; font-size: .76rem; color: var(--texto-suave); margin-bottom: 6px; }
+  .card-licenca-trilho{ height: 7px; border-radius: 50px; background: var(--borda); overflow: hidden; margin-bottom: 14px; }
+  .card-licenca-trilho .preenchido{ height: 100%; border-radius: 50px; background: var(--verde); }
+  .card-licenca-trilho .preenchido.atencao{ background: var(--dourado); }
+  .card-licenca-trilho .preenchido.expirado{ background: var(--vermelho); }
+  .card-licenca-marcadores{ display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .card-licenca-marcadores span{ background: var(--creme); border: 1px solid var(--borda); border-radius: 8px; padding: 5px 10px; font-size: .74rem; color: var(--grafite); }
+  .card-licenca-acoes{ display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+  .card-licenca-acoes .esq, .card-licenca-acoes .dir{ display: flex; gap: 8px; flex-wrap: wrap; }
+  .botao-mini-fantasma{
+    font-size: .76rem; padding: 8px 12px; border-radius: 8px; font-family: 'Outfit', sans-serif; font-weight: 700;
+    cursor: pointer; border: 1px solid var(--borda); background: var(--branco); color: var(--grafite);
+  }
+  .botao-mini-fantasma:hover{ border-color: var(--coral); color: var(--coral); }
+
+  .link-contrato-tabela{ display: inline-flex; align-items: center; gap: 6px; color: var(--coral); font-weight: 600; text-decoration: none; font-size: .82rem; }
+  .link-contrato-tabela:hover{ text-decoration: underline; }
+  .cnpj-mono{ font-variant-numeric: tabular-nums; color: var(--texto-suave); }
 </style>
 </head>
 <body>
@@ -2244,6 +2307,53 @@
     <div class="cliente-modal-rodape">
       <button type="button" class="btn-fantasma" id="clienteModalCancelar">Cancelar</button>
       <button type="button" class="botao-add-tarefa" id="clienteModalSalvar">Criar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Registrar licenciamento (ao marcar "Negociação fechada") ===== -->
+<div class="ugc-modal-overlay oculto" id="modalLicenciamento" role="dialog" aria-modal="true" aria-labelledby="modalLicenciamentoTitulo">
+  <div class="cliente-modal-cartao">
+    <div class="cliente-modal-topo">
+      <h2 id="modalLicenciamentoTitulo">📄 Registrar licenciamento</h2>
+      <button type="button" class="cliente-modal-fechar" id="licenciamentoFechar" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="cliente-modal-corpo">
+      <p id="licenciamentoSubtitulo" style="margin:0 0 4px;font-size:.82rem;color:var(--texto-suave);"></p>
+      <div class="ugc-campo largo">
+        <label>Contrato assinado</label>
+        <label class="cliente-area-upload" for="licenciamentoArquivoInput" id="licenciamentoAreaUpload">
+          <span class="icone-upload">📎</span>
+          <span class="principal">Anexar contrato</span>
+          <span id="licenciamentoArquivoNomeExibicao">PDF, imagem — pode anexar depois</span>
+          <input type="file" id="licenciamentoArquivoInput" accept="application/pdf,image/*" class="oculto">
+        </label>
+      </div>
+      <div class="ugc-form-grade">
+        <div class="ugc-campo">
+          <label>Valor</label>
+          <input type="number" step="0.01" min="0" id="licenciamentoCampoValor" placeholder="0,00">
+        </div>
+        <div class="ugc-campo">
+          <label>Quantos vídeos</label>
+          <input type="number" min="0" step="1" id="licenciamentoCampoVideos" placeholder="Ex: 3">
+        </div>
+      </div>
+      <div class="ugc-form-grade">
+        <div class="ugc-campo">
+          <label>Tempo de veiculação em tráfego pago (dias)</label>
+          <input type="number" min="0" step="1" id="licenciamentoCampoDias" placeholder="Ex: 180">
+        </div>
+        <div class="ugc-campo">
+          <label>Início da veiculação</label>
+          <input type="date" id="licenciamentoCampoInicio">
+        </div>
+      </div>
+      <p class="ugc-nota-mini">O vencimento é calculado sozinho a partir do início + os dias informados. Nenhum campo aqui é obrigatório — dá pra preencher depois pela aba Administrativo → Jurídico.</p>
+    </div>
+    <div class="cliente-modal-rodape">
+      <button type="button" class="btn-fantasma" id="licenciamentoPreencherDepois">Preencher depois</button>
+      <button type="button" class="botao-add-tarefa" id="licenciamentoSalvar">Salvar licenciamento</button>
     </div>
   </div>
 </div>
@@ -2447,12 +2557,17 @@
       </button>
       <button class="menu-item" data-tab="ugc-creator">
         <svg viewBox="0 0 16 16"><path d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5z"/></svg>
-        UGC Creator
+        Trabalhos
         <span class="badge-alerta-sidebar oculto" id="badgeAlertaUgcCreator"></span>
       </button>
       <button class="menu-item" data-tab="projetos">
         <svg viewBox="0 0 16 16"><path d="M13.5 1h-11a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm-11 1h3v12h-3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm4 0h3v7h-3V2zm4 0h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3V2z"/></svg>
         Manager
+      </button>
+      <button class="menu-item" data-tab="administrativo">
+        <svg viewBox="0 0 16 16"><path d="M8 0a1 1 0 0 1 .8.4l5 6.5A1 1 0 0 1 13 8.5h-1v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.8-1.6l5-6.5A1 1 0 0 1 8 0z"/></svg>
+        Administrativo
+        <span class="badge-alerta-sidebar oculto" id="badgeAlertaAdministrativo"></span>
       </button>
       <button class="menu-item" data-tab="negocio">
         <svg viewBox="0 0 16 16"><path d="M12.136.326A1.5 1.5 0 0 1 14 1.78V3h.5A1.5 1.5 0 0 1 16 4.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 13.5v-9a1.5 1.5 0 0 1 1.432-1.499L12.136.326zM5.562 3H13V1.78a.5.5 0 0 0-.621-.484L5.562 3zM1.5 4a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-13z"/></svg>
@@ -3414,6 +3529,87 @@
         <div id="notasCorpo"></div>
       </div>
     </section>
+
+    <!-- ===================== ABA: ADMINISTRATIVO ===================== -->
+    <section id="painelAdministrativo" class="painel-tab oculto">
+      <div class="sub-abas-negocio" id="subAbasAdministrativo">
+        <button type="button" class="sub-aba-btn ativo" data-subadmin="documentos">Meus Documentos</button>
+        <button type="button" class="sub-aba-btn" data-subadmin="juridico">Jurídico</button>
+      </div>
+
+      <!-- ---------- Sub-aba: Meus Documentos ---------- -->
+      <div id="adminDocumentos" class="admin-subpainel ativo">
+        <div class="cartao doc-bloco">
+          <div class="doc-bloco-topo">
+            <h2>Identificação</h2>
+            <span class="doc-selo-opcional">Nenhum campo obrigatório</span>
+          </div>
+          <div class="ugc-form-grade">
+            <div class="ugc-campo"><label>Nome completo (pessoa física)</label><input type="text" id="docPessoalNomeCompleto" placeholder="Seu nome completo"></div>
+            <div class="ugc-campo"><label>Nome empresarial</label><input type="text" id="docPessoalNomeEmpresarial" placeholder="Razão social / nome fantasia"></div>
+            <div class="ugc-campo"><label>CPF</label><input type="text" id="docPessoalCpf" placeholder="000.000.000-00"></div>
+            <div class="ugc-campo"><label>CNPJ</label><input type="text" id="docPessoalCnpj" placeholder="00.000.000/0000-00"></div>
+          </div>
+          <div style="display:flex; justify-content:flex-end; margin-top:14px;">
+            <button type="button" class="botao-add-tarefa" id="docPessoalSalvar">Salvar identificação</button>
+          </div>
+        </div>
+
+        <div class="cartao doc-bloco">
+          <div class="doc-bloco-topo"><h2>Cartão CNPJ</h2></div>
+          <label class="cliente-area-upload" for="docPessoalCartaoCnpjInput" id="docPessoalCartaoCnpjArea">
+            <span class="icone-upload">📎</span>
+            <span class="principal" id="docPessoalCartaoCnpjTexto">Anexar cartão CNPJ</span>
+            <span id="docPessoalCartaoCnpjLegenda">PDF ou imagem</span>
+            <input type="file" id="docPessoalCartaoCnpjInput" accept="application/pdf,image/*" class="oculto">
+          </label>
+        </div>
+
+        <div class="cartao doc-bloco">
+          <div class="doc-bloco-topo">
+            <h2>Outros documentos</h2>
+            <span class="doc-selo-opcional">Opcional, sem prazo</span>
+          </div>
+          <div id="docsAvulsosLista"></div>
+          <div class="doc-avulso-form-novo">
+            <input type="text" id="docAvulsoNomeNovo" placeholder="Nome do documento — ex: RG, CNH">
+            <label class="btn-fantasma" for="docAvulsoArquivoNovo" style="cursor:pointer;">📎 Escolher arquivo</label>
+            <input type="file" id="docAvulsoArquivoNovo" accept="application/pdf,image/*" class="oculto">
+            <button type="button" class="botao-add-tarefa" id="docAvulsoAdicionar">+ Adicionar</button>
+          </div>
+          <p class="ugc-nota-mini" id="docAvulsoArquivoNomeSelecionado" style="margin-top:8px;"></p>
+        </div>
+      </div>
+
+      <!-- ---------- Sub-aba: Jurídico ---------- -->
+      <div id="adminJuridico" class="admin-subpainel">
+        <div class="jur-resumo" id="juridicoResumo"></div>
+
+        <div class="sub-abas-negocio" id="subAbasJuridico" style="width: fit-content;">
+          <button type="button" class="sub-aba-btn ativo" data-subjur="licencas">Licenças</button>
+          <button type="button" class="sub-aba-btn" data-subjur="contratos">Contratos</button>
+        </div>
+
+        <div id="juridicoPainelLicencas" class="admin-subpainel ativo">
+          <div id="juridicoListaLicencas"></div>
+        </div>
+
+        <div id="juridicoPainelContratos" class="admin-subpainel">
+          <div class="cartao" style="padding:0; overflow:hidden;">
+            <div class="clientes-tabela-barra">
+              <div class="clientes-busca"><input type="text" id="juridicoContratosBusca" placeholder="Buscar por marca ou CNPJ"></div>
+              <span id="juridicoContratosContagem" style="font-size:.78rem; color:var(--texto-suave);"></span>
+            </div>
+            <div class="clientes-tabela-scroll">
+              <table class="clientes-tabela">
+                <thead><tr><th>Marca</th><th>CNPJ</th><th>Início</th><th>Vencimento</th><th>Contrato</th></tr></thead>
+                <tbody id="juridicoTabelaContratosCorpo"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -3520,6 +3716,23 @@
   let clienteEditandoId = null;
   let clienteAbordagemOrigemId = null; // de qual abordagem veio o "Completar cadastro", pra linkar de volta depois de salvar
   let clienteFiltroResumoAtivo = null; // 'carteira' | 'ativa' | 'abordagem' | null — filtro pelos cards do topo, tem prioridade sobre a sub-aba
+
+  // Estado da aba Administrativo: sub-aba ativa (documentos/jurídico), perfil de Meus
+  // Documentos (uma linha só), documentos avulsos (RG/CNH/etc) e a sub-aba do Jurídico
+  // (licenças/contratos).
+  let administrativoSubAbaAtual = "documentos";
+  let juridicoSubAbaAtual = "licencas";
+  let documentosPessoaisCache = null;
+  let documentosAvulsosCache = [];
+
+  // Ao marcar "Negociação fechada" na aba Abordagem, o painel pede o registro do
+  // licenciamento (contrato, valor, vídeos, tempo de veiculação). Se a abordagem ainda não
+  // tinha cliente_id, primeiro abre o modal de cliente já existente ("Completar cadastro") —
+  // essa variável guarda de qual abordagem veio, pra encadear o modal de licenciamento assim
+  // que o cliente for salvo (ver salvarCliente).
+  let abordagemLicenciamentoPendenteId = null;
+  let abordagemLicenciamentoAbertaId = null; // abordagem cujo modal de licenciamento está aberto agora
+  let licenciamentoArquivoSelecionado = null; // File escolhido no <input type="file"> do modal, antes do upload
 
   // Estado da aba Instagram > Automações: lista carregada da tabela ig_automations
   // (existe só depois que o SQL dessa fase for rodado no Supabase, por isso o
@@ -3829,6 +4042,16 @@
         preencherSelectClienteUgc(document.getElementById("ugcCampoClienteId"), "");
       } catch (erroClientes) {
         console.error("Erro ao carregar/renderizar Clientes:", erroClientes);
+      }
+      try {
+        // Isolado do carregamento principal: painel_documentos_pessoais/painel_documentos_avulsos
+        // só existem depois que o SQL da aba Administrativo for rodado no Supabase.
+        const perfil = await comRetry(() => buscarTudo("painel_documentos_pessoais"));
+        documentosPessoaisCache = perfil[0] || null;
+        documentosAvulsosCache = await comRetry(() => buscarTudo("painel_documentos_avulsos"));
+        renderizarAdministrativo();
+      } catch (erroAdministrativo) {
+        console.error("Erro ao carregar/renderizar Administrativo:", erroAdministrativo);
       }
       try {
         // Isolado do carregamento principal: mesma lógica acima, pro seletor "Em quais
@@ -5495,6 +5718,38 @@
       if (e.target.id === "modalImportarIA") document.getElementById("modalImportarIA").classList.add("oculto");
     });
 
+    // ---------- Administrativo (Meus Documentos + Jurídico) ----------
+    document.querySelectorAll("#subAbasAdministrativo .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => trocarSubAbaAdministrativo(btn.dataset.subadmin));
+    });
+    document.querySelectorAll("#subAbasJuridico .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => trocarSubAbaJuridico(btn.dataset.subjur));
+    });
+    document.getElementById("juridicoContratosBusca").addEventListener("input", renderizarTabelaContratos);
+
+    document.getElementById("docPessoalSalvar").addEventListener("click", salvarDocumentosPessoais);
+    document.getElementById("docPessoalCartaoCnpjInput").addEventListener("change", (e) => {
+      if (e.target.files[0]) enviarCartaoCnpj(e.target.files[0]);
+    });
+    document.getElementById("docAvulsoArquivoNovo").addEventListener("change", (e) => {
+      const arquivo = e.target.files[0];
+      document.getElementById("docAvulsoArquivoNomeSelecionado").textContent = arquivo ? `Arquivo escolhido: ${arquivo.name}` : "";
+    });
+    document.getElementById("docAvulsoAdicionar").addEventListener("click", adicionarDocumentoAvulso);
+
+    // ---------- Modal: Registrar licenciamento ----------
+    document.getElementById("licenciamentoArquivoInput").addEventListener("change", (e) => {
+      licenciamentoArquivoSelecionado = e.target.files[0] || null;
+      document.getElementById("licenciamentoArquivoNomeExibicao").textContent =
+        licenciamentoArquivoSelecionado ? licenciamentoArquivoSelecionado.name : "PDF, imagem — pode anexar depois";
+    });
+    document.getElementById("licenciamentoFechar").addEventListener("click", fecharModalLicenciamento);
+    document.getElementById("licenciamentoPreencherDepois").addEventListener("click", fecharModalLicenciamento);
+    document.getElementById("modalLicenciamento").addEventListener("click", (e) => {
+      if (e.target.id === "modalLicenciamento") fecharModalLicenciamento();
+    });
+    document.getElementById("licenciamentoSalvar").addEventListener("click", salvarLicenciamento);
+
     document.querySelectorAll("#subAbasClientes .sub-aba-btn").forEach(btn => {
       btn.addEventListener("click", () => trocarSubAbaClientes(btn.dataset.subaba));
     });
@@ -5578,12 +5833,13 @@
     document.getElementById("painelProjetos").classList.toggle("oculto", aba !== "projetos");
     document.getElementById("painelBancoCriativo").classList.toggle("oculto", aba !== "banco-criativo");
     document.getElementById("painelInstagram").classList.toggle("oculto", aba !== "instagram");
+    document.getElementById("painelAdministrativo").classList.toggle("oculto", aba !== "administrativo");
 
-    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", negociacao: "Negociação", "ugc-creator": "UGC Creator", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram" };
+    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", negociacao: "Negociação", "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo" };
     document.getElementById("tituloTopo").textContent = titulos[aba];
 
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
-    const abasSemFiltroPeriodo = ["agenda", "financas", "negocio", "abordagem", "clientes", "negociacao", "ugc-creator", "projetos", "banco-criativo", "instagram"];
+    const abasSemFiltroPeriodo = ["agenda", "financas", "negocio", "abordagem", "clientes", "negociacao", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo"];
     document.getElementById("filtroPeriodo").classList.toggle("oculto", abasSemFiltroPeriodo.includes(aba));
 
     fecharGaveta();
@@ -7022,7 +7278,7 @@
     agenda: "Agenda",
     portfolio: "Portfólio",
     clientes: "Clientes",
-    "ugc-creator": "UGC Creator",
+    "ugc-creator": "Trabalhos",
     negocio: "Financeiro UGC"
   };
 
@@ -8423,11 +8679,11 @@
       <div class="ugc-detalhe-linha"><span class="rotulo">Status</span><span class="ugc-etapa-pill ${classeStatusAbordagem(item.status)}">${nomeStatusAbordagem(item.status)}</span></div>
       ${item.abordagem ? `<div class="abordagem-bloco"><span class="rotulo">Abordagem</span><p>${item.abordagem}</p></div>` : ""}
       ${item.observacao ? `<div class="abordagem-bloco"><span class="rotulo">Observação</span><p>${item.observacao}</p></div>` : ""}
-      ${ehRascunho ? "" : `
+      ${precisaFollowupAbordagem(item.status) ? `
       <div class="ugc-status-aprovacao">
         <span class="ugc-badge ${badgeFollowup}">${textoFollowup}</span>
         <button type="button" class="ugc-btn" data-acao="abordagem-toggle-followup" data-id="${item.id}">${item.followup_feito ? "Marcar como pendente" : "Marcar como feito"}</button>
-      </div>`}
+      </div>` : ""}
     `;
   }
 
@@ -8770,6 +9026,15 @@
       document.getElementById("abordagemFormNovo").classList.add("oculto");
       renderizarAbordagens();
       renderizarNotificacoesPopup();
+
+      // Já nasceu "fechada" (marcada direto no formulário de nova abordagem, sem passar
+      // por edição depois) — dispara o mesmo registro de licenciamento do fluxo de edição.
+      // Uma abordagem recém-criada nunca tem cliente_id ainda, então sempre passa primeiro
+      // pelo "Completar cadastro".
+      if (dados.status === "fechada"){
+        abordagemLicenciamentoPendenteId = inserido[0].id;
+        abrirModalClienteApartirDeAbordagem(inserido[0].id);
+      }
     }
   }
 
@@ -8828,8 +9093,25 @@
       followup_feito: followupAtivo ? followupAtivo.dataset.followup === "feito" : false
     };
 
+    const registroAntes = abordagensCache.find(a => a.id === id);
+    const statusAnterior = registroAntes ? registroAntes.status : null;
+
     abordagemEditando.delete(id);
-    await atualizarAbordagem(id, campos);
+    const salvou = await atualizarAbordagem(id, campos);
+
+    // Registro do licenciamento: só dispara na TRANSIÇÃO pra "fechada" (não toda vez que a
+    // abordagem é editada já estando fechada). Se ainda não tem cliente vinculado, primeiro
+    // abre o modal "Completar cadastro" que já existe — o licenciamento é encadeado depois
+    // que o cliente for salvo (ver salvarCliente).
+    if (salvou && status === "fechada" && statusAnterior !== "fechada"){
+      const registroDepois = abordagensCache.find(a => a.id === id);
+      if (registroDepois?.cliente_id){
+        abrirModalLicenciamento(registroDepois);
+      } else {
+        abordagemLicenciamentoPendenteId = id;
+        abrirModalClienteApartirDeAbordagem(id);
+      }
+    }
   }
 
   // Usado pelo lembrete no pop-up de notificações: sempre marca como feito (dispensa o aviso)
@@ -9452,14 +9734,23 @@
         // Se o cadastro veio do card "Completar cadastro", linka de volta na abordagem
         // de origem — isso faz a pendência sumir sozinha (atualizarAbordagem já
         // re-renderiza o pop-up de notificações ao final).
+        let abordagemParaLicenciar = null;
         if (clienteAbordagemOrigemId){
           await atualizarAbordagem(clienteAbordagemOrigemId, { cliente_id: inserido[0].id });
+          // Se esse "Completar cadastro" veio de uma negociação marcada como "fechada"
+          // (ver salvarEdicaoAbordagem), agora que o cliente tem CNPJ etc., encadeia o
+          // modal de licenciamento — lido aqui, antes de fecharModalCliente() resetar tudo.
+          if (abordagemLicenciamentoPendenteId === clienteAbordagemOrigemId){
+            abordagemParaLicenciar = abordagensCache.find(a => a.id === clienteAbordagemOrigemId);
+            abordagemLicenciamentoPendenteId = null;
+          }
         }
         // Se veio do atalho "+ cadastrar cliente novo" do form de Trabalho UGC, já
         // deixa o cliente recém-criado selecionado ali (ugcClienteRapidoAtivo é lido
         // aqui, antes de fecharModalCliente() resetar a flag).
         preencherSelectClienteUgc(document.getElementById("ugcCampoClienteId"), ugcClienteRapidoAtivo ? inserido[0].id : "");
         fecharModalCliente();
+        if (abordagemParaLicenciar) abrirModalLicenciamento(abordagemParaLicenciar);
       }
     }
   }
@@ -9474,6 +9765,389 @@
       clientesCache = clientesCache.filter(c => c.id !== id);
       renderizarClientes();
     }
+  }
+
+  /* =========================================================================
+     ABA: ADMINISTRATIVO (Meus Documentos + Jurídico)
+     ========================================================================= */
+  function trocarSubAbaAdministrativo(sub){
+    administrativoSubAbaAtual = sub;
+    document.querySelectorAll("#subAbasAdministrativo .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subadmin === sub));
+    document.getElementById("adminDocumentos").classList.toggle("ativo", sub === "documentos");
+    document.getElementById("adminJuridico").classList.toggle("ativo", sub === "juridico");
+  }
+
+  function trocarSubAbaJuridico(sub){
+    juridicoSubAbaAtual = sub;
+    document.querySelectorAll("#subAbasJuridico .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subjur === sub));
+    document.getElementById("juridicoPainelLicencas").classList.toggle("ativo", sub === "licencas");
+    document.getElementById("juridicoPainelContratos").classList.toggle("ativo", sub === "contratos");
+    if (sub === "contratos") renderizarTabelaContratos();
+  }
+
+  function renderizarAdministrativo(){
+    renderizarMeusDocumentos();
+    renderizarJuridico();
+  }
+
+  // Envia um arquivo pro bucket privado "documentos-juridicos" (contratos, CPF, CNPJ, RG,
+  // CNH...) e devolve o CAMINHO salvo — não a URL pública, que não existe num bucket privado.
+  async function enviarArquivoJuridico(file, pasta){
+    const caminho = `${pasta}/${Date.now()}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
+    const { error } = await Auth.client.storage.from("documentos-juridicos").upload(caminho, file, { upsert: false });
+    if (error){
+      alert("Não foi possível enviar o arquivo agora: " + error.message);
+      return null;
+    }
+    return { url: caminho, nome: file.name };
+  }
+
+  // O bucket é privado, então pra abrir/baixar um arquivo já salvo é preciso gerar um link
+  // assinado (válido por 1h) na hora do clique — não dá pra guardar uma URL fixa.
+  async function abrirArquivoJuridico(caminho){
+    if (!caminho) return;
+    const { data, error } = await Auth.client.storage.from("documentos-juridicos").createSignedUrl(caminho, 3600);
+    if (error || !data){
+      alert("Não foi possível abrir o arquivo agora.");
+      return;
+    }
+    window.open(data.signedUrl, "_blank");
+  }
+
+  /* ---------- Meus Documentos ---------- */
+  function renderizarMeusDocumentos(){
+    const perfil = documentosPessoaisCache;
+    document.getElementById("docPessoalNomeCompleto").value = perfil?.nome_completo || "";
+    document.getElementById("docPessoalNomeEmpresarial").value = perfil?.nome_empresarial || "";
+    document.getElementById("docPessoalCpf").value = perfil?.cpf || "";
+    document.getElementById("docPessoalCnpj").value = perfil?.cnpj || "";
+
+    document.getElementById("docPessoalCartaoCnpjTexto").textContent = perfil?.cartao_cnpj_url
+      ? (perfil.cartao_cnpj_nome || "Cartão CNPJ anexado")
+      : "Anexar cartão CNPJ";
+    document.getElementById("docPessoalCartaoCnpjLegenda").textContent = perfil?.cartao_cnpj_url
+      ? "Clique pra substituir"
+      : "PDF ou imagem";
+
+    const lista = document.getElementById("docsAvulsosLista");
+    lista.innerHTML = documentosAvulsosCache.map(doc => `
+      <div class="doc-linha-avulso">
+        <span class="nome">📎 ${doc.nome}</span>
+        ${doc.arquivo_url
+          ? `<span class="arquivo-info"><a href="#" data-acao="doc-avulso-abrir" data-caminho="${doc.arquivo_url}">${doc.arquivo_nome}</a></span>`
+          : `<span class="arquivo-info">não anexado</span>`}
+        <button type="button" class="ugc-btn-icone perigo" data-acao="doc-avulso-remover" data-id="${doc.id}" aria-label="Remover documento">&times;</button>
+      </div>
+    `).join("");
+    lista.querySelectorAll("[data-acao='doc-avulso-abrir']").forEach(a => {
+      a.addEventListener("click", (e) => { e.preventDefault(); abrirArquivoJuridico(a.dataset.caminho); });
+    });
+    lista.querySelectorAll("[data-acao='doc-avulso-remover']").forEach(btn => {
+      btn.addEventListener("click", () => removerDocumentoAvulso(btn.dataset.id));
+    });
+  }
+
+  async function salvarDocumentosPessoais(){
+    const dados = {
+      nome_completo: document.getElementById("docPessoalNomeCompleto").value.trim() || null,
+      nome_empresarial: document.getElementById("docPessoalNomeEmpresarial").value.trim() || null,
+      cpf: document.getElementById("docPessoalCpf").value.trim() || null,
+      cnpj: document.getElementById("docPessoalCnpj").value.trim() || null
+    };
+
+    if (documentosPessoaisCache?.id){
+      const { error } = await Auth.client.from("painel_documentos_pessoais").update(dados).eq("id", documentosPessoaisCache.id);
+      if (!error) Object.assign(documentosPessoaisCache, dados);
+    } else {
+      const { data: inserido, error } = await Auth.client.from("painel_documentos_pessoais").insert(dados).select();
+      if (!error && inserido) documentosPessoaisCache = inserido[0];
+    }
+    renderizarMeusDocumentos();
+  }
+
+  async function enviarCartaoCnpj(file){
+    const enviado = await enviarArquivoJuridico(file, "cartao-cnpj");
+    if (!enviado) return;
+
+    const dados = { cartao_cnpj_url: enviado.url, cartao_cnpj_nome: enviado.nome };
+    if (documentosPessoaisCache?.id){
+      const { error } = await Auth.client.from("painel_documentos_pessoais").update(dados).eq("id", documentosPessoaisCache.id);
+      if (!error) Object.assign(documentosPessoaisCache, dados);
+    } else {
+      const { data: inserido, error } = await Auth.client.from("painel_documentos_pessoais").insert(dados).select();
+      if (!error && inserido) documentosPessoaisCache = inserido[0];
+    }
+    renderizarMeusDocumentos();
+  }
+
+  async function adicionarDocumentoAvulso(){
+    const nome = document.getElementById("docAvulsoNomeNovo").value.trim();
+    if (!nome) return;
+    const arquivoInput = document.getElementById("docAvulsoArquivoNovo");
+    const arquivo = arquivoInput.files[0] || null;
+
+    let enviado = null;
+    if (arquivo){
+      enviado = await enviarArquivoJuridico(arquivo, "documentos-avulsos");
+      if (!enviado) return;
+    }
+
+    const dados = { nome, arquivo_url: enviado?.url || null, arquivo_nome: enviado?.nome || null };
+    const { data: inserido, error } = await Auth.client.from("painel_documentos_avulsos").insert(dados).select();
+    if (!error && inserido){
+      documentosAvulsosCache = documentosAvulsosCache.concat(inserido);
+      document.getElementById("docAvulsoNomeNovo").value = "";
+      arquivoInput.value = "";
+      document.getElementById("docAvulsoArquivoNomeSelecionado").textContent = "";
+      renderizarMeusDocumentos();
+    }
+  }
+
+  async function removerDocumentoAvulso(id){
+    const doc = documentosAvulsosCache.find(d => d.id === id);
+    if (!doc) return;
+    if (!window.confirm(`Remover "${doc.nome}"? Essa ação não pode ser desfeita.`)) return;
+    const { error } = await Auth.client.from("painel_documentos_avulsos").delete().eq("id", id);
+    if (!error){
+      documentosAvulsosCache = documentosAvulsosCache.filter(d => d.id !== id);
+      renderizarMeusDocumentos();
+    }
+  }
+
+  /* ---------- Jurídico ---------- */
+  // Trabalhos com algo de licenciamento já registrado (contrato anexado ou período de
+  // tráfego pago preenchido) — base do resumo, dos cards e da tabela de contratos.
+  function obterTrabalhosComLicenciamento(){
+    return ugcCache.filter(t => t.contrato_arquivo_url || t.trafego_pago_fim);
+  }
+
+  function calcularStatusLicenca(item){
+    if (!item.trafego_pago_fim) return { situacao: "sem-data", diasParaVencer: null };
+    const hoje = new Date();
+    const hojeSemHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    const [ano, mes, dia] = item.trafego_pago_fim.split("-").map(Number);
+    const dataFim = new Date(ano, mes - 1, dia);
+    const diasParaVencer = Math.round((dataFim - hojeSemHora) / (1000 * 60 * 60 * 24));
+    let situacao = "ok";
+    if (diasParaVencer < 0) situacao = "expirado";
+    else if (diasParaVencer <= 30) situacao = "atencao";
+    return { situacao, diasParaVencer };
+  }
+
+  function renderizarJuridico(){
+    renderizarResumoJuridico();
+    renderizarListaLicencas();
+    renderizarTabelaContratos();
+  }
+
+  function renderizarResumoJuridico(){
+    const trabalhos = obterTrabalhosComLicenciamento();
+    let ativas = 0, vencendoHoje = 0, proximos30 = 0, expirados = 0;
+
+    trabalhos.forEach(item => {
+      if (!item.contrato_ativo || !item.trafego_pago_fim) return;
+      const { situacao, diasParaVencer } = calcularStatusLicenca(item);
+      if (situacao === "expirado"){
+        expirados++;
+      } else {
+        ativas++;
+        if (diasParaVencer === 0) vencendoHoje++;
+        else if (diasParaVencer > 0 && diasParaVencer <= 30) proximos30++;
+      }
+    });
+
+    const contratos = trabalhos.filter(t => t.contrato_arquivo_url).length;
+
+    document.getElementById("juridicoResumo").innerHTML = `
+      <div class="cliente-card-resumo"><span class="rotulo">Contratos</span><span class="valor">${contratos}</span></div>
+      <div class="cliente-card-resumo ativas"><span class="rotulo">Licenças ativas</span><span class="valor">${ativas}</span></div>
+      <div class="cliente-card-resumo vencendo"><span class="rotulo">Vencendo hoje</span><span class="valor">${vencendoHoje}</span></div>
+      <div class="cliente-card-resumo vencendo"><span class="rotulo">Próximos 30 dias</span><span class="valor">${proximos30}</span></div>
+      <div class="cliente-card-resumo expirado"><span class="rotulo">Expirados</span><span class="valor">${expirados}</span></div>
+    `;
+  }
+
+  function renderizarListaLicencas(){
+    const container = document.getElementById("juridicoListaLicencas");
+    const trabalhos = obterTrabalhosComLicenciamento()
+      .slice()
+      .sort((a, b) => (a.trafego_pago_fim || "9999-99-99").localeCompare(b.trafego_pago_fim || "9999-99-99"));
+
+    if (trabalhos.length === 0){
+      container.innerHTML = `<p class="texto-vazio">Nenhum licenciamento registrado ainda. Ele aparece aqui assim que você registrar o contrato de um trabalho (ao marcar "Negociação fechada" na Abordagem).</p>`;
+      return;
+    }
+
+    container.innerHTML = trabalhos.map(item => {
+      const { situacao, diasParaVencer } = calcularStatusLicenca(item);
+      const inicial = (item.marca || "?").trim().charAt(0).toUpperCase();
+
+      let selo = `<span class="selo-status-licenca ok">Sem data de vencimento</span>`;
+      let larguraBarra = "0%";
+      let corBarra = "";
+      if (diasParaVencer !== null){
+        const totalDias = (item.trafego_pago_inicio && item.trafego_pago_fim)
+          ? Math.max(1, Math.round((new Date(item.trafego_pago_fim) - new Date(item.trafego_pago_inicio)) / (1000 * 60 * 60 * 24)))
+          : null;
+        const decorridos = totalDias ? Math.max(0, totalDias - Math.max(0, diasParaVencer)) : 0;
+        larguraBarra = totalDias ? `${Math.min(100, Math.round((decorridos / totalDias) * 100))}%` : "0%";
+        if (situacao === "expirado"){
+          selo = `<span class="selo-status-licenca expirado">Vencido há ${Math.abs(diasParaVencer)} dia${Math.abs(diasParaVencer) === 1 ? "" : "s"}</span>`;
+          larguraBarra = "100%"; corBarra = "expirado";
+        } else if (situacao === "atencao"){
+          selo = `<span class="selo-status-licenca atencao">Vence em ${diasParaVencer} dia${diasParaVencer === 1 ? "" : "s"}</span>`;
+          corBarra = "atencao";
+        } else {
+          selo = `<span class="selo-status-licenca ok">Vence em ${diasParaVencer} dias</span>`;
+        }
+      }
+
+      const marcadores = [
+        item.contrato_ativo ? "Ads" : null,
+        item.valor != null ? formatarMoeda(item.valor) : null,
+        item.quantidade_videos != null ? `${item.quantidade_videos} vídeo${item.quantidade_videos === 1 ? "" : "s"}` : null,
+        (item.trafego_pago_inicio && item.trafego_pago_fim) ? `Uso ${Math.round((new Date(item.trafego_pago_fim) - new Date(item.trafego_pago_inicio)) / (1000 * 60 * 60 * 24))} dias` : null,
+        item.trafego_pago_fim ? `Vence ${formatarDataCurta(item.trafego_pago_fim)}` : null
+      ].filter(Boolean);
+
+      return `
+        <div class="card-licenca">
+          <div class="card-licenca-topo">
+            <div class="card-licenca-marca">
+              <div class="card-licenca-avatar">${inicial}</div>
+              <div><div class="nome">${item.marca}</div><div class="sub">Trabalhos</div></div>
+            </div>
+            ${selo}
+          </div>
+          <div class="card-licenca-datas">
+            <span>${item.trafego_pago_inicio ? `Início: ${formatarDataCurta(item.trafego_pago_inicio)}` : ""}</span>
+            <span>${item.trafego_pago_fim ? `Vence ${formatarDataCurta(item.trafego_pago_fim)}` : ""}</span>
+          </div>
+          <div class="card-licenca-trilho"><div class="preenchido ${corBarra}" style="width:${larguraBarra}"></div></div>
+          <div class="card-licenca-marcadores">${marcadores.map(m => `<span>${m}</span>`).join("")}</div>
+          <div class="card-licenca-acoes">
+            <div class="esq">${item.contrato_arquivo_url ? `<button type="button" class="botao-mini-fantasma" data-acao="jur-ver-contrato" data-caminho="${item.contrato_arquivo_url}">Ver contrato</button>` : ""}</div>
+            <div class="dir"><button type="button" class="botao-mini-fantasma" data-acao="jur-ir-trabalho">Ver em Trabalhos</button></div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    container.querySelectorAll("[data-acao='jur-ver-contrato']").forEach(btn => {
+      btn.addEventListener("click", () => abrirArquivoJuridico(btn.dataset.caminho));
+    });
+    container.querySelectorAll("[data-acao='jur-ir-trabalho']").forEach(btn => {
+      btn.addEventListener("click", () => trocarAba("ugc-creator"));
+    });
+  }
+
+  function renderizarTabelaContratos(){
+    const corpo = document.getElementById("juridicoTabelaContratosCorpo");
+    const contagem = document.getElementById("juridicoContratosContagem");
+    const buscaEl = document.getElementById("juridicoContratosBusca");
+    const busca = (buscaEl?.value || "").trim().toLowerCase();
+
+    let trabalhos = obterTrabalhosComLicenciamento().filter(t => t.contrato_arquivo_url);
+    if (busca){
+      trabalhos = trabalhos.filter(t => {
+        const cliente = clientesCache.find(c => c.id === t.cliente_id);
+        return (t.marca || "").toLowerCase().includes(busca) || (cliente?.cnpj || "").toLowerCase().includes(busca);
+      });
+    }
+
+    contagem.textContent = `${trabalhos.length} contrato${trabalhos.length === 1 ? "" : "s"}`;
+
+    if (trabalhos.length === 0){
+      corpo.innerHTML = `<tr><td colspan="5" class="texto-vazio">Nenhum contrato arquivado ainda.</td></tr>`;
+      return;
+    }
+
+    corpo.innerHTML = trabalhos.map(item => {
+      const cliente = clientesCache.find(c => c.id === item.cliente_id);
+      return `
+        <tr>
+          <td><strong>${item.marca}</strong></td>
+          <td class="cnpj-mono">${cliente?.cnpj || "—"}</td>
+          <td>${item.trafego_pago_inicio ? formatarDataCurta(item.trafego_pago_inicio) : "—"}</td>
+          <td>${item.trafego_pago_fim ? formatarDataCurta(item.trafego_pago_fim) : "—"}</td>
+          <td><a href="#" class="link-contrato-tabela" data-acao="jur-tabela-ver-contrato" data-caminho="${item.contrato_arquivo_url}">📄 ${item.contrato_arquivo_nome || "contrato"}</a></td>
+        </tr>
+      `;
+    }).join("");
+
+    corpo.querySelectorAll("[data-acao='jur-tabela-ver-contrato']").forEach(a => {
+      a.addEventListener("click", (e) => { e.preventDefault(); abrirArquivoJuridico(a.dataset.caminho); });
+    });
+  }
+
+  /* ---------- Modal: Registrar licenciamento ---------- */
+  // Aberto ao marcar "Negociação fechada" na Abordagem (ver salvarEdicaoAbordagem) — direto,
+  // se a abordagem já tem cliente_id, ou encadeado depois do modal "Completar cadastro"
+  // (ver salvarCliente), quando ainda não tinha.
+  function abrirModalLicenciamento(abordagem){
+    abordagemLicenciamentoAbertaId = abordagem.id;
+    licenciamentoArquivoSelecionado = null;
+    document.getElementById("licenciamentoSubtitulo").textContent = `${abordagem.marca} — pra gerar o acompanhamento automático de vencimento`;
+    document.getElementById("licenciamentoArquivoInput").value = "";
+    document.getElementById("licenciamentoArquivoNomeExibicao").textContent = "PDF, imagem — pode anexar depois";
+    document.getElementById("licenciamentoCampoValor").value = "";
+    document.getElementById("licenciamentoCampoVideos").value = "";
+    document.getElementById("licenciamentoCampoDias").value = "180";
+    document.getElementById("licenciamentoCampoInicio").value = formatarDataISO(new Date());
+    document.getElementById("modalLicenciamento").classList.remove("oculto");
+  }
+
+  function fecharModalLicenciamento(){
+    document.getElementById("modalLicenciamento").classList.add("oculto");
+    abordagemLicenciamentoAbertaId = null;
+    licenciamentoArquivoSelecionado = null;
+  }
+
+  async function salvarLicenciamento(){
+    const abordagem = abordagensCache.find(a => a.id === abordagemLicenciamentoAbertaId);
+    if (!abordagem || !abordagem.cliente_id){
+      alert("Essa negociação ainda não tem um cliente vinculado — complete o cadastro como cliente primeiro.");
+      fecharModalLicenciamento();
+      return;
+    }
+
+    let arquivoEnviado = null;
+    if (licenciamentoArquivoSelecionado){
+      arquivoEnviado = await enviarArquivoJuridico(licenciamentoArquivoSelecionado, "contratos");
+      if (!arquivoEnviado) return; // erro já avisado no upload; modal continua aberto pra tentar de novo
+    }
+
+    const dias = parseInt(document.getElementById("licenciamentoCampoDias").value, 10);
+    const inicio = document.getElementById("licenciamentoCampoInicio").value || null;
+    const cliente = clientesCache.find(c => c.id === abordagem.cliente_id);
+
+    const dados = {
+      cliente_id: abordagem.cliente_id,
+      marca: cliente ? cliente.nome_marca : abordagem.marca,
+      valor: parseFloat(document.getElementById("licenciamentoCampoValor").value) || null,
+      quantidade_videos: parseInt(document.getElementById("licenciamentoCampoVideos").value, 10) || null,
+      data_fechamento: formatarDataISO(new Date()),
+      contrato_ativo: true,
+      trafego_pago_inicio: inicio,
+      trafego_pago_fim: (inicio && dias) ? somarDias(inicio, dias) : null,
+      etapa: "novo_lead"
+    };
+    if (arquivoEnviado){
+      dados.contrato_arquivo_url = arquivoEnviado.url;
+      dados.contrato_arquivo_nome = arquivoEnviado.nome;
+    }
+
+    const { data: inserido, error } = await Auth.client.from("painel_ugc_trabalhos").insert(dados).select();
+    if (error){
+      alert("Não foi possível salvar o licenciamento agora: " + error.message);
+      return;
+    }
+
+    ugcCache = ugcCache.concat(inserido);
+    fecharModalLicenciamento();
+    renderizarUgcCreator();
+    renderizarJuridico();
+    trocarAba("ugc-creator");
   }
 
   function abrirNegocia(){

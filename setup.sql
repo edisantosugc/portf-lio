@@ -913,3 +913,90 @@ select cron.schedule(
   );
   $$
 );
+
+-- =====================================================================
+-- ADMINISTRATIVO > JURÍDICO: licenciamento dos trabalhos UGC
+-- Preenchido no formulário que abre quando a negociação é marcada como
+-- "Fechada" na aba Abordagem. contrato_arquivo_url aponta pro Storage
+-- (bucket "documentos-juridicos", ver mais abaixo).
+-- =====================================================================
+alter table public.painel_ugc_trabalhos add column if not exists contrato_arquivo_url text;
+alter table public.painel_ugc_trabalhos add column if not exists contrato_arquivo_nome text;
+alter table public.painel_ugc_trabalhos add column if not exists quantidade_videos integer;
+
+-- =====================================================================
+-- ADMINISTRATIVO > MEUS DOCUMENTOS
+-- Uma linha só (perfil da própria usuária, não por trabalho/cliente).
+-- Nenhum campo obrigatório: ela preenche aos poucos.
+-- =====================================================================
+create table if not exists public.painel_documentos_pessoais (
+  id uuid primary key default gen_random_uuid(),
+  nome_completo text,
+  nome_empresarial text,
+  cpf text,
+  cnpj text,
+  cartao_cnpj_url text,
+  cartao_cnpj_nome text,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.painel_documentos_pessoais enable row level security;
+
+create policy "Usuaria autenticada gerencia seus documentos pessoais"
+  on public.painel_documentos_pessoais
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_documentos_pessoais to authenticated;
+
+-- Documentos avulsos (RG, CNH, e qualquer outro que ela queira anexar depois).
+-- Tabela separada porque a lista é livre — ela pode adicionar quantos tipos quiser.
+create table if not exists public.painel_documentos_avulsos (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,             -- rótulo digitado por ela, ex: "RG", "CNH", "Comprovante de endereço"
+  arquivo_url text,
+  arquivo_nome text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.painel_documentos_avulsos enable row level security;
+
+create policy "Usuaria autenticada gerencia seus documentos avulsos"
+  on public.painel_documentos_avulsos
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_documentos_avulsos to authenticated;
+
+-- =====================================================================
+-- STORAGE: bucket privado pra contratos e documentos pessoais.
+-- Privado (public = false) porque são PDFs/fotos de CPF, CNPJ, RG, CNH —
+-- o painel gera um link assinado (createSignedUrl) na hora de exibir/baixar.
+-- =====================================================================
+insert into storage.buckets (id, name, public)
+values ('documentos-juridicos', 'documentos-juridicos', false)
+on conflict (id) do nothing;
+
+create policy "Usuaria autenticada le documentos-juridicos"
+  on storage.objects for select
+  to authenticated
+  using (bucket_id = 'documentos-juridicos');
+
+create policy "Usuaria autenticada envia pra documentos-juridicos"
+  on storage.objects for insert
+  to authenticated
+  with check (bucket_id = 'documentos-juridicos');
+
+create policy "Usuaria autenticada substitui em documentos-juridicos"
+  on storage.objects for update
+  to authenticated
+  using (bucket_id = 'documentos-juridicos');
+
+create policy "Usuaria autenticada remove de documentos-juridicos"
+  on storage.objects for delete
+  to authenticated
+  using (bucket_id = 'documentos-juridicos');
