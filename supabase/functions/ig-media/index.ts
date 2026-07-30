@@ -1,8 +1,12 @@
 // supabase/functions/ig-media/index.ts
 //
-// Lista os posts (media) da conta, com miniatura, pra alimentar o seletor
-// "Em quais posts" do editor de automação. Chamada pelo painel.html (por
-// isso mantém a verificação de JWT do Supabase ligada, como a ia-assistente).
+// Lista os posts (media) da conta. No modo padrão (rápido), traz miniatura,
+// legenda, curtidas e comentários, pra alimentar o seletor "Em quais posts"
+// do editor de automação. Com "?insights=true", também busca o alcance e os
+// salvos de cada post (mais lento, chama a Graph API uma vez por post), pra
+// alimentar o ranking de "Melhores posts" da aba Instagram > Análises.
+// Chamada pelo painel.html (por isso mantém a verificação de JWT do
+// Supabase ligada, como a ia-assistente).
 
 import { GRAPH_BASE, IG_ACCESS_TOKEN, IG_ACCOUNT_ID } from "../_shared/ig.ts";
 
@@ -11,6 +15,10 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
 };
+
+// Limite de posts pra buscar insights individuais: cada um é uma chamada extra
+// à Graph API, então mantemos conservador pra não demorar nem estourar limite.
+const LIMITE_POSTS_COM_INSIGHTS = 12;
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -27,12 +35,16 @@ Deno.serve(async (req: Request) => {
     return respostaJson({ error: "IG_ACCESS_TOKEN ou IG_ACCOUNT_ID não configurados nos secrets da função." }, 500);
   }
 
+  const url = new URL(req.url);
+  const comInsights = url.searchParams.get("insights") === "true";
+
   try {
-    const campos = "id,caption,media_type,media_url,thumbnail_url,permalink,timestamp";
-    const url = `${GRAPH_BASE}/${IG_ACCOUNT_ID}/media?fields=${campos}&limit=30&access_token=${
+    const campos = "id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count";
+    const limite = comInsights ? LIMITE_POSTS_COM_INSIGHTS : 30;
+    const mediaUrl = `${GRAPH_BASE}/${IG_ACCOUNT_ID}/media?fields=${campos}&limit=${limite}&access_token=${
       encodeURIComponent(IG_ACCESS_TOKEN)
     }`;
-    const resposta = await fetch(url);
+    const resposta = await fetch(mediaUrl);
     const dados = await resposta.json();
 
     if (!resposta.ok) {
@@ -40,14 +52,57 @@ Deno.serve(async (req: Request) => {
       return respostaJson({ error: "Não foi possível carregar os posts do Instagram agora." }, 502);
     }
 
-    const posts = (dados.data ?? []).map((m: any) => ({
+    let posts = (dados.data ?? []).map((m: any) => ({
       id: m.id,
       legenda: (m.caption ?? "").slice(0, 80),
       tipo: m.media_type,
       miniatura: m.thumbnail_url ?? m.media_url,
       link: m.permalink,
       data: m.timestamp,
+      curtidas: m.like_count ?? 0,
+      comentarios: m.comments_count ?? 0,
+      salvos: null as number | null,
+      alcance: null as number | null,
+      visualizacoes: null as number | null,
     }));
+
+    if (comInsights) {
+      posts = await Promise.all(posts.map(async (post) => {
+        try {
+          // "plays" só existe pra vídeo/reel; "reach" e "saved" servem pra qualquer tipo.
+          // Pede os três juntos; se a Graph recusar por causa de uma métrica que não
+          // se aplica àquele post, cai no fallback (tenta só reach+saved).
+          const metricasCompletas = "reach,saved,plays";
+          const metricasBasicas = "reach,saved";
+          let insightsUrl = `${GRAPH_BASE}/${post.id}/insights?metric=${metricasCompletas}&access_token=${
+            encodeURIComponent(IG_ACCESS_TOKEN)
+          }`;
+          let respostaInsights = await fetch(insightsUrl);
+          if (!respostaInsights.ok) {
+            insightsUrl = `${GRAPH_BASE}/${post.id}/insights?metric=${metricasBasicas}&access_token=${
+              encodeURIComponent(IG_ACCESS_TOKEN)
+            }`;
+            respostaInsights = await fetch(insightsUrl);
+          }
+          if (!respostaInsights.ok) return post;
+
+          const insightsJson = await respostaInsights.json();
+          const pegar = (nome: string) => {
+            const item = (insightsJson.data ?? []).find((d: any) => d.name === nome);
+            return item ? Number(item.values?.[0]?.value ?? 0) : null;
+          };
+          return {
+            ...post,
+            alcance: pegar("reach"),
+            salvos: pegar("saved"),
+            visualizacoes: pegar("plays"),
+          };
+        } catch (erroPost) {
+          console.error("Erro ao buscar insights do post", post.id, ":", erroPost);
+          return post;
+        }
+      }));
+    }
 
     return respostaJson({ posts });
   } catch (erro) {

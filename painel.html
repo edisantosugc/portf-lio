@@ -1957,6 +1957,40 @@
   .ig-saude-legenda span.bolinha{ display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
   .ig-saude-erro-linha{ font-size: .78rem; color: var(--texto-suave); padding: 4px 0; }
 
+  /* Aba Análises: seletor de período, mini sub-abas de filtro, grade de posts */
+  .ig-periodo-seletor{
+    display: flex; align-items: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .ig-melhores-topo{ display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .ig-subabas-mini{
+    display: flex; gap: 6px; background: var(--creme); border-radius: 10px; padding: 3px; flex-wrap: wrap;
+  }
+  .ig-subabas-mini .sub-aba-btn{ padding: 6px 12px; font-size: .78rem; }
+  .ig-grade-posts{ display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
+  .ig-post-card{ border: 1px solid var(--borda); border-radius: 12px; overflow: hidden; background: var(--creme); }
+  .ig-post-card-img{ width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: var(--borda); }
+  .ig-post-card-stats{ display: flex; flex-wrap: wrap; gap: 6px 10px; font-size: .72rem; color: var(--texto-suave); padding: 8px 10px; }
+  .ig-lista-ranking{ display: flex; flex-direction: column; gap: 10px; }
+  .ig-ranking-item{ display: flex; align-items: center; gap: 10px; font-size: .85rem; }
+  .ig-ranking-posicao{ font-family: 'Fraunces', serif; font-weight: 700; color: var(--texto-suave); width: 20px; flex-shrink: 0; }
+  .ig-ranking-nome{ flex-grow: 1; }
+  .ig-ranking-valor{ color: var(--texto-suave); font-size: .8rem; }
+  .ig-cartao-ideia{
+    background: var(--creme); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+  }
+  .ig-cartao-ideia p:first-child{ font-weight: 700; font-size: .85rem; margin-bottom: 3px; }
+  .ig-cartao-ideia p:last-child{ font-size: .78rem; color: var(--texto-suave); }
+  .ig-oportunidade-item{ border-bottom: 1px solid var(--borda); padding: 12px 0; }
+  .ig-oportunidade-item:last-child{ border-bottom: none; }
+  .ig-oportunidade-topo{ display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+  .ig-oportunidade-selo{
+    font-size: .68rem; font-weight: 700; padding: 2px 10px; border-radius: 50px; text-transform: uppercase;
+  }
+  .ig-oportunidade-selo.duvida{ background: rgba(201,166,107,.18); color: var(--dourado); }
+  .ig-oportunidade-selo.interesse{ background: rgba(45,122,79,.14); color: var(--verde); }
+  .ig-oportunidade-texto{ font-size: .85rem; margin-bottom: 4px; }
+  .ig-oportunidade-sugestao{ font-size: .78rem; color: var(--coral); }
+
   /* Busca + exportar CSV, no topo da aba Leads */
   .ig-leads-topo{ display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
   .ig-leads-topo input{
@@ -2587,12 +2621,67 @@
         </div>
       </div>
 
-      <!-- SUB-ABA: ANÁLISES (chega numa próxima fase) -->
+      <!-- SUB-ABA: ANÁLISES -->
       <div id="igSubAnalises" class="oculto">
-        <div class="ig-estado-vazio">
+        <div class="ig-periodo-seletor" id="igAnalisesPeriodo">
+          <button type="button" class="sub-aba-btn" data-periodo="7">7 dias</button>
+          <button type="button" class="sub-aba-btn ativo" data-periodo="30">30 dias</button>
+          <button type="button" class="sub-aba-btn" data-periodo="90">90 dias</button>
+          <button type="button" class="sub-aba-btn" data-periodo="tudo">Tudo</button>
+          <button type="button" class="botao-add-tarefa" id="igBotaoAtualizarAnalises" style="margin-left:auto;">↻ Atualizar</button>
+        </div>
+
+        <div class="ig-estado-vazio" id="igAnalisesVazio">
           <span class="ig-estado-vazio-icone">📊</span>
-          <p class="ig-estado-vazio-titulo">Análises chega na próxima fase</p>
-          <p class="ig-estado-vazio-texto">Período (7/30/90 dias), melhores posts, quem mais comenta e sugestões de conteúdo analisadas por IA.</p>
+          <p class="ig-estado-vazio-titulo">Conecte seu Instagram pra ver as análises</p>
+          <p class="ig-estado-vazio-texto">Seguidores, alcance, contas engajadas e interações aparecem aqui assim que a integração com a API do Instagram estiver configurada.</p>
+        </div>
+
+        <div id="igAnalisesConteudo" class="oculto">
+          <div class="cartoes-numeros" id="igAnalisesCartoes" style="margin-bottom: 6px;"></div>
+          <p class="ig-nota" id="igAnalisesAviso" style="display:none;"></p>
+
+          <div class="cartao grafico-cartao" style="margin-top: 20px;">
+            <h2>Alcance por dia</h2>
+            <div class="grafico-barras" id="igAnalisesGraficoAlcance"></div>
+          </div>
+
+          <div class="cartao" style="margin-bottom: 20px;">
+            <div class="ig-melhores-topo">
+              <h2 style="margin-bottom:0;">Melhores posts</h2>
+              <div class="ig-subabas-mini" id="igFiltroPosts">
+                <button type="button" class="sub-aba-btn ativo" data-filtro="melhores">Melhores</button>
+                <button type="button" class="sub-aba-btn" data-filtro="curtidos">Mais curtidos</button>
+                <button type="button" class="sub-aba-btn" data-filtro="comentados">Mais comentados</button>
+                <button type="button" class="sub-aba-btn" data-filtro="salvos">Mais salvos</button>
+                <button type="button" class="sub-aba-btn" data-filtro="vistos">Mais vistos</button>
+              </div>
+            </div>
+            <div id="igListaMelhoresPosts"><p class="texto-vazio">Carregando posts...</p></div>
+            <p class="ig-nota" style="margin-top:14px;">Só aparecem posts publicados por você. "Alcance" e "visualizações" podem não existir pra todo tipo de post na API do Instagram.</p>
+          </div>
+
+          <div class="cartao" style="margin-bottom: 20px;">
+            <h2>Quem mais comenta</h2>
+            <div id="igListaQuemMaisComenta"></div>
+          </div>
+
+          <div class="cartao">
+            <div class="ig-melhores-topo">
+              <h2 style="margin-bottom:0;">Ideias de vídeo e oportunidades (por IA)</h2>
+              <button type="button" class="botao-add-tarefa" id="igBotaoAnalisarIA">✨ Analisar com IA</button>
+            </div>
+            <p class="ig-nota" id="igIaUltimaAtualizacao">Ainda não analisado nesta sessão. Clique em "Analisar com IA".</p>
+
+            <div id="igIdeiasVideo"></div>
+
+            <div class="ig-subabas-mini" id="igFiltroOportunidades" style="margin-top:16px; margin-bottom:14px;">
+              <button type="button" class="sub-aba-btn ativo" data-filtro="tudo">Tudo</button>
+              <button type="button" class="sub-aba-btn" data-filtro="duvida">Dúvidas</button>
+              <button type="button" class="sub-aba-btn" data-filtro="interesse">Interesses</button>
+            </div>
+            <div id="igListaOportunidades"></div>
+          </div>
         </div>
       </div>
 
@@ -3440,6 +3529,15 @@
   let igRecebeuPorUsuario = {};    // true pra ig_user_id com ao menos 1 envio status 'ok'
   let igLeadsFiltro = "";         // texto da busca na aba Leads (@ ou palavra-chave)
 
+  // Estado da aba Instagram > Análises
+  let igAnalisesCarregada = false;    // true depois da 1ª vez que a aba é aberta (carregamento preguiçoso)
+  let igAnalisesPeriodo = "30";       // "7" | "30" | "90" | "tudo"
+  let igMelhoresPostsCache = [];      // posts com curtidas/comentarios/salvos/alcance (via ig-media?insights=true)
+  let igFiltroPostsAtivo = "melhores";
+  let igComentaristasCache = [];      // ranking de quem mais comenta, calculado a partir de ig_comments
+  let igAnaliseIaCache = null;        // { oportunidades, ideias }, só nesta sessão (não é salvo)
+  let igFiltroOportunidadesAtivo = "tudo";
+
   // Mapa sub-aba -> id do conteúdo, usado pra trocar de aba dentro do Instagram
   const IG_SUBABAS = {
     "visao-geral": "igSubVisaoGeral",
@@ -3878,6 +3976,225 @@
       <div class="item-barra">
         <div class="item-barra-topo"><span>${item.rotulo}</span><span>${item.valor}</span></div>
         <div class="barra-fundo"><div class="barra-preenchida ${item.cor}" style="width:${Math.round((item.valor / maior) * 100)}%"></div></div>
+      </div>
+    `).join("");
+  }
+
+  /* =========================================================================
+     ABA INSTAGRAM > ANÁLISES
+     ========================================================================= */
+
+  async function carregarInstagramAnalises(){
+    try {
+      const { data, error } = await Auth.client.functions.invoke("ig-insights?dias=" + encodeURIComponent(igAnalisesPeriodo));
+      if (error) throw error;
+      if (!data || data.error) throw new Error((data && data.error) || "resposta vazia");
+      renderizarAnalisesCartoes(data);
+    } catch (erro) {
+      console.error("Erro ao carregar análises do Instagram:", erro);
+    }
+
+    try {
+      await carregarQuemMaisComenta();
+    } catch (erro) {
+      console.error("Erro ao carregar ranking de comentários do Instagram:", erro);
+    }
+  }
+
+  function renderizarAnalisesCartoes(dados){
+    document.getElementById("igAnalisesVazio").classList.add("oculto");
+    document.getElementById("igAnalisesConteudo").classList.remove("oculto");
+
+    const novos = (dados.novosSeguidoresPorDia || []).reduce((s, p) => s + (Number(p.valor) || 0), 0);
+    const alcance = (dados.alcancePorDia || []).reduce((s, p) => s + (Number(p.valor) || 0), 0);
+    const rotuloPeriodo = igAnalisesPeriodo === "tudo" ? "Tudo" : `${igAnalisesPeriodo}d`;
+
+    const cartoes = [
+      { rotulo: "Seguidores", numero: dados.seguidores ?? 0, legenda: "" },
+      { rotulo: `Novos seg. (${rotuloPeriodo})`, numero: novos, legenda: "" },
+      { rotulo: `Alcance (${rotuloPeriodo})`, numero: alcance, legenda: "" },
+      { rotulo: "Contas engajadas", numero: dados.contasEngajadas ?? "?", legenda: dados.contasEngajadas == null ? "Indisponível pra essa conta" : "" },
+      { rotulo: "Interações", numero: dados.interacoes ?? 0, legenda: "" },
+    ];
+
+    document.getElementById("igAnalisesCartoes").innerHTML = cartoes.map(c => `
+      <div class="cartao cartao-numero">
+        <p class="ig-metrica-rotulo">${igEscaparHtml(c.rotulo)}</p>
+        <p class="ig-metrica-numero">${typeof c.numero === "number" ? c.numero.toLocaleString("pt-BR") : c.numero}</p>
+        <p class="ig-metrica-legenda">${igEscaparHtml(c.legenda)}</p>
+      </div>
+    `).join("");
+
+    const avisoEl = document.getElementById("igAnalisesAviso");
+    if (dados.aviso){
+      avisoEl.textContent = dados.aviso;
+      avisoEl.style.display = "block";
+    } else {
+      avisoEl.style.display = "none";
+    }
+
+    renderizarGraficoInstagram("igAnalisesGraficoAlcance", dados.alcancePorDia || []);
+  }
+
+  async function carregarQuemMaisComenta(){
+    const dias = igAnalisesPeriodo === "tudo" ? 3650 : Number(igAnalisesPeriodo);
+    const desde = new Date(Date.now() - dias * 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await Auth.client.from("ig_comments").select("username").gte("created_at", desde).limit(2000);
+    if (error) throw error;
+
+    const contagem = {};
+    (data || []).forEach(c => {
+      const nome = c.username || "(desconhecido)";
+      contagem[nome] = (contagem[nome] || 0) + 1;
+    });
+    igComentaristasCache = Object.entries(contagem)
+      .map(([username, total]) => ({ username, total }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 10);
+
+    renderizarQuemMaisComenta();
+  }
+
+  function renderizarQuemMaisComenta(){
+    const container = document.getElementById("igListaQuemMaisComenta");
+    if (!igComentaristasCache.length){
+      container.innerHTML = `<p class="texto-vazio">Ninguém comentou nesse período ainda.</p>`;
+      return;
+    }
+    container.innerHTML = `
+      <div class="ig-lista-ranking">
+        ${igComentaristasCache.map((c, i) => `
+          <div class="ig-ranking-item">
+            <span class="ig-ranking-posicao">${i + 1}</span>
+            <span class="ig-ranking-nome">@${igEscaparHtml(c.username)}</span>
+            <span class="ig-ranking-valor">${c.total} comentário${c.total > 1 ? "s" : ""}</span>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  async function carregarMelhoresPosts(){
+    document.getElementById("igListaMelhoresPosts").innerHTML = `<p class="texto-vazio">Carregando posts...</p>`;
+    try {
+      const { data, error } = await Auth.client.functions.invoke("ig-media?insights=true");
+      if (error) throw error;
+      if (!data || data.error) throw new Error((data && data.error) || "resposta vazia");
+      igMelhoresPostsCache = data.posts || [];
+    } catch (erro) {
+      console.error("Erro ao carregar melhores posts do Instagram:", erro);
+      igMelhoresPostsCache = [];
+    }
+    renderizarMelhoresPosts();
+  }
+
+  function renderizarMelhoresPosts(){
+    const container = document.getElementById("igListaMelhoresPosts");
+    if (!igMelhoresPostsCache.length){
+      container.innerHTML = `<p class="texto-vazio">Nenhum post encontrado ainda (confira se o Instagram está conectado).</p>`;
+      return;
+    }
+
+    const pontuacao = (p) => {
+      switch (igFiltroPostsAtivo){
+        case "curtidos": return p.curtidas || 0;
+        case "comentados": return p.comentarios || 0;
+        case "salvos": return p.salvos || 0;
+        case "vistos": return p.visualizacoes ?? p.alcance ?? 0;
+        default: return (p.curtidas || 0) + (p.comentarios || 0) * 2 + (p.salvos || 0) * 3;
+      }
+    };
+
+    const lista = igMelhoresPostsCache.slice().sort((a, b) => pontuacao(b) - pontuacao(a));
+
+    container.innerHTML = `
+      <div class="ig-grade-posts">
+        ${lista.map(post => {
+          const vistas = post.visualizacoes ?? post.alcance;
+          return `
+            <div class="ig-post-card">
+              <img src="${igEscaparHtml(post.miniatura || "")}" alt="" class="ig-post-card-img" loading="lazy">
+              <div class="ig-post-card-stats">
+                <span>❤️ ${(post.curtidas || 0).toLocaleString("pt-BR")}</span>
+                <span>💬 ${(post.comentarios || 0).toLocaleString("pt-BR")}</span>
+                ${post.salvos != null ? `<span>🔖 ${post.salvos.toLocaleString("pt-BR")}</span>` : ""}
+                ${vistas != null ? `<span>👁 ${vistas.toLocaleString("pt-BR")}</span>` : ""}
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  }
+
+  async function analisarConteudoComIA(){
+    const botao = document.getElementById("igBotaoAnalisarIA");
+    const statusEl = document.getElementById("igIaUltimaAtualizacao");
+    botao.disabled = true;
+    botao.textContent = "Analisando...";
+    statusEl.textContent = "Analisando os comentários recentes com IA, isso pode levar alguns segundos...";
+
+    try {
+      const { data, error } = await Auth.client.functions.invoke("ig-analise-conteudo");
+      if (error) throw error;
+      if (!data || data.error) throw new Error((data && data.error) || "resposta vazia");
+
+      igAnaliseIaCache = data;
+      const agora = new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+      statusEl.textContent = data.aviso ? data.aviso : `Última atualização: ${agora} (nesta sessão)`;
+
+      renderizarIdeiasVideo();
+      renderizarOportunidades();
+    } catch (erro) {
+      console.error("Erro ao analisar conteúdo do Instagram com IA:", erro);
+      statusEl.textContent = "Não foi possível analisar agora. Tenta de novo em instantes.";
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "✨ Analisar com IA";
+    }
+  }
+
+  function renderizarIdeiasVideo(){
+    const container = document.getElementById("igIdeiasVideo");
+    const ideias = igAnaliseIaCache?.ideias || [];
+    if (!ideias.length){
+      container.innerHTML = "";
+      return;
+    }
+    container.innerHTML = ideias.map(ideia => `
+      <div class="ig-cartao-ideia">
+        <p>${igEscaparHtml(ideia.titulo || "")}</p>
+        <p>${igEscaparHtml(ideia.descricao || "")}</p>
+      </div>
+    `).join("");
+  }
+
+  function renderizarOportunidades(){
+    const container = document.getElementById("igListaOportunidades");
+    const todas = igAnaliseIaCache?.oportunidades || [];
+    if (!todas.length){
+      container.innerHTML = igAnaliseIaCache
+        ? `<p class="texto-vazio">Nenhuma dúvida ou interesse identificado nos comentários recentes.</p>`
+        : "";
+      return;
+    }
+    const lista = igFiltroOportunidadesAtivo === "tudo"
+      ? todas
+      : todas.filter(o => o.tipo === igFiltroOportunidadesAtivo);
+
+    if (!lista.length){
+      container.innerHTML = `<p class="texto-vazio">Nada nessa categoria.</p>`;
+      return;
+    }
+
+    container.innerHTML = lista.map(o => `
+      <div class="ig-oportunidade-item">
+        <div class="ig-oportunidade-topo">
+          <strong>@${igEscaparHtml(o.username || "desconhecido")}</strong>
+          <span class="ig-oportunidade-selo ${o.tipo === "duvida" ? "duvida" : "interesse"}">${o.tipo === "duvida" ? "Dúvida" : "Interesse"}</span>
+        </div>
+        <p class="ig-oportunidade-texto">${igEscaparHtml(o.texto || "")}</p>
+        <p class="ig-oportunidade-sugestao">💡 ${igEscaparHtml(o.sugestao || "")}</p>
       </div>
     `).join("");
   }
@@ -4556,10 +4873,44 @@
         Object.entries(IG_SUBABAS).forEach(([chave, idConteudo]) => {
           document.getElementById(idConteudo).classList.toggle("oculto", chave !== btn.dataset.subaba);
         });
+        // Carregamento preguiçoso: Análises só busca dados na primeira vez que a
+        // aba é aberta (evita gastar chamadas de API em quem nunca visita essa aba).
+        if (btn.dataset.subaba === "analises" && !igAnalisesCarregada){
+          igAnalisesCarregada = true;
+          carregarInstagramAnalises();
+          carregarMelhoresPosts();
+        }
       });
     });
 
     document.getElementById("igBotaoNovaAutomacao").addEventListener("click", () => igAbrirEditor(null));
+
+    document.querySelectorAll("#igAnalisesPeriodo .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#igAnalisesPeriodo .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b === btn));
+        igAnalisesPeriodo = btn.dataset.periodo;
+        carregarInstagramAnalises();
+      });
+    });
+    document.getElementById("igBotaoAtualizarAnalises").addEventListener("click", () => {
+      carregarInstagramAnalises();
+      carregarMelhoresPosts();
+    });
+    document.querySelectorAll("#igFiltroPosts .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#igFiltroPosts .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b === btn));
+        igFiltroPostsAtivo = btn.dataset.filtro;
+        renderizarMelhoresPosts();
+      });
+    });
+    document.querySelectorAll("#igFiltroOportunidades .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#igFiltroOportunidades .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b === btn));
+        igFiltroOportunidadesAtivo = btn.dataset.filtro;
+        renderizarOportunidades();
+      });
+    });
+    document.getElementById("igBotaoAnalisarIA").addEventListener("click", analisarConteudoComIA);
 
     document.getElementById("igLeadsBusca").addEventListener("input", (e) => {
       igLeadsFiltro = e.target.value;
