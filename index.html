@@ -201,20 +201,47 @@
   .gaveta-cabecalho:active{ transform: scale(.98); }
   .gaveta-cabecalho:focus-visible{ outline: 2px solid var(--coral); outline-offset: 3px; }
 
-  .icone-toque-par{ display: inline-block; line-height: 1; }
-  .icone-fechada, .icone-aberta{
-    display: inline-block;
-    font-size: 1.05rem;
-    line-height: 1;
-    animation: gavetaToque 1.6s ease-in-out infinite;
+  .cursor-clique{
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
   }
-  .icone-aberta{ display: none; }
-  @keyframes gavetaToque{
-    0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
-    50%      { transform: translateY(2px) scale(1.15); opacity: .6; }
+  .cursor-clique svg{
+    width: 15px;
+    height: 15px;
+    fill: var(--coral);
+    position: relative;
+    z-index: 2;
+    animation: cursorPressiona 1.6s ease-in-out infinite;
+  }
+  .cursor-clique .onda{
+    position: absolute;
+    left: 3px;
+    top: 2px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 1.5px solid var(--coral);
+    opacity: 0;
+    animation: cursorOnda 1.6s ease-out infinite;
+  }
+  @keyframes cursorPressiona{
+    0%, 60%, 100% { transform: scale(1); }
+    15%           { transform: scale(.8); }
+    30%           { transform: scale(1.05); }
+  }
+  @keyframes cursorOnda{
+    0%   { transform: scale(.3); opacity: 0; }
+    15%  { opacity: .6; }
+    55%  { transform: scale(1.6); opacity: 0; }
+    100% { opacity: 0; }
   }
   @media (prefers-reduced-motion: reduce){
-    .icone-fechada, .icone-aberta{ animation: none; }
+    .cursor-clique svg, .cursor-clique .onda{ animation: none; }
   }
 
   .gaveta-corpo{
@@ -236,8 +263,8 @@
     font-size: .72rem;
   }
   .secao-gaveta.aberta .gaveta-corpo-interno .lista-links{ margin-top: 5px; border-radius: 0 0 16px 16px; }
-  .secao-gaveta.aberta .icone-fechada{ display: none; }
-  .secao-gaveta.aberta .icone-aberta{ display: inline-block; animation: none; opacity: .6; font-size: .85rem; }
+  .secao-gaveta.aberta .cursor-clique svg{ animation: none; opacity: .55; }
+  .secao-gaveta.aberta .cursor-clique .onda{ display: none; }
 </style>
 </head>
 <body>
@@ -356,9 +383,9 @@ document.getElementById("secoesBiosite").innerHTML = SECOES_BIOSITE.map(bloco =>
       <div class="secao secao-gaveta">
         <button type="button" class="gaveta-cabecalho" aria-expanded="false">
           <span>${bloco.secao}</span>
-          <span class="icone-toque-par" aria-hidden="true">
-            <span class="icone-fechada">👇</span>
-            <span class="icone-aberta">👆</span>
+          <span class="cursor-clique" aria-hidden="true">
+            <span class="onda"></span>
+            <svg viewBox="0 0 24 24"><path d="M4 3 L4 19 L8 15.5 L11 21 L13.5 19.8 L10.5 14.3 L16 14.3 Z"/></svg>
           </span>
         </button>
         <div class="gaveta-corpo">
