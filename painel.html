@@ -3609,6 +3609,11 @@
           </div>
           <p class="ugc-nota-mini" id="docAvulsoArquivoNomeSelecionado" style="margin-top:8px;"></p>
         </div>
+
+        <div class="cartao doc-bloco" style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
+          <p class="ugc-nota-mini" id="docPessoalStatusSalvo">Cada anexo já salva sozinho na hora. Esse botão só confirma tudo de novo, incluindo os campos de identificação.</p>
+          <button type="button" class="botao-add-tarefa" id="docPessoalSalvarTudo" style="white-space:nowrap;">💾 Salvar tudo</button>
+        </div>
       </div>
 
       <!-- ---------- Sub-aba: Jurídico ---------- -->
@@ -5774,6 +5779,7 @@
     document.getElementById("juridicoContratosBusca").addEventListener("input", renderizarTabelaContratos);
 
     document.getElementById("docPessoalSalvar").addEventListener("click", salvarDocumentosPessoais);
+    document.getElementById("docPessoalSalvarTudo").addEventListener("click", salvarDocumentosPessoais);
     document.getElementById("docPessoalCartaoCnpjInput").addEventListener("change", (e) => {
       if (e.target.files[0]) enviarCartaoCnpj(e.target.files[0]);
     });
@@ -9941,6 +9947,37 @@
     });
   }
 
+  // Mostra confirmação visível de que salvou de verdade — sem isso, nada na tela avisava
+  // se deu certo ou se falhou silenciosamente.
+  function marcarSalvoMeusDocumentos(){
+    const el = document.getElementById("docPessoalStatusSalvo");
+    if (!el) return;
+    const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    el.textContent = `✓ Salvo às ${hora}`;
+    el.style.color = "var(--verde)";
+  }
+
+  // Salva o perfil (identificação e/ou cartão CNPJ) buscando o registro mais atual antes de
+  // decidir entre criar ou atualizar — evita duplicar a linha se o cache local estivesse
+  // desatualizado. Se der erro no banco, avisa na hora em vez de falhar em silêncio.
+  async function salvarPerfilDocumentosPessoais(camposNovos){
+    if (!documentosPessoaisCache?.id){
+      const { data: existente } = await Auth.client.from("painel_documentos_pessoais").select("*").limit(1);
+      if (existente && existente[0]) documentosPessoaisCache = existente[0];
+    }
+
+    if (documentosPessoaisCache?.id){
+      const { error } = await Auth.client.from("painel_documentos_pessoais").update(camposNovos).eq("id", documentosPessoaisCache.id);
+      if (error){ alert("Não foi possível salvar agora: " + error.message); return false; }
+      Object.assign(documentosPessoaisCache, camposNovos);
+    } else {
+      const { data: inserido, error } = await Auth.client.from("painel_documentos_pessoais").insert(camposNovos).select();
+      if (error){ alert("Não foi possível salvar agora: " + error.message); return false; }
+      documentosPessoaisCache = inserido[0];
+    }
+    return true;
+  }
+
   async function salvarDocumentosPessoais(){
     const dados = {
       nome_completo: document.getElementById("docPessoalNomeCompleto").value.trim() || null,
@@ -9948,30 +9985,18 @@
       cpf: document.getElementById("docPessoalCpf").value.trim() || null,
       cnpj: document.getElementById("docPessoalCnpj").value.trim() || null
     };
-
-    if (documentosPessoaisCache?.id){
-      const { error } = await Auth.client.from("painel_documentos_pessoais").update(dados).eq("id", documentosPessoaisCache.id);
-      if (!error) Object.assign(documentosPessoaisCache, dados);
-    } else {
-      const { data: inserido, error } = await Auth.client.from("painel_documentos_pessoais").insert(dados).select();
-      if (!error && inserido) documentosPessoaisCache = inserido[0];
-    }
+    const ok = await salvarPerfilDocumentosPessoais(dados);
     renderizarMeusDocumentos();
+    if (ok) marcarSalvoMeusDocumentos();
   }
 
   async function enviarCartaoCnpj(file){
     const enviado = await enviarArquivoJuridico(file, "cartao-cnpj");
     if (!enviado) return;
 
-    const dados = { cartao_cnpj_url: enviado.url, cartao_cnpj_nome: enviado.nome };
-    if (documentosPessoaisCache?.id){
-      const { error } = await Auth.client.from("painel_documentos_pessoais").update(dados).eq("id", documentosPessoaisCache.id);
-      if (!error) Object.assign(documentosPessoaisCache, dados);
-    } else {
-      const { data: inserido, error } = await Auth.client.from("painel_documentos_pessoais").insert(dados).select();
-      if (!error && inserido) documentosPessoaisCache = inserido[0];
-    }
+    const ok = await salvarPerfilDocumentosPessoais({ cartao_cnpj_url: enviado.url, cartao_cnpj_nome: enviado.nome });
     renderizarMeusDocumentos();
+    if (ok) marcarSalvoMeusDocumentos();
   }
 
   async function adicionarDocumentoAvulso(){
@@ -9988,13 +10013,16 @@
 
     const dados = { nome, arquivo_url: enviado?.url || null, arquivo_nome: enviado?.nome || null };
     const { data: inserido, error } = await Auth.client.from("painel_documentos_avulsos").insert(dados).select();
-    if (!error && inserido){
-      documentosAvulsosCache = documentosAvulsosCache.concat(inserido);
-      document.getElementById("docAvulsoNomeNovo").value = "";
-      arquivoInput.value = "";
-      document.getElementById("docAvulsoArquivoNomeSelecionado").textContent = "";
-      renderizarMeusDocumentos();
+    if (error){
+      alert("Não foi possível salvar esse documento agora: " + error.message);
+      return;
     }
+    documentosAvulsosCache = documentosAvulsosCache.concat(inserido);
+    document.getElementById("docAvulsoNomeNovo").value = "";
+    arquivoInput.value = "";
+    document.getElementById("docAvulsoArquivoNomeSelecionado").textContent = "";
+    renderizarMeusDocumentos();
+    marcarSalvoMeusDocumentos();
   }
 
   async function removerDocumentoAvulso(id){
