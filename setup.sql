@@ -956,6 +956,9 @@ create table if not exists public.painel_documentos_pessoais (
   updated_at timestamptz not null default now()
 );
 
+-- exigido por buscarTudo() no painel.html, que ordena por essa coluna em toda tabela
+alter table public.painel_documentos_pessoais add column if not exists created_at timestamptz not null default now();
+
 alter table public.painel_documentos_pessoais enable row level security;
 
 drop policy if exists "Usuaria autenticada gerencia seus documentos pessoais" on public.painel_documentos_pessoais;
