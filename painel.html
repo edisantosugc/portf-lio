@@ -3590,6 +3590,9 @@
             <span id="docPessoalCartaoCnpjLegenda">PDF ou imagem</span>
             <input type="file" id="docPessoalCartaoCnpjInput" accept="application/pdf,image/*" class="oculto">
           </label>
+          <div id="docPessoalCartaoCnpjAcoes" class="oculto" style="display:flex; justify-content:flex-end; margin-top:10px;">
+            <button type="button" class="btn-fantasma" id="docPessoalCartaoCnpjAbrir">👁 Abrir arquivo</button>
+          </div>
         </div>
 
         <div class="cartao doc-bloco">
@@ -5773,6 +5776,9 @@
     document.getElementById("docPessoalSalvar").addEventListener("click", salvarDocumentosPessoais);
     document.getElementById("docPessoalCartaoCnpjInput").addEventListener("change", (e) => {
       if (e.target.files[0]) enviarCartaoCnpj(e.target.files[0]);
+    });
+    document.getElementById("docPessoalCartaoCnpjAbrir").addEventListener("click", () => {
+      if (documentosPessoaisCache?.cartao_cnpj_url) abrirArquivoJuridico(documentosPessoaisCache.cartao_cnpj_url);
     });
     document.getElementById("docAvulsoArquivoNovo").addEventListener("change", (e) => {
       const arquivo = e.target.files[0];
@@ -9915,6 +9921,7 @@
     document.getElementById("docPessoalCartaoCnpjLegenda").textContent = perfil?.cartao_cnpj_url
       ? "Clique pra substituir"
       : "PDF ou imagem";
+    document.getElementById("docPessoalCartaoCnpjAcoes").classList.toggle("oculto", !perfil?.cartao_cnpj_url);
 
     const lista = document.getElementById("docsAvulsosLista");
     lista.innerHTML = documentosAvulsosCache.map(doc => `
