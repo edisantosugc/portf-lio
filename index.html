@@ -174,6 +174,58 @@
     font-size: .75rem;
     color: rgba(0,0,128,.55);
   }
+
+  /* ===== SEÇÕES-GAVETA (acordeão) ===== */
+  .gaveta-cabecalho{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--branco);
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 6px 22px rgba(0,0,128,.09);
+    padding: 16px 20px;
+    cursor: pointer;
+    color: var(--coral);
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    font-size: .82rem;
+    transition: box-shadow .2s ease, transform .12s ease;
+  }
+  .gaveta-cabecalho:hover{ box-shadow: 0 8px 26px rgba(0,0,128,.16); }
+  .gaveta-cabecalho:active{ transform: scale(.98); }
+  .gaveta-cabecalho:focus-visible{ outline: 2px solid var(--coral); outline-offset: 3px; }
+
+  .icone-toque{
+    display: inline-block;
+    font-size: 1.05rem;
+    line-height: 1;
+    animation: gavetaToque 1.6s ease-in-out infinite;
+  }
+  @keyframes gavetaToque{
+    0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+    50%      { transform: translateY(2px) scale(1.15); opacity: .6; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .icone-toque{ animation: none; }
+  }
+
+  .gaveta-corpo{
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .35s ease;
+  }
+  .gaveta-corpo-interno{ overflow: hidden; }
+  .gaveta-corpo-interno .lista-links{ margin-top: 14px; }
+
+  .secao-gaveta.aberta .gaveta-corpo{ grid-template-rows: 1fr; }
+  .secao-gaveta.aberta .gaveta-cabecalho{ border-radius: 16px 16px 0 0; box-shadow: 0 6px 22px rgba(0,0,128,.09); }
+  .secao-gaveta.aberta .gaveta-corpo-interno .lista-links{ border-radius: 0 0 16px 16px; margin-top: 2px; }
+  .secao-gaveta.aberta .icone-toque{ animation: none; opacity: .55; transform: rotate(180deg); }
 </style>
 </head>
 <body>
@@ -240,16 +292,17 @@ const SECOES_BIOSITE = [
   },
   {
     secao: "Cursos e Mentorias Validados",
+    recolhivel: true,
     itens: [
       { titulo: "Profissão do Futuro ✨", link: "https://lp.rafaelachagas.com.br/embaixadoras-pf?sck=afiliadas-embaixadoras&ref=A106065864W&utm_source=direto", imagem: "imagens/biosite/profissao-futuro.jpg", dataCta: "cta_cursos" },
       { titulo: "Consultoria Marca e Essência", link: "https://pay.hub.la/o90RvETFsGZg8hEUh65N?ref=aX3iQFHMqNG7E73FrYeA", imagem: "imagens/biosite/consultoria-marca.jpg", dataCta: "cta_cursos" },
       { titulo: "Método Posiciona", link: "https://pay.hub.la/Fyj1Pfoha3tw1cjX9Pog?ref=QTuP5DAhzbKFEwsfHv3Q", imagem: "imagens/biosite/metodo-posiciona.png", dataCta: "cta_cursos" },
-      { titulo: "UGC de Conversão", link: "https://pay.hub.la/e1O3S6IVaxbeg1IFcSqW?ref=57hLb0zlHoHW424KrfAy", imagem: "imagens/biosite/ugc-conversao.png", dataCta: "cta_cursos" },
       { titulo: "Laboratório de Edições Criativas", link: "https://luannagomide.com.br/laboratorio-de-edicoes", imagem: "imagens/biosite/laboratorio-edicoes.jpg", dataCta: "cta_cursos" }
     ]
   },
   {
     secao: "Meus Cupons",
+    recolhivel: true,
     itens: [
       { titulo: "Saint Germain | 🏷️ A-EDILAINESGPA", link: "https://www.saintgermainbrand.com.br/", imagem: "imagens/biosite/saint-germain.jpg", dataCta: "cta_cupons" },
       { titulo: "Dr. Lava Tudo | 🏷️ EDILAINE-10", link: "https://drlavatudo.com/loja/?afiliado=EDILAINE", imagem: "imagens/biosite/dr-lava-tudo.png", dataCta: "cta_cupons" }
@@ -257,6 +310,7 @@ const SECOES_BIOSITE = [
   },
   {
     secao: "Achadinhos",
+    recolhivel: true,
     itens: [
       { titulo: "Só os favoritos 💙", link: "https://collshp.com/ediindica", imagem: "imagens/biosite/achadinhos.jpg", dataCta: "cta_achadinhos" }
     ]
@@ -276,19 +330,45 @@ document.getElementById("perfilContatos").innerHTML = `
   <a href="${PERFIL_BIOSITE.tiktokUrl}" target="_blank" rel="noopener" aria-label="TikTok de ${PERFIL_BIOSITE.nome}" data-cta="cta_icone_tiktok">${ICONES_SVG.tiktok}</a>
 `;
 
-document.getElementById("secoesBiosite").innerHTML = SECOES_BIOSITE.map(bloco => `
-  <div class="secao">
-    <div class="secao-titulo">${bloco.secao} ↓</div>
-    <div class="lista-links">
-      ${bloco.itens.map(item => `
-        <a class="link-item" href="${item.link}" target="_blank" rel="noopener"${item.dataContato ? ` data-contato="${item.dataContato}"` : ""}${item.dataCta ? ` data-cta="${item.dataCta}"` : ""}>
-          <img src="${item.imagem}" alt="">
-          <span class="titulo">${item.titulo}</span>
-        </a>
-      `).join("")}
+document.getElementById("secoesBiosite").innerHTML = SECOES_BIOSITE.map(bloco => {
+  const itensHtml = bloco.itens.map(item => `
+    <a class="link-item" href="${item.link}" target="_blank" rel="noopener"${item.dataContato ? ` data-contato="${item.dataContato}"` : ""}${item.dataCta ? ` data-cta="${item.dataCta}"` : ""}>
+      <img src="${item.imagem}" alt="">
+      <span class="titulo">${item.titulo}</span>
+    </a>
+  `).join("");
+
+  if (bloco.recolhivel) {
+    return `
+      <div class="secao secao-gaveta">
+        <button type="button" class="gaveta-cabecalho" aria-expanded="false">
+          <span>${bloco.secao}</span>
+          <span class="icone-toque" aria-hidden="true">👆</span>
+        </button>
+        <div class="gaveta-corpo">
+          <div class="gaveta-corpo-interno">
+            <div class="lista-links">${itensHtml}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="secao">
+      <div class="secao-titulo">${bloco.secao} ↓</div>
+      <div class="lista-links">${itensHtml}</div>
     </div>
-  </div>
-`).join("");
+  `;
+}).join("");
+
+document.querySelectorAll(".gaveta-cabecalho").forEach(botao => {
+  botao.addEventListener("click", () => {
+    const secao = botao.closest(".secao-gaveta");
+    const aberta = secao.classList.toggle("aberta");
+    botao.setAttribute("aria-expanded", aberta ? "true" : "false");
+  });
+});
 
 /* =========================================================================
    RASTREAMENTO (Supabase)
