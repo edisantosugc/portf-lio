@@ -1181,7 +1181,7 @@
     border-radius: 10px;
     box-shadow: 0 8px 24px rgba(42,38,34,.16);
     padding: 12px;
-    width: 200px;
+    width: 240px;
     z-index: 20;
     font-weight: 400;
     text-transform: none;
@@ -1207,9 +1207,9 @@
   }
   .popover-ordenar button:hover{ background: var(--creme); }
   .popover-ordenar button.ativo{ background: var(--coral); color: var(--branco); }
-  .lista-checks{ display: flex; flex-direction: column; gap: 4px; max-height: 140px; overflow-y: auto; }
-  .lista-checks label{ display: flex; align-items: center; gap: 7px; font-size: .8rem; cursor: pointer; font-weight: 400; }
-  .lista-checks input{ width: 14px; height: 14px; accent-color: var(--coral); }
+  .lista-checks{ display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow-y: auto; padding-right: 6px; }
+  .lista-checks label{ display: flex; align-items: flex-start; gap: 8px; font-size: .8rem; line-height: 1.35; cursor: pointer; font-weight: 400; }
+  .lista-checks input{ width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; accent-color: var(--coral); }
   .popover-rodape{ display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--borda); }
   .popover-rodape button{ border: none; background: none; font-family: 'Outfit', sans-serif; font-size: .76rem; cursor: pointer; padding: 5px 8px; border-radius: 6px; }
   .btn-limpar{ color: var(--texto-suave); }
@@ -1352,6 +1352,13 @@
     transition: background .15s ease, border-color .15s ease, color .15s ease;
   }
   .botao-pago.pago{ background: var(--verde); border-color: var(--verde); color: var(--branco); }
+
+  /* botão de pago + editar + excluir sempre lado a lado, nunca um embaixo do outro */
+  .acoes-conta-pagar{ display: flex; align-items: center; gap: 6px; }
+  .acoes-conta-pagar .lancamento-editar,
+  .acoes-conta-pagar .lancamento-excluir{ flex-shrink: 0; }
+  .acoes-conta-pagar .lancamento-salvar,
+  .acoes-conta-pagar .lancamento-cancelar{ padding: 4px 8px; font-size: .72rem; }
 
   .selo-pessoa-fixa{
     display: inline-block;
@@ -7568,21 +7575,19 @@
             const valorHtml = item.tipo === "cartao"
               ? `<span class="campo-valor-com-prefixo"><span class="prefixo-rs">R$</span><input type="number" step="0.01" class="input-valor-fixo" value="${Number(item.valor).toFixed(2)}" readonly tabindex="-1"></span>`
               : `<span class="campo-valor-com-prefixo"><span class="prefixo-rs">R$</span><input type="number" step="0.01" min="0" class="input-valor-fixo" placeholder="0,00" value="${item.valor != null ? Number(item.valor).toFixed(2) : ""}" data-acao="valor-fixo"></span>`;
-            const pessoa = item.tipo === "fixo"
-              ? `<select class="select-pessoa-fixo" data-acao="pessoa-fixo">
-                  ${["DI", "GU", "DI/GU"].map(p => `<option value="${p}" ${p === item.pessoa ? "selected" : ""}>${p}</option>`).join("")}
-                </select>`
-              : "-";
             const podeExcluir = item.tipo === "fixo" && !NOMES_GASTOS_FIXOS.includes(item.nome);
             return `
               <tr class="${item.pago ? "pago" : ""}" data-nome="${item.nome}" data-tipo="${item.tipo}">
                 <td>${item.nome}</td>
                 <td>${item.vencimento ? `Dia ${String(item.vencimento).padStart(2, "0")}` : "-"}</td>
-                <td>${pessoa}</td>
+                <td class="celula-pessoa-fixo">${item.tipo === "fixo" ? `<span class="selo-pessoa">${item.pessoa}</span>` : "-"}</td>
                 <td>${valorHtml}</td>
                 <td>
-                  <button type="button" class="botao-pago ${item.pago ? "pago" : ""}" data-acao="alternar-pago" aria-label="Marcar como pago">&#10003;</button>
-                  ${podeExcluir ? `<button type="button" class="lancamento-excluir" data-acao="excluir-fixo" aria-label="Excluir conta fixa">&times;</button>` : ""}
+                  <div class="acoes-conta-pagar">
+                    <button type="button" class="botao-pago ${item.pago ? "pago" : ""}" data-acao="alternar-pago" aria-label="Marcar como pago">&#10003;</button>
+                    ${item.tipo === "fixo" ? `<button type="button" class="lancamento-editar" data-acao="editar-fixo" aria-label="Editar responsável">&#9998;</button>` : ""}
+                    ${podeExcluir ? `<button type="button" class="lancamento-excluir" data-acao="excluir-fixo" aria-label="Excluir conta fixa">&times;</button>` : ""}
+                  </div>
                 </td>
               </tr>
             `;
@@ -7606,6 +7611,11 @@
         excluirContaFixa(btn.closest("tr").dataset.nome);
       });
     });
+    container.querySelectorAll("[data-acao='editar-fixo']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        entrarModoEdicaoContaFixa(btn.closest("tr").dataset.nome);
+      });
+    });
     container.querySelectorAll("[data-acao='valor-fixo']").forEach(input => {
       input.addEventListener("change", () => {
         const nome = input.closest("tr").dataset.nome;
@@ -7619,11 +7629,31 @@
         }
       });
     });
-    container.querySelectorAll("[data-acao='pessoa-fixo']").forEach(select => {
-      select.addEventListener("change", () => {
-        const nome = select.closest("tr").dataset.nome;
-        salvarPessoaGastoFixo(nome, select.value);
-      });
+  }
+
+  // Troca o selo de "Pessoa" de uma conta fixa por um select + Salvar/Cancelar,
+  // igual ao lápis de editar já funciona na tabela de Lançamentos do mês
+  function entrarModoEdicaoContaFixa(nome){
+    const linha = document.querySelector(`tr[data-nome="${nome}"][data-tipo="fixo"]`);
+    if (!linha) return;
+
+    const pessoaAtual = obterPessoaGastoFixo(nome);
+    linha.querySelector(".celula-pessoa-fixo").innerHTML = `
+      <select class="select-pessoa-fixo" id="pessoaFixoEdicao-${nome}">
+        ${["DI", "GU", "DI/GU"].map(p => `<option value="${p}" ${p === pessoaAtual ? "selected" : ""}>${p}</option>`).join("")}
+      </select>
+    `;
+
+    const celulaAcoes = linha.querySelector(".acoes-conta-pagar");
+    celulaAcoes.innerHTML = `
+      <button type="button" class="lancamento-salvar" data-acao="salvar-fixo">Salvar</button>
+      <button type="button" class="lancamento-cancelar" data-acao="cancelar-fixo">Cancelar</button>
+    `;
+    celulaAcoes.querySelector("[data-acao='salvar-fixo']").addEventListener("click", () => {
+      salvarPessoaGastoFixo(nome, document.getElementById(`pessoaFixoEdicao-${nome}`).value);
+    });
+    celulaAcoes.querySelector("[data-acao='cancelar-fixo']").addEventListener("click", () => {
+      renderizarFinancas();
     });
   }
 
