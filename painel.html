@@ -1265,8 +1265,6 @@
   .popover-rodape button{ border: none; background: none; font-family: 'Outfit', sans-serif; font-size: .76rem; cursor: pointer; padding: 5px 8px; border-radius: 6px; }
   .btn-limpar{ color: var(--texto-suave); }
   .btn-limpar:hover{ color: var(--vermelho); }
-  .btn-aplicar{ background: var(--coral); color: var(--branco); font-weight: 600; }
-  .btn-aplicar:hover{ background: var(--coral-escuro); }
   .selo-pessoa{
     display: inline-block;
     padding: 3px 9px;
@@ -7357,16 +7355,13 @@
 
     html += `<div class="popover-rodape">
       <button type="button" class="btn-limpar" data-acao="limpar">Limpar</button>
-      <button type="button" class="btn-aplicar" data-acao="aplicar">Aplicar</button>
     </div>`;
     return html;
   }
 
-  function renderizarTabelaLancamentos(listaBase){
-    const areaTabela = document.getElementById("areaTabelaLancamentos");
-
-    // Aplica os filtros de coluna (Data/Descrição/Pessoa/Valor) em cima do que já
-    // veio filtrado por cartão/pessoa lá de cima, depois ordena se for o caso
+  // Aplica os filtros de coluna (Data/Descrição/Pessoa/Valor) em cima do que já
+  // veio filtrado por cartão/pessoa lá de cima, depois ordena se for o caso
+  function calcularListaExtrato(listaBase){
     let lista = listaBase.filter(l =>
       COLUNAS_EXTRATO.every(c => filtrosColunaExtrato[c.chave].size === 0 || filtrosColunaExtrato[c.chave].has(c.valor(l)))
     );
@@ -7380,52 +7375,41 @@
         return 0;
       });
     }
+    return lista;
+  }
 
+  function htmlPilulasExtrato(){
     const pilulas = COLUNAS_EXTRATO.filter(c => filtrosColunaExtrato[c.chave].size > 0);
-
-    areaTabela.innerHTML = `
-      ${pilulas.length > 0 ? `
-        <div class="filtros-ativos-extrato">
-          ${pilulas.map(c => `
-            <span class="pilula-filtro">${c.titulo}: ${[...filtrosColunaExtrato[c.chave]].map(v => c.rotulo(v)).join(", ")}
-              <button type="button" data-limpar-coluna="${c.chave}">&times;</button>
-            </span>
-          `).join("")}
-        </div>
-      ` : ""}
-      <table class="tabela-lancamentos">
-        <thead>
-          <tr>
-            <th>${cabecalhoFiltravelExtrato(COLUNAS_EXTRATO[0])}</th>
-            <th>${cabecalhoFiltravelExtrato(COLUNAS_EXTRATO[1])}</th>
-            <th>Cartão</th>
-            <th>${cabecalhoFiltravelExtrato(COLUNAS_EXTRATO[2])}</th>
-            <th>${cabecalhoFiltravelExtrato(COLUNAS_EXTRATO[3])}</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${lista.length === 0 ? `<tr><td colspan="6" class="texto-vazio" style="text-align:center;">Nenhum lançamento para esse filtro.</td></tr>` : lista.map(l => `
-            <tr data-id="${l.id}">
-              <td>${formatarDataCurta(l.data_compra || l.data)}</td>
-              <td>${l.descricao}${l.parcela_atual ? ` <span style="color:var(--texto-suave);">(${l.parcela_atual}/${l.parcela_total})</span>` : ""}</td>
-              <td>${l.cartao || "-"}</td>
-              <td><span class="selo-pessoa">${l.pessoa || "-"}</span></td>
-              <td>${formatarMoeda(l.valor)}</td>
-              <td>
-                <button type="button" class="lancamento-editar" data-acao="editar" aria-label="Editar lançamento">&#9998;</button>
-                <button type="button" class="lancamento-excluir" data-acao="excluir" aria-label="Excluir lançamento">&times;</button>
-              </td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-      <div class="resumo-linha destaque" style="margin-top: 10px;">
-        <span>Total do extrato (${lista.length} lançamento${lista.length === 1 ? "" : "s"})</span>
-        <strong>${formatarMoeda(lista.reduce((soma, l) => soma + Number(l.valor), 0))}</strong>
+    if (pilulas.length === 0) return "";
+    return `
+      <div class="filtros-ativos-extrato">
+        ${pilulas.map(c => `
+          <span class="pilula-filtro">${c.titulo}: ${[...filtrosColunaExtrato[c.chave]].map(v => c.rotulo(v)).join(", ")}
+            <button type="button" data-limpar-coluna="${c.chave}">&times;</button>
+          </span>
+        `).join("")}
       </div>
     `;
+  }
 
+  function htmlCorpoTabelaExtrato(lista){
+    if (lista.length === 0) return `<tr><td colspan="6" class="texto-vazio" style="text-align:center;">Nenhum lançamento para esse filtro.</td></tr>`;
+    return lista.map(l => `
+      <tr data-id="${l.id}">
+        <td>${formatarDataCurta(l.data_compra || l.data)}</td>
+        <td>${l.descricao}${l.parcela_atual ? ` <span style="color:var(--texto-suave);">(${l.parcela_atual}/${l.parcela_total})</span>` : ""}</td>
+        <td>${l.cartao || "-"}</td>
+        <td><span class="selo-pessoa">${l.pessoa || "-"}</span></td>
+        <td>${formatarMoeda(l.valor)}</td>
+        <td>
+          <button type="button" class="lancamento-editar" data-acao="editar" aria-label="Editar lançamento">&#9998;</button>
+          <button type="button" class="lancamento-excluir" data-acao="excluir" aria-label="Excluir lançamento">&times;</button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  function conectarLinhasTabelaExtrato(areaTabela){
     areaTabela.querySelectorAll("[data-acao='excluir']").forEach(btn => {
       btn.addEventListener("click", () => {
         const id = btn.closest("tr").dataset.id;
@@ -7438,12 +7422,67 @@
         entrarModoEdicao(id);
       });
     });
+  }
+
+  function conectarPilulasExtrato(areaTabela, listaBase){
     areaTabela.querySelectorAll("[data-limpar-coluna]").forEach(btn => {
       btn.addEventListener("click", () => {
         filtrosColunaExtrato[btn.dataset.limparColuna] = new Set();
         renderizarTabelaLancamentos(listaBase);
       });
     });
+  }
+
+  // Atualiza só a lista de baixo (pílulas + tabela + total), sem mexer no
+  // cabeçalho — usado quando marca/desmarca um checkbox, pra ele continuar
+  // filtrando na hora sem fechar o painel de filtro que está aberto
+  function atualizarListaExtratoAoVivo(listaBase){
+    const areaTabela = document.getElementById("areaTabelaLancamentos");
+    const lista = calcularListaExtrato(listaBase);
+
+    const areaPilulasAtual = areaTabela.querySelector(".filtros-ativos-extrato");
+    const novasPilulas = htmlPilulasExtrato();
+    if (areaPilulasAtual) areaPilulasAtual.outerHTML = novasPilulas;
+    else if (novasPilulas) areaTabela.insertAdjacentHTML("afterbegin", novasPilulas);
+
+    areaTabela.querySelector("tbody").innerHTML = htmlCorpoTabelaExtrato(lista);
+    areaTabela.querySelector(".resumo-linha.destaque").innerHTML = `
+      <span>Total do extrato (${lista.length} lançamento${lista.length === 1 ? "" : "s"})</span>
+      <strong>${formatarMoeda(lista.reduce((soma, l) => soma + Number(l.valor), 0))}</strong>
+    `;
+
+    conectarLinhasTabelaExtrato(areaTabela);
+    conectarPilulasExtrato(areaTabela, listaBase);
+  }
+
+  function renderizarTabelaLancamentos(listaBase){
+    const areaTabela = document.getElementById("areaTabelaLancamentos");
+    const lista = calcularListaExtrato(listaBase);
+
+    areaTabela.innerHTML = `
+      ${htmlPilulasExtrato()}
+      <table class="tabela-lancamentos">
+        <thead>
+          <tr>
+            <th>${cabecalhoFiltravelExtrato(COLUNAS_EXTRATO[0])}</th>
+            <th>${cabecalhoFiltravelExtrato(COLUNAS_EXTRATO[1])}</th>
+            <th>Cartão</th>
+            <th>${cabecalhoFiltravelExtrato(COLUNAS_EXTRATO[2])}</th>
+            <th>${cabecalhoFiltravelExtrato(COLUNAS_EXTRATO[3])}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>${htmlCorpoTabelaExtrato(lista)}</tbody>
+      </table>
+      <div class="resumo-linha destaque" style="margin-top: 10px;">
+        <span>Total do extrato (${lista.length} lançamento${lista.length === 1 ? "" : "s"})</span>
+        <strong>${formatarMoeda(lista.reduce((soma, l) => soma + Number(l.valor), 0))}</strong>
+      </div>
+    `;
+
+    conectarLinhasTabelaExtrato(areaTabela);
+    conectarPilulasExtrato(areaTabela, listaBase);
+
     areaTabela.querySelectorAll(".abrir-filtro-extrato").forEach(btn => {
       btn.addEventListener("click", (ev) => {
         ev.stopPropagation();
@@ -7460,9 +7499,9 @@
         pop.classList.add("aberto");
         popoverExtratoAberto = pop;
 
-        // Sem isso, qualquer clique dentro do painel (checkbox, ordenar, aplicar)
+        // Sem isso, qualquer clique dentro do painel (checkbox, ordenar, limpar)
         // borbulha até o listener global que fecha o popover, fechando ele
-        // antes da pessoa conseguir marcar/aplicar o filtro
+        // antes da pessoa conseguir marcar o filtro
         pop.addEventListener("click", (evPop) => evPop.stopPropagation());
 
         pop.querySelectorAll("[data-ord]").forEach(b => {
@@ -7471,11 +7510,17 @@
             renderizarTabelaLancamentos(listaBase);
           });
         });
-        pop.querySelector("[data-acao='aplicar']").addEventListener("click", () => {
-          filtrosColunaExtrato[chave] = new Set([...pop.querySelectorAll("input[type=checkbox]:checked")].map(i => i.value));
-          popoverExtratoAberto = null;
-          renderizarTabelaLancamentos(listaBase);
+
+        // Marcar/desmarcar já filtra na hora — sem precisar de um botão "Aplicar"
+        // separado, e sem fechar o painel (pra dar pra marcar mais de uma opção)
+        pop.querySelectorAll("input[type=checkbox]").forEach(chk => {
+          chk.addEventListener("change", () => {
+            filtrosColunaExtrato[chave] = new Set([...pop.querySelectorAll("input[type=checkbox]:checked")].map(i => i.value));
+            btn.classList.toggle("tem-filtro", filtrosColunaExtrato[chave].size > 0 || ordenacaoExtrato.coluna === chave);
+            atualizarListaExtratoAoVivo(listaBase);
+          });
         });
+
         pop.querySelector("[data-acao='limpar']").addEventListener("click", () => {
           filtrosColunaExtrato[chave] = new Set();
           popoverExtratoAberto = null;
