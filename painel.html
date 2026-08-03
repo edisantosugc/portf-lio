@@ -66,13 +66,63 @@
     height: 100vh;
     overflow-y: auto;
   }
+  .sidebar-topo{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+  }
   .sidebar-topo .logo{
     font-family: 'Fraunces', serif;
     font-size: 1.3rem;
     font-weight: 600;
-    margin-bottom: 36px;
+    margin-bottom: 0;
   }
   .sidebar-topo .logo .ponto{ color: var(--coral); }
+
+  .botao-modo-oculto{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid var(--borda);
+    background: var(--creme);
+    color: var(--texto-suave);
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .botao-modo-oculto:hover{ border-color: var(--coral); color: var(--coral); }
+  .botao-modo-oculto.ativo{ background: var(--coral); border-color: var(--coral); color: var(--branco); }
+  .botao-modo-oculto svg{ width: 16px; height: 16px; }
+
+  .aviso-modo-oculto{
+    background: var(--coral);
+    color: var(--branco);
+    font-size: .74rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 8px 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    margin-top: -20px;
+  }
+
+  /* =========================================================================
+     MODO OCULTO — pra gravar Stories sem expor dado sensível. Qualquer coisa
+     com a classe .dado-sensivel borra de uma vez, em qualquer aba, quando o
+     <body> ganha .modo-oculto (ativado pelo olho do lado de "meu.painel").
+     ========================================================================= */
+  body.modo-oculto .dado-sensivel{
+    filter: blur(7px);
+    user-select: none;
+    transition: filter .15s ease;
+  }
+  body.modo-oculto .dado-sensivel:hover{ filter: blur(2.5px); }
+  /* Contadores que aparecem soltos na sidebar (nº de mensagens/leads novos por aba) */
+  body.modo-oculto .badge-alerta-sidebar{ filter: blur(4px); }
 
   .menu{ display: flex; flex-direction: column; gap: 6px; flex-grow: 1; }
   .menu-item{
@@ -2419,7 +2469,7 @@
 </head>
 <body>
 
-<div class="notificacoes-popup" id="areaNotificacoesPopup"></div>
+<div class="notificacoes-popup dado-sensivel" id="areaNotificacoesPopup"></div>
 
 <div class="ugc-modal-overlay oculto" id="ugcModalPrazo" role="dialog" aria-modal="true" aria-labelledby="ugcModalPrazoTitulo">
   <div class="ugc-modal-cartao">
@@ -2711,7 +2761,12 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-topo">
       <p class="logo">meu<span class="ponto">.</span>painel</p>
+      <button type="button" class="botao-modo-oculto" id="botaoModoOculto" aria-label="Esconder dados sensíveis" title="Esconder dados sensíveis (pra gravar Stories)">
+        <svg id="iconeOlhoAberto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg id="iconeOlhoFechado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="oculto"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.6 21.6 0 0 1 5.06-6.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a21.6 21.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+      </button>
     </div>
+    <div class="aviso-modo-oculto oculto" id="avisoModoOculto">🙈 Modo oculto ativado — dados sensíveis borrados em todas as abas</div>
 
     <nav class="menu">
       <button class="menu-item ativo" data-tab="principal">
@@ -2811,13 +2866,13 @@
     <section id="painelPrincipal" class="painel-tab">
       <p class="saudacao">Olá! Aqui estão os números do seu biosite.</p>
 
-      <div class="cartoes-numeros" id="cartoesNumeros"></div>
+      <div class="cartoes-numeros dado-sensivel" id="cartoesNumeros"></div>
 
-      <div class="mini-cartoes" id="miniCartoesCliques"></div>
+      <div class="mini-cartoes dado-sensivel" id="miniCartoesCliques"></div>
 
       <div class="cartao grafico-cartao">
         <h2>Visitas nos últimos 14 dias</h2>
-        <div class="grafico-barras" id="graficoBarras"></div>
+        <div class="grafico-barras dado-sensivel" id="graficoBarras"></div>
       </div>
     </section>
 
@@ -2825,36 +2880,36 @@
     <section id="painelPortfolio" class="painel-tab oculto">
       <p class="saudacao">Olá! Aqui estão os números do seu portfólio.</p>
 
-      <div class="cartoes-numeros" id="cartoesNumerosPortfolio"></div>
+      <div class="cartoes-numeros dado-sensivel" id="cartoesNumerosPortfolio"></div>
 
-      <div class="cartao destaque-contato" id="cartaoContatoPortfolio"></div>
+      <div class="cartao destaque-contato dado-sensivel" id="cartaoContatoPortfolio"></div>
 
-      <div class="cartoes-numeros" id="cartoesOrigemPortfolio"></div>
+      <div class="cartoes-numeros dado-sensivel" id="cartoesOrigemPortfolio"></div>
 
       <div class="cartao grafico-cartao">
         <h2>Visitas nos últimos 14 dias</h2>
-        <div class="grafico-barras" id="graficoBarrasPortfolio"></div>
+        <div class="grafico-barras dado-sensivel" id="graficoBarrasPortfolio"></div>
       </div>
 
       <div class="grade-portfolio">
         <div class="cartao">
           <h2>Vídeos mais vistos</h2>
-          <div id="listaVideos"></div>
+          <div class="dado-sensivel" id="listaVideos"></div>
         </div>
 
         <div class="cartao">
           <h2>Botões mais clicados</h2>
-          <div id="listaBotoes"></div>
+          <div class="dado-sensivel" id="listaBotoes"></div>
         </div>
 
         <div class="cartao">
           <h2>Cliques para contato</h2>
-          <div id="listaContatoCliques"></div>
+          <div class="dado-sensivel" id="listaContatoCliques"></div>
         </div>
 
         <div class="cartao" id="cartaoMensagensRecebidas">
           <h2>Mensagens recebidas</h2>
-          <div id="listaMensagens"></div>
+          <div class="dado-sensivel" id="listaMensagens"></div>
         </div>
       </div>
     </section>
@@ -2880,7 +2935,7 @@
         </div>
 
         <div id="igMetricasConteudo" class="oculto">
-          <div class="cartoes-numeros" id="igCartoesNumeros"></div>
+          <div class="cartoes-numeros dado-sensivel" id="igCartoesNumeros"></div>
 
           <div class="grade-instagram-graficos">
             <div class="cartao grafico-cartao">
@@ -2902,14 +2957,14 @@
 
           <div class="cartao" style="margin-bottom: 20px;">
             <h2>Saúde do envio (últimos 30 dias)</h2>
-            <div class="ig-saude-barra" id="igSaudeBarra"></div>
-            <div class="ig-saude-legenda" id="igSaudeLegenda"></div>
-            <div id="igSaudeErros"></div>
+            <div class="ig-saude-barra dado-sensivel" id="igSaudeBarra"></div>
+            <div class="ig-saude-legenda dado-sensivel" id="igSaudeLegenda"></div>
+            <div class="dado-sensivel" id="igSaudeErros"></div>
           </div>
 
           <div class="cartao">
             <h2>Interações por canal (últimos 30 dias)</h2>
-            <div id="igCanalBarras"></div>
+            <div class="dado-sensivel" id="igCanalBarras"></div>
           </div>
         </div>
       </div>
@@ -2922,13 +2977,13 @@
         </div>
 
         <div class="cartao" style="padding: 8px 20px;">
-          <div id="igListaAutomacoes"></div>
+          <div class="dado-sensivel" id="igListaAutomacoes"></div>
         </div>
       </div>
 
       <!-- SUB-ABA: LEADS -->
       <div id="igSubLeads" class="oculto">
-        <div class="cartoes-numeros" id="igLeadsCartoes" style="margin-bottom: 20px;"></div>
+        <div class="cartoes-numeros dado-sensivel" id="igLeadsCartoes" style="margin-bottom: 20px;"></div>
 
         <div class="ig-leads-topo">
           <input type="text" id="igLeadsBusca" placeholder="Buscar por @ ou palavra...">
@@ -2936,7 +2991,7 @@
         </div>
 
         <div class="cartao" style="padding: 8px 20px;">
-          <div id="igListaInteracoes"></div>
+          <div class="dado-sensivel" id="igListaInteracoes"></div>
         </div>
       </div>
 
@@ -2957,12 +3012,12 @@
         </div>
 
         <div id="igAnalisesConteudo" class="oculto">
-          <div class="cartoes-numeros" id="igAnalisesCartoes" style="margin-bottom: 6px;"></div>
+          <div class="cartoes-numeros dado-sensivel" id="igAnalisesCartoes" style="margin-bottom: 6px;"></div>
           <p class="ig-nota" id="igAnalisesAviso" style="display:none;"></p>
 
           <div class="cartao grafico-cartao" style="margin-top: 20px;">
             <h2>Alcance por dia</h2>
-            <div class="grafico-barras" id="igAnalisesGraficoAlcance"></div>
+            <div class="grafico-barras dado-sensivel" id="igAnalisesGraficoAlcance"></div>
           </div>
 
           <div class="cartao" style="margin-bottom: 20px;">
@@ -2976,13 +3031,13 @@
                 <button type="button" class="sub-aba-btn" data-filtro="vistos">Mais vistos</button>
               </div>
             </div>
-            <div id="igListaMelhoresPosts"><p class="texto-vazio">Carregando posts...</p></div>
+            <div class="dado-sensivel" id="igListaMelhoresPosts"><p class="texto-vazio">Carregando posts...</p></div>
             <p class="ig-nota" style="margin-top:14px;">Só aparecem posts publicados por você. "Alcance" e "visualizações" podem não existir pra todo tipo de post na API do Instagram.</p>
           </div>
 
           <div class="cartao" style="margin-bottom: 20px;">
             <h2>Quem mais comenta</h2>
-            <div id="igListaQuemMaisComenta"></div>
+            <div class="dado-sensivel" id="igListaQuemMaisComenta"></div>
           </div>
 
           <div class="cartao">
@@ -2992,14 +3047,14 @@
             </div>
             <p class="ig-nota" id="igIaUltimaAtualizacao">Ainda não analisado nesta sessão. Clique em "Analisar com IA".</p>
 
-            <div id="igIdeiasVideo"></div>
+            <div class="dado-sensivel" id="igIdeiasVideo"></div>
 
             <div class="ig-subabas-mini" id="igFiltroOportunidades" style="margin-top:16px; margin-bottom:14px;">
               <button type="button" class="sub-aba-btn ativo" data-filtro="tudo">Tudo</button>
               <button type="button" class="sub-aba-btn" data-filtro="duvida">Dúvidas</button>
               <button type="button" class="sub-aba-btn" data-filtro="interesse">Interesses</button>
             </div>
-            <div id="igListaOportunidades"></div>
+            <div class="dado-sensivel" id="igListaOportunidades"></div>
           </div>
         </div>
       </div>
@@ -3066,14 +3121,14 @@
             <button type="submit" class="botao-add-tarefa">Adicionar</button>
           </form>
 
-          <div class="lista-tarefas" id="listaTarefas"></div>
+          <div class="lista-tarefas dado-sensivel" id="listaTarefas"></div>
         </div>
       </div>
     </section>
 
     <!-- ===================== ABA: FINANÇAS ===================== -->
     <section id="painelFinancas" class="painel-tab oculto">
-      <div id="areaAlertasContas"></div>
+      <div class="dado-sensivel" id="areaAlertasContas"></div>
 
       <div class="cartao">
         <div class="financas-mes-topo">
@@ -3120,20 +3175,20 @@
 
       <div class="cartao" style="margin-top: 20px;">
         <h2>Totais do mês</h2>
-        <div class="financas-totais" id="financasTotais"></div>
+        <div class="financas-totais dado-sensivel" id="financasTotais"></div>
       </div>
 
       <div class="cartao" style="margin-top: 20px;">
         <h2>Lançamentos do mês</h2>
         <div class="filtros-cartao" id="filtrosCartao"></div>
-        <div id="areaTabelaLancamentos"></div>
+        <div class="dado-sensivel" id="areaTabelaLancamentos"></div>
       </div>
 
       <div class="cartao" style="margin-top: 20px;">
         <h2>Total de gastos</h2>
         <p class="sub-secao-financas">Quanto cada pessoa precisa te passar, e o que sobra depois de recolher de todo mundo.</p>
-        <div class="financas-totais" id="totalGastosPessoas"></div>
-        <div class="resumo-total-gastos" id="resumoTotalGastos"></div>
+        <div class="financas-totais dado-sensivel" id="totalGastosPessoas"></div>
+        <div class="resumo-total-gastos dado-sensivel" id="resumoTotalGastos"></div>
       </div>
 
       <div class="cartao" style="margin-top: 20px;">
@@ -3156,8 +3211,8 @@
           <button type="submit" class="botao-add-lancamento">+ Nova conta fixa</button>
         </form>
 
-        <div class="lista-cartoes-pagar" id="listaCartoesPagar"></div>
-        <div class="resumo-linha destaque" id="totalContasPagar" style="margin-top: 12px;"></div>
+        <div class="lista-cartoes-pagar dado-sensivel" id="listaCartoesPagar"></div>
+        <div class="resumo-linha destaque dado-sensivel" id="totalContasPagar" style="margin-top: 12px;"></div>
       </div>
     </section>
 
@@ -3206,21 +3261,21 @@
         <div class="cartao" style="margin-top: 20px;">
           <h2>Caixa do mês</h2>
           <p class="sub-secao-financas">Recebido menos investimentos. Verde é lucro, vermelho é saldo negativo.</p>
-          <div class="resumo-caixa" id="resumoCaixa"></div>
+          <div class="resumo-caixa dado-sensivel" id="resumoCaixa"></div>
         </div>
 
         <div class="grade-negocio" style="margin-top: 20px;">
           <div class="cartao">
             <h2>Investimentos UGC</h2>
-            <p class="resumo-linha" id="totalInvestimentosUGC" style="margin-bottom: 14px;"></p>
-            <div id="areaInvestimentosUGC"></div>
+            <p class="resumo-linha dado-sensivel" id="totalInvestimentosUGC" style="margin-bottom: 14px;"></p>
+            <div class="dado-sensivel" id="areaInvestimentosUGC"></div>
           </div>
 
           <div class="cartao">
             <h2>Ganhos</h2>
-            <p class="resumo-linha" id="totalGanhosUGC" style="margin-bottom: 8px;"></p>
-            <p class="resumo-linha linha-a-receber oculto" id="totalAReceberUGC" style="margin-bottom: 14px;"></p>
-            <div id="areaGanhosUGC"></div>
+            <p class="resumo-linha dado-sensivel" id="totalGanhosUGC" style="margin-bottom: 8px;"></p>
+            <p class="resumo-linha linha-a-receber oculto dado-sensivel" id="totalAReceberUGC" style="margin-bottom: 14px;"></p>
+            <div class="dado-sensivel" id="areaGanhosUGC"></div>
           </div>
         </div>
       </div>
@@ -3230,7 +3285,7 @@
         <div class="cartao">
           <h2>Fechamento por ano</h2>
           <p class="sub-secao-financas">Um resumo de cada ano, do mais recente para o mais antigo.</p>
-          <div id="tabelaAnualNegocio"></div>
+          <div class="dado-sensivel" id="tabelaAnualNegocio"></div>
         </div>
       </div>
 
@@ -3239,8 +3294,8 @@
         <div class="cartao">
           <h2>Total geral desde o início</h2>
           <p class="sub-secao-financas">Somando todos os meses e anos já lançados na sua carreira UGC.</p>
-          <div class="resumo-caixa" id="resumoCaixaGeral"></div>
-          <div class="financas-totais" id="totaisGeralNegocio" style="margin-top: 16px;"></div>
+          <div class="resumo-caixa dado-sensivel" id="resumoCaixaGeral"></div>
+          <div class="financas-totais dado-sensivel" id="totaisGeralNegocio" style="margin-top: 16px;"></div>
         </div>
       </div>
     </section>
@@ -3249,7 +3304,7 @@
     <section id="painelAbordagem" class="painel-tab oculto">
       <div class="topo-abordagem-metricas">
         <div class="abordagem-cartao-metrica">
-          <span class="valor" id="abordagemMetricaValor">0</span>
+          <span class="valor dado-sensivel" id="abordagemMetricaValor">0</span>
           <span class="legenda"><strong id="abordagemMetricaLegenda">Hoje</strong>Abordagens realizadas</span>
         </div>
         <div class="abordagem-filtro-periodo" id="abordagemFiltroPeriodo">
@@ -3369,9 +3424,9 @@
           <div class="abordagem-filtro-dropdown oculto" id="abordagemFiltroDropdown">
             <input type="text" id="abordagemFiltroBusca" placeholder="Buscar valor...">
             <label class="abordagem-filtro-item abordagem-filtro-todos"><input type="checkbox" id="abordagemFiltroTodos"> <strong>(Selecionar tudo)</strong></label>
-            <div id="abordagemFiltroLista" class="abordagem-filtro-lista"></div>
+            <div class="abordagem-filtro-lista dado-sensivel" id="abordagemFiltroLista"></div>
           </div>
-          <div id="abordagemListaCorpo"></div>
+          <div class="dado-sensivel" id="abordagemListaCorpo"></div>
         </div>
       </div>
 
@@ -3388,7 +3443,7 @@
           <div class="ugc-cabecalho-lista abordagem-grade-lista">
             <span>Data Abordagem</span><span>Marca</span><span>Nicho</span><span>Follow up</span><span>Status</span><span></span>
           </div>
-          <div id="abordagemRascunhoCorpo"></div>
+          <div class="dado-sensivel" id="abordagemRascunhoCorpo"></div>
         </div>
       </div>
 
@@ -3400,7 +3455,7 @@
             <input type="text" id="abordagemArquivoBusca" placeholder="Digite o nome da marca">
           </div>
         </div>
-        <div id="abordagemArquivoCorpo"></div>
+        <div class="dado-sensivel" id="abordagemArquivoCorpo"></div>
       </div>
     </section>
 
@@ -3423,22 +3478,22 @@
       <div class="clientes-cards-resumo">
         <div class="cliente-card-resumo clicavel" data-filtro-resumo="carteira" role="button" tabindex="0">
           <div class="topo"><span class="rotulo">Sua Carteira</span><span class="bolinha" style="background:var(--verde)"></span></div>
-          <span class="valor" id="clienteResumoCarteira">0</span>
+          <span class="valor dado-sensivel" id="clienteResumoCarteira">0</span>
           <span class="legenda">Todos os clientes já trabalhados</span>
         </div>
         <div class="cliente-card-resumo clicavel" data-filtro-resumo="ativa" role="button" tabindex="0">
           <div class="topo"><span class="rotulo">Carteira Ativa</span><span class="bolinha" style="background:var(--dourado)"></span></div>
-          <span class="valor" id="clienteResumoAtiva">0</span>
+          <span class="valor dado-sensivel" id="clienteResumoAtiva">0</span>
           <span class="legenda">Com trabalho rodando agora</span>
         </div>
         <div class="cliente-card-resumo clicavel" data-filtro-resumo="abordagem" role="button" tabindex="0">
           <div class="topo"><span class="rotulo">Em Abordagem</span><span class="bolinha" style="background:var(--vermelho)"></span></div>
-          <span class="valor" id="clienteResumoAbordagem">0</span>
+          <span class="valor dado-sensivel" id="clienteResumoAbordagem">0</span>
           <span class="legenda">Em prospecção ativa</span>
         </div>
         <div class="cliente-card-resumo">
           <div class="topo"><span class="rotulo">Fechados Este Mês</span><span class="bolinha" style="background:var(--coral)"></span></div>
-          <span class="valor" id="clienteResumoFechados">0</span>
+          <span class="valor dado-sensivel" id="clienteResumoFechados">0</span>
           <span class="legenda">Negócios concluídos</span>
         </div>
       </div>
@@ -3469,7 +3524,7 @@
             <thead>
               <tr><th>Empresa</th><th>Nicho</th><th>Contato</th><th>Tag</th><th>Status</th><th></th></tr>
             </thead>
-            <tbody id="clientesTabelaCorpo"></tbody>
+            <tbody class="dado-sensivel" id="clientesTabelaCorpo"></tbody>
           </table>
         </div>
       </div>
@@ -3696,14 +3751,14 @@
           <div class="ugc-cabecalho-lista ugc-grade-lista">
             <span>Marca</span><span>Etapa atual</span><span>Valor</span><span>Pag.</span><span></span>
           </div>
-          <div id="ugcListaCorpo"></div>
+          <div class="dado-sensivel" id="ugcListaCorpo"></div>
         </div>
       </div>
 
       <!-- ---------- Visão Kanban ---------- -->
       <div id="ugcVistaKanban" class="oculto">
         <div class="ugc-quadro-scroll">
-          <div class="ugc-quadro" id="ugcQuadro"></div>
+          <div class="ugc-quadro dado-sensivel" id="ugcQuadro"></div>
         </div>
         <div class="ugc-legenda">
           <span class="ugc-legenda-item"><span class="ugc-ponto-legenda" style="background:var(--dourado)"></span>aguardando aprovação / a pagar</span>
@@ -3740,7 +3795,7 @@
           <div class="notas-swatches" id="notaFiltroCores"></div>
         </div>
 
-        <div id="notasCorpo"></div>
+        <div class="dado-sensivel" id="notasCorpo"></div>
       </div>
     </section>
 
@@ -3759,10 +3814,10 @@
             <span class="doc-selo-opcional">Nenhum campo obrigatório</span>
           </div>
           <div class="ugc-form-grade">
-            <div class="ugc-campo"><label>Nome completo (pessoa física)</label><input type="text" id="docPessoalNomeCompleto" placeholder="Seu nome completo"></div>
-            <div class="ugc-campo"><label>Nome empresarial</label><input type="text" id="docPessoalNomeEmpresarial" placeholder="Razão social / nome fantasia"></div>
-            <div class="ugc-campo"><label>CPF</label><input type="text" id="docPessoalCpf" placeholder="000.000.000-00"></div>
-            <div class="ugc-campo"><label>CNPJ</label><input type="text" id="docPessoalCnpj" placeholder="00.000.000/0000-00"></div>
+            <div class="ugc-campo"><label>Nome completo (pessoa física)</label><input type="text" class="dado-sensivel" id="docPessoalNomeCompleto" placeholder="Seu nome completo"></div>
+            <div class="ugc-campo"><label>Nome empresarial</label><input type="text" class="dado-sensivel" id="docPessoalNomeEmpresarial" placeholder="Razão social / nome fantasia"></div>
+            <div class="ugc-campo"><label>CPF</label><input type="text" class="dado-sensivel" id="docPessoalCpf" placeholder="000.000.000-00"></div>
+            <div class="ugc-campo"><label>CNPJ</label><input type="text" class="dado-sensivel" id="docPessoalCnpj" placeholder="00.000.000/0000-00"></div>
           </div>
           <div style="display:flex; justify-content:flex-end; margin-top:14px;">
             <button type="button" class="botao-add-tarefa" id="docPessoalSalvar">Salvar identificação</button>
@@ -3787,7 +3842,7 @@
             <h2>Outros documentos</h2>
             <span class="doc-selo-opcional">Opcional, sem prazo</span>
           </div>
-          <div id="docsAvulsosLista"></div>
+          <div class="dado-sensivel" id="docsAvulsosLista"></div>
           <div class="doc-avulso-form-novo">
             <input type="text" id="docAvulsoNomeNovo" placeholder="Nome do documento — ex: RG, CNH">
             <label class="btn-fantasma" for="docAvulsoArquivoNovo" style="cursor:pointer;">📎 Escolher arquivo</label>
@@ -3805,7 +3860,7 @@
 
       <!-- ---------- Sub-aba: Jurídico ---------- -->
       <div id="adminJuridico" class="admin-subpainel">
-        <div class="jur-resumo" id="juridicoResumo"></div>
+        <div class="jur-resumo dado-sensivel" id="juridicoResumo"></div>
 
         <div class="sub-abas-negocio" id="subAbasJuridico" style="width: fit-content;">
           <button type="button" class="sub-aba-btn ativo" data-subjur="licencas">Licenças</button>
@@ -3813,7 +3868,7 @@
         </div>
 
         <div id="juridicoPainelLicencas" class="admin-subpainel ativo">
-          <div id="juridicoListaLicencas"></div>
+          <div class="dado-sensivel" id="juridicoListaLicencas"></div>
         </div>
 
         <div id="juridicoPainelContratos" class="admin-subpainel">
@@ -3825,7 +3880,7 @@
             <div class="clientes-tabela-scroll">
               <table class="clientes-tabela">
                 <thead><tr><th>Marca</th><th>CNPJ</th><th>Início</th><th>Vencimento</th><th>Contrato</th></tr></thead>
-                <tbody id="juridicoTabelaContratosCorpo"></tbody>
+                <tbody class="dado-sensivel" id="juridicoTabelaContratosCorpo"></tbody>
               </table>
             </div>
           </div>
@@ -4196,6 +4251,11 @@
     const abaSalva = localStorage.getItem("painelAbaAtiva");
     if (abaSalva && document.querySelector(`.menu-item[data-tab="${abaSalva}"]`)){
       trocarAba(abaSalva);
+    }
+
+    // Mesma lógica pro modo oculto (olho): se estava ativado antes do F5, continua ativado
+    if (localStorage.getItem("painelModoOculto") === "1"){
+      alternarModoOculto(true);
     }
 
     document.body.style.visibility = "visible";
@@ -5679,6 +5739,8 @@
 
     document.getElementById("botaoSair").addEventListener("click", () => Auth.logout());
 
+    document.getElementById("botaoModoOculto").addEventListener("click", () => alternarModoOculto());
+
     configurarEventosInstagram();
 
     document.getElementById("botaoMenuMobile").addEventListener("click", () => {
@@ -6101,6 +6163,19 @@
   function fecharGaveta(){
     document.getElementById("sidebar").classList.remove("aberta");
     document.getElementById("overlayMobile").classList.remove("visivel");
+  }
+
+  // Modo oculto (o "olho" do lado de "meu.painel"): borra tudo que tem a classe
+  // .dado-sensivel em qualquer aba. Fica salvo no navegador, então continua
+  // ativado mesmo trocando de aba ou atualizando a página (F5).
+  function alternarModoOculto(forcarEstado){
+    const ativo = typeof forcarEstado === "boolean" ? forcarEstado : !document.body.classList.contains("modo-oculto");
+    document.body.classList.toggle("modo-oculto", ativo);
+    document.getElementById("botaoModoOculto").classList.toggle("ativo", ativo);
+    document.getElementById("iconeOlhoAberto").classList.toggle("oculto", ativo);
+    document.getElementById("iconeOlhoFechado").classList.toggle("oculto", !ativo);
+    document.getElementById("avisoModoOculto").classList.toggle("oculto", !ativo);
+    localStorage.setItem("painelModoOculto", ativo ? "1" : "0");
   }
 
   function trocarAba(aba){
