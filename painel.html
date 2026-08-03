@@ -1370,7 +1370,8 @@
   .resumo-total-gastos{ display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
   .detalhe-pessoa-gastos{ display: flex; flex-direction: column; gap: 8px; }
   .detalhe-pessoa-gastos:not(:empty){ margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--borda); }
-  .detalhe-pessoa-titulo{ font-size: .78rem; font-weight: 600; color: var(--texto-suave); margin: 0 0 4px; }
+  .detalhe-pessoa-titulo{ font-size: .78rem; font-weight: 600; color: var(--texto-suave); margin: 0; }
+  .detalhe-pessoa-topo{ display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
   .resumo-linha{
     display: flex;
     justify-content: space-between;
@@ -7621,26 +7622,58 @@
   // Qual pessoa está com o detalhamento aberto no card "Total de gastos" (null = nenhuma)
   let pessoaDetalheGastos = null;
 
-  // Lista o que compõe o total de uma pessoa: lançamentos/contas fixas marcados
-  // direto pra ela, mais a metade de tudo que for "DI/GU" (se for DI ou GU)
+  // Agrupa o que compõe o total de uma pessoa por cartão + como foi marcado
+  // (direto pra ela, ou metade de um "DI/GU"). Contas fixas (sem cartão, pagas
+  // via Pix) entram todas juntas num grupo à parte. Sem listar compra por
+  // compra — isso já dá pra ver subindo pro resumo de cada cartão.
   function obterDetalhamentoPessoa(pessoa, lancamentosDoMes, gastosFixosDoMes){
-    const itens = [];
+    const grupos = {};
+    const adicionar = (cartao, rotuloPessoa, valor) => {
+      const chave = `${cartao}|${rotuloPessoa}`;
+      if (!grupos[chave]) grupos[chave] = { cartao, rotuloPessoa, valor: 0 };
+      grupos[chave].valor += valor;
+    };
+
     lancamentosDoMes.forEach(l => {
+      const cartao = l.cartao || "Outro";
       if (l.pessoa === pessoa){
-        itens.push({ descricao: l.descricao, valor: Number(l.valor) });
+        adicionar(cartao, pessoa, Number(l.valor));
       } else if (l.pessoa === "DI/GU" && (pessoa === "DI" || pessoa === "GU")){
-        itens.push({ descricao: `${l.descricao} (metade DI/GU)`, valor: Number(l.valor) / 2 });
+        adicionar(cartao, "DI/GU", Number(l.valor) / 2);
       }
     });
     gastosFixosDoMes.forEach(g => {
       if (!g.valor) return;
       if (g.pessoa === pessoa){
-        itens.push({ descricao: g.nome, valor: Number(g.valor) });
+        adicionar("Contas fixas (Pix)", pessoa, Number(g.valor));
       } else if (g.pessoa === "DI/GU" && (pessoa === "DI" || pessoa === "GU")){
-        itens.push({ descricao: `${g.nome} (metade DI/GU)`, valor: Number(g.valor) / 2 });
+        adicionar("Contas fixas (Pix)", "DI/GU", Number(g.valor) / 2);
       }
     });
-    return itens;
+
+    return Object.values(grupos).sort((a, b) => a.cartao.localeCompare(b.cartao) || a.rotuloPessoa.localeCompare(b.rotuloPessoa));
+  }
+
+  // Baixa o detalhamento de uma pessoa como CSV (separado por ; e com acentuação
+  // certa no Excel), pra ela poder mandar direto na hora de cobrar o repasse
+  function exportarDetalhamentoPessoaCsv(pessoa, grupos, totalPessoa){
+    const escapar = (campo) => `"${String(campo).replace(/"/g, '""')}"`;
+    const linhas = [
+      ["Cartão", "Responsável", "Valor"],
+      ...grupos.map(g => [g.cartao, g.rotuloPessoa, formatarMoeda(g.valor)]),
+      ["", "", ""],
+      ["Total", "", formatarMoeda(totalPessoa)]
+    ];
+    const csv = linhas.map(linha => linha.map(escapar).join(";")).join("\r\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `gastos-${pessoa.replace("/", "-")}-${NOMES_MES[mesFinancasVisivel]}-${anoFinancasVisivel}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   }
 
   function renderizarTotalGastos(lancamentosDoMes, gastosFixosDoMes, totaisPorPessoa, totalGeral){
@@ -7661,27 +7694,49 @@
     });
 
     const areaDetalhe = document.getElementById("detalhePessoaGastos");
+    const areaResumo = document.getElementById("resumoTotalGastos");
+
     if (pessoaDetalheGastos){
-      const itens = obterDetalhamentoPessoa(pessoaDetalheGastos, lancamentosDoMes, gastosFixosDoMes);
-      areaDetalhe.innerHTML = itens.length === 0
-        ? `<p class="texto-vazio">Nenhum lançamento de ${pessoaDetalheGastos} esse mês.</p>`
+      const grupos = obterDetalhamentoPessoa(pessoaDetalheGastos, lancamentosDoMes, gastosFixosDoMes);
+      const totalPessoa = totaisPorPessoa[pessoaDetalheGastos] || 0;
+
+      areaDetalhe.innerHTML = grupos.length === 0
+        ? `<p class="texto-vazio">Nenhum gasto de ${pessoaDetalheGastos} esse mês.</p>`
         : `
-          <p class="detalhe-pessoa-titulo">O que compõe o valor de ${pessoaDetalheGastos}</p>
-          ${itens.map(item => `
+          <div class="detalhe-pessoa-topo">
+            <p class="detalhe-pessoa-titulo">Resumo de ${pessoaDetalheGastos}, agrupado por cartão</p>
+            <button type="button" class="btn-fantasma" data-acao="exportar-pessoa">⬇ Exportar planilha</button>
+          </div>
+          ${grupos.map(g => `
             <div class="resumo-linha">
-              <span>${item.descricao}</span>
-              <strong>${formatarMoeda(item.valor)}</strong>
+              <span>${g.cartao} (${g.rotuloPessoa})</span>
+              <strong>${formatarMoeda(g.valor)}</strong>
             </div>
           `).join("")}
         `;
-    } else {
-      areaDetalhe.innerHTML = "";
+
+      const botaoExportar = areaDetalhe.querySelector("[data-acao='exportar-pessoa']");
+      if (botaoExportar){
+        botaoExportar.addEventListener("click", () => exportarDetalhamentoPessoaCsv(pessoaDetalheGastos, grupos, totalPessoa));
+      }
+
+      // Com uma pessoa selecionada, o rodapé mostra só o total dela — não faz
+      // sentido continuar mostrando "quanto sobra pra todo mundo" nesse caso
+      areaResumo.innerHTML = `
+        <div class="resumo-linha destaque">
+          <span>Total de ${pessoaDetalheGastos}</span>
+          <strong>${formatarMoeda(totalPessoa)}</strong>
+        </div>
+      `;
+      return;
     }
+
+    areaDetalhe.innerHTML = "";
 
     const meuTotal = totaisPorPessoa["DI"] || 0;
     const totalQueSobra = totalGeral - meuTotal;
 
-    document.getElementById("resumoTotalGastos").innerHTML = `
+    areaResumo.innerHTML = `
       <div class="resumo-linha">
         <span>Valor total das contas</span>
         <strong>${formatarMoeda(totalGeral)}</strong>
