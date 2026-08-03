@@ -1143,6 +1143,79 @@
     vertical-align: middle;
   }
   .tabela-lancamentos tr:last-child td{ border-bottom: none; }
+
+  /* ---- filtro/ordenar estilo Excel no cabeçalho da tabela de lançamentos ---- */
+  .cabecalho-extrato{ position: relative; display: flex; align-items: center; gap: 4px; }
+  .abrir-filtro-extrato{
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--texto-suave);
+    padding: 3px;
+    border-radius: 5px;
+    display: inline-flex;
+    line-height: 0;
+  }
+  .abrir-filtro-extrato:hover{ background: var(--creme); color: var(--coral); }
+  .abrir-filtro-extrato.tem-filtro{ color: var(--coral); }
+  .filtros-ativos-extrato{ display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .pilula-filtro{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--creme);
+    border: 1px solid var(--borda);
+    color: var(--grafite);
+    font-size: .74rem;
+    padding: 4px 6px 4px 10px;
+    border-radius: 50px;
+  }
+  .pilula-filtro button{ background: none; border: none; color: var(--texto-suave); cursor: pointer; font-size: .85rem; line-height: 1; padding: 2px; }
+  .pilula-filtro button:hover{ color: var(--vermelho); }
+  .popover-filtro{
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    background: var(--branco);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(42,38,34,.16);
+    padding: 12px;
+    width: 200px;
+    z-index: 20;
+    font-weight: 400;
+    text-transform: none;
+    display: none;
+  }
+  .popover-filtro.aberto{ display: block; }
+  .popover-secao{ margin-bottom: 10px; }
+  .popover-secao:last-child{ margin-bottom: 0; }
+  .popover-titulo{ font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--texto-suave); font-weight: 600; margin-bottom: 6px; }
+  .popover-ordenar{ display: flex; flex-direction: column; gap: 3px; }
+  .popover-ordenar button{
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 5px 6px;
+    border-radius: 6px;
+    font-size: .8rem;
+    color: var(--grafite);
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+  }
+  .popover-ordenar button:hover{ background: var(--creme); }
+  .popover-ordenar button.ativo{ background: var(--coral); color: var(--branco); }
+  .lista-checks{ display: flex; flex-direction: column; gap: 4px; max-height: 140px; overflow-y: auto; }
+  .lista-checks label{ display: flex; align-items: center; gap: 7px; font-size: .8rem; cursor: pointer; font-weight: 400; }
+  .lista-checks input{ width: 14px; height: 14px; accent-color: var(--coral); }
+  .popover-rodape{ display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--borda); }
+  .popover-rodape button{ border: none; background: none; font-family: 'Outfit', sans-serif; font-size: .76rem; cursor: pointer; padding: 5px 8px; border-radius: 6px; }
+  .btn-limpar{ color: var(--texto-suave); }
+  .btn-limpar:hover{ color: var(--vermelho); }
+  .btn-aplicar{ background: var(--coral); color: var(--branco); font-weight: 600; }
+  .btn-aplicar:hover{ background: var(--coral-escuro); }
   .selo-pessoa{
     display: inline-block;
     padding: 3px 9px;
@@ -1151,6 +1224,17 @@
     font-size: .72rem;
     font-weight: 600;
     color: var(--grafite);
+  }
+  .select-pessoa-fixo{
+    padding: 3px 8px;
+    border-radius: 50px;
+    background: var(--creme);
+    border: 1px solid var(--borda);
+    font-size: .72rem;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    color: var(--grafite);
+    cursor: pointer;
   }
   .lancamento-excluir{
     background: none;
@@ -1220,7 +1304,7 @@
 
   .sub-secao-financas{ font-size: .85rem; color: var(--texto-suave); margin-bottom: 16px; }
   .form-nova-conta-fixa{ display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 20px; }
-  .form-nova-conta-fixa input[type="text"], .form-nova-conta-fixa input[type="number"]{
+  .form-nova-conta-fixa input[type="text"], .form-nova-conta-fixa input[type="number"], .form-nova-conta-fixa select{
     padding: 10px 12px;
     border-radius: 10px;
     border: 1px solid var(--borda);
@@ -1231,6 +1315,7 @@
   }
   .form-nova-conta-fixa input[type="text"]{ flex: 1; min-width: 160px; }
   .form-nova-conta-fixa input[type="number"]{ width: 130px; }
+  .form-nova-conta-fixa select{ width: 90px; }
   .form-nova-conta-fixa label{ display: flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--texto-suave); white-space: nowrap; }
   .form-nova-conta-fixa input[type="checkbox"]{ width: 16px; height: 16px; }
   .resumo-total-gastos{ display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
@@ -3051,6 +3136,11 @@
           <input type="text" id="campoNovaContaNome" placeholder="Nome da conta fixa nova" required>
           <input type="number" id="campoNovaContaVencimento" placeholder="Dia venc." min="1" max="31" required>
           <input type="number" id="campoNovaContaValor" placeholder="Valor deste mês (opcional)" step="0.01" min="0">
+          <select id="campoNovaContaPessoa">
+            <option value="DI/GU" selected>DI/GU</option>
+            <option value="DI">DI</option>
+            <option value="GU">GU</option>
+          </select>
           <label>
             <input type="checkbox" id="campoNovaContaVariavel">
             Valor varia todo mês
@@ -3768,6 +3858,17 @@
   let anoFinancasVisivel = hojeAgenda.getFullYear();
   let cartaoFiltroFinancas = "Todos";
   let pessoaFiltroFinancas = "Todos";
+
+  // Filtros/ordenação estilo Excel nas colunas da tabela "Lançamentos do mês"
+  const COLUNAS_EXTRATO = [
+    { chave: "data",      titulo: "Data",      tipo: "data",   valor: l => l.data_compra || l.data, rotulo: v => formatarDataCurta(v) },
+    { chave: "descricao", titulo: "Descrição", tipo: "texto",  valor: l => l.descricao,              rotulo: v => v },
+    { chave: "pessoa",    titulo: "Pessoa",    tipo: "lista",  valor: l => l.pessoa || "-",          rotulo: v => v },
+    { chave: "valor",     titulo: "Valor",     tipo: "numero", valor: l => Number(l.valor),          rotulo: v => formatarMoeda(v) }
+  ];
+  let ordenacaoExtrato = { coluna: null, direcao: "asc" };
+  let filtrosColunaExtrato = { data: new Set(), descricao: new Set(), pessoa: new Set(), valor: new Set() };
+  let popoverExtratoAberto = null;
 
   // Estado da aba Finanças UGC (negócio): mês/ano exibidos
   let mesNegocioVisivel = hojeAgenda.getMonth();
@@ -5552,6 +5653,14 @@
     configurarCampoDataComExibicao("campoLancData", "campoLancDataExibicao");
     configurarCampoDataComExibicao("campoNegocioData", "campoNegocioDataExibicao");
 
+    // Fecha o painel de filtro/ordenar da tabela de lançamentos ao clicar fora dele
+    document.addEventListener("click", () => {
+      if (popoverExtratoAberto){
+        popoverExtratoAberto.classList.remove("aberto");
+        popoverExtratoAberto = null;
+      }
+    });
+
     document.querySelectorAll(".menu-item").forEach(btn => {
       btn.addEventListener("click", () => trocarAba(btn.dataset.tab));
     });
@@ -6971,6 +7080,15 @@
     return registro ? !!registro.variavel : false;
   }
 
+  // De quem é a conta fixa (DI, GU ou DI/GU dividido): usa o valor mais recente
+  // salvo pra ela, senão assume DI/GU (padrão de sempre, conta da casa)
+  function obterPessoaGastoFixo(nome){
+    const registro = gastosFixosCache
+      .filter(g => g.nome === nome && g.pessoa)
+      .sort((a, b) => (b.ano * 12 + b.mes) - (a.ano * 12 + a.mes))[0];
+    return registro ? registro.pessoa : "DI/GU";
+  }
+
   // Devolve as contas fixas do mês visível, com o valor já salvo (ou null se ainda não preenchido)
   function obterGastosFixosDoMes(anoParam, mesParam){
     const ano = anoParam !== undefined ? anoParam : anoFinancasVisivel;
@@ -6984,12 +7102,15 @@
       );
       const pago = registroExato ? registroExato.pago : false;
 
+      const pessoa = obterPessoaGastoFixo(nome);
+
       // Algumas contas variam todo mês: só mostram valor se ele foi preenchido NESSE mês
       if (obterVariavelGastoFixo(nome)){
         return {
           nome: nome,
           valor: (registroExato && registroExato.valor !== null && registroExato.valor !== undefined) ? Number(registroExato.valor) : null,
-          pago: pago
+          pago: pago,
+          pessoa: pessoa
         };
       }
 
@@ -7001,7 +7122,8 @@
       return {
         nome: nome,
         valor: maisRecente ? Number(maisRecente.valor) : null,
-        pago: pago
+        pago: pago,
+        pessoa: pessoa
       };
     });
   }
@@ -7036,11 +7158,17 @@
     let totalGeral = totalGeralLancamentos;
     gastosFixosDoMes.forEach(g => {
       if (!g.valor) return;
-      totaisPorPessoaBruto["DI"] = (totaisPorPessoaBruto["DI"] || 0) + g.valor / 2;
-      totaisPorPessoaBruto["GU"] = (totaisPorPessoaBruto["GU"] || 0) + g.valor / 2;
-      totaisPorPessoa["DI"] = (totaisPorPessoa["DI"] || 0) + g.valor / 2;
-      totaisPorPessoa["GU"] = (totaisPorPessoa["GU"] || 0) + g.valor / 2;
       totalGeral += g.valor;
+
+      if (g.pessoa === "DI/GU"){
+        totaisPorPessoaBruto["DI/GU"] = (totaisPorPessoaBruto["DI/GU"] || 0) + g.valor;
+        totaisPorPessoa["DI"] = (totaisPorPessoa["DI"] || 0) + g.valor / 2;
+        totaisPorPessoa["GU"] = (totaisPorPessoa["GU"] || 0) + g.valor / 2;
+      } else {
+        const chave = g.pessoa || "DI/GU";
+        totaisPorPessoaBruto[chave] = (totaisPorPessoaBruto[chave] || 0) + g.valor;
+        totaisPorPessoa[chave] = (totaisPorPessoa[chave] || 0) + g.valor;
+      }
     });
 
     // O balão "Total" e os balões de cada pessoa (que já surgem sozinhos conforme os
@@ -7093,28 +7221,93 @@
     renderizarTotalGastos(lancamentosDoMes, totaisPorPessoa, totalGeral);
   }
 
-  function renderizarTabelaLancamentos(lista){
+  function iconeFiltroExtrato(){
+    return `<svg viewBox="0 0 12 12" fill="currentColor" width="10" height="10"><path d="M2 4h8L6 9 2 4z"/></svg>`;
+  }
+
+  function cabecalhoFiltravelExtrato(coluna){
+    return `
+      <div class="cabecalho-extrato">
+        <span>${coluna.titulo}</span>
+        <button type="button" class="abrir-filtro-extrato ${filtrosColunaExtrato[coluna.chave].size > 0 || ordenacaoExtrato.coluna === coluna.chave ? "tem-filtro" : ""}" data-coluna="${coluna.chave}">${iconeFiltroExtrato()}</button>
+        <div class="popover-filtro" data-popover-extrato="${coluna.chave}"></div>
+      </div>
+    `;
+  }
+
+  // Opções de cada coluna, calculadas a partir do que está visível ANTES do
+  // filtro de coluna (ou seja, já considerando cartão/pessoa selecionados acima)
+  function opcoesColunaExtrato(listaBase, coluna){
+    return [...new Set(listaBase.map(coluna.valor))].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+  }
+
+  function montarPopoverExtrato(coluna, listaBase){
+    const conjunto = filtrosColunaExtrato[coluna.chave];
+    const rotuloAsc = coluna.tipo === "numero" ? "Menor → maior" : coluna.tipo === "data" ? "Mais antiga → recente" : "A → Z";
+    const rotuloDesc = coluna.tipo === "numero" ? "Maior → menor" : coluna.tipo === "data" ? "Recente → mais antiga" : "Z → A";
+
+    let html = `<div class="popover-secao"><div class="popover-titulo">Ordenar</div><div class="popover-ordenar">
+      <button type="button" data-ord="asc" class="${ordenacaoExtrato.coluna === coluna.chave && ordenacaoExtrato.direcao === "asc" ? "ativo" : ""}">${rotuloAsc}</button>
+      <button type="button" data-ord="desc" class="${ordenacaoExtrato.coluna === coluna.chave && ordenacaoExtrato.direcao === "desc" ? "ativo" : ""}">${rotuloDesc}</button>
+    </div></div>`;
+
+    html += `<div class="popover-secao"><div class="popover-titulo">Filtrar</div><div class="lista-checks">`;
+    opcoesColunaExtrato(listaBase, coluna).forEach(v => {
+      html += `<label><input type="checkbox" value="${v}" ${conjunto.has(v) ? "checked" : ""}> ${coluna.rotulo(v)}</label>`;
+    });
+    html += `</div></div>`;
+
+    html += `<div class="popover-rodape">
+      <button type="button" class="btn-limpar" data-acao="limpar">Limpar</button>
+      <button type="button" class="btn-aplicar" data-acao="aplicar">Aplicar</button>
+    </div>`;
+    return html;
+  }
+
+  function renderizarTabelaLancamentos(listaBase){
     const areaTabela = document.getElementById("areaTabelaLancamentos");
 
-    if (lista.length === 0){
-      areaTabela.innerHTML = '<p class="texto-vazio">Nenhum lançamento para esse filtro ainda.</p>';
-      return;
+    // Aplica os filtros de coluna (Data/Descrição/Pessoa/Valor) em cima do que já
+    // veio filtrado por cartão/pessoa lá de cima, depois ordena se for o caso
+    let lista = listaBase.filter(l =>
+      COLUNAS_EXTRATO.every(c => filtrosColunaExtrato[c.chave].size === 0 || filtrosColunaExtrato[c.chave].has(c.valor(l)))
+    );
+    if (ordenacaoExtrato.coluna){
+      const coluna = COLUNAS_EXTRATO.find(c => c.chave === ordenacaoExtrato.coluna);
+      lista = lista.slice().sort((a, b) => {
+        let va = coluna.valor(a), vb = coluna.valor(b);
+        if (typeof va === "string"){ va = va.toLowerCase(); vb = vb.toLowerCase(); }
+        if (va < vb) return ordenacaoExtrato.direcao === "asc" ? -1 : 1;
+        if (va > vb) return ordenacaoExtrato.direcao === "asc" ? 1 : -1;
+        return 0;
+      });
     }
 
+    const pilulas = COLUNAS_EXTRATO.filter(c => filtrosColunaExtrato[c.chave].size > 0);
+
     areaTabela.innerHTML = `
+      ${pilulas.length > 0 ? `
+        <div class="filtros-ativos-extrato">
+          ${pilulas.map(c => `
+            <span class="pilula-filtro">${c.titulo}: ${[...filtrosColunaExtrato[c.chave]].map(v => c.rotulo(v)).join(", ")}
+              <button type="button" data-limpar-coluna="${c.chave}">&times;</button>
+            </span>
+          `).join("")}
+        </div>
+      ` : ""}
       <table class="tabela-lancamentos">
         <thead>
           <tr>
-            <th>Data</th>
-            <th>Descrição</th>
+            <th>${cabecalhoFiltravelExtrato(COLUNAS_EXTRATO[0])}</th>
+            <th>${cabecalhoFiltravelExtrato(COLUNAS_EXTRATO[1])}</th>
             <th>Cartão</th>
-            <th>Pessoa</th>
-            <th>Valor</th>
+            <th>${cabecalhoFiltravelExtrato(COLUNAS_EXTRATO[2])}</th>
+            <th>${cabecalhoFiltravelExtrato(COLUNAS_EXTRATO[3])}</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          ${lista.map(l => `
+          ${lista.length === 0 ? `<tr><td colspan="6" class="texto-vazio" style="text-align:center;">Nenhum lançamento para esse filtro.</td></tr>` : lista.map(l => `
             <tr data-id="${l.id}">
               <td>${formatarDataCurta(l.data_compra || l.data)}</td>
               <td>${l.descricao}${l.parcela_atual ? ` <span style="color:var(--texto-suave);">(${l.parcela_atual}/${l.parcela_total})</span>` : ""}</td>
@@ -7145,6 +7338,46 @@
       btn.addEventListener("click", () => {
         const id = btn.closest("tr").dataset.id;
         entrarModoEdicao(id);
+      });
+    });
+    areaTabela.querySelectorAll("[data-limpar-coluna]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        filtrosColunaExtrato[btn.dataset.limparColuna] = new Set();
+        renderizarTabelaLancamentos(listaBase);
+      });
+    });
+    areaTabela.querySelectorAll(".abrir-filtro-extrato").forEach(btn => {
+      btn.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        const chave = btn.dataset.coluna;
+        const coluna = COLUNAS_EXTRATO.find(c => c.chave === chave);
+        const pop = areaTabela.querySelector(`.popover-filtro[data-popover-extrato="${chave}"]`);
+        const jaAberto = pop.classList.contains("aberto");
+        areaTabela.querySelectorAll(".popover-filtro").forEach(p => p.classList.remove("aberto"));
+        if (jaAberto){
+          popoverExtratoAberto = null;
+          return;
+        }
+        pop.innerHTML = montarPopoverExtrato(coluna, listaBase);
+        pop.classList.add("aberto");
+        popoverExtratoAberto = pop;
+
+        pop.querySelectorAll("[data-ord]").forEach(b => {
+          b.addEventListener("click", () => {
+            ordenacaoExtrato = { coluna: chave, direcao: b.dataset.ord };
+            renderizarTabelaLancamentos(listaBase);
+          });
+        });
+        pop.querySelector("[data-acao='aplicar']").addEventListener("click", () => {
+          filtrosColunaExtrato[chave] = new Set([...pop.querySelectorAll("input[type=checkbox]:checked")].map(i => i.value));
+          popoverExtratoAberto = null;
+          renderizarTabelaLancamentos(listaBase);
+        });
+        pop.querySelector("[data-acao='limpar']").addEventListener("click", () => {
+          filtrosColunaExtrato[chave] = new Set();
+          popoverExtratoAberto = null;
+          renderizarTabelaLancamentos(listaBase);
+        });
       });
     });
   }
@@ -7288,7 +7521,8 @@
         nome: g.nome,
         vencimento: obterVencimentoGastoFixo(g.nome),
         valor: g.valor,
-        pago: g.pago
+        pago: g.pago,
+        pessoa: g.pessoa
       }))
     );
   }
@@ -7334,14 +7568,22 @@
             const valorHtml = item.tipo === "cartao"
               ? `<span class="campo-valor-com-prefixo"><span class="prefixo-rs">R$</span><input type="number" step="0.01" class="input-valor-fixo" value="${Number(item.valor).toFixed(2)}" readonly tabindex="-1"></span>`
               : `<span class="campo-valor-com-prefixo"><span class="prefixo-rs">R$</span><input type="number" step="0.01" min="0" class="input-valor-fixo" placeholder="0,00" value="${item.valor != null ? Number(item.valor).toFixed(2) : ""}" data-acao="valor-fixo"></span>`;
-            const pessoa = item.tipo === "fixo" ? `<span class="selo-pessoa">DI/GU</span>` : "-";
+            const pessoa = item.tipo === "fixo"
+              ? `<select class="select-pessoa-fixo" data-acao="pessoa-fixo">
+                  ${["DI", "GU", "DI/GU"].map(p => `<option value="${p}" ${p === item.pessoa ? "selected" : ""}>${p}</option>`).join("")}
+                </select>`
+              : "-";
+            const podeExcluir = item.tipo === "fixo" && !NOMES_GASTOS_FIXOS.includes(item.nome);
             return `
               <tr class="${item.pago ? "pago" : ""}" data-nome="${item.nome}" data-tipo="${item.tipo}">
                 <td>${item.nome}</td>
                 <td>${item.vencimento ? `Dia ${String(item.vencimento).padStart(2, "0")}` : "-"}</td>
                 <td>${pessoa}</td>
                 <td>${valorHtml}</td>
-                <td><button type="button" class="botao-pago ${item.pago ? "pago" : ""}" data-acao="alternar-pago" aria-label="Marcar como pago">&#10003;</button></td>
+                <td>
+                  <button type="button" class="botao-pago ${item.pago ? "pago" : ""}" data-acao="alternar-pago" aria-label="Marcar como pago">&#10003;</button>
+                  ${podeExcluir ? `<button type="button" class="lancamento-excluir" data-acao="excluir-fixo" aria-label="Excluir conta fixa">&times;</button>` : ""}
+                </td>
               </tr>
             `;
           }).join("")}
@@ -7359,6 +7601,11 @@
         }
       });
     });
+    container.querySelectorAll("[data-acao='excluir-fixo']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        excluirContaFixa(btn.closest("tr").dataset.nome);
+      });
+    });
     container.querySelectorAll("[data-acao='valor-fixo']").forEach(input => {
       input.addEventListener("change", () => {
         const nome = input.closest("tr").dataset.nome;
@@ -7370,6 +7617,12 @@
           e.preventDefault();
           input.blur();
         }
+      });
+    });
+    container.querySelectorAll("[data-acao='pessoa-fixo']").forEach(select => {
+      select.addEventListener("change", () => {
+        const nome = select.closest("tr").dataset.nome;
+        salvarPessoaGastoFixo(nome, select.value);
       });
     });
   }
@@ -7717,7 +7970,7 @@
       g.nome === nome && g.ano === ano && g.mes === mes
     );
     if (!registro){
-      registro = { nome: nome, ano: ano, mes: mes, valor: null, pago: false, pessoa: "DI/GU" };
+      registro = { nome: nome, ano: ano, mes: mes, valor: null, pago: false, pessoa: obterPessoaGastoFixo(nome) };
       gastosFixosCache.push(registro);
     }
     return registro;
@@ -7731,6 +7984,7 @@
     const nome = document.getElementById("campoNovaContaNome").value.trim();
     const vencimento = parseInt(document.getElementById("campoNovaContaVencimento").value, 10);
     const valorDigitado = document.getElementById("campoNovaContaValor").value;
+    const pessoa = document.getElementById("campoNovaContaPessoa").value;
     const variavel = document.getElementById("campoNovaContaVariavel").checked;
 
     if (!nome || !vencimento || vencimento < 1 || vencimento > 31) return;
@@ -7745,7 +7999,7 @@
     const { data, error } = await Auth.client
       .from("financas_gastos_fixos")
       .upsert(
-        { nome: nome, ano: anoFinancasVisivel, mes: mesFinancasVisivel, valor: valor, pago: false, pessoa: "DI/GU", vencimento: vencimento, variavel: variavel },
+        { nome: nome, ano: anoFinancasVisivel, mes: mesFinancasVisivel, valor: valor, pago: false, pessoa: pessoa, vencimento: vencimento, variavel: variavel },
         { onConflict: "nome,ano,mes" }
       )
       .select();
@@ -7768,11 +8022,42 @@
     const { error } = await Auth.client
       .from("financas_gastos_fixos")
       .upsert(
-        { nome: nome, ano: anoFinancasVisivel, mes: mesFinancasVisivel, valor: valor, pago: registroLocal.pago, pessoa: "DI/GU" },
+        { nome: nome, ano: anoFinancasVisivel, mes: mesFinancasVisivel, valor: valor, pago: registroLocal.pago, pessoa: registroLocal.pessoa },
         { onConflict: "nome,ano,mes" }
       );
 
     if (!error) renderizarFinancas();
+  }
+
+  async function salvarPessoaGastoFixo(nome, pessoa){
+    const registroLocal = obterOuCriarGastoFixo(nome);
+    registroLocal.pessoa = pessoa;
+
+    const { error } = await Auth.client
+      .from("financas_gastos_fixos")
+      .upsert(
+        { nome: nome, ano: anoFinancasVisivel, mes: mesFinancasVisivel, valor: registroLocal.valor, pago: registroLocal.pago, pessoa: pessoa },
+        { onConflict: "nome,ano,mes" }
+      );
+
+    if (!error) renderizarFinancas();
+  }
+
+  // Apaga uma conta fixa personalizada de vez (todos os meses, não só o atual).
+  // As 10 conta fixas de sempre não têm esse botão, porque fazem parte do código.
+  async function excluirContaFixa(nome){
+    if (!confirm(`Apagar a conta fixa "${nome}" de vez? Isso remove ela (e o histórico de valores) de todos os meses, não só deste.`)) return;
+
+    const { error } = await Auth.client
+      .from("financas_gastos_fixos")
+      .delete()
+      .eq("nome", nome);
+
+    if (!error){
+      gastosFixosCache = gastosFixosCache.filter(g => g.nome !== nome);
+      renderizarFinancas();
+      renderizarAlertasContas();
+    }
   }
 
   async function alternarGastoFixoPago(nome, anoParam, mesParam){
@@ -7785,7 +8070,7 @@
     const { error } = await Auth.client
       .from("financas_gastos_fixos")
       .upsert(
-        { nome: nome, ano: ano, mes: mes, valor: registroLocal.valor, pago: novoValor, pessoa: "DI/GU" },
+        { nome: nome, ano: ano, mes: mes, valor: registroLocal.valor, pago: novoValor, pessoa: registroLocal.pessoa },
         { onConflict: "nome,ano,mes" }
       );
 
