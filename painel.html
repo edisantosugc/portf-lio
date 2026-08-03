@@ -3004,6 +3004,11 @@
 
           <button type="submit" class="botao-add-lancamento">Adicionar lançamento</button>
         </form>
+
+        <!-- BOTÃO TEMPORÁRIO — importação única da lista de setembro/2026. Remover depois de usar. -->
+        <button type="button" id="botaoImportarSetembro2026" style="margin-top:6px; background:var(--vermelho); color:var(--branco); border:none; padding:10px 16px; border-radius:10px; font-weight:600; font-size:.82rem; cursor:pointer;">
+          ⚠ Importar lista de setembro/2026 (cartão Dígio) — TEMPORÁRIO
+        </button>
       </div>
 
       <div class="cartao" style="margin-top: 20px;">
@@ -5591,6 +5596,7 @@
     document.getElementById("campoLancValor").addEventListener("input", atualizarValorParcelaCalculado);
     document.getElementById("campoParcelaTotal").addEventListener("input", atualizarValorParcelaCalculado);
     document.getElementById("formLancamento").addEventListener("submit", adicionarLancamento);
+    document.getElementById("botaoImportarSetembro2026").addEventListener("click", executarImportacaoSetembro2026);
 
     // ---------- Finanças UGC (negócio) ----------
     document.getElementById("negocioMesAnterior").addEventListener("click", () => {
@@ -10430,6 +10436,95 @@
       preencherSelectsFinancas();
       renderizarFinancas();
     }
+  }
+
+  /* =========================================================================
+     IMPORTAÇÃO ÚNICA — lista de compras parceladas conferida com a Edi em
+     02-03/08/2026. Cria os lançamentos restantes de cada compra (da parcela
+     atual até a última) a partir de setembro/2026, no cartão Dígio.
+     REMOVER ESTE BLOCO E O BOTÃO CORRESPONDENTE DEPOIS DE USAR UMA VEZ.
+     ========================================================================= */
+  const LISTA_IMPORTAR_SET2026 = [
+    // assinaturas recorrentes (repetem por 12 meses, valor igual todo mês)
+    { descricao: "Spotify", valor: 31.90, atual: 1, total: 12, pessoa: "DI" },
+    { descricao: "Armazenamento Google", valor: 15.00, atual: 1, total: 12, pessoa: "DI" },
+    { descricao: "Claude IA", valor: 114.77, atual: 1, total: 12, pessoa: "DI" },
+    { descricao: "Claude IA", valor: 4.02, atual: 1, total: 12, pessoa: "DI" },
+
+    // compras parceladas (valor já é o da parcela, não é dividido)
+    { descricao: "Profissão do Futuro", valor: 15.36, atual: 10, total: 12, pessoa: "DI" },
+    { descricao: "Mentoria Júlia", valor: 28.44, atual: 8, total: 10, pessoa: "DI" },
+    { descricao: "Mesa Jantar", valor: 77.90, atual: 9, total: 10, pessoa: "DI" },
+    { descricao: "Mentoria Isa", valor: 129.48, atual: 7, total: 12, pessoa: "DI" },
+    { descricao: "Amazon - Presente Lívia", valor: 71.75, atual: 7, total: 10, pessoa: "DI/GU" },
+    { descricao: "Shopee - Mesa Escritório", valor: 65.35, atual: 6, total: 7, pessoa: "DI" },
+    { descricao: "Shopee - Pesos de Academia", valor: 64.47, atual: 6, total: 7, pessoa: "DI" },
+    { descricao: "TikTok Shop", valor: 25.90, atual: 6, total: 10, pessoa: "DI" },
+    { descricao: "Concerto Carro", valor: 378.83, atual: 4, total: 12, pessoa: "GU" },
+    { descricao: "Curso Nat", valor: 35.16, atual: 5, total: 10, pessoa: "DI" },
+    { descricao: "Presente Mãe", valor: 114.67, atual: 4, total: 10, pessoa: "DI" },
+    { descricao: "Presente Mãe", valor: 114.67, atual: 4, total: 10, pessoa: "FUUH" },
+    { descricao: "Presente Mãe", valor: 114.67, atual: 4, total: 10, pessoa: "EDMAR" },
+    { descricao: "Super Coffee", valor: 39.74, atual: 2, total: 6, pessoa: "DI" },
+    { descricao: "Concerto Carro", valor: 240.29, atual: 3, total: 10, pessoa: "GU" },
+    { descricao: "Rampa Theo", valor: 69.95, atual: 3, total: 3, pessoa: "DI" },
+    { descricao: "Shopee - Presente Ayla", valor: 31.66, atual: 2, total: 6, pessoa: "DI" },
+    { descricao: "Shopee - Presente Ayla", valor: 31.66, atual: 2, total: 6, pessoa: "MÃE" },
+    { descricao: "Mercado Livre", valor: 67.74, atual: 2, total: 4, pessoa: "EDMAR" },
+    { descricao: "Mercado Livre", valor: 16.75, atual: 2, total: 4, pessoa: "EDMAR" },
+    { descricao: "Franquia Seguro", valor: 529.12, atual: 2, total: 4, pessoa: "GU" },
+    { descricao: "Wepink", valor: 39.81, atual: 2, total: 5, pessoa: "DI/GU" },
+    { descricao: "Curso Hanna", valor: 44.90, atual: 2, total: 2, pessoa: "DI" },
+    { descricao: "64 Ganchos Hanna", valor: 8.83, atual: 2, total: 5, pessoa: "DI" },
+    { descricao: "Micro", valor: 130.00, atual: 2, total: 5, pessoa: "DI" }
+  ];
+
+  function gerarEntradasImportacaoSet2026(){
+    const base = "2026-09-01";
+    const entradas = [];
+    LISTA_IMPORTAR_SET2026.forEach(item => {
+      const grupoId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("grupo-" + Date.now() + "-" + Math.random());
+      for (let i = item.atual; i <= item.total; i++){
+        entradas.push({
+          data: somarMeses(base, i - item.atual),
+          descricao: item.descricao,
+          valor: item.valor,
+          cartao: "Dígio",
+          pessoa: item.pessoa,
+          parcela_atual: i,
+          parcela_total: item.total,
+          grupo_parcela: grupoId
+        });
+      }
+    });
+    return entradas;
+  }
+
+  async function executarImportacaoSetembro2026(){
+    const botao = document.getElementById("botaoImportarSetembro2026");
+    const entradas = gerarEntradasImportacaoSet2026();
+
+    if (!confirm(`Isso vai criar ${entradas.length} lançamentos no cartão Dígio, de setembro/2026 em diante. Essa lista só deve ser importada UMA VEZ. Confirma?`)) return;
+
+    botao.disabled = true;
+    botao.textContent = "Importando...";
+
+    for (let i = 0; i < entradas.length; i += 50){
+      const bloco = entradas.slice(i, i + 50);
+      const { error } = await Auth.client.from("financas_lancamentos").insert(bloco);
+      if (error){
+        alert("Deu erro na importação: " + error.message + "\n\nAlguns lançamentos podem já ter sido criados — confira a lista antes de tentar de novo.");
+        botao.disabled = false;
+        botao.textContent = "⚠ Importar lista de setembro/2026 (cartão Dígio) — TEMPORÁRIO";
+        return;
+      }
+    }
+
+    lancamentosCache = await buscarTudo("financas_lancamentos");
+    renderizarFinancas();
+
+    alert(`Pronto! ${entradas.length} lançamentos importados.`);
+    botao.textContent = "Importação concluída ✓";
   }
 
   async function excluirLancamento(id){
