@@ -3005,9 +3005,9 @@
           <button type="submit" class="botao-add-lancamento">Adicionar lançamento</button>
         </form>
 
-        <!-- BOTÃO TEMPORÁRIO — importação única da lista de setembro/2026. Remover depois de usar. -->
+        <!-- BOTÃO TEMPORÁRIO — apaga tudo que a importação de setembro/2026 lançou (as duas cópias duplicadas). Remover depois de usar. -->
         <button type="button" id="botaoImportarSetembro2026" style="margin-top:6px; background:var(--vermelho); color:var(--branco); border:none; padding:10px 16px; border-radius:10px; font-weight:600; font-size:.82rem; cursor:pointer;">
-          ⚠ Importar lista de setembro/2026 (cartão Dígio) — TEMPORÁRIO
+          🗑 Apagar tudo que a importação de setembro/2026 lançou — TEMPORÁRIO
         </button>
       </div>
 
@@ -10500,22 +10500,53 @@
     return entradas;
   }
 
+  // Chave usada pra comparar um lançamento gerado com um lançamento já salvo no banco.
+  // Number(...).toFixed(2) porque o Supabase às vezes devolve campo numérico como texto.
+  function chaveLancamentoImportacao(l){
+    return [
+      l.descricao,
+      l.data,
+      Number(l.valor).toFixed(2),
+      l.pessoa,
+      l.cartao,
+      Number(l.parcela_atual),
+      Number(l.parcela_total)
+    ].join("|");
+  }
+
   async function executarImportacaoSetembro2026(){
     const botao = document.getElementById("botaoImportarSetembro2026");
-    const entradas = gerarEntradasImportacaoSet2026();
-
-    if (!confirm(`Isso vai criar ${entradas.length} lançamentos no cartão Dígio, de setembro/2026 em diante. Essa lista só deve ser importada UMA VEZ. Confirma?`)) return;
-
     botao.disabled = true;
-    botao.textContent = "Importando...";
+    botao.textContent = "Apagando...";
 
-    for (let i = 0; i < entradas.length; i += 50){
-      const bloco = entradas.slice(i, i + 50);
-      const { error } = await Auth.client.from("financas_lancamentos").insert(bloco);
+    const entradasEsperadas = gerarEntradasImportacaoSet2026();
+    const chavesEsperadas = new Set(entradasEsperadas.map(chaveLancamentoImportacao));
+
+    const todos = await buscarTudo("financas_lancamentos");
+    const idsParaApagar = todos
+      .filter(l => chavesEsperadas.has(chaveLancamentoImportacao(l)))
+      .map(l => l.id);
+
+    if (idsParaApagar.length === 0){
+      alert("Não encontrei nenhum lançamento da importação pra apagar (já deve estar limpo).");
+      botao.disabled = false;
+      botao.textContent = "🗑 Apagar tudo que a importação de setembro/2026 lançou — TEMPORÁRIO";
+      return;
+    }
+
+    if (!confirm(`Vou apagar ${idsParaApagar.length} lançamentos (tudo que a importação criou, incluindo as duplicatas). Isso NÃO tem volta. Confirma?`)){
+      botao.disabled = false;
+      botao.textContent = "🗑 Apagar tudo que a importação de setembro/2026 lançou — TEMPORÁRIO";
+      return;
+    }
+
+    for (let i = 0; i < idsParaApagar.length; i += 50){
+      const bloco = idsParaApagar.slice(i, i + 50);
+      const { error } = await Auth.client.from("financas_lancamentos").delete().in("id", bloco);
       if (error){
-        alert("Deu erro na importação: " + error.message + "\n\nAlguns lançamentos podem já ter sido criados — confira a lista antes de tentar de novo.");
+        alert("Deu erro apagando: " + error.message + "\n\nAlguns já podem ter sido apagados — confira a lista antes de tentar de novo.");
         botao.disabled = false;
-        botao.textContent = "⚠ Importar lista de setembro/2026 (cartão Dígio) — TEMPORÁRIO";
+        botao.textContent = "🗑 Apagar tudo que a importação de setembro/2026 lançou — TEMPORÁRIO";
         return;
       }
     }
@@ -10523,8 +10554,8 @@
     lancamentosCache = await buscarTudo("financas_lancamentos");
     renderizarFinancas();
 
-    alert(`Pronto! ${entradas.length} lançamentos importados.`);
-    botao.textContent = "Importação concluída ✓";
+    alert(`Pronto! ${idsParaApagar.length} lançamentos apagados.`);
+    botao.textContent = "Limpeza concluída ✓";
   }
 
   async function excluirLancamento(id){
