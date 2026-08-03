@@ -7105,15 +7105,17 @@
     linha.innerHTML = `
       <td><input type="date" id="edicaoData-${id}" value="${lancamento.data}"></td>
       <td>
-        <input type="text" id="edicaoDescricao-${id}" value="${lancamento.descricao}">
-        ${lancamento.grupo_parcela ? `
-          <div style="display:flex; gap:4px; align-items:center; margin-top:4px; font-size:.75rem; color:var(--texto-suave);">
-            <span>Parcela</span>
-            <input type="number" min="1" id="edicaoParcelaAtual-${id}" value="${lancamento.parcela_atual}" style="width:44px; padding:4px; border-radius:6px; border:1px solid var(--borda);">
-            <span>de</span>
-            <input type="number" min="1" id="edicaoParcelaTotal-${id}" value="${lancamento.parcela_total}" style="width:44px; padding:4px; border-radius:6px; border:1px solid var(--borda);">
-          </div>
-        ` : ""}
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:nowrap;">
+          <input type="text" id="edicaoDescricao-${id}" value="${lancamento.descricao}" style="flex:1; min-width:90px;">
+          ${lancamento.grupo_parcela ? `
+            <div style="display:flex; gap:4px; align-items:center; font-size:.75rem; color:var(--texto-suave); white-space:nowrap; flex-shrink:0;">
+              <span>Parcela</span>
+              <input type="number" min="1" id="edicaoParcelaAtual-${id}" value="${lancamento.parcela_atual}" style="width:44px; padding:4px; border-radius:6px; border:1px solid var(--borda);">
+              <span>de</span>
+              <input type="number" min="1" id="edicaoParcelaTotal-${id}" value="${lancamento.parcela_total}" style="width:44px; padding:4px; border-radius:6px; border:1px solid var(--borda);">
+            </div>
+          ` : ""}
+        </div>
       </td>
       <td>
         <select id="edicaoCartao-${id}">
