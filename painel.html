@@ -1383,6 +1383,11 @@
   }
   .resumo-linha.destaque{ background: var(--coral); color: var(--branco); font-weight: 600; }
   .resumo-linha strong{ font-family: 'Fraunces', serif; font-size: 1.05rem; }
+  .resumo-linha.clicavel{ cursor: pointer; transition: background .15s ease; }
+  .resumo-linha.clicavel:hover{ background: var(--borda); }
+  .seta-expandir{ font-size: .65rem; color: var(--texto-suave); margin-left: 4px; }
+  .resumo-linha-itens-fixos{ display: flex; flex-direction: column; gap: 6px; padding: 4px 16px 4px 28px; }
+  .resumo-linha-mini{ padding: 8px 12px; font-size: .82rem; background: var(--branco); border: 1px solid var(--borda); }
   .resumo-linha.linha-a-receber{ background: rgba(201,166,107,.12); color: var(--dourado); }
   .resumo-linha.linha-a-receber strong{ color: var(--dourado); }
 
@@ -7622,6 +7627,24 @@
   // Qual pessoa está com o detalhamento aberto no card "Total de gastos" (null = nenhuma)
   let pessoaDetalheGastos = null;
 
+  // Dentro do detalhamento, qual grupo "Contas fixas (Pix)" está expandido
+  // mostrando as contas individuais (null = nenhum). Chave: "rotuloPessoa"
+  let contasFixasExpandido = null;
+
+  // Contas fixas individuais que compõem um grupo "Contas fixas (Pix) (rotuloPessoa)"
+  function obterItensContasFixasPessoa(pessoa, rotuloPessoa, gastosFixosDoMes){
+    const itens = [];
+    gastosFixosDoMes.forEach(g => {
+      if (!g.valor) return;
+      if (rotuloPessoa === "DI/GU" && g.pessoa === "DI/GU" && (pessoa === "DI" || pessoa === "GU")){
+        itens.push({ nome: g.nome, valor: Number(g.valor) / 2 });
+      } else if (rotuloPessoa === pessoa && g.pessoa === pessoa){
+        itens.push({ nome: g.nome, valor: Number(g.valor) });
+      }
+    });
+    return itens;
+  }
+
   // Agrupa o que compõe o total de uma pessoa por cartão + como foi marcado
   // (direto pra ela, ou metade de um "DI/GU"). Contas fixas (sem cartão, pagas
   // via Pix) entram todas juntas num grupo à parte. Sem listar compra por
@@ -7707,18 +7730,50 @@
             <p class="detalhe-pessoa-titulo">Resumo de ${pessoaDetalheGastos}, agrupado por cartão</p>
             <button type="button" class="btn-fantasma" data-acao="exportar-pessoa">⬇ Exportar planilha</button>
           </div>
-          ${grupos.map(g => `
-            <div class="resumo-linha">
-              <span>${g.cartao} (${g.rotuloPessoa})</span>
-              <strong>${formatarMoeda(g.valor)}</strong>
-            </div>
-          `).join("")}
+          ${grupos.map(g => {
+            const ehContasFixas = g.cartao === "Contas fixas (Pix)";
+            const expandido = ehContasFixas && contasFixasExpandido === g.rotuloPessoa;
+            let html = ehContasFixas
+              ? `
+                <div class="resumo-linha clicavel" data-acao="expandir-contas-fixas" data-rotulo="${g.rotuloPessoa}">
+                  <span>${g.cartao} (${g.rotuloPessoa}) <span class="seta-expandir">${expandido ? "▲" : "▼"}</span></span>
+                  <strong>${formatarMoeda(g.valor)}</strong>
+                </div>
+              `
+              : `
+                <div class="resumo-linha">
+                  <span>${g.cartao} (${g.rotuloPessoa})</span>
+                  <strong>${formatarMoeda(g.valor)}</strong>
+                </div>
+              `;
+            if (expandido){
+              const itensContasFixas = obterItensContasFixasPessoa(pessoaDetalheGastos, g.rotuloPessoa, gastosFixosDoMes);
+              html += `
+                <div class="resumo-linha-itens-fixos">
+                  ${itensContasFixas.map(item => `
+                    <div class="resumo-linha resumo-linha-mini">
+                      <span>${item.nome}</span>
+                      <strong>${formatarMoeda(item.valor)}</strong>
+                    </div>
+                  `).join("")}
+                </div>
+              `;
+            }
+            return html;
+          }).join("")}
         `;
 
       const botaoExportar = areaDetalhe.querySelector("[data-acao='exportar-pessoa']");
       if (botaoExportar){
         botaoExportar.addEventListener("click", () => exportarDetalhamentoPessoaCsv(pessoaDetalheGastos, grupos, totalPessoa));
       }
+      areaDetalhe.querySelectorAll("[data-acao='expandir-contas-fixas']").forEach(el => {
+        el.addEventListener("click", () => {
+          const rotulo = el.dataset.rotulo;
+          contasFixasExpandido = contasFixasExpandido === rotulo ? null : rotulo;
+          renderizarFinancas();
+        });
+      });
 
       // Com uma pessoa selecionada, o rodapé mostra só o total dela — não faz
       // sentido continuar mostrando "quanto sobra pra todo mundo" nesse caso
