@@ -7104,7 +7104,17 @@
 
     linha.innerHTML = `
       <td><input type="date" id="edicaoData-${id}" value="${lancamento.data}"></td>
-      <td><input type="text" id="edicaoDescricao-${id}" value="${lancamento.descricao}"></td>
+      <td>
+        <input type="text" id="edicaoDescricao-${id}" value="${lancamento.descricao}">
+        ${lancamento.grupo_parcela ? `
+          <div style="display:flex; gap:4px; align-items:center; margin-top:4px; font-size:.75rem; color:var(--texto-suave);">
+            <span>Parcela</span>
+            <input type="number" min="1" id="edicaoParcelaAtual-${id}" value="${lancamento.parcela_atual}" style="width:44px; padding:4px; border-radius:6px; border:1px solid var(--borda);">
+            <span>de</span>
+            <input type="number" min="1" id="edicaoParcelaTotal-${id}" value="${lancamento.parcela_total}" style="width:44px; padding:4px; border-radius:6px; border:1px solid var(--borda);">
+          </div>
+        ` : ""}
+      </td>
       <td>
         <select id="edicaoCartao-${id}">
           ${CARTOES.map(c => `<option value="${c}" ${c === lancamento.cartao ? "selected" : ""}>${c}</option>`).join("")}
@@ -7127,6 +7137,8 @@
   }
 
   async function salvarEdicaoLancamento(id){
+    const lancamento = lancamentosCache.find(l => l.id === id);
+
     const dados = {
       data: document.getElementById(`edicaoData-${id}`).value,
       descricao: document.getElementById(`edicaoDescricao-${id}`).value.trim(),
@@ -7136,6 +7148,21 @@
     };
 
     if (!dados.descricao || isNaN(dados.valor)) return;
+
+    // Corrige o número da parcela atual/total desse lançamento específico (não mexe
+    // nas outras parcelas do mesmo grupo, só nesse lançamento)
+    if (lancamento && lancamento.grupo_parcela){
+      const campoAtual = document.getElementById(`edicaoParcelaAtual-${id}`);
+      const campoTotal = document.getElementById(`edicaoParcelaTotal-${id}`);
+      if (campoAtual && campoTotal){
+        const parcelaAtual = parseInt(campoAtual.value, 10);
+        const parcelaTotal = parseInt(campoTotal.value, 10);
+        if (parcelaAtual > 0 && parcelaTotal > 0){
+          dados.parcela_atual = parcelaAtual;
+          dados.parcela_total = parcelaTotal;
+        }
+      }
+    }
 
     const { error } = await Auth.client
       .from("financas_lancamentos")
@@ -10466,13 +10493,34 @@
   }
 
   async function excluirLancamento(id){
+    const lancamento = lancamentosCache.find(l => l.id === id);
+    if (!lancamento) return;
+
+    // Se for uma compra parcelada, apaga essa parcela E todas as futuras do mesmo
+    // grupo (ela nunca deveria ter sido lançada). As parcelas já passadas continuam.
+    let idsParaApagar = [id];
+    if (lancamento.grupo_parcela){
+      idsParaApagar = lancamentosCache
+        .filter(l => l.grupo_parcela === lancamento.grupo_parcela && l.parcela_atual >= lancamento.parcela_atual)
+        .map(l => l.id);
+    }
+
+    if (idsParaApagar.length > 1){
+      const confirmado = confirm(
+        `Essa compra é parcelada (${lancamento.parcela_atual}/${lancamento.parcela_total}). ` +
+        `Vou apagar essa parcela e todas as futuras dela — ${idsParaApagar.length} lançamentos no total. ` +
+        `As parcelas já passadas continuam. Confirma?`
+      );
+      if (!confirmado) return;
+    }
+
     const { error } = await Auth.client
       .from("financas_lancamentos")
       .delete()
-      .eq("id", id);
+      .in("id", idsParaApagar);
 
     if (!error){
-      lancamentosCache = lancamentosCache.filter(l => l.id !== id);
+      lancamentosCache = lancamentosCache.filter(l => !idsParaApagar.includes(l.id));
       renderizarFinancas();
     }
   }
