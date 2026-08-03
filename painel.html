@@ -6978,11 +6978,22 @@
     renderizarCartoesPagar(lancamentosDoMes, gastosFixosDoMes);
 
     // ---------- Totais do mês (cartões no topo) ----------
-    // As contas fixas (todas DI/GU) entram aqui também, divididas ao meio
+    // Balões brutos: cada um soma exatamente o que está marcado no lançamento,
+    // inclusive "DI/GU" como categoria própria (sem dividir), pra bater certinho
+    // com o extrato quando clicado. É diferente do resumo "Total de gastos" mais
+    // abaixo, que sempre divide DI/GU ao meio pra calcular quem deve o quê de fato.
+    const totaisPorPessoaBruto = {};
+    lancamentosDoMes.forEach(l => {
+      const chave = l.pessoa || "Outro";
+      totaisPorPessoaBruto[chave] = (totaisPorPessoaBruto[chave] || 0) + Number(l.valor);
+    });
+
     const { totais: totaisPorPessoa, totalGeral: totalGeralLancamentos } = calcularTotaisPorPessoa(lancamentosDoMes);
     let totalGeral = totalGeralLancamentos;
     gastosFixosDoMes.forEach(g => {
       if (!g.valor) return;
+      totaisPorPessoaBruto["DI"] = (totaisPorPessoaBruto["DI"] || 0) + g.valor / 2;
+      totaisPorPessoaBruto["GU"] = (totaisPorPessoaBruto["GU"] || 0) + g.valor / 2;
       totaisPorPessoa["DI"] = (totaisPorPessoa["DI"] || 0) + g.valor / 2;
       totaisPorPessoa["GU"] = (totaisPorPessoa["GU"] || 0) + g.valor / 2;
       totalGeral += g.valor;
@@ -6997,10 +7008,10 @@
         <p class="financas-total-valor">${formatarMoeda(totalGeral)}</p>
       </div>
     `].concat(
-      Object.keys(totaisPorPessoa).sort().map(p => `
+      Object.keys(totaisPorPessoaBruto).sort().map(p => `
         <div class="financas-total-cartao clicavel ${pessoaFiltroFinancas === p ? "selecionado" : ""}" data-pessoa="${p}">
           <p class="financas-total-nome">${p}</p>
-          <p class="financas-total-valor">${formatarMoeda(totaisPorPessoa[p])}</p>
+          <p class="financas-total-valor">${formatarMoeda(totaisPorPessoaBruto[p])}</p>
         </div>
       `)
     );
