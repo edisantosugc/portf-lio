@@ -2996,7 +2996,7 @@
           <input type="text" id="campoLancDescricao" placeholder="Descrição da compra" required>
           <select id="campoLancCartao"></select>
           <select id="campoLancPessoa"></select>
-          <div class="campo-data-wrapper">
+          <div class="campo-data-wrapper" title="Data da compra — só um registro histórico, não muda em qual fatura o lançamento entra">
             <input type="date" id="campoLancData" required>
             <span class="campo-data-exibicao" id="campoLancDataExibicao"></span>
           </div>
@@ -6906,15 +6906,6 @@
     if (campo) campo.value = `${anoFinancasVisivel}-${String(mesFinancasVisivel + 1).padStart(2, "0")}`;
   }
 
-  // Ajusta a data da compra pro mês/ano escolhidos no campo "mês da fatura",
-  // mantendo o dia (com o mesmo ajuste de fim de mês que o somarMeses já faz)
-  function calcularDataComMesAlvo(dataCompraISO, mesAlvoInput){
-    const [anoOriginal, mesOriginal] = dataCompraISO.split("-").map(Number);
-    const [anoAlvo, mesAlvo] = mesAlvoInput.split("-").map(Number);
-    const diffMeses = (anoAlvo - anoOriginal) * 12 + (mesAlvo - mesOriginal);
-    return somarMeses(dataCompraISO, diffMeses);
-  }
-
   function formatarMoeda(valor){
     return Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
@@ -7023,7 +7014,7 @@
         const [ano, mes] = l.data.split("-").map(Number);
         return ano === anoFinancasVisivel && (mes - 1) === mesFinancasVisivel;
       })
-      .sort((a, b) => new Date(a.data) - new Date(b.data));
+      .sort((a, b) => new Date(a.data_compra || a.data) - new Date(b.data_compra || b.data));
 
     const gastosFixosDoMes = obterGastosFixosDoMes();
 
@@ -7125,7 +7116,7 @@
         <tbody>
           ${lista.map(l => `
             <tr data-id="${l.id}">
-              <td>${formatarDataCurta(l.data)}</td>
+              <td>${formatarDataCurta(l.data_compra || l.data)}</td>
               <td>${l.descricao}${l.parcela_atual ? ` <span style="color:var(--texto-suave);">(${l.parcela_atual}/${l.parcela_total})</span>` : ""}</td>
               <td>${l.cartao || "-"}</td>
               <td><span class="selo-pessoa">${l.pessoa || "-"}</span></td>
@@ -7167,7 +7158,7 @@
     if (!linha) return;
 
     linha.innerHTML = `
-      <td><input type="date" id="edicaoData-${id}" value="${lancamento.data}"></td>
+      <td><input type="date" id="edicaoData-${id}" value="${lancamento.data_compra || lancamento.data}" title="Data da compra — não muda em qual fatura o lançamento entra"></td>
       <td>
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:nowrap;">
           <input type="text" id="edicaoDescricao-${id}" value="${lancamento.descricao}" style="flex:1; min-width:90px;">
@@ -7207,7 +7198,7 @@
     const lancamento = lancamentosCache.find(l => l.id === id);
 
     const dados = {
-      data: document.getElementById(`edicaoData-${id}`).value,
+      data_compra: document.getElementById(`edicaoData-${id}`).value,
       descricao: document.getElementById(`edicaoDescricao-${id}`).value.trim(),
       cartao: document.getElementById(`edicaoCartao-${id}`).value,
       pessoa: document.getElementById(`edicaoPessoa-${id}`).value,
@@ -10543,9 +10534,11 @@
 
     if (!descricao || !dataCompra || !mesFatura || isNaN(valor)) return;
 
-    // A data da compra em si só serve pra saber o dia; quem manda em qual mês o
-    // lançamento (ou a 1ª parcela) entra é o campo "mês da fatura" escolhido acima
-    const dataBase = calcularDataComMesAlvo(dataCompra, mesFatura);
+    // "data" (mês da fatura) e "data_compra" (histórico, só pra registro) são
+    // completamente independentes: mudar uma nunca muda a outra. "data" sempre
+    // começa no dia 1º do mês escolhido em "mês da fatura", nunca herda nada
+    // da data da compra.
+    const dataBase = mesFatura + "-01";
 
     let entradas = [];
 
@@ -10560,6 +10553,7 @@
       for (let i = atual; i <= total; i++){
         entradas.push({
           data: somarMeses(dataBase, i - atual),
+          data_compra: dataCompra,
           descricao: descricao,
           valor: valorParcela,
           cartao: cartao,
@@ -10572,6 +10566,7 @@
     } else {
       entradas.push({
         data: dataBase,
+        data_compra: dataCompra,
         descricao: descricao,
         valor: valor,
         cartao: cartao,
