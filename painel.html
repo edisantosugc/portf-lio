@@ -1040,6 +1040,26 @@
     align-items: center;
     box-sizing: border-box;
   }
+  .form-lancamento-mes-fatura{
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--coral);
+  }
+  .form-lancamento-mes-fatura input[type="month"]{
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--borda);
+    background: var(--creme);
+    color: var(--grafite);
+    font-family: 'Outfit', sans-serif;
+    font-size: .85rem;
+    font-weight: 400;
+  }
   .form-lancamento-parcelas{
     display: none;
     grid-column: 1 / -1;
@@ -2962,6 +2982,11 @@
             <span class="campo-data-exibicao" id="campoLancDataExibicao"></span>
           </div>
           <input type="number" id="campoLancValor" placeholder="Valor R$" step="0.01" min="0" required>
+
+          <div class="form-lancamento-mes-fatura">
+            <label for="campoLancMesFatura" id="labelMesFatura">Em que mês essa compra entra na fatura?</label>
+            <input type="month" id="campoLancMesFatura" required>
+          </div>
 
           <label class="form-lancamento-check">
             <input type="checkbox" id="campoLancParcelado">
@@ -5538,23 +5563,29 @@
     document.getElementById("financasMesAnterior").addEventListener("click", () => {
       mesFinancasVisivel--;
       if (mesFinancasVisivel < 0){ mesFinancasVisivel = 11; anoFinancasVisivel--; }
+      definirMesFaturaPadrao();
       renderizarFinancas();
     });
     document.getElementById("financasMesProximo").addEventListener("click", () => {
       mesFinancasVisivel++;
       if (mesFinancasVisivel > 11){ mesFinancasVisivel = 0; anoFinancasVisivel++; }
+      definirMesFaturaPadrao();
       renderizarFinancas();
     });
     document.getElementById("financasBotaoHoje").addEventListener("click", () => {
       const hoje = new Date();
       mesFinancasVisivel = hoje.getMonth();
       anoFinancasVisivel = hoje.getFullYear();
+      definirMesFaturaPadrao();
       renderizarFinancas();
     });
     document.getElementById("campoLancParcelado").addEventListener("change", (e) => {
       const parcelado = e.target.checked;
       document.getElementById("areaParcelas").classList.toggle("visivel", parcelado);
       document.getElementById("campoLancValor").placeholder = parcelado ? "Valor total da compra" : "Valor R$";
+      document.getElementById("labelMesFatura").textContent = parcelado
+        ? "Para quando é a 1ª parcela?"
+        : "Em que mês essa compra entra na fatura?";
       atualizarValorParcelaCalculado();
     });
     document.getElementById("campoLancValor").addEventListener("input", atualizarValorParcelaCalculado);
@@ -6008,13 +6039,15 @@
     const cliquesCupons = cliques.filter(e => e.event_name === "cta_cupons");
     const cliquesAchadinhos = cliques.filter(e => e.event_name === "cta_achadinhos");
     const cliquesIcones = cliques.filter(e => e.event_name && e.event_name.startsWith("cta_icone_"));
+    const cliquesAbrirGavetas = cliques.filter(e => e.event_name && e.event_name.startsWith("cta_abrir_"));
 
     const miniCartoes = [
       { numero: cliquesMeContrate.length, rotulo: "Me Contrate" },
       { numero: cliquesCursos.length, rotulo: "Cursos e Mentorias" },
       { numero: cliquesCupons.length, rotulo: "Meus Cupons" },
       { numero: cliquesAchadinhos.length, rotulo: "Achadinhos" },
-      { numero: cliquesIcones.length, rotulo: "Ícones (E-mail + TikTok)" }
+      { numero: cliquesIcones.length, rotulo: "Ícones (E-mail + TikTok)" },
+      { numero: cliquesAbrirGavetas.length, rotulo: "Abriu gavetas (Cursos/Cupons/Achadinhos)" }
     ];
 
     document.getElementById("miniCartoesCliques").innerHTML = miniCartoes.map(c => `
@@ -6817,6 +6850,24 @@
     document.getElementById("campoLancPessoa").innerHTML =
       PESSOAS.map(p => `<option value="${p}">${p}</option>`).join("");
     definirDataComExibicao("campoLancData", "campoLancDataExibicao", formatarDataISO(new Date()));
+    definirMesFaturaPadrao();
+  }
+
+  // O campo "mês da fatura" começa sempre com o mês que está sendo visto no
+  // painel (financasMesVisivel/anoFinancasVisivel), pra evitar que um lançamento
+  // caia sem querer no mês errado (ex: cartão já fechou e a compra é da fatura seguinte)
+  function definirMesFaturaPadrao(){
+    const campo = document.getElementById("campoLancMesFatura");
+    if (campo) campo.value = `${anoFinancasVisivel}-${String(mesFinancasVisivel + 1).padStart(2, "0")}`;
+  }
+
+  // Ajusta a data da compra pro mês/ano escolhidos no campo "mês da fatura",
+  // mantendo o dia (com o mesmo ajuste de fim de mês que o somarMeses já faz)
+  function calcularDataComMesAlvo(dataCompraISO, mesAlvoInput){
+    const [anoOriginal, mesOriginal] = dataCompraISO.split("-").map(Number);
+    const [anoAlvo, mesAlvo] = mesAlvoInput.split("-").map(Number);
+    const diffMeses = (anoAlvo - anoOriginal) * 12 + (mesAlvo - mesOriginal);
+    return somarMeses(dataCompraISO, diffMeses);
   }
 
   function formatarMoeda(valor){
@@ -10321,11 +10372,16 @@
     const descricao = document.getElementById("campoLancDescricao").value.trim();
     const cartao = document.getElementById("campoLancCartao").value;
     const pessoa = document.getElementById("campoLancPessoa").value;
-    const dataBase = document.getElementById("campoLancData").value;
+    const dataCompra = document.getElementById("campoLancData").value;
+    const mesFatura = document.getElementById("campoLancMesFatura").value;
     const valor = parseFloat(document.getElementById("campoLancValor").value);
     const parcelado = document.getElementById("campoLancParcelado").checked;
 
-    if (!descricao || !dataBase || isNaN(valor)) return;
+    if (!descricao || !dataCompra || !mesFatura || isNaN(valor)) return;
+
+    // A data da compra em si só serve pra saber o dia; quem manda em qual mês o
+    // lançamento (ou a 1ª parcela) entra é o campo "mês da fatura" escolhido acima
+    const dataBase = calcularDataComMesAlvo(dataCompra, mesFatura);
 
     let entradas = [];
 
@@ -10370,6 +10426,7 @@
       document.getElementById("areaParcelas").classList.remove("visivel");
       document.getElementById("campoLancValor").placeholder = "Valor R$";
       document.getElementById("valorParcelaCalculado").textContent = "";
+      document.getElementById("labelMesFatura").textContent = "Em que mês essa compra entra na fatura?";
       preencherSelectsFinancas();
       renderizarFinancas();
     }
