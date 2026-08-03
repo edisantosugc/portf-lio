@@ -1120,6 +1120,11 @@
   .financas-total-cartao.geral{ background: var(--coral); }
   .financas-total-cartao.geral .financas-total-valor,
   .financas-total-cartao.geral .financas-total-nome{ color: var(--branco); }
+  .financas-total-cartao.clicavel{ cursor: pointer; transition: outline-color .1s; outline: 2px solid transparent; outline-offset: 2px; }
+  .financas-total-cartao.clicavel:hover{ outline-color: var(--borda); }
+  .financas-total-cartao.clicavel.selecionado{ outline-color: var(--coral); }
+  .financas-total-cartao.geral.clicavel:hover{ outline-color: var(--branco); }
+  .financas-total-cartao.geral.clicavel.selecionado{ outline-color: var(--branco); }
   .financas-total-nome{ font-size: .72rem; color: var(--texto-suave); text-transform: uppercase; font-weight: 600; }
   .financas-total-valor{ font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.05rem; margin-top: 2px; }
 
@@ -3014,7 +3019,6 @@
       <div class="cartao" style="margin-top: 20px;">
         <h2>Lançamentos do mês</h2>
         <div class="filtros-cartao" id="filtrosCartao"></div>
-        <div class="filtros-cartao" id="filtrosPessoa" style="margin-top: -6px;"></div>
         <div id="areaTabelaLancamentos"></div>
       </div>
 
@@ -4050,6 +4054,15 @@
     if (!usuario) return;
 
     document.getElementById("usuarioEmail").textContent = usuario.email;
+
+    // Volta pra aba em que a pessoa estava antes de atualizar a página (F5), em vez de
+    // sempre mostrar o Menu Principal. Feito ANTES do body ficar visível, pra nunca
+    // chegar a piscar o Menu Principal por um instante enquanto os dados carregam.
+    const abaSalva = localStorage.getItem("painelAbaAtiva");
+    if (abaSalva && document.querySelector(`.menu-item[data-tab="${abaSalva}"]`)){
+      trocarAba(abaSalva);
+    }
+
     document.body.style.visibility = "visible";
 
     configurarEventosDeInterface();
@@ -4194,13 +4207,6 @@
         await carregarInstagramLeads();
       } catch (erroInstagramLeads) {
         console.error("Erro ao carregar/renderizar Interações do Instagram:", erroInstagramLeads);
-      }
-
-      // Volta pra aba em que a pessoa estava antes de atualizar a página (F5), em vez de
-      // sempre jogar pro Menu Principal. Só troca se a aba salva ainda existir no menu.
-      const abaSalva = localStorage.getItem("painelAbaAtiva");
-      if (abaSalva && document.querySelector(`.menu-item[data-tab="${abaSalva}"]`)){
-        trocarAba(abaSalva);
       }
     } catch (erro) {
       console.error(erro);
@@ -6982,20 +6988,30 @@
       totalGeral += g.valor;
     });
 
+    // O balão "Total" e os balões de cada pessoa (que já surgem sozinhos conforme os
+    // lançamentos vão sendo criados) funcionam como filtro: clicar num deles filtra o
+    // extrato abaixo só com os lançamentos daquela pessoa (ou de todo mundo, no "Total").
     const cartoesTotais = [`
-      <div class="financas-total-cartao geral">
+      <div class="financas-total-cartao geral clicavel ${pessoaFiltroFinancas === "Todos" ? "selecionado" : ""}" data-pessoa="Todos">
         <p class="financas-total-nome">Total</p>
         <p class="financas-total-valor">${formatarMoeda(totalGeral)}</p>
       </div>
     `].concat(
       Object.keys(totaisPorPessoa).sort().map(p => `
-        <div class="financas-total-cartao">
+        <div class="financas-total-cartao clicavel ${pessoaFiltroFinancas === p ? "selecionado" : ""}" data-pessoa="${p}">
           <p class="financas-total-nome">${p}</p>
           <p class="financas-total-valor">${formatarMoeda(totaisPorPessoa[p])}</p>
         </div>
       `)
     );
-    document.getElementById("financasTotais").innerHTML = cartoesTotais.join("");
+    const areaFinancasTotais = document.getElementById("financasTotais");
+    areaFinancasTotais.innerHTML = cartoesTotais.join("");
+    areaFinancasTotais.querySelectorAll(".financas-total-cartao.clicavel").forEach(el => {
+      el.addEventListener("click", () => {
+        pessoaFiltroFinancas = pessoaFiltroFinancas === el.dataset.pessoa ? "Todos" : el.dataset.pessoa;
+        renderizarFinancas();
+      });
+    });
 
     // ---------- Filtro por cartão ----------
     const filtrosEl = document.getElementById("filtrosCartao");
@@ -7006,19 +7022,6 @@
     filtrosEl.querySelectorAll(".filtro-cartao-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         cartaoFiltroFinancas = btn.dataset.cartao;
-        renderizarFinancas();
-      });
-    });
-
-    // ---------- Filtro por pessoa (pra ver rapidinho o extrato de cada um) ----------
-    const filtrosPessoaEl = document.getElementById("filtrosPessoa");
-    const opcoesPessoa = ["Todos"].concat(PESSOAS);
-    filtrosPessoaEl.innerHTML = opcoesPessoa.map(p => `
-      <button type="button" class="filtro-cartao-btn ${pessoaFiltroFinancas === p ? "ativo" : ""}" data-pessoa="${p}">${p}</button>
-    `).join("");
-    filtrosPessoaEl.querySelectorAll(".filtro-cartao-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        pessoaFiltroFinancas = btn.dataset.pessoa;
         renderizarFinancas();
       });
     });
