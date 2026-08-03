@@ -1219,6 +1219,20 @@
   .filtro-cartao-btn.ativo{ background: var(--coral); border-color: var(--coral); color: var(--branco); }
 
   .sub-secao-financas{ font-size: .85rem; color: var(--texto-suave); margin-bottom: 16px; }
+  .form-nova-conta-fixa{ display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 20px; }
+  .form-nova-conta-fixa input[type="text"], .form-nova-conta-fixa input[type="number"]{
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--borda);
+    font-family: 'Outfit', sans-serif;
+    font-size: .85rem;
+    background: var(--creme);
+    color: var(--grafite);
+  }
+  .form-nova-conta-fixa input[type="text"]{ flex: 1; min-width: 160px; }
+  .form-nova-conta-fixa input[type="number"]{ width: 130px; }
+  .form-nova-conta-fixa label{ display: flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--texto-suave); white-space: nowrap; }
+  .form-nova-conta-fixa input[type="checkbox"]{ width: 16px; height: 16px; }
   .resumo-total-gastos{ display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
   .resumo-linha{
     display: flex;
@@ -3032,6 +3046,18 @@
       <div class="cartao" style="margin-top: 20px;">
         <h2>Contas a pagar</h2>
         <p class="sub-secao-financas">Cartões (somados automaticamente) e contas fixas (Pix, você preenche o valor), tudo junto e ordenado pelo dia de vencimento. Clique no círculo para marcar como pago.</p>
+
+        <form class="form-nova-conta-fixa" id="formNovaContaFixa">
+          <input type="text" id="campoNovaContaNome" placeholder="Nome da conta fixa nova" required>
+          <input type="number" id="campoNovaContaVencimento" placeholder="Dia venc." min="1" max="31" required>
+          <input type="number" id="campoNovaContaValor" placeholder="Valor deste mês (opcional)" step="0.01" min="0">
+          <label>
+            <input type="checkbox" id="campoNovaContaVariavel">
+            Valor varia todo mês
+          </label>
+          <button type="submit" class="botao-add-lancamento">+ Nova conta fixa</button>
+        </form>
+
         <div class="lista-cartoes-pagar" id="listaCartoesPagar"></div>
         <div class="resumo-linha destaque" id="totalContasPagar" style="margin-top: 12px;"></div>
       </div>
@@ -5606,6 +5632,7 @@
     document.getElementById("campoLancValor").addEventListener("input", atualizarValorParcelaCalculado);
     document.getElementById("campoParcelaTotal").addEventListener("input", atualizarValorParcelaCalculado);
     document.getElementById("formLancamento").addEventListener("submit", adicionarLancamento);
+    document.getElementById("formNovaContaFixa").addEventListener("submit", adicionarContaFixa);
 
     // ---------- Finanças UGC (negócio) ----------
     document.getElementById("negocioMesAnterior").addEventListener("click", () => {
@@ -6927,21 +6954,47 @@
     return { totais, totalGeral };
   }
 
-  // Devolve as 10 contas fixas do mês visível, com o valor já salvo (ou null se ainda não preenchido)
+  // Contas fixas "de sempre" (as 10 do código) + qualquer conta nova criada
+  // direto no painel (aparece no cache assim que alguém salva um valor pra ela)
+  function obterNomesGastosFixos(){
+    const nomesCustom = [...new Set(gastosFixosCache.map(g => g.nome))].filter(n => !NOMES_GASTOS_FIXOS.includes(n));
+    return NOMES_GASTOS_FIXOS.concat(nomesCustom.sort());
+  }
+
+  // Dia de vencimento de uma conta fixa: as 10 de sempre vêm do código; uma conta
+  // nova usa o vencimento mais recente salvo pra ela (definido quando foi criada)
+  function obterVencimentoGastoFixo(nome){
+    if (VENCIMENTO_GASTOS_FIXOS[nome] !== undefined) return VENCIMENTO_GASTOS_FIXOS[nome];
+    const registro = gastosFixosCache
+      .filter(g => g.nome === nome && g.vencimento !== null && g.vencimento !== undefined)
+      .sort((a, b) => (b.ano * 12 + b.mes) - (a.ano * 12 + a.mes))[0];
+    return registro ? registro.vencimento : null;
+  }
+
+  // Se uma conta fixa varia de valor todo mês (não repete o valor do mês anterior)
+  function obterVariavelGastoFixo(nome){
+    if (GASTOS_FIXOS_VARIAVEIS.includes(nome)) return true;
+    const registro = gastosFixosCache
+      .filter(g => g.nome === nome && g.variavel !== null && g.variavel !== undefined)
+      .sort((a, b) => (b.ano * 12 + b.mes) - (a.ano * 12 + a.mes))[0];
+    return registro ? !!registro.variavel : false;
+  }
+
+  // Devolve as contas fixas do mês visível, com o valor já salvo (ou null se ainda não preenchido)
   function obterGastosFixosDoMes(anoParam, mesParam){
     const ano = anoParam !== undefined ? anoParam : anoFinancasVisivel;
     const mes = mesParam !== undefined ? mesParam : mesFinancasVisivel;
     const chaveAtual = ano * 12 + mes;
 
-    return NOMES_GASTOS_FIXOS.map(nome => {
+    return obterNomesGastosFixos().map(nome => {
       // O status "pago" é sempre específico do mês (nunca herdado de mês anterior)
       const registroExato = gastosFixosCache.find(g =>
         g.nome === nome && g.ano === ano && g.mes === mes
       );
       const pago = registroExato ? registroExato.pago : false;
 
-      // Água e Luz variam todo mês: só mostram valor se ele foi preenchido NESSE mês
-      if (GASTOS_FIXOS_VARIAVEIS.includes(nome)){
+      // Algumas contas variam todo mês: só mostram valor se ele foi preenchido NESSE mês
+      if (obterVariavelGastoFixo(nome)){
         return {
           nome: nome,
           valor: (registroExato && registroExato.valor !== null && registroExato.valor !== undefined) ? Number(registroExato.valor) : null,
@@ -7242,7 +7295,7 @@
       gastosFixosDoMes.map(g => ({
         tipo: "fixo",
         nome: g.nome,
-        vencimento: VENCIMENTO_GASTOS_FIXOS[g.nome],
+        vencimento: obterVencimentoGastoFixo(g.nome),
         valor: g.valor,
         pago: g.pago
       }))
@@ -7677,6 +7730,43 @@
       gastosFixosCache.push(registro);
     }
     return registro;
+  }
+
+  // Cria uma conta fixa nova (fora das 10 já embutidas no código), com vencimento
+  // e "varia todo mês" próprios — que ficam salvos e valendo pros meses seguintes.
+  async function adicionarContaFixa(e){
+    e.preventDefault();
+
+    const nome = document.getElementById("campoNovaContaNome").value.trim();
+    const vencimento = parseInt(document.getElementById("campoNovaContaVencimento").value, 10);
+    const valorDigitado = document.getElementById("campoNovaContaValor").value;
+    const variavel = document.getElementById("campoNovaContaVariavel").checked;
+
+    if (!nome || !vencimento || vencimento < 1 || vencimento > 31) return;
+
+    if (obterNomesGastosFixos().includes(nome)){
+      alert("Já existe uma conta fixa com esse nome.");
+      return;
+    }
+
+    const valor = valorDigitado === "" ? null : parseFloat(valorDigitado);
+
+    const { data, error } = await Auth.client
+      .from("financas_gastos_fixos")
+      .upsert(
+        { nome: nome, ano: anoFinancasVisivel, mes: mesFinancasVisivel, valor: valor, pago: false, pessoa: "DI/GU", vencimento: vencimento, variavel: variavel },
+        { onConflict: "nome,ano,mes" }
+      )
+      .select();
+
+    if (error){
+      alert("Não foi possível criar a conta fixa agora: " + error.message);
+      return;
+    }
+
+    gastosFixosCache = gastosFixosCache.concat(data);
+    document.getElementById("formNovaContaFixa").reset();
+    renderizarFinancas();
   }
 
   async function salvarValorGastoFixo(nome, valorDigitado){
