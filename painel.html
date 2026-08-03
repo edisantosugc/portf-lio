@@ -97,6 +97,7 @@
   .botao-modo-oculto:hover{ border-color: var(--coral); color: var(--coral); }
   .botao-modo-oculto.ativo{ background: var(--coral); border-color: var(--coral); color: var(--branco); }
   .botao-modo-oculto svg{ width: 16px; height: 16px; }
+  .botao-modo-oculto-mobile{ display: none; margin-left: 10px; width: 38px; height: 38px; }
 
   .aviso-modo-oculto{
     background: var(--coral);
@@ -2313,6 +2314,27 @@
     .conteudo{ padding: 24px 20px 50px; }
     .topo-conteudo{ flex-direction: row; }
     .topo-conteudo h1{ font-size: 1.3rem; }
+
+    /* No celular a sidebar (onde fica o olho original) só abre pelo ☰, então o
+       olho não ficaria "sempre visível" sem essa cópia no topo fixo do conteúdo */
+    .botao-modo-oculto-mobile{ display: inline-flex; }
+
+    /* Setinha de filtro/ordenar da tabela: no computador o alvo pequeno não
+       atrapalha (mouse é preciso), mas no dedo precisa de mais área de toque */
+    .abrir-filtro-extrato{ padding: 7px; }
+
+    /* O painel de filtro (Data/Descrição/Pessoa/Valor) é posicionado relativo à
+       coluna clicada — numa tela estreita, com a tabela rolando de lado, ele podia
+       abrir fora da área visível. No celular vira um painel fixo centralizado. */
+    .popover-filtro{
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(88vw, 300px);
+      max-height: 80vh;
+      overflow-y: auto;
+    }
     .grade-agenda{ grid-template-columns: 1fr; }
     .grade-negocio{ grid-template-columns: 1fr; }
     .form-lancamento{ grid-template-columns: 1fr 1fr; }
@@ -2856,6 +2878,12 @@
       <div style="display:flex; align-items:center;">
         <button class="botao-menu-mobile" id="botaoMenuMobile" aria-label="Abrir menu">&#9776;</button>
         <h1 id="tituloTopo">Menu Principal</h1>
+        <!-- Cópia do botão de olho só pro celular: no mobile a sidebar fica escondida
+             (só abre pelo ☰), então sem isso o olho não ficaria "sempre visível" ali. -->
+        <button type="button" class="botao-modo-oculto botao-modo-oculto-mobile" id="botaoModoOcultoMobile" aria-label="Esconder dados sensíveis" title="Esconder dados sensíveis (pra gravar Stories)">
+          <svg id="iconeOlhoAbertoMobile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg id="iconeOlhoFechadoMobile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="oculto"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.6 21.6 0 0 1 5.06-6.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a21.6 21.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </button>
       </div>
       <div class="filtro-periodo" id="filtroPeriodo">
         <button class="periodo-btn ativo" data-periodo="hoje">Hoje</button>
@@ -5748,6 +5776,7 @@
     document.getElementById("botaoSair").addEventListener("click", () => Auth.logout());
 
     document.getElementById("botaoModoOculto").addEventListener("click", () => alternarModoOculto());
+    document.getElementById("botaoModoOcultoMobile").addEventListener("click", () => alternarModoOculto());
 
     configurarEventosInstagram();
 
@@ -6179,11 +6208,19 @@
   function alternarModoOculto(forcarEstado){
     const ativo = typeof forcarEstado === "boolean" ? forcarEstado : !document.body.classList.contains("modo-oculto");
     document.body.classList.toggle("modo-oculto", ativo);
-    document.getElementById("botaoModoOculto").classList.toggle("ativo", ativo);
-    document.getElementById("iconeOlhoAberto").classList.toggle("oculto", ativo);
-    document.getElementById("iconeOlhoFechado").classList.toggle("oculto", !ativo);
     document.getElementById("avisoModoOculto").classList.toggle("oculto", !ativo);
     localStorage.setItem("painelModoOculto", ativo ? "1" : "0");
+
+    // Sincroniza os dois botões (sidebar + a cópia que só aparece no celular)
+    ["botaoModoOculto", "botaoModoOcultoMobile"].forEach(idBotao => {
+      document.getElementById(idBotao).classList.toggle("ativo", ativo);
+    });
+    ["iconeOlhoAberto", "iconeOlhoAbertoMobile"].forEach(id => {
+      document.getElementById(id).classList.toggle("oculto", ativo);
+    });
+    ["iconeOlhoFechado", "iconeOlhoFechadoMobile"].forEach(id => {
+      document.getElementById(id).classList.toggle("oculto", !ativo);
+    });
   }
 
   function trocarAba(aba){
