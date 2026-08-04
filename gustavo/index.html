@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal do Gustavo</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💙</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root{
+    --coral: #000080;
+    --coral-escuro: #00004d;
+    --creme: #F3EEE9;
+    --branco: #FFFFFF;
+    --grafite: #2A2622;
+    --texto-suave: #6B645C;
+    --borda: #CCC2BC;
+    --verde: #2D7A4F;
+    --verde-fundo: #E8F3EC;
+    --vermelho: #C4453C;
+    --vermelho-fundo: #FBEAE8;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin: 0;
+    background: var(--creme);
+    color: var(--grafite);
+    font-family: 'Outfit', "Segoe UI", system-ui, sans-serif;
+    padding-bottom: 60px;
+  }
+  h1, h2{ font-family: 'Fraunces', Georgia, serif; font-weight: 600; margin: 0; }
+  strong, b{ font-weight: 600; }
+
+  /* ---- tela de login ---- */
+  .tela-login{ min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+  .cartao-login{
+    background: var(--branco); border: 1px solid var(--borda); border-radius: 18px;
+    padding: 36px 32px; max-width: 360px; width: 100%; text-align: center;
+    box-shadow: 0 12px 30px rgba(42,38,34,.08);
+  }
+  .selo-login{
+    width: 52px; height: 52px; border-radius: 50%; background: var(--coral); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 600; margin: 0 auto 16px;
+  }
+  .cartao-login h1{ font-size: 1.25rem; }
+  .cartao-login .sub{ color: var(--texto-suave); font-size: .85rem; margin: 8px 0 24px; line-height: 1.5; }
+  .campo-codigo{
+    width: 100%; padding: 13px 14px; border-radius: 10px; border: 1px solid var(--borda);
+    background: var(--creme); font-size: 1rem; letter-spacing: .1em; text-align: center;
+    margin-bottom: 10px; font-family: 'Outfit', sans-serif; color: var(--grafite);
+  }
+  .campo-codigo:focus{ outline: none; border-color: var(--coral); }
+  .erro-login{ color: var(--vermelho); font-size: .8rem; margin: 0 0 12px; min-height: 1em; }
+  .botao-entrar{
+    width: 100%; background: var(--coral); color: #fff; border: none; padding: 13px;
+    border-radius: 10px; font-weight: 600; font-size: .9rem; cursor: pointer; font-family: 'Outfit', sans-serif;
+  }
+  .botao-entrar:hover{ background: var(--coral-escuro); }
+  .botao-entrar:disabled{ opacity: .6; cursor: default; }
+
+  /* ---- portal ---- */
+  .portal{ display: none; }
+  .portal.visivel{ display: block; }
+  .tela-login.escondida{ display: none; }
+
+  .topo-portal{
+    background: var(--branco); border-bottom: 1px solid var(--borda); padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 5;
+  }
+  .topo-esquerda h1{ font-size: 1.1rem; }
+  .topo-esquerda .sub{ font-size: .76rem; color: var(--texto-suave); margin-top: 2px; }
+  .selo-leitura{
+    display: inline-flex; align-items: center; gap: 5px; background: var(--creme); border: 1px solid var(--borda);
+    color: var(--texto-suave); font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 600;
+    padding: 4px 10px; border-radius: 20px; margin-top: 6px;
+  }
+  .botao-sair{
+    background: none; border: 1px solid var(--borda); color: var(--texto-suave); padding: 8px 14px;
+    border-radius: 20px; font-size: .78rem; cursor: pointer; font-family: 'Outfit', sans-serif;
+  }
+  .botao-sair:hover{ border-color: var(--vermelho); color: var(--vermelho); }
+
+  .conteudo{ max-width: 760px; margin: 0 auto; padding: 22px 16px 0; display: flex; flex-direction: column; gap: 22px; }
+  .carregando{ text-align: center; color: var(--texto-suave); font-size: .85rem; padding: 40px 0; }
+
+  /* ---- card Pensão Lívia ---- */
+  .cartao-pensao{ background: var(--branco); border: 2px solid var(--coral); border-radius: 16px; padding: 20px; position: relative; }
+  .cartao-pensao.pago{ border-color: var(--verde); }
+  .rotulo-editavel{
+    position: absolute; top: -11px; right: 16px; background: var(--coral); color: #fff;
+    font-size: .64rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+  }
+  .cartao-pensao.pago .rotulo-editavel{ background: var(--verde); }
+  .pensao-topo{ display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .pensao-icone{ font-size: 1.3rem; }
+  .pensao-topo h2{ font-size: 1.05rem; }
+
+  .aviso-pensao{
+    display: flex; align-items: center; gap: 10px; background: var(--vermelho-fundo); color: var(--vermelho);
+    border-radius: 10px; padding: 12px 14px; font-size: .85rem; font-weight: 600; margin-bottom: 16px;
+  }
+  .aviso-pensao.escondido{ display: none; }
+  .aviso-pensao .ponto{ width: 8px; height: 8px; border-radius: 50%; background: var(--vermelho); flex-shrink: 0; animation: pulsar 1.4s ease-in-out infinite; }
+  @keyframes pulsar{ 0%,100%{ opacity: 1; } 50%{ opacity: .35; } }
+  .aviso-pensao-pago{
+    display: flex; align-items: center; gap: 10px; background: var(--verde-fundo); color: var(--verde);
+    border-radius: 10px; padding: 12px 14px; font-size: .85rem; font-weight: 600; margin-bottom: 16px;
+  }
+  .aviso-pensao-pago.escondido{ display: none; }
+
+  .grade-pensao{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .campo-pensao label{ display: block; font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; color: var(--texto-suave); font-weight: 600; margin-bottom: 6px; }
+  .campo-pensao input{
+    width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--borda);
+    background: var(--creme); font-size: .92rem; font-family: 'Outfit', sans-serif; color: var(--grafite);
+  }
+  .campo-pensao input:focus{ outline: none; border-color: var(--coral); }
+
+  .botao-paguei{
+    width: 100%; background: var(--branco); border: 2px solid var(--verde); color: var(--verde); padding: 12px;
+    border-radius: 10px; font-weight: 700; font-size: .88rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Outfit', sans-serif;
+  }
+  .botao-paguei.marcado{ background: var(--verde); color: #fff; }
+  .botao-paguei:disabled{ opacity: .6; cursor: default; }
+
+  /* ---- pills/cartão ---- */
+  .cartao-secao{ background: var(--branco); border: 1px solid var(--borda); border-radius: 16px; padding: 20px; }
+  .cartao-secao h2{ font-size: 1rem; margin-bottom: 14px; }
+  .pills-cartao{ display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .pill{
+    background: var(--branco); border: 1px solid var(--borda); color: var(--grafite); padding: 9px 16px;
+    border-radius: 24px; font-size: .84rem; font-weight: 600; cursor: pointer; font-family: 'Outfit', sans-serif;
+  }
+  .pill.ativo{ background: var(--coral); border-color: var(--coral); color: #fff; }
+
+  .pilulas-filtro{ display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .pilula-filtro-ativo{
+    display: inline-flex; align-items: center; gap: 6px; background: var(--creme); border: 1px solid var(--borda);
+    padding: 5px 10px; border-radius: 20px; font-size: .76rem; color: var(--texto-suave);
+  }
+  .pilula-filtro-ativo button{ background: none; border: none; cursor: pointer; color: var(--texto-suave); font-size: .8rem; padding: 0; }
+
+  .tabela-wrap{ overflow-x: auto; }
+  table.tabela-lancamentos{ width: 100%; border-collapse: collapse; font-size: .85rem; min-width: 460px; }
+  .tabela-lancamentos th{
+    text-align: left; padding: 9px 10px; color: var(--texto-suave); font-size: .7rem; text-transform: uppercase;
+    letter-spacing: .03em; border-bottom: 1px solid var(--borda); position: relative; white-space: nowrap;
+  }
+  .th-com-filtro{ display: flex; align-items: center; gap: 4px; cursor: pointer; }
+  .abrir-filtro{ background: none; border: none; color: var(--texto-suave); cursor: pointer; padding: 3px; font-size: .8rem; }
+  .abrir-filtro.tem-filtro{ color: var(--coral); }
+  .tabela-lancamentos td{ padding: 10px; border-bottom: 1px solid var(--borda); }
+  .selo-pessoa{ display: inline-block; padding: 3px 10px; border-radius: 50px; background: var(--creme); font-size: .72rem; font-weight: 600; }
+  .linha-parte{ font-size: .72rem; color: var(--texto-suave); }
+  .texto-vazio{ color: var(--texto-suave); font-size: .85rem; padding: 20px 0; text-align: center; }
+
+  .popover-filtro{
+    position: absolute; top: calc(100% + 6px); left: 0; background: var(--branco); border: 1px solid var(--borda);
+    border-radius: 10px; box-shadow: 0 8px 24px rgba(42,38,34,.16); padding: 12px; width: 230px; z-index: 20;
+    font-weight: 400; text-transform: none; display: none;
+  }
+  .popover-filtro.aberto{ display: block; }
+  .popover-secao{ margin-bottom: 10px; }
+  .popover-secao:last-child{ margin-bottom: 0; }
+  .popover-titulo{ font-size: .66rem; text-transform: uppercase; letter-spacing: .04em; color: var(--texto-suave); font-weight: 600; margin-bottom: 6px; }
+  .popover-ordenar button{
+    display: block; width: 100%; background: none; border: none; text-align: left; padding: 5px 6px; border-radius: 6px;
+    font-size: .8rem; color: var(--grafite); cursor: pointer; font-family: 'Outfit', sans-serif;
+  }
+  .popover-ordenar button:hover{ background: var(--creme); }
+  .popover-busca{
+    width: 100%; padding: 7px 9px; margin-bottom: 8px; border: 1px solid var(--borda); border-radius: 8px;
+    font-size: .8rem; font-family: 'Outfit', sans-serif; background: var(--creme); color: var(--grafite);
+  }
+  .lista-checks{ display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; }
+  .lista-checks label{ display: flex; align-items: center; gap: 8px; font-size: .8rem; cursor: pointer; }
+  .lista-checks input[type=checkbox]{ width: 14px; height: 14px; accent-color: var(--coral); }
+  .popover-rodape{ display: flex; justify-content: flex-end; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--borda); }
+  .popover-rodape button{ border: none; background: none; font-size: .76rem; color: var(--texto-suave); cursor: pointer; font-family: 'Outfit', sans-serif; }
+
+  .resumo-linha{
+    display: flex; justify-content: space-between; align-items: center; background: var(--coral); color: #fff;
+    border-radius: 10px; padding: 12px 16px; margin-top: 14px; font-size: .88rem;
+  }
+  .resumo-linha strong{ font-family: 'Fraunces', serif; font-size: 1.05rem; }
+
+  /* ---- gavetas ---- */
+  .gaveta{ border: 1px solid var(--borda); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+  .gaveta:last-child{ margin-bottom: 0; }
+  .gaveta-cabeca{ display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; cursor: pointer; background: var(--creme); }
+  .gaveta-titulo{ display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: .88rem; }
+  .gaveta-seta{ transition: transform .15s ease; color: var(--texto-suave); }
+  .gaveta.aberta .gaveta-seta{ transform: rotate(180deg); }
+  .gaveta-valor{ font-family: 'Fraunces', serif; font-weight: 600; }
+  .gaveta-corpo{ display: none; padding: 4px 16px 14px; }
+  .gaveta.aberta .gaveta-corpo{ display: block; }
+  .gaveta-item{ display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--borda); font-size: .82rem; }
+  .gaveta-item:first-child{ border-top: none; }
+  .gaveta-item-desc{ display: flex; flex-direction: column; }
+  .gaveta-item-tag{ font-size: .68rem; color: var(--texto-suave); margin-top: 1px; }
+
+  /* ---- totais finais ---- */
+  .grade-totais-finais{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .cartao-total-final{ background: var(--coral); color: #fff; border-radius: 16px; padding: 22px; text-align: center; }
+  .cartao-total-final .rotulo{ font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; opacity: .85; }
+  .cartao-total-final .valor{ font-family: 'Fraunces', serif; font-size: 1.7rem; font-weight: 600; margin-top: 6px; }
+  .cartao-total-final .explic{ font-size: .74rem; opacity: .8; margin-top: 8px; line-height: 1.4; }
+
+  .sub-pix{ font-size: .82rem; color: var(--texto-suave); line-height: 1.5; margin: -4px 0 14px; }
+  .sub-pix strong{ color: var(--coral); }
+  .form-pix{ display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .form-pix input{
+    padding: 10px 12px; border-radius: 10px; border: 1px solid var(--borda); background: var(--creme);
+    font-family: 'Outfit', sans-serif; font-size: .85rem; color: var(--grafite);
+  }
+  .form-pix input[type="date"]{ flex: 1; min-width: 150px; }
+  .form-pix input[type="text"]{ width: 140px; }
+  .form-pix button{
+    background: var(--coral); color: #fff; border: none; padding: 10px 16px; border-radius: 10px;
+    font-weight: 600; font-size: .84rem; cursor: pointer; font-family: 'Outfit', sans-serif;
+  }
+  .form-pix button:hover{ background: var(--coral-escuro); }
+  .lista-pix{ display: flex; flex-direction: column; gap: 6px; }
+  .lista-pix-item{ display: flex; justify-content: space-between; align-items: center; font-size: .82rem; padding: 8px 12px; background: var(--creme); border-radius: 8px; }
+  .lista-pix-item button{ background: none; border: none; color: var(--texto-suave); cursor: pointer; font-size: .9rem; padding: 2px 4px; }
+  .lista-pix-item button:hover{ color: var(--vermelho); }
+  .lista-pix-vazio{ font-size: .8rem; color: var(--texto-suave); margin: 0; }
+
+  @media (max-width: 620px){
+    .grade-pensao{ grid-template-columns: 1fr; }
+    .grade-totais-finais{ grid-template-columns: 1fr; }
+    .cartao-total-final .valor{ font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ TELA DE LOGIN ============ -->
+<div class="tela-login" id="telaLogin">
+  <div class="cartao-login">
+    <div class="selo-login">GU</div>
+    <h1>Portal do Gustavo</h1>
+    <p class="sub">Acompanhe os gastos e a pensão da Lívia. Digite o código de acesso pra entrar.</p>
+    <input type="password" class="campo-codigo" id="campoCodigo" placeholder="Código de acesso" autocomplete="current-password">
+    <p class="erro-login" id="erroLogin"></p>
+    <button type="button" class="botao-entrar" id="btnEntrar">Entrar</button>
+  </div>
+</div>
+
+<!-- ============ PORTAL ============ -->
+<div class="portal" id="portal">
+  <div class="topo-portal">
+    <div class="topo-esquerda">
+      <h1>Portal do Gustavo</h1>
+      <div class="sub" id="subtituloMes"></div>
+      <div class="selo-leitura">🔒 Somente leitura</div>
+    </div>
+    <button type="button" class="botao-sair" id="btnSair">Sair</button>
+  </div>
+
+  <div class="conteudo" id="conteudoPortal">
+    <p class="carregando">Carregando...</p>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://dqtoxxngjqyoibdgmrjr.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // O Gustavo só vê um campo de código — por baixo dos panos isso vira um
+  // login de verdade no Supabase (e-mail técnico fixo + a senha que ele
+  // digitar), pra ativar as regras de segurança configuradas no banco.
+  const GUSTAVO_EMAIL = "gustavoamoreira@portal.edilainesantos.com";
+
+  const NOMES_MES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  const CARTOES = ["Dígio", "Inter", "Nubank", "Santander", "Mercado Pago", "Dinheiro/Outro"];
+
+  const hoje = new Date();
+  const anoAtual = hoje.getFullYear();
+  const mesAtual = hoje.getMonth();
+  const hojeISO = formatarDataISO(hoje);
+
+  function formatarDataISO(d){
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+  function formatarDataCurta(iso){
+    const [, mes, dia] = iso.split("-");
+    return `${dia}/${mes}`;
+  }
+  function formatarMoeda(v){
+    return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+  function formatarValorCampo(v){
+    return Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function desformatarValorCampo(texto){
+    if (texto === null || texto === undefined || texto === "") return NaN;
+    return parseFloat(String(texto).replace(/\./g, "").replace(",", "."));
+  }
+
+  // ---- estado ----
+  let lancamentosCache = [];
+  let gastosFixosCache = [];
+  let pensaoAtual = null;
+  let pixCache = [];
+  let cartaoAtivo = CARTOES[0];
+  let ordenacaoExtrato = { coluna: null, direcao: "asc" };
+  let filtrosColunaExtrato = { data: new Set(), descricao: new Set(), pessoa: new Set(), valor: new Set() };
+  let popoverAberto = null;
+
+  const COLUNAS_EXTRATO = [
+    { chave: "data",      titulo: "Data",      tipo: "data",   valor: l => l.data_compra || l.data, rotulo: v => formatarDataCurta(v) },
+    { chave: "descricao", titulo: "Descrição", tipo: "texto",  valor: l => l.descricao,              rotulo: v => v },
+    { chave: "pessoa",    titulo: "Pessoa",    tipo: "lista",  valor: l => l.pessoa,                 rotulo: v => v },
+    { chave: "valor",     titulo: "Valor",     tipo: "numero", valor: l => Number(l.valor),          rotulo: v => formatarMoeda(v) }
+  ];
+
+  // ============ LOGIN ============
+  const telaLogin = document.getElementById("telaLogin");
+  const portal = document.getElementById("portal");
+  const campoCodigo = document.getElementById("campoCodigo");
+  const erroLogin = document.getElementById("erroLogin");
+  const btnEntrar = document.getElementById("btnEntrar");
+
+  async function tentarEntrar(){
+    const codigo = campoCodigo.value.trim();
+    if (!codigo) return;
+    erroLogin.textContent = "";
+    btnEntrar.disabled = true;
+    btnEntrar.textContent = "Entrando...";
+
+    const { error } = await sb.auth.signInWithPassword({ email: GUSTAVO_EMAIL, password: codigo });
+
+    btnEntrar.disabled = false;
+    btnEntrar.textContent = "Entrar";
+
+    if (error){
+      erroLogin.textContent = "Código incorreto. Confere com a Edilaine e tenta de novo.";
+      return;
+    }
+    mostrarPortal();
+  }
+  btnEntrar.addEventListener("click", tentarEntrar);
+  campoCodigo.addEventListener("keydown", (e) => { if (e.key === "Enter") tentarEntrar(); });
+
+  document.getElementById("btnSair").addEventListener("click", async () => {
+    await sb.auth.signOut();
+    window.location.reload();
+  });
+
+  async function mostrarPortal(){
+    telaLogin.classList.add("escondida");
+    portal.classList.add("visivel");
+    document.getElementById("subtituloMes").textContent = `Financeiro de ${NOMES_MES[mesAtual]}/${anoAtual}`;
+    await carregarTudo();
+    configurarRealtime();
+  }
+
+  // ============ CARREGAR DADOS ============
+  async function carregarTudo(){
+    const [{ data: lancamentos }, { data: gastosFixos }, { data: pix }] = await Promise.all([
+      sb.from("financas_lancamentos").select("*"),
+      sb.from("financas_gastos_fixos").select("*"),
+      sb.from("portal_gustavo_pix").select("*").order("data", { ascending: false })
+    ]);
+
+    lancamentosCache = lancamentos || [];
+    gastosFixosCache = gastosFixos || [];
+    pixCache = pix || [];
+
+    await carregarOuCriarPensao();
+    renderizarConteudo();
+  }
+
+  // Busca a pensão do mês atual; se ainda não existe, cria repetindo o valor/
+  // vencimento do mês mais recente que existir (mesma lógica de "repete até
+  // alguém mudar" usada nas contas fixas do painel principal)
+  async function carregarOuCriarPensao(){
+    const { data: doMes } = await sb.from("portal_gustavo_pensao")
+      .select("*").eq("ano", anoAtual).eq("mes", mesAtual + 1).maybeSingle();
+
+    if (doMes){
+      pensaoAtual = doMes;
+      return;
+    }
+
+    const { data: anteriores } = await sb.from("portal_gustavo_pensao")
+      .select("*").order("ano", { ascending: false }).order("mes", { ascending: false }).limit(1);
+
+    const base = (anteriores && anteriores[0]) || { valor: null, vencimento: null };
+    const diaVencimento = base.vencimento ? new Date(base.vencimento).getDate() : 20;
+    const novoVencimento = new Date(anoAtual, mesAtual, diaVencimento);
+
+    const { data: criado } = await sb.from("portal_gustavo_pensao")
+      .upsert({
+        ano: anoAtual, mes: mesAtual + 1,
+        vencimento: formatarDataISO(novoVencimento),
+        valor: base.valor, pago: false
+      }, { onConflict: "ano,mes" })
+      .select().single();
+
+    pensaoAtual = criado;
+  }
+
+  // ============ REALTIME — reflete sozinho o que a Edilaine mexer no painel ============
+  function configurarRealtime(){
+    sb.channel("portal-gustavo")
+      .on("postgres_changes", { event: "*", schema: "public", table: "financas_lancamentos" }, () => recarregarSilenciosamente())
+      .on("postgres_changes", { event: "*", schema: "public", table: "financas_gastos_fixos" }, () => recarregarSilenciosamente())
+      .on("postgres_changes", { event: "*", schema: "public", table: "portal_gustavo_pensao" }, () => recarregarSilenciosamente())
+      .on("postgres_changes", { event: "*", schema: "public", table: "portal_gustavo_pix" }, () => recarregarSilenciosamente())
+      .subscribe();
+  }
+  let recarregando = false;
+  async function recarregarSilenciosamente(){
+    if (recarregando) return;
+    recarregando = true;
+    await carregarTudo();
+    recarregando = false;
+  }
+
+  // ============ RENDER PRINCIPAL ============
+  function renderizarConteudo(){
+    const area = document.getElementById("conteudoPortal");
+    area.innerHTML = `
+      <div id="areaPensao"></div>
+      <div class="cartao-secao">
+        <h2>Lançamentos do mês</h2>
+        <div class="pills-cartao" id="pillsCartao"></div>
+        <div id="areaTabelaExtrato"></div>
+      </div>
+      <div class="cartao-secao">
+        <h2>Gastos por cartão</h2>
+        <div id="areaGavetasCartao"></div>
+      </div>
+      <div class="cartao-secao">
+        <h2>Gastos fixos</h2>
+        <div id="areaGavetasFixos"></div>
+      </div>
+      <div class="grade-totais-finais">
+        <div class="cartao-total-final">
+          <div class="rotulo">Total DI</div>
+          <div class="valor" id="totalDiValor">R$ 0,00</div>
+          <div class="explic">Gastos GU + sua parte em DI/GU, cartões e contas fixas</div>
+        </div>
+        <div class="cartao-total-final">
+          <div class="rotulo">Total com a Pensão</div>
+          <div class="valor" id="totalPensaoValor">R$ 0,00</div>
+          <div class="explic">Pensão da Lívia — some daqui quando marcar como paga</div>
+        </div>
+      </div>
+      <div class="cartao-secao">
+        <h2>Registrar pagamento (Pix)</h2>
+        <p class="sub-pix">Cada Pix registrado aqui desconta do <strong>Total DI</strong>. Não mexe no total da Pensão — esse só some quando você marca "Paga" lá em cima.</p>
+        <div class="form-pix">
+          <input type="date" id="pixData" value="${hojeISO}">
+          <input type="text" inputmode="decimal" id="pixValor" placeholder="Valor pago (R$)">
+          <button type="button" id="botaoRegistrarPix">Registrar Pix</button>
+        </div>
+        <div class="lista-pix" id="listaPix"></div>
+      </div>
+    `;
+
+    renderizarPensao();
+    renderizarPillsCartao();
+    renderizarTabelaExtrato();
+    renderizarGavetasCartao();
+    renderizarGavetasFixos();
+    renderizarPix();
+    atualizarTotais();
+
+    document.getElementById("botaoRegistrarPix").addEventListener("click", registrarPix);
+  }
+
+  // ============ PENSÃO LÍVIA (único bloco editável) ============
+  function renderizarPensao(){
+    const p = pensaoAtual;
+    const pago = !!p.pago;
+    const venceHoje = !pago && p.vencimento === hojeISO;
+
+    document.getElementById("areaPensao").innerHTML = `
+      <div class="cartao-pensao ${pago ? "pago" : ""}">
+        <div class="rotulo-editavel">único campo editável</div>
+        <div class="pensao-topo"><span class="pensao-icone">👧</span><h2>Pensão Lívia</h2></div>
+
+        <div class="aviso-pensao ${venceHoje ? "" : "escondido"}">
+          <span class="ponto"></span><span>A pensão vence hoje, você precisa fazer o pagamento.</span>
+        </div>
+        <div class="aviso-pensao-pago ${pago ? "" : "escondido"}">
+          <span>✅</span><span>Pagamento de ${NOMES_MES[mesAtual].toLowerCase()} confirmado. Obrigada!</span>
+        </div>
+
+        <div class="grade-pensao">
+          <div class="campo-pensao">
+            <label>Vencimento</label>
+            <input type="date" id="campoVencimentoPensao" value="${p.vencimento}" ${pago ? "disabled" : ""}>
+          </div>
+          <div class="campo-pensao">
+            <label>Valor (reajusta todo ano)</label>
+            <input type="text" inputmode="decimal" id="campoValorPensao" value="${p.valor != null ? formatarValorCampo(p.valor) : ""}" ${pago ? "disabled" : ""}>
+          </div>
+        </div>
+
+        <button type="button" class="botao-paguei ${pago ? "marcado" : ""}" id="botaoPaguei">
+          <span>${pago ? "✓" : "○"}</span> <span>${pago ? "Pagamento confirmado" : "Marcar como paga"}</span>
+        </button>
+      </div>
+    `;
+
+    document.getElementById("campoVencimentoPensao").addEventListener("change", async (e) => {
+      pensaoAtual.vencimento = e.target.value;
+      await salvarPensao({ vencimento: e.target.value });
+    });
+    document.getElementById("campoValorPensao").addEventListener("change", async (e) => {
+      const valor = desformatarValorCampo(e.target.value);
+      pensaoAtual.valor = isNaN(valor) ? null : valor;
+      await salvarPensao({ valor: pensaoAtual.valor });
+      atualizarTotais();
+    });
+    document.getElementById("botaoPaguei").addEventListener("click", async () => {
+      pensaoAtual.pago = !pensaoAtual.pago;
+      await salvarPensao({ pago: pensaoAtual.pago });
+      renderizarPensao();
+      atualizarTotais();
+    });
+  }
+
+  async function salvarPensao(campos){
+    await sb.from("portal_gustavo_pensao")
+      .update(campos)
+      .eq("ano", anoAtual).eq("mes", mesAtual + 1);
+  }
+
+  // ============ LANÇAMENTOS DO MÊS ============
+  function lancamentosDoMes(){
+    return lancamentosCache.filter(l => {
+      const [ano, mes] = l.data.split("-").map(Number);
+      return ano === anoAtual && (mes - 1) === mesAtual && l.cartao === cartaoAtivo;
+    });
+  }
+
+  function renderizarPillsCartao(){
+    document.getElementById("pillsCartao").innerHTML = CARTOES.map(c =>
+      `<button type="button" class="pill ${c === cartaoAtivo ? "ativo" : ""}" data-cartao="${c}">${c}</button>`
+    ).join("");
+    document.querySelectorAll("[data-cartao]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        cartaoAtivo = btn.dataset.cartao;
+        filtrosColunaExtrato = { data: new Set(), descricao: new Set(), pessoa: new Set(), valor: new Set() };
+        ordenacaoExtrato = { coluna: null, direcao: "asc" };
+        renderizarPillsCartao();
+        renderizarTabelaExtrato();
+      });
+    });
+  }
+
+  function ajustarPosicaoPopover(pop, elementoAncora){
+    const rect = elementoAncora.getBoundingClientRect();
+    pop.style.top = (rect.bottom + window.scrollY + 6) + "px";
+    let left = rect.left + window.scrollX;
+    const margem = 8;
+    if (left + pop.offsetWidth > window.innerWidth - margem){
+      left = rect.right + window.scrollX - pop.offsetWidth;
+    }
+    pop.style.left = left + "px";
+  }
+
+  function opcoesColuna(lista, coluna){
+    return [...new Set(lista.map(coluna.valor))];
+  }
+
+  function calcularListaExtrato(){
+    let lista = lancamentosDoMes().filter(l =>
+      COLUNAS_EXTRATO.every(c => filtrosColunaExtrato[c.chave].size === 0 || filtrosColunaExtrato[c.chave].has(c.valor(l)))
+    );
+    if (ordenacaoExtrato.coluna){
+      const coluna = COLUNAS_EXTRATO.find(c => c.chave === ordenacaoExtrato.coluna);
+      lista = lista.slice().sort((a, b) => {
+        let va = coluna.valor(a), vb = coluna.valor(b);
+        if (typeof va === "string"){ va = va.toLowerCase(); vb = vb.toLowerCase(); }
+        if (va < vb) return ordenacaoExtrato.direcao === "asc" ? -1 : 1;
+        if (va > vb) return ordenacaoExtrato.direcao === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+    return lista;
+  }
+
+  function montarPopover(coluna){
+    const conjunto = filtrosColunaExtrato[coluna.chave];
+    const rotuloAsc = coluna.tipo === "numero" ? "Menor → maior" : coluna.tipo === "data" ? "Mais antiga → recente" : "A → Z";
+    const rotuloDesc = coluna.tipo === "numero" ? "Maior → menor" : coluna.tipo === "data" ? "Recente → mais antiga" : "Z → A";
+
+    let html = `<div class="popover-secao"><div class="popover-titulo">Ordenar</div><div class="popover-ordenar">
+      <button type="button" data-ord="asc" class="${ordenacaoExtrato.coluna === coluna.chave && ordenacaoExtrato.direcao === "asc" ? "ativo" : ""}">${rotuloAsc}</button>
+      <button type="button" data-ord="desc" class="${ordenacaoExtrato.coluna === coluna.chave && ordenacaoExtrato.direcao === "desc" ? "ativo" : ""}">${rotuloDesc}</button>
+    </div></div>`;
+
+    html += `<div class="popover-secao"><div class="popover-titulo">Filtrar</div>`;
+    if (coluna.tipo === "texto"){
+      html += `<input type="text" class="popover-busca" data-busca-coluna placeholder="Buscar..." autocomplete="off">`;
+    }
+    html += `<div class="lista-checks">`;
+    opcoesColuna(lancamentosDoMes(), coluna).forEach(v => {
+      const buscaAttr = coluna.rotulo(v).toLowerCase().replace(/"/g, "&quot;");
+      html += `<label data-texto-busca="${buscaAttr}"><input type="checkbox" value="${v}" ${conjunto.has(v) ? "checked" : ""}><span>${coluna.rotulo(v)}</span></label>`;
+    });
+    html += `</div></div>`;
+
+    html += `<div class="popover-rodape"><button type="button" data-acao="limpar">Limpar</button></div>`;
+    return html;
+  }
+
+  function htmlPilulasExtrato(){
+    const pilulas = COLUNAS_EXTRATO.filter(c => filtrosColunaExtrato[c.chave].size > 0);
+    if (pilulas.length === 0) return "";
+    return `<div class="pilulas-filtro">` + pilulas.map(c => {
+      const valores = [...filtrosColunaExtrato[c.chave]].map(c.rotulo).join(", ");
+      return `<span class="pilula-filtro-ativo">${c.titulo}: ${valores} <button type="button" data-limpar-pilula="${c.chave}">×</button></span>`;
+    }).join("") + `</div>`;
+  }
+
+  function renderizarTabelaExtrato(){
+    const area = document.getElementById("areaTabelaExtrato");
+    const lista = calcularListaExtrato();
+
+    document.querySelectorAll("body > .popover-filtro").forEach(p => p.remove());
+    popoverAberto = null;
+
+    if (lancamentosDoMes().length === 0){
+      area.innerHTML = `<p class="texto-vazio">Nenhum lançamento em ${CARTOES.includes(cartaoAtivo) ? cartaoAtivo : ""} esse mês.</p>`;
+      return;
+    }
+
+    area.innerHTML = `
+      ${htmlPilulasExtrato()}
+      <div class="tabela-wrap">
+        <table class="tabela-lancamentos">
+          <thead><tr>
+            ${COLUNAS_EXTRATO.map(c => `
+              <th style="position:relative;">
+                <div class="th-com-filtro" data-abrir-filtro="${c.chave}">${c.titulo} <button type="button" class="abrir-filtro ${filtrosColunaExtrato[c.chave].size > 0 || ordenacaoExtrato.coluna === c.chave ? "tem-filtro" : ""}">▾</button></div>
+                <div class="popover-filtro" data-popover="${c.chave}">${montarPopover(c)}</div>
+              </th>
+            `).join("")}
+          </tr></thead>
+          <tbody>
+            ${lista.map(l => `
+              <tr>
+                <td>${formatarDataCurta(l.data_compra || l.data)}</td>
+                <td>${l.descricao}</td>
+                <td><span class="selo-pessoa">${l.pessoa}</span>${l.pessoa === "DI/GU" ? `<div class="linha-parte">parte dele: ${formatarMoeda(l.valor / 2)}</div>` : ""}</td>
+                <td>${formatarMoeda(l.valor)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+      <div class="resumo-linha">
+        <span>Total do extrato (${lista.length} lançamento${lista.length === 1 ? "" : "s"})</span>
+        <strong>${formatarMoeda(lista.reduce((soma, l) => soma + (l.pessoa === "DI/GU" ? Number(l.valor) / 2 : Number(l.valor)), 0))}</strong>
+      </div>
+    `;
+
+    area.querySelectorAll("[data-limpar-pilula]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        filtrosColunaExtrato[btn.dataset.limparPilula] = new Set();
+        renderizarTabelaExtrato();
+      });
+    });
+
+    area.querySelectorAll("[data-abrir-filtro]").forEach(gatilho => {
+      gatilho.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const chave = gatilho.dataset.abrirFiltro;
+        const pop = area.querySelector(`[data-popover="${chave}"]`);
+        const jaAberto = pop.classList.contains("aberto");
+
+        if (popoverAberto && popoverAberto !== pop) popoverAberto.remove();
+        popoverAberto = null;
+
+        if (jaAberto){ pop.remove(); return; }
+
+        document.body.appendChild(pop);
+        pop.classList.add("aberto");
+        popoverAberto = pop;
+        ajustarPosicaoPopover(pop, gatilho);
+
+        pop.addEventListener("click", (evPop) => evPop.stopPropagation());
+
+        pop.querySelectorAll("[data-ord]").forEach(b => {
+          b.addEventListener("click", () => {
+            ordenacaoExtrato = { coluna: chave, direcao: b.dataset.ord };
+            renderizarTabelaExtrato();
+          });
+        });
+
+        const campoBusca = pop.querySelector("[data-busca-coluna]");
+        if (campoBusca){
+          campoBusca.addEventListener("input", () => {
+            const termo = campoBusca.value.trim().toLowerCase();
+            pop.querySelectorAll(".lista-checks label").forEach(label => {
+              label.style.display = (!termo || label.dataset.textoBusca.includes(termo)) ? "" : "none";
+            });
+          });
+        }
+
+        pop.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+          chk.addEventListener("change", () => {
+            filtrosColunaExtrato[chave] = new Set([...pop.querySelectorAll('input[type="checkbox"]:checked')].map(i =>
+              chave === "valor" ? Number(i.value) : i.value
+            ));
+            renderizarTabelaExtrato();
+          });
+        });
+
+        pop.querySelector("[data-acao='limpar']").addEventListener("click", () => {
+          filtrosColunaExtrato[chave] = new Set();
+          renderizarTabelaExtrato();
+        });
+      });
+    });
+  }
+
+  document.addEventListener("click", () => {
+    if (popoverAberto){ popoverAberto.remove(); popoverAberto = null; }
+  });
+
+  // ============ GAVETAS: GASTOS POR CARTÃO ============
+  function renderizarGavetasCartao(){
+    const area = document.getElementById("areaGavetasCartao");
+    const lancamentosMes = lancamentosCache.filter(l => {
+      const [ano, mes] = l.data.split("-").map(Number);
+      return ano === anoAtual && (mes - 1) === mesAtual;
+    });
+
+    const porCartao = CARTOES.map(cartao => {
+      const itens = lancamentosMes.filter(l => l.cartao === cartao);
+      const total = itens.reduce((soma, l) => soma + (l.pessoa === "DI/GU" ? Number(l.valor) / 2 : Number(l.valor)), 0);
+      return { cartao, itens, total };
+    });
+
+    area.innerHTML = porCartao.map((c, i) => `
+      <div class="gaveta ${i === 0 ? "aberta" : ""}">
+        <div class="gaveta-cabeca">
+          <div class="gaveta-titulo"><span class="gaveta-seta">▾</span> ${c.cartao}</div>
+          <div class="gaveta-valor">${formatarMoeda(c.total)}</div>
+        </div>
+        <div class="gaveta-corpo">
+          ${c.itens.length === 0
+            ? `<div class="gaveta-item" style="color:var(--texto-suave)">Nenhum gasto dele esse mês.</div>`
+            : c.itens.map(l => `
+              <div class="gaveta-item">
+                <div class="gaveta-item-desc">${l.descricao}<span class="gaveta-item-tag">${l.pessoa}${l.pessoa === "DI/GU" ? " (parte dele)" : ""} · ${formatarDataCurta(l.data_compra || l.data)}</span></div>
+                <div>${formatarMoeda(l.pessoa === "DI/GU" ? Number(l.valor) / 2 : Number(l.valor))}</div>
+              </div>
+            `).join("")}
+        </div>
+      </div>
+    `).join("");
+
+    area.querySelectorAll(".gaveta-cabeca").forEach(cabeca => {
+      cabeca.addEventListener("click", () => cabeca.parentElement.classList.toggle("aberta"));
+    });
+  }
+
+  // ============ GAVETAS: GASTOS FIXOS ============
+  // Contas fixas repetem o valor do mês anterior até alguém mudar — mesma
+  // lógica do painel principal, só que aqui só existem nomes GU/DI-GU porque
+  // o banco já filtra isso sozinho pra essa conta (ver setup.sql). A coluna
+  // "mes" em financas_gastos_fixos usa o mesmo índice 0-11 do JS (getMonth()),
+  // não o mês de calendário 1-12 — igual ao painel principal usa internamente.
+  function gastosFixosDoMesAtual(){
+    const chaveAtual = anoAtual * 12 + mesAtual;
+    const nomes = [...new Set(gastosFixosCache.map(g => g.nome))];
+    return nomes.map(nome => {
+      const historico = gastosFixosCache
+        .filter(g => g.nome === nome && (g.ano * 12 + g.mes) <= chaveAtual)
+        .sort((a, b) => (b.ano * 12 + b.mes) - (a.ano * 12 + a.mes));
+      const maisRecenteComValor = historico.find(g => g.valor != null);
+      const maisRecenteComPessoa = historico.find(g => g.pessoa);
+      return {
+        nome,
+        valor: maisRecenteComValor ? Number(maisRecenteComValor.valor) : 0,
+        pessoa: maisRecenteComPessoa ? maisRecenteComPessoa.pessoa : "DI/GU"
+      };
+    }).filter(g => g.valor > 0);
+  }
+
+  function renderizarGavetasFixos(){
+    const area = document.getElementById("areaGavetasFixos");
+    const itens = gastosFixosDoMesAtual();
+    const total = itens.reduce((soma, g) => soma + (g.pessoa === "DI/GU" ? g.valor / 2 : g.valor), 0);
+
+    if (itens.length === 0){
+      area.innerHTML = `<p class="texto-vazio">Nenhuma conta fixa dele esse mês.</p>`;
+      return;
+    }
+
+    area.innerHTML = `
+      <div class="gaveta aberta">
+        <div class="gaveta-cabeca">
+          <div class="gaveta-titulo"><span class="gaveta-seta">▾</span> Contas fixas (parte dele)</div>
+          <div class="gaveta-valor">${formatarMoeda(total)}</div>
+        </div>
+        <div class="gaveta-corpo">
+          ${itens.map(g => `
+            <div class="gaveta-item">
+              <div class="gaveta-item-desc">${g.nome}<span class="gaveta-item-tag">${g.pessoa}${g.pessoa === "DI/GU" ? " (parte dele)" : ""}</span></div>
+              <div>${formatarMoeda(g.pessoa === "DI/GU" ? g.valor / 2 : g.valor)}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+    area.querySelectorAll(".gaveta-cabeca").forEach(cabeca => {
+      cabeca.addEventListener("click", () => cabeca.parentElement.classList.toggle("aberta"));
+    });
+  }
+
+  // ============ PIX ============
+  function pixDoMes(){
+    return pixCache.filter(p => {
+      const [ano, mes] = p.data.split("-").map(Number);
+      return ano === anoAtual && (mes - 1) === mesAtual;
+    });
+  }
+
+  function renderizarPix(){
+    const lista = document.getElementById("listaPix");
+    const itens = pixDoMes();
+    lista.innerHTML = itens.length === 0
+      ? '<p class="lista-pix-vazio">Nenhum Pix registrado ainda esse mês.</p>'
+      : itens.map(p => `
+          <div class="lista-pix-item">
+            <span>${formatarDataCurta(p.data)} — ${formatarMoeda(p.valor)}</span>
+            <button type="button" data-remover-pix="${p.id}" aria-label="Remover Pix">&times;</button>
+          </div>
+        `).join("");
+
+    lista.querySelectorAll("[data-remover-pix]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        await sb.from("portal_gustavo_pix").delete().eq("id", btn.dataset.removerPix);
+        pixCache = pixCache.filter(p => p.id !== btn.dataset.removerPix);
+        renderizarPix();
+        atualizarTotais();
+      });
+    });
+  }
+
+  async function registrarPix(){
+    const data = document.getElementById("pixData").value;
+    const valorCampo = document.getElementById("pixValor");
+    const valor = desformatarValorCampo(valorCampo.value);
+    if (!data || isNaN(valor) || valor <= 0) return;
+
+    const { data: inserido, error } = await sb.from("portal_gustavo_pix").insert({ data, valor }).select().single();
+    if (error) return;
+
+    pixCache = [inserido, ...pixCache];
+    valorCampo.value = "";
+    renderizarPix();
+    atualizarTotais();
+  }
+
+  // ============ TOTAIS ============
+  function calcularTotalDi(){
+    const totalLancamentos = lancamentosCache
+      .filter(l => { const [a, m] = l.data.split("-").map(Number); return a === anoAtual && (m - 1) === mesAtual; })
+      .reduce((soma, l) => soma + (l.pessoa === "DI/GU" ? Number(l.valor) / 2 : Number(l.valor)), 0);
+
+    const totalFixos = gastosFixosDoMesAtual()
+      .reduce((soma, g) => soma + (g.pessoa === "DI/GU" ? g.valor / 2 : g.valor), 0);
+
+    const totalPix = pixDoMes().reduce((soma, p) => soma + Number(p.valor), 0);
+
+    return Math.max(totalLancamentos + totalFixos - totalPix, 0);
+  }
+
+  function atualizarTotais(){
+    const totalDi = calcularTotalDi();
+    const restantePensao = pensaoAtual.pago ? 0 : Number(pensaoAtual.valor || 0);
+    document.getElementById("totalDiValor").textContent = formatarMoeda(totalDi);
+    document.getElementById("totalPensaoValor").textContent = formatarMoeda(totalDi + restantePensao);
+  }
+
+  // ============ INÍCIO ============
+  (async function iniciar(){
+    const { data } = await sb.auth.getSession();
+    if (data.session){
+      mostrarPortal();
+    }
+  })();
+</script>
+</body>
+</html>
