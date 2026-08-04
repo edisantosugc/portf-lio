@@ -1114,6 +1114,36 @@ create policy "Autenticados removem pix do Gustavo"
 grant select, insert, delete on public.portal_gustavo_pix to authenticated;
 
 -- =====================================================================
+-- CORREÇÃO IMPORTANTE: financas_lancamentos e financas_gastos_fixos foram
+-- criadas direto pelo Table Editor do Supabase (nunca passaram por este
+-- setup.sql), e o RLS delas nunca tinha sido ativado de fato — sem RLS
+-- ativado, TODAS as policies (inclusive as "restrictive" abaixo) são
+-- ignoradas pelo Postgres, e qualquer autenticado vê tudo sem filtro
+-- nenhum. Isso é o que estava deixando os lançamentos "DI" (só seus)
+-- vazarem pra tela do Gustavo. Ativa o RLS de verdade e recria a regra
+-- básica (qualquer autenticada lê/edita) que sempre valeu na prática —
+-- sem essa regra aqui, ativar o RLS bloquearia até você.
+-- =====================================================================
+alter table public.financas_lancamentos enable row level security;
+alter table public.financas_gastos_fixos enable row level security;
+
+drop policy if exists "Autenticados leem e gerenciam lancamentos" on public.financas_lancamentos;
+create policy "Autenticados leem e gerenciam lancamentos"
+  on public.financas_lancamentos
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+drop policy if exists "Autenticados leem e gerenciam gastos fixos" on public.financas_gastos_fixos;
+create policy "Autenticados leem e gerenciam gastos fixos"
+  on public.financas_gastos_fixos
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+-- =====================================================================
 -- Trava de segurança de verdade (não é só esconder na tela): identifica a
 -- conta do Gustavo pelo e-mail técnico dela, e usa policies "restrictive".
 -- Diferente das policies normais (que se somam com OU), uma restrictive

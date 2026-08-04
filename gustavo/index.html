@@ -97,10 +97,17 @@
     width: 210px; flex-shrink: 0; background: var(--branco); border-right: 1px solid var(--borda);
     padding: 22px 16px; position: sticky; top: 65px; max-height: calc(100vh - 65px); overflow-y: auto;
   }
-  .bloco-ano{ margin-bottom: 18px; }
+  .bloco-ano{ margin-bottom: 6px; }
   .bloco-ano:last-child{ margin-bottom: 0; }
-  .bloco-ano-titulo{ font-family: 'Fraunces', serif; font-weight: 600; font-size: .92rem; margin-bottom: 6px; }
-  .lista-meses-sidebar{ display: flex; flex-direction: column; gap: 2px; }
+  .bloco-ano-titulo{
+    width: 100%; display: flex; align-items: center; gap: 6px; background: none; border: none;
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: .92rem; color: var(--grafite);
+    padding: 8px 4px; cursor: pointer; text-align: left;
+  }
+  .bloco-ano-seta{ font-size: .7rem; color: var(--texto-suave); transition: transform .15s ease; }
+  .bloco-ano.aberto .bloco-ano-seta{ transform: rotate(180deg); }
+  .bloco-ano .lista-meses-sidebar{ display: none; padding-left: 6px; margin-bottom: 8px; }
+  .bloco-ano.aberto .lista-meses-sidebar{ display: flex; flex-direction: column; gap: 2px; }
   .botao-mes-sidebar{
     text-align: left; background: none; border: none; padding: 7px 10px; border-radius: 8px;
     font-size: .83rem; color: var(--grafite); cursor: pointer; font-family: 'Outfit', sans-serif;
@@ -440,6 +447,14 @@
   }
 
   // ============ CARREGAR DADOS ============
+  // Só GU (dele) ou DI/GU (conjunto) — nunca DI sozinho, Edmar, Fuuh ou mãe.
+  // Isso já é bloqueado no banco (policies "restrictive" em setup.sql), mas
+  // filtra de novo aqui como segunda trava: mesmo que a regra do banco falhe
+  // por algum motivo, a tela nunca chega a MOSTRAR o que não é dele.
+  function apenasGuOuCompartilhado(lista){
+    return (lista || []).filter(item => item.pessoa === "GU" || item.pessoa === "DI/GU");
+  }
+
   async function carregarTudo(){
     const [{ data: lancamentos }, { data: gastosFixos }, { data: pix }] = await Promise.all([
       sb.from("financas_lancamentos").select("*"),
@@ -447,8 +462,8 @@
       sb.from("portal_gustavo_pix").select("*").order("data", { ascending: false })
     ]);
 
-    lancamentosCache = lancamentos || [];
-    gastosFixosCache = gastosFixos || [];
+    lancamentosCache = apenasGuOuCompartilhado(lancamentos);
+    gastosFixosCache = apenasGuOuCompartilhado(gastosFixos);
     pixCache = pix || [];
 
     await carregarOuCriarPensao();
@@ -572,11 +587,38 @@
   }
 
   // ============ NAVEGAÇÃO POR MÊS/ANO (barra lateral) ============
+  // O limite mais distante do histórico não é fixo no "mês da fatura atual" —
+  // cresce sozinho até onde já existir lançamento (ou conta fixa) cadastrado,
+  // pra dar conta de compras parceladas que caem em meses/anos futuros sem
+  // precisar configurar nada manualmente.
+  let anoMaximoHistorico = anoFaturaPadrao;
+  let mesMaximoHistorico = mesFaturaPadrao;
+  let anoAberto = anoVisivel;
+
+  function recalcularLimiteHistorico(){
+    let maxChave = anoFaturaPadrao * 12 + mesFaturaPadrao;
+    let maxAno = anoFaturaPadrao, maxMes = mesFaturaPadrao;
+
+    function considerar(ano, mes){ // mes já em 0-11
+      const chave = ano * 12 + mes;
+      if (chave > maxChave){ maxChave = chave; maxAno = ano; maxMes = mes; }
+    }
+
+    lancamentosCache.forEach(l => {
+      const [ano, mesCalendario] = l.data.split("-").map(Number);
+      considerar(ano, mesCalendario - 1);
+    });
+    gastosFixosCache.forEach(g => considerar(g.ano, g.mes));
+
+    anoMaximoHistorico = maxAno;
+    mesMaximoHistorico = maxMes;
+  }
+
   function mesesDisponiveisNoAno(ano){
-    if (ano < PRIMEIRO_ANO_HISTORICO || ano > anoFaturaPadrao) return [];
+    if (ano < PRIMEIRO_ANO_HISTORICO || ano > anoMaximoHistorico) return [];
     let inicio = 0, fim = 11;
     if (ano === PRIMEIRO_ANO_HISTORICO) inicio = 8; // Setembro/2026 é o primeiro mês do histórico
-    if (ano === anoFaturaPadrao) fim = mesFaturaPadrao;
+    if (ano === anoMaximoHistorico) fim = mesMaximoHistorico;
     const meses = [];
     for (let m = inicio; m <= fim; m++) meses.push(m);
     return meses;
@@ -584,7 +626,7 @@
 
   function anosDisponiveis(){
     const anos = [];
-    for (let a = PRIMEIRO_ANO_HISTORICO; a <= anoFaturaPadrao; a++) anos.push(a);
+    for (let a = PRIMEIRO_ANO_HISTORICO; a <= anoMaximoHistorico; a++) anos.push(a);
     return anos;
   }
 
@@ -594,10 +636,13 @@
   }
 
   function renderizarSidebarMes(){
+    recalcularLimiteHistorico();
     const area = document.getElementById("sidebarMes");
     area.innerHTML = anosDisponiveis().map(ano => `
-      <div class="bloco-ano">
-        <div class="bloco-ano-titulo">${ano}</div>
+      <div class="bloco-ano ${ano === anoAberto ? "aberto" : ""}">
+        <button type="button" class="bloco-ano-titulo" data-abrir-ano="${ano}">
+          <span class="bloco-ano-seta">▾</span> ${ano}
+        </button>
         <div class="lista-meses-sidebar">
           ${mesesDisponiveisNoAno(ano).map(m => `
             <button type="button" class="botao-mes-sidebar ${ano === anoVisivel && m === mesVisivel ? "ativo" : ""}" data-ano="${ano}" data-mes="${m}">${NOMES_MES[m]}</button>
@@ -606,10 +651,19 @@
       </div>
     `).join("");
 
+    area.querySelectorAll("[data-abrir-ano]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const ano = Number(btn.dataset.abrirAno);
+        anoAberto = anoAberto === ano ? null : ano;
+        renderizarSidebarMes();
+      });
+    });
+
     area.querySelectorAll("[data-ano]").forEach(btn => {
       btn.addEventListener("click", () => {
         anoVisivel = Number(btn.dataset.ano);
         mesVisivel = Number(btn.dataset.mes);
+        anoAberto = anoVisivel;
         filtrosColunaExtrato = { data: new Set(), descricao: new Set(), pessoa: new Set(), valor: new Set() };
         ordenacaoExtrato = { coluna: null, direcao: "asc" };
         renderizarSidebarMes();
@@ -799,7 +853,7 @@
               <tr>
                 <td>${formatarDataCurta(l.data_compra || l.data)}</td>
                 <td>${l.descricao}</td>
-                <td><span class="selo-pessoa">${l.pessoa}</span>${l.pessoa === "DI/GU" ? `<div class="linha-parte">parte dele: ${formatarMoeda(l.valor / 2)}</div>` : ""}</td>
+                <td><span class="selo-pessoa">${l.pessoa}</span>${l.pessoa === "DI/GU" ? `<div class="linha-parte">sua parte: ${formatarMoeda(l.valor / 2)}</div>` : ""}</td>
                 <td>${formatarMoeda(l.valor)}</td>
               </tr>
             `).join("")}
@@ -899,10 +953,10 @@
         </div>
         <div class="gaveta-corpo">
           ${c.itens.length === 0
-            ? `<div class="gaveta-item" style="color:var(--texto-suave)">Nenhum gasto dele esse mês.</div>`
+            ? `<div class="gaveta-item" style="color:var(--texto-suave)">Nenhum gasto seu esse mês.</div>`
             : c.itens.map(l => `
               <div class="gaveta-item">
-                <div class="gaveta-item-desc">${l.descricao}<span class="gaveta-item-tag">${l.pessoa}${l.pessoa === "DI/GU" ? " (parte dele)" : ""} · ${formatarDataCurta(l.data_compra || l.data)}</span></div>
+                <div class="gaveta-item-desc">${l.descricao}<span class="gaveta-item-tag">${l.pessoa}${l.pessoa === "DI/GU" ? " (sua parte)" : ""} · ${formatarDataCurta(l.data_compra || l.data)}</span></div>
                 <div>${formatarMoeda(l.pessoa === "DI/GU" ? Number(l.valor) / 2 : Number(l.valor))}</div>
               </div>
             `).join("")}
@@ -944,20 +998,20 @@
     const total = itens.reduce((soma, g) => soma + (g.pessoa === "DI/GU" ? g.valor / 2 : g.valor), 0);
 
     if (itens.length === 0){
-      area.innerHTML = `<p class="texto-vazio">Nenhuma conta fixa dele esse mês.</p>`;
+      area.innerHTML = `<p class="texto-vazio">Nenhuma conta fixa sua esse mês.</p>`;
       return;
     }
 
     area.innerHTML = `
       <div class="gaveta aberta">
         <div class="gaveta-cabeca">
-          <div class="gaveta-titulo"><span class="gaveta-seta">▾</span> Contas fixas (parte dele)</div>
+          <div class="gaveta-titulo"><span class="gaveta-seta">▾</span> Contas fixas (sua parte)</div>
           <div class="gaveta-valor">${formatarMoeda(total)}</div>
         </div>
         <div class="gaveta-corpo">
           ${itens.map(g => `
             <div class="gaveta-item">
-              <div class="gaveta-item-desc">${g.nome}<span class="gaveta-item-tag">${g.pessoa}${g.pessoa === "DI/GU" ? " (parte dele)" : ""}</span></div>
+              <div class="gaveta-item-desc">${g.nome}<span class="gaveta-item-tag">${g.pessoa}${g.pessoa === "DI/GU" ? " (sua parte)" : ""}</span></div>
               <div>${formatarMoeda(g.pessoa === "DI/GU" ? g.valor / 2 : g.valor)}</div>
             </div>
           `).join("")}
