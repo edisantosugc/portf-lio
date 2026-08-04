@@ -7514,6 +7514,12 @@
     const areaTabela = document.getElementById("areaTabelaLancamentos");
     const lista = calcularListaExtrato(listaBase);
 
+    // Se tinha um painel de filtro "flutuante" (movido pro body no celular — ver
+    // abertura do popover abaixo), tira ele fora antes de redesenhar a tabela,
+    // senão fica um órfão perdido solto no body depois do re-render
+    document.querySelectorAll("body > .popover-filtro").forEach(p => p.remove());
+    popoverExtratoAberto = null;
+
     areaTabela.innerHTML = `
       ${htmlPilulasExtrato()}
       <table class="tabela-lancamentos">
@@ -7553,6 +7559,14 @@
         pop.innerHTML = montarPopoverExtrato(coluna, listaBase);
         pop.classList.add("aberto");
         popoverExtratoAberto = pop;
+
+        // No celular, um position:fixed dentro de um container com rolagem lateral
+        // (a tabela) não fica de verdade fixo no Safari do iPhone — ele "gruda" na
+        // rolagem do container em vez da tela. Solução: tira o painel de dentro da
+        // tabela e põe soltinho direto no body enquanto estiver aberto.
+        if (window.innerWidth <= 900){
+          document.body.appendChild(pop);
+        }
 
         // Sem isso, qualquer clique dentro do painel (checkbox, ordenar, limpar)
         // borbulha até o listener global que fecha o popover, fechando ele
