@@ -8254,12 +8254,10 @@
       // sentido continuar mostrando "quanto sobra pra todo mundo" nesse caso
       let extraPixGu = "";
       if (pessoaDetalheGastos === "GU"){
-        // Pix que ele já registrou nesse mesmo mês (o Total de GU em si nunca
-        // muda — isso só soma como linhas extras abaixo dele)
-        const pixDoMes = pixGustavoCache.filter(p => {
-          const [a, m] = p.data.split("-").map(Number);
-          return a === anoFinancasVisivel && (m - 1) === mesFinancasVisivel;
-        });
+        // Pix que ele já registrou pra esse mês (ano_fatura/mes_fatura — o mês
+        // que ele estava navegando ao registrar, não necessariamente o dia real
+        // do Pix). O Total de GU em si nunca muda — isso só soma linhas extras.
+        const pixDoMes = pixGustavoCache.filter(p => p.ano_fatura === anoFinancasVisivel && p.mes_fatura === mesFinancasVisivel);
         const totalPix = pixDoMes.reduce((soma, p) => soma + Number(p.valor), 0);
         if (totalPix > 0){
           const restante = Math.max(totalPessoa - totalPix, 0);

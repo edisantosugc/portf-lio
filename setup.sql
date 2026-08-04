@@ -1311,6 +1311,24 @@ create policy "Gustavo nao reabre meses"
   to authenticated
   using ( not public.eh_conta_gustavo() );
 
+-- =====================================================================
+-- Separa "data real do Pix" (o dia do calendário em que ele pagou, mostrado
+-- e editável no campo) de "fatura que esse Pix desconta" (ano/mes_fatura,
+-- gravados sozinhos com o mês que ele estava navegando na hora de registrar).
+-- Sem isso, o campo de data tinha que ficar preso ao mês navegado pra contar
+-- certo — agora o campo sempre mostra hoje de verdade, e o desconto do total
+-- continua batendo com o mês certo mesmo assim.
+-- =====================================================================
+alter table public.portal_gustavo_pix add column if not exists ano_fatura int;
+alter table public.portal_gustavo_pix add column if not exists mes_fatura int;
+
+-- Preenche os Pix já registrados antes dessa mudança usando o mês da própria
+-- data (era esse o comportamento implícito até agora)
+update public.portal_gustavo_pix
+set ano_fatura = extract(year from data)::int,
+    mes_fatura = extract(month from data)::int - 1
+where ano_fatura is null;
+
 -- Habilita a réplica em tempo real: qualquer alteração feita no painel
 -- principal (novo lançamento, pagar uma conta, etc.) chega sozinha na tela
 -- do Gustavo, sem ele precisar atualizar a página. Ao contrário dos outros

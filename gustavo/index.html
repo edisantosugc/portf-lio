@@ -1140,27 +1140,19 @@
   }
 
   // ============ PIX ============
+  // "data" é só o dia do calendário em que ele pagou de verdade (mostrado e
+  // editável no campo, sempre sugerindo hoje) — "ano_fatura"/"mes_fatura" são
+  // gravados sozinhos com o mês que ele estava navegando na hora de registrar,
+  // e são esses dois que decidem de qual mês o Pix desconta. Assim o campo de
+  // data pode sempre mostrar a data real de hoje sem bagunçar o desconto do
+  // mês que ele está vendo.
   function pixDoMes(){
-    return pixCache.filter(p => {
-      const [ano, mes] = p.data.split("-").map(Number);
-      return ano === anoVisivel && (mes - 1) === mesVisivel;
-    });
-  }
-
-  // Sugestão de data pro campo de registrar Pix: hoje de verdade quando o mês
-  // visível é o mês real de hoje, senão o dia 1º do mês que está sendo
-  // navegado — sem isso, o campo sempre vinha com a data real de hoje mesmo
-  // navegando pra outro mês, e o Pix registrado caía num mês que não batia
-  // com o que estava sendo visto (o total não descontava, a listinha não
-  // mostrava nada, parecia que "não funcionava").
-  function dataPadraoPix(){
-    if (anoVisivel === anoCalendarioAtual && mesVisivel === mesCalendarioAtual) return hojeISO;
-    return formatarDataISO(new Date(anoVisivel, mesVisivel, 1));
+    return pixCache.filter(p => p.ano_fatura === anoVisivel && p.mes_fatura === mesVisivel);
   }
 
   function renderizarPix(){
     const campoData = document.getElementById("pixData");
-    if (campoData) campoData.value = dataPadraoPix();
+    if (campoData) campoData.value = hojeISO;
 
     const lista = document.getElementById("listaPix");
     const itens = pixDoMes();
@@ -1189,7 +1181,9 @@
     const valor = desformatarValorCampo(valorCampo.value);
     if (!data || isNaN(valor) || valor <= 0) return;
 
-    const { data: inserido, error } = await sb.from("portal_gustavo_pix").insert({ data, valor }).select().single();
+    const { data: inserido, error } = await sb.from("portal_gustavo_pix")
+      .insert({ data, valor, ano_fatura: anoVisivel, mes_fatura: mesVisivel })
+      .select().single();
     if (error) return;
 
     pixCache = [inserido, ...pixCache];
