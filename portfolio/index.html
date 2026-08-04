@@ -1890,19 +1890,6 @@ const CONFIG_EN = {
 };
 
 /* =========================================================================
-   VÍDEOS OCULTOS TEMPORARIAMENTE
-   Vídeos com o videoId listado aqui somem da galeria (e a contagem de cada
-   nicho já se ajusta sozinha) sem apagar nada. Pra reativar um vídeo, é só
-   remover a linha dele daqui.
-   ========================================================================= */
-const IDS_VIDEOS_OCULTOS = [
-  "rjblZsgruDA", // Condor – Storytelling – Mop PVA e rolo de tirar pelo (Casa e Decoração)
-  "rqMTFESTsAw"  // Condor – Dica – Kit escova de cabelo com canetinhas para colorir (Beleza e Autocuidado)
-];
-CONFIG_PT.portfolio = CONFIG_PT.portfolio.filter(item => !IDS_VIDEOS_OCULTOS.includes(item.videoId));
-CONFIG_EN.portfolio = CONFIG_EN.portfolio.filter(item => !IDS_VIDEOS_OCULTOS.includes(item.videoId));
-
-/* =========================================================================
    RENDERIZAÇÃO DO CONTEÚDO (não é necessário editar a partir daqui)
    ========================================================================= */
 
