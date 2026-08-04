@@ -471,16 +471,25 @@
     return (lista || []).filter(item => item.pessoa === "GU" || item.pessoa === "DI/GU");
   }
 
+  // Nomes de contas fixas que são GU/DI-GU HOJE (registro mais recente), vindos
+  // de uma função no banco com acesso ao histórico completo — sem isso, uma
+  // conta que virou "só DI" recentemente continuaria aparecendo pra ele com o
+  // registro antigo (de quando ainda era DI/GU), porque a policy de segurança
+  // esconde só a LINHA nova, não avisa que o dono mudou. Ver setup.sql.
+  let nomesFixosPermitidos = new Set();
+
   async function carregarTudo(){
-    const [{ data: lancamentos }, { data: gastosFixos }, { data: pix }] = await Promise.all([
+    const [{ data: lancamentos }, { data: gastosFixos }, { data: pix }, { data: nomesPermitidos }] = await Promise.all([
       sb.from("financas_lancamentos").select("*"),
       sb.from("financas_gastos_fixos").select("*"),
-      sb.from("portal_gustavo_pix").select("*").order("data", { ascending: false })
+      sb.from("portal_gustavo_pix").select("*").order("data", { ascending: false }),
+      sb.rpc("gustavo_nomes_fixos_atuais")
     ]);
 
     lancamentosCache = apenasGuOuCompartilhado(lancamentos);
     gastosFixosCache = apenasGuOuCompartilhado(gastosFixos);
     pixCache = pix || [];
+    nomesFixosPermitidos = new Set((nomesPermitidos || []).map(r => r.nome));
 
     await carregarOuCriarPensao();
     renderizarConteudo();
@@ -501,8 +510,12 @@
     const { data: anteriores } = await sb.from("portal_gustavo_pensao")
       .select("*").order("ano", { ascending: false }).order("mes", { ascending: false }).limit(1);
 
+    // Extrai o dia direto da string "AAAA-MM-DD" (sem passar por new Date(...),
+    // que interpreta a data como UTC e podia devolver o dia errado dependendo
+    // do fuso do navegador — isso fazia o vencimento "andar pra trás" 1 dia
+    // a cada mês que repetia sozinho)
     const base = (anteriores && anteriores[0]) || { valor: null, vencimento: null };
-    const diaVencimento = base.vencimento ? new Date(base.vencimento).getDate() : 20;
+    const diaVencimento = base.vencimento ? Number(base.vencimento.split("-")[2]) : 20;
     const novoVencimento = new Date(anoCalendarioAtual, mesCalendarioAtual, diaVencimento);
 
     const { data: criado } = await sb.from("portal_gustavo_pensao")
@@ -1003,7 +1016,7 @@
   // não o mês de calendário 1-12 — igual ao painel principal usa internamente.
   function gastosFixosDoMesAtual(){
     const chaveAtual = anoVisivel * 12 + mesVisivel;
-    const nomes = [...new Set(gastosFixosCache.map(g => g.nome))];
+    const nomes = [...new Set(gastosFixosCache.map(g => g.nome))].filter(nome => nomesFixosPermitidos.has(nome));
     return nomes.map(nome => {
       const historico = gastosFixosCache
         .filter(g => g.nome === nome && (g.ano * 12 + g.mes) <= chaveAtual)

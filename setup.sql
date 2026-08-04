@@ -1227,6 +1227,37 @@ create policy "Gustavo nao exclui gastos fixos"
   to authenticated
   using ( not public.eh_conta_gustavo() );
 
+-- =====================================================================
+-- CORREÇÃO: quando uma conta fixa (ex: Fies) deixa de ser DI/GU e vira só
+-- DI, a policy restrictive acima corretamente esconde essa mudança do
+-- Gustavo — mas isso também escondia o "aviso" de que ela mudou de dono,
+-- fazendo a tela dele continuar mostrando o registro ANTIGO (de quando
+-- ainda era DI/GU), com dado desatualizado. Essa função roda com acesso
+-- total ao histórico completo (SECURITY DEFINER ignora a policy dele) e
+-- devolve só os NOMES de contas fixas que são GU/DI-GU no registro mais
+-- recente — nunca um valor, só o nome. O código da página do Gustavo usa
+-- essa lista pra saber quais contas ainda são da conta dele antes de
+-- calcular o "repete o valor do mês anterior".
+-- =====================================================================
+create or replace function public.gustavo_nomes_fixos_atuais()
+returns table(nome text)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select atual.nome
+  from (
+    select distinct on (f.nome) f.nome, f.pessoa
+    from public.financas_gastos_fixos f
+    where f.pessoa is not null
+    order by f.nome, f.ano desc, f.mes desc
+  ) atual
+  where atual.pessoa in ('GU', 'DI/GU');
+$$;
+
+grant execute on function public.gustavo_nomes_fixos_atuais() to authenticated;
+
 -- Habilita a réplica em tempo real: qualquer alteração feita no painel
 -- principal (novo lançamento, pagar uma conta, etc.) chega sozinha na tela
 -- do Gustavo, sem ele precisar atualizar a página. Ao contrário dos outros
