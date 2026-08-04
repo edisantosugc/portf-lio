@@ -2335,18 +2335,11 @@
        atrapalha (mouse é preciso), mas no dedo precisa de mais área de toque */
     .abrir-filtro-extrato{ padding: 7px; }
 
-    /* O painel de filtro (Data/Descrição/Pessoa/Valor) é posicionado relativo à
-       coluna clicada — numa tela estreita, com a tabela rolando de lado, ele podia
-       abrir fora da área visível. No celular vira um painel fixo centralizado. */
-    .popover-filtro{
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: min(88vw, 300px);
-      max-height: 80vh;
-      overflow-y: auto;
-    }
+    /* O painel de filtro continua position:absolute (rola junto com o conteúdo,
+       preso à coluna que abriu ele — ver ajustarPosicaoPopoverExtrato no JS pra
+       como ele evita sair da tela sem precisar virar fixed). Só um pouco mais
+       estreito no celular, já que a tela é menor. */
+    .popover-filtro{ width: min(88vw, 240px); max-height: 70vh; overflow-y: auto; }
     .grade-agenda{ grid-template-columns: 1fr; }
     .grade-negocio{ grid-template-columns: 1fr; }
     .form-lancamento{ grid-template-columns: 1fr 1fr; }
@@ -3981,28 +3974,19 @@
   let filtrosColunaExtrato = { data: new Set(), descricao: new Set(), pessoa: new Set(), valor: new Set() };
   let popoverExtratoAberto = null;
 
-  // Trava a rolagem da página inteira (não só a tabela) enquanto o painel de
-  // filtro está aberto no celular. Sem isso, mesmo com position:fixed, o Safari
-  // do iPhone às vezes "arrasta" o painel junto quando a página rola por baixo
-  // dele (bug conhecido do WebKit) — travando a rolagem de vez, não tem como
-  // isso acontecer, porque não tem rolagem nenhuma acontecendo.
-  let scrollYAntesDoPopoverMobile = null;
-  function travarRolagemMobile(){
-    if (scrollYAntesDoPopoverMobile !== null) return;
-    scrollYAntesDoPopoverMobile = window.scrollY;
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollYAntesDoPopoverMobile}px`;
-    document.body.style.left = "0";
-    document.body.style.right = "0";
-  }
-  function destravarRolagemMobile(){
-    if (scrollYAntesDoPopoverMobile === null) return;
-    document.body.style.position = "";
-    document.body.style.top = "";
-    document.body.style.left = "";
-    document.body.style.right = "";
-    window.scrollTo(0, scrollYAntesDoPopoverMobile);
-    scrollYAntesDoPopoverMobile = null;
+  // Mantém o painel de filtro dentro da tela na horizontal: por padrão ele abre
+  // colado à esquerda da coluna (herda de .popover-filtro), mas se isso for
+  // estourar a borda direita da tela, vira pra direita em vez de esquerda —
+  // continua position:absolute (rola junto com a página normalmente).
+  function ajustarPosicaoPopoverExtrato(pop){
+    pop.style.left = "0";
+    pop.style.right = "auto";
+    const rect = pop.getBoundingClientRect();
+    const margem = 8;
+    if (rect.right > window.innerWidth - margem){
+      pop.style.left = "auto";
+      pop.style.right = "0";
+    }
   }
 
   // Estado da aba Finanças UGC (negócio): mês/ano exibidos
@@ -5798,7 +5782,6 @@
       if (popoverExtratoAberto){
         popoverExtratoAberto.classList.remove("aberto");
         popoverExtratoAberto = null;
-        destravarRolagemMobile();
       }
     });
 
@@ -7539,12 +7522,7 @@
     const areaTabela = document.getElementById("areaTabelaLancamentos");
     const lista = calcularListaExtrato(listaBase);
 
-    // Se tinha um painel de filtro "flutuante" (movido pro body no celular — ver
-    // abertura do popover abaixo), tira ele fora antes de redesenhar a tabela,
-    // senão fica um órfão perdido solto no body depois do re-render
-    document.querySelectorAll("body > .popover-filtro").forEach(p => p.remove());
     popoverExtratoAberto = null;
-    destravarRolagemMobile();
 
     areaTabela.innerHTML = `
       ${htmlPilulasExtrato()}
@@ -7580,22 +7558,12 @@
         areaTabela.querySelectorAll(".popover-filtro").forEach(p => p.classList.remove("aberto"));
         if (jaAberto){
           popoverExtratoAberto = null;
-          destravarRolagemMobile();
           return;
         }
         pop.innerHTML = montarPopoverExtrato(coluna, listaBase);
         pop.classList.add("aberto");
         popoverExtratoAberto = pop;
-
-        // No celular, um position:fixed dentro de um container com rolagem lateral
-        // (a tabela) não fica de verdade fixo no Safari do iPhone — ele "gruda" na
-        // rolagem do container em vez da tela. Solução: tira o painel de dentro da
-        // tabela, põe soltinho direto no body, e trava a rolagem da página inteira
-        // enquanto estiver aberto (garantia total contra o bug, não só o fixed).
-        if (window.innerWidth <= 900){
-          document.body.appendChild(pop);
-          travarRolagemMobile();
-        }
+        ajustarPosicaoPopoverExtrato(pop);
 
         // Sem isso, qualquer clique dentro do painel (checkbox, ordenar, limpar)
         // borbulha até o listener global que fecha o popover, fechando ele
