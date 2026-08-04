@@ -1258,6 +1258,59 @@ $$;
 
 grant execute on function public.gustavo_nomes_fixos_atuais() to authenticated;
 
+-- =====================================================================
+-- FECHAMENTO DE MÊS (painel principal, aba Financeiro)
+-- Guarda só QUAIS meses estão fechados — fechar um mês não trava edição,
+-- exclusão nem "marcar como pago" de nada; só impede que um lançamento
+-- NOVO seja registrado naquele mês (o formulário passa a apontar pro
+-- próximo mês aberto sozinho). "mes" usa o mesmo índice 0-11 do JS
+-- (getMonth()), igual financas_gastos_fixos.
+-- =====================================================================
+create table if not exists public.financas_meses_fechados (
+  ano int not null,
+  mes int not null,
+  fechado_em timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  primary key (ano, mes)
+);
+
+alter table public.financas_meses_fechados enable row level security;
+
+drop policy if exists "Autenticados leem meses fechados" on public.financas_meses_fechados;
+create policy "Autenticados leem meses fechados"
+  on public.financas_meses_fechados
+  for select
+  to authenticated
+  using (true);
+
+drop policy if exists "Autenticados fecham e reabrem meses" on public.financas_meses_fechados;
+create policy "Autenticados fecham e reabrem meses"
+  on public.financas_meses_fechados
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, delete on public.financas_meses_fechados to authenticated;
+
+-- O Gustavo só pode LER quais meses estão fechados (pra mostrar o aviso na
+-- tela dele) — nunca fechar ou reabrir um mês, isso é só da Edilaine.
+drop policy if exists "Gustavo nao fecha meses" on public.financas_meses_fechados;
+create policy "Gustavo nao fecha meses"
+  as restrictive
+  on public.financas_meses_fechados
+  for insert
+  to authenticated
+  with check ( not public.eh_conta_gustavo() );
+
+drop policy if exists "Gustavo nao reabre meses" on public.financas_meses_fechados;
+create policy "Gustavo nao reabre meses"
+  as restrictive
+  on public.financas_meses_fechados
+  for delete
+  to authenticated
+  using ( not public.eh_conta_gustavo() );
+
 -- Habilita a réplica em tempo real: qualquer alteração feita no painel
 -- principal (novo lançamento, pagar uma conta, etc.) chega sozinha na tela
 -- do Gustavo, sem ele precisar atualizar a página. Ao contrário dos outros
@@ -1270,7 +1323,8 @@ begin
     public.financas_lancamentos,
     public.financas_gastos_fixos,
     public.portal_gustavo_pensao,
-    public.portal_gustavo_pix;
+    public.portal_gustavo_pix,
+    public.financas_meses_fechados;
 exception
   when duplicate_object then
     null;

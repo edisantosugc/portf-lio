@@ -121,6 +121,18 @@
   .overlay-mobile{ display: none; position: fixed; inset: 0; background: rgba(26,24,22,.4); z-index: 900; }
   .overlay-mobile.visivel{ display: block; }
 
+  .banner-fechamento{
+    display: flex; align-items: center; gap: 12px; background: var(--coral); color: #fff;
+    padding: 14px 20px; font-size: .86rem;
+  }
+  .banner-fechamento.escondido{ display: none; }
+  .banner-fechamento .sino{ font-size: 1.1rem; flex-shrink: 0; }
+  .banner-fechamento .texto{ flex: 1; line-height: 1.4; }
+  .banner-fechamento button{
+    background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.4); color: #fff;
+    padding: 7px 14px; border-radius: 20px; font-size: .78rem; cursor: pointer; font-family: 'Outfit', sans-serif; white-space: nowrap;
+  }
+
   @media (max-width: 780px){
     .sidebar-mes{
       position: fixed; left: -260px; top: 0; height: 100vh; max-height: none; width: 240px;
@@ -338,6 +350,12 @@
 
   <div class="overlay-mobile" id="overlayMeses"></div>
 
+  <div class="banner-fechamento escondido" id="bannerFechamento">
+    <span class="sino">🔔</span>
+    <span class="texto" id="textoBannerFechamento"></span>
+    <button type="button" id="btnDispensarBanner">OK, entendi</button>
+  </div>
+
   <div class="corpo-portal">
     <div class="sidebar-mes" id="sidebarMes"></div>
     <div class="conteudo" id="conteudoPortal">
@@ -458,6 +476,13 @@
       document.getElementById("overlayMeses").classList.add("visivel");
     });
     document.getElementById("overlayMeses").addEventListener("click", fecharSidebarMes);
+    document.getElementById("btnDispensarBanner").addEventListener("click", () => {
+      const banner = document.getElementById("bannerFechamento");
+      const vistos = new Set(JSON.parse(localStorage.getItem("gustavoMesesFechadosVistos") || "[]"));
+      vistos.add(banner.dataset.chaveAtual);
+      localStorage.setItem("gustavoMesesFechadosVistos", JSON.stringify([...vistos]));
+      banner.classList.add("escondido");
+    });
     await carregarTudo();
     configurarRealtime();
   }
@@ -479,20 +504,47 @@
   let nomesFixosPermitidos = new Set();
 
   async function carregarTudo(){
-    const [{ data: lancamentos }, { data: gastosFixos }, { data: pix }, { data: nomesPermitidos }] = await Promise.all([
+    const [{ data: lancamentos }, { data: gastosFixos }, { data: pix }, { data: nomesPermitidos }, { data: mesesFechados }] = await Promise.all([
       sb.from("financas_lancamentos").select("*"),
       sb.from("financas_gastos_fixos").select("*"),
       sb.from("portal_gustavo_pix").select("*").order("data", { ascending: false }),
-      sb.rpc("gustavo_nomes_fixos_atuais")
+      sb.rpc("gustavo_nomes_fixos_atuais"),
+      sb.from("financas_meses_fechados").select("*").order("fechado_em", { ascending: false })
     ]);
 
     lancamentosCache = apenasGuOuCompartilhado(lancamentos);
     gastosFixosCache = apenasGuOuCompartilhado(gastosFixos);
     pixCache = pix || [];
     nomesFixosPermitidos = new Set((nomesPermitidos || []).map(r => r.nome));
+    mesesFechadosCache = mesesFechados || [];
 
     await carregarOuCriarPensao();
     renderizarConteudo();
+    verificarBannerFechamento();
+  }
+
+  // Mostra um aviso quando a Edi fecha um mês, até ele clicar "OK, entendi" —
+  // não some sozinho, pra não passar despercebido. Lembra o que já foi visto
+  // no localStorage (por aparelho), então não repete o aviso do mesmo mês.
+  let mesesFechadosCache = [];
+
+  function verificarBannerFechamento(){
+    const banner = document.getElementById("bannerFechamento");
+    if (mesesFechadosCache.length === 0){
+      banner.classList.add("escondido");
+      return;
+    }
+    const vistos = new Set(JSON.parse(localStorage.getItem("gustavoMesesFechadosVistos") || "[]"));
+    const maisRecente = mesesFechadosCache[0];
+    const chave = `${maisRecente.ano}-${maisRecente.mes}`;
+    if (vistos.has(chave)){
+      banner.classList.add("escondido");
+      return;
+    }
+    document.getElementById("textoBannerFechamento").textContent =
+      `Edi acabou de fechar ${NOMES_MES[maisRecente.mes]}/${maisRecente.ano} — confira seu total antes de registrar o Pix.`;
+    banner.dataset.chaveAtual = chave;
+    banner.classList.remove("escondido");
   }
 
   // Busca a pensão do mês NAVEGÁVEL (anoVisivel/mesVisivel — o mesmo mês que a
@@ -541,6 +593,7 @@
       .on("postgres_changes", { event: "*", schema: "public", table: "financas_gastos_fixos" }, () => recarregarSilenciosamente())
       .on("postgres_changes", { event: "*", schema: "public", table: "portal_gustavo_pensao" }, () => recarregarSilenciosamente())
       .on("postgres_changes", { event: "*", schema: "public", table: "portal_gustavo_pix" }, () => recarregarSilenciosamente())
+      .on("postgres_changes", { event: "*", schema: "public", table: "financas_meses_fechados" }, () => recarregarSilenciosamente())
       .subscribe();
   }
   let recarregando = false;

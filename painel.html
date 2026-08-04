@@ -445,6 +445,46 @@
   .cartao-colapsavel .seta-colapsavel{ color: var(--texto-suave); font-size: .9rem; transition: transform .15s ease; flex-shrink: 0; }
   .cartao-colapsavel[open] .seta-colapsavel{ transform: rotate(180deg); }
 
+  /* ---- fechamento de mês ---- */
+  .cartao-status-mes{ border: 2px solid var(--borda); }
+  .cartao-status-mes.fechado{ border-color: var(--coral); }
+  .status-mes-topo{ display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .status-mes-esquerda{ display: flex; align-items: center; gap: 12px; }
+  .status-mes-icone{
+    width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; background: var(--creme); flex-shrink: 0;
+  }
+  .cartao-status-mes.fechado .status-mes-icone{ background: rgba(0,0,128,.08); }
+  .status-mes-titulo{ font-weight: 600; font-size: .95rem; }
+  .status-mes-sub{ font-size: .8rem; color: var(--texto-suave); margin-top: 2px; }
+  .botao-fechar-mes, .botao-reabrir-mes{
+    border-radius: 10px; font-weight: 600; font-size: .85rem; cursor: pointer; font-family: 'Outfit', sans-serif;
+    padding: 10px 18px; white-space: nowrap; border: none;
+  }
+  .botao-fechar-mes{ background: var(--coral); color: #fff; }
+  .botao-fechar-mes:hover{ background: var(--coral-escuro); }
+  .botao-reabrir-mes{ background: var(--branco); color: var(--coral); border: 2px solid var(--coral); padding: 8px 18px; }
+  .botao-reabrir-mes:hover{ background: rgba(0,0,128,.05); }
+
+  .overlay-modal-mes{
+    display: none; position: fixed; inset: 0; background: rgba(26,24,22,.5); z-index: 500;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .overlay-modal-mes.visivel{ display: flex; }
+  .modal-mes{ background: var(--branco); border-radius: 18px; padding: 26px; max-width: 420px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+  .modal-mes h3{ font-size: 1.15rem; margin-bottom: 6px; }
+  .modal-mes .sub{ font-size: .84rem; color: var(--texto-suave); margin-bottom: 18px; line-height: 1.5; }
+  .resumo-fechamento-modal{ background: var(--creme); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
+  .resumo-linha-modal-mes{ display: flex; justify-content: space-between; font-size: .84rem; padding: 6px 0; }
+  .resumo-linha-modal-mes.total{ border-top: 1px solid var(--borda); margin-top: 6px; padding-top: 10px; font-weight: 600; font-size: .92rem; }
+  .resumo-linha-modal-mes strong{ font-family: 'Fraunces', serif; }
+  .aviso-modal-mes{ display: flex; gap: 8px; background: rgba(196,69,60,.08); color: var(--vermelho); font-size: .78rem; padding: 10px 12px; border-radius: 10px; margin-bottom: 18px; line-height: 1.5; }
+  .botoes-modal-mes{ display: flex; gap: 10px; justify-content: flex-end; }
+  .botoes-modal-mes button{ padding: 11px 18px; border-radius: 10px; font-weight: 600; font-size: .84rem; cursor: pointer; font-family: 'Outfit', sans-serif; border: none; }
+  .botao-cancelar-modal-mes{ background: var(--creme); color: var(--texto-suave); }
+  .botao-confirmar-modal-mes{ background: var(--coral); color: #fff; }
+  .botao-confirmar-modal-mes:hover{ background: var(--coral-escuro); }
+
   /* ===================== CARTÕES DE NÚMERO (Menu Principal) ===================== */
   .cartoes-numeros{
     display: grid;
@@ -2904,6 +2944,32 @@
 
   <div class="overlay-mobile" id="overlayMobile"></div>
 
+  <!-- ===================== MODAIS: FECHAMENTO DE MÊS ===================== -->
+  <div class="overlay-modal-mes" id="overlayFecharMes">
+    <div class="modal-mes">
+      <h3 id="modalTituloFecharMes">Fechar mês?</h3>
+      <p class="sub">Confere o resumo do mês antes de fechar — depois de fechado, dá pra reabrir se precisar.</p>
+      <div class="resumo-fechamento-modal" id="resumoFecharMes"></div>
+      <div class="aviso-modal-mes" id="avisoFecharMes"></div>
+      <div class="botoes-modal-mes">
+        <button type="button" class="botao-cancelar-modal-mes" data-fechar-overlay-mes>Cancelar</button>
+        <button type="button" class="botao-confirmar-modal-mes" id="botaoConfirmarFecharMes">Confirmar fechamento</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay-modal-mes" id="overlayReabrirMes">
+    <div class="modal-mes">
+      <h3 id="modalTituloReabrirMes">Reabrir mês?</h3>
+      <p class="sub">Volta a permitir que lançamentos NOVOS entrem nesse mês (em vez de irem pro mês seguinte). Nada que já existe muda.</p>
+      <div class="aviso-modal-mes">⚠️ Lembre de fechar de novo depois, se quiser voltar a esse comportamento.</div>
+      <div class="botoes-modal-mes">
+        <button type="button" class="botao-cancelar-modal-mes" data-fechar-overlay-mes>Cancelar</button>
+        <button type="button" class="botao-confirmar-modal-mes" id="botaoConfirmarReabrirMes">Reabrir mês</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===================== CONTEÚDO ===================== -->
   <main class="conteudo">
     <div class="topo-conteudo">
@@ -3244,6 +3310,8 @@
         <h2>Totais do mês</h2>
         <div class="financas-totais" id="financasTotais"></div>
       </div>
+
+      <div id="areaStatusMesFinancas" style="margin-top: 20px;"></div>
 
       <details class="cartao cartao-colapsavel" style="margin-top: 20px;">
         <summary class="resumo-colapsavel"><h2>Lançamentos do mês</h2><span class="seta-colapsavel">▾</span></summary>
@@ -4214,6 +4282,30 @@
   // Guarda se a fatura de cada cartão, num mês/ano específico, já foi marcada como paga
   let cartoesPagosCache = {};
 
+  // Quais meses estão "fechados" (chave "ano-mes", mes 0-11). Fechar um mês só
+  // impede lançamento NOVO nele — editar, excluir e marcar como pago continuam
+  // funcionando normalmente em qualquer mês, fechado ou não.
+  let mesesFechadosCache = new Set();
+
+  // Registro completo (com fechado_em) de cada mês fechado, pra mostrar "fechado
+  // em tal data" no card de status sem precisar buscar de novo no banco
+  let mesesFechadosDetalheCache = {};
+
+  function mesEstaFechado(ano, mes){
+    return mesesFechadosCache.has(`${ano}-${mes}`);
+  }
+
+  // Primeiro mês ABERTO a partir do (ano, mes) informado, pulando qualquer
+  // mês fechado no caminho
+  function proximoMesAbertoAPartir(ano, mes){
+    let a = ano, m = mes;
+    while (mesEstaFechado(a, m)){
+      m++;
+      if (m > 11){ m = 0; a++; }
+    }
+    return { ano: a, mes: m };
+  }
+
   // Guarda quais GRUPOS de lembrete já foram fechados (no X) nessa visita ao painel,
   // pra não reaparecerem sozinhos enquanto a página não for recarregada. Ao contrário
   // do adiamento ("Lembrar em 1h"), fechar no X não precisa sobreviver a um F5.
@@ -4392,6 +4484,19 @@
         });
       } catch (erroLembretes) {
         console.error("Erro ao carregar adiamentos de lembrete:", erroLembretes);
+      }
+
+      try {
+        // Isolado do carregamento principal: a tabela financas_meses_fechados só
+        // existe depois que esse SQL for rodado no Supabase, então essa busca pode
+        // falhar sem travar o resto do painel (todo mês simplesmente continua
+        // "aberto" até a tabela existir).
+        const mesesFechados = await comRetry(() => buscarTudo("financas_meses_fechados"));
+        mesesFechadosCache = new Set(mesesFechados.map(m => `${m.ano}-${m.mes}`));
+        mesesFechadosDetalheCache = {};
+        mesesFechados.forEach(m => { mesesFechadosDetalheCache[`${m.ano}-${m.mes}`] = m; });
+      } catch (erroMesesFechados) {
+        console.error("Erro ao carregar meses fechados:", erroMesesFechados);
       }
 
       document.getElementById("areaCarregando").classList.add("oculto");
@@ -5813,6 +5918,21 @@
     configurarCampoDataComExibicao("campoLancData", "campoLancDataExibicao");
     configurarCampoDataComExibicao("campoNegocioData", "campoNegocioDataExibicao");
 
+    // Modais de fechamento de mês: cancelar/clicar fora fecha, confirmar aciona a ação
+    const overlayFecharMes = document.getElementById("overlayFecharMes");
+    const overlayReabrirMes = document.getElementById("overlayReabrirMes");
+    document.querySelectorAll("[data-fechar-overlay-mes]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        overlayFecharMes.classList.remove("visivel");
+        overlayReabrirMes.classList.remove("visivel");
+      });
+    });
+    [overlayFecharMes, overlayReabrirMes].forEach(overlay => {
+      overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.classList.remove("visivel"); });
+    });
+    document.getElementById("botaoConfirmarFecharMes").addEventListener("click", confirmarFecharMes);
+    document.getElementById("botaoConfirmarReabrirMes").addEventListener("click", confirmarReabrirMes);
+
     // Fecha o painel de filtro/ordenar da tabela de lançamentos ao clicar fora dele
     document.addEventListener("click", () => {
       if (popoverExtratoAberto){
@@ -7196,7 +7316,130 @@
   // caia sem querer no mês errado (ex: cartão já fechou e a compra é da fatura seguinte)
   function definirMesFaturaPadrao(){
     const campo = document.getElementById("campoLancMesFatura");
-    if (campo) campo.value = `${anoFinancasVisivel}-${String(mesFinancasVisivel + 1).padStart(2, "0")}`;
+    if (!campo) return;
+    const { ano, mes } = proximoMesAbertoAPartir(anoFinancasVisivel, mesFinancasVisivel);
+    campo.value = `${ano}-${String(mes + 1).padStart(2, "0")}`;
+  }
+
+  /* =========================================================================
+     FECHAMENTO DE MÊS
+     Fechar um mês só impede lançamento NOVO nele (cai automaticamente no
+     próximo mês aberto — ver adicionarLancamento/definirMesFaturaPadrao).
+     Editar, excluir e marcar como pago continuam funcionando normalmente em
+     qualquer mês, fechado ou não.
+     ========================================================================= */
+  const PESSOAS_RESUMO_FECHAMENTO = ["DI", "GU", "EDMAR", "FUUH", "MÃE"];
+  const NOMES_PESSOAS_RESUMO_FECHAMENTO = { DI: "DI precisa pagar", GU: "GU precisa passar", EDMAR: "Edmar", FUUH: "Fuuh", "MÃE": "Mãe" };
+
+  // Guardado a cada renderizarFinancas() pra alimentar o modal de confirmação
+  // sem precisar recalcular tudo de novo na hora de abrir o modal
+  let ultimoResumoFechamentoFinancas = { totaisPorPessoa: {}, totalGeral: 0 };
+
+  function renderizarStatusMesFinancas(totaisPorPessoa, totalGeral){
+    ultimoResumoFechamentoFinancas = { totaisPorPessoa, totalGeral };
+
+    const area = document.getElementById("areaStatusMesFinancas");
+    if (!area) return;
+
+    const fechado = mesEstaFechado(anoFinancasVisivel, mesFinancasVisivel);
+    const registro = mesesFechadosDetalheCache[`${anoFinancasVisivel}-${mesFinancasVisivel}`];
+    const nomeMes = `${NOMES_MES[mesFinancasVisivel]}/${anoFinancasVisivel}`;
+    const nomeMesCapitalizado = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
+
+    area.innerHTML = `
+      <div class="cartao cartao-status-mes ${fechado ? "fechado" : ""}">
+        <div class="status-mes-topo">
+          <div class="status-mes-esquerda">
+            <div class="status-mes-icone">${fechado ? "🔒" : "🔓"}</div>
+            <div>
+              <div class="status-mes-titulo">${fechado ? `${nomeMesCapitalizado} fechado` : `${nomeMesCapitalizado} está aberto`}</div>
+              <div class="status-mes-sub">${fechado
+                ? `Fechado em ${registro ? formatarDataHoraCurta(registro.fechado_em) : "—"} — só pra lançamentos novos, o resto continua ativo normalmente.`
+                : "Novos lançamentos entram aqui normalmente."}</div>
+            </div>
+          </div>
+          ${fechado
+            ? `<button type="button" class="botao-reabrir-mes" id="botaoReabrirMes">Reabrir mês</button>`
+            : `<button type="button" class="botao-fechar-mes" id="botaoFecharMes">Fechar mês</button>`}
+        </div>
+      </div>
+    `;
+
+    const botaoFechar = document.getElementById("botaoFecharMes");
+    if (botaoFechar) botaoFechar.addEventListener("click", abrirModalFecharMes);
+    const botaoReabrir = document.getElementById("botaoReabrirMes");
+    if (botaoReabrir) botaoReabrir.addEventListener("click", abrirModalReabrirMes);
+  }
+
+  function formatarDataHoraCurta(isoTimestamp){
+    const d = new Date(isoTimestamp);
+    return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")} às ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  }
+
+  function abrirModalFecharMes(){
+    const nomeMes = `${NOMES_MES[mesFinancasVisivel]}/${anoFinancasVisivel}`;
+    const { totaisPorPessoa, totalGeral } = ultimoResumoFechamentoFinancas;
+
+    document.getElementById("modalTituloFecharMes").textContent = `Fechar ${nomeMes}?`;
+    document.getElementById("resumoFecharMes").innerHTML = PESSOAS_RESUMO_FECHAMENTO.map(p => `
+      <div class="resumo-linha-modal-mes"><span>${NOMES_PESSOAS_RESUMO_FECHAMENTO[p]}</span><strong>${formatarMoeda(totaisPorPessoa[p] || 0)}</strong></div>
+    `).join("") + `
+      <div class="resumo-linha-modal-mes total"><span>Valor total das contas</span><strong>${formatarMoeda(totalGeral)}</strong></div>
+    `;
+
+    const proximoAberto = proximoMesAbertoAPartir(
+      mesFinancasVisivel === 11 ? anoFinancasVisivel + 1 : anoFinancasVisivel,
+      mesFinancasVisivel === 11 ? 0 : mesFinancasVisivel + 1
+    );
+    document.getElementById("avisoFecharMes").innerHTML =
+      `⚠️ A partir da confirmação, novos lançamentos vão direto pra <strong>${NOMES_MES[proximoAberto.mes]}/${proximoAberto.ano}</strong>. ` +
+      `Nada mais muda: editar, excluir, marcar como pago e os avisos de vencimento continuam funcionando normalmente em ${nomeMes}.`;
+
+    document.getElementById("overlayFecharMes").classList.add("visivel");
+  }
+
+  function abrirModalReabrirMes(){
+    const nomeMes = `${NOMES_MES[mesFinancasVisivel]}/${anoFinancasVisivel}`;
+    document.getElementById("modalTituloReabrirMes").textContent = `Reabrir ${nomeMes}?`;
+    document.getElementById("overlayReabrirMes").classList.add("visivel");
+  }
+
+  async function confirmarFecharMes(){
+    const ano = anoFinancasVisivel, mes = mesFinancasVisivel;
+    const { data, error } = await Auth.client
+      .from("financas_meses_fechados")
+      .upsert({ ano, mes, fechado_em: new Date().toISOString() }, { onConflict: "ano,mes" })
+      .select().single();
+
+    if (error){
+      alert("Não foi possível fechar o mês agora: " + error.message);
+      return;
+    }
+
+    mesesFechadosCache.add(`${ano}-${mes}`);
+    mesesFechadosDetalheCache[`${ano}-${mes}`] = data;
+    document.getElementById("overlayFecharMes").classList.remove("visivel");
+    renderizarFinancas();
+    definirMesFaturaPadrao();
+  }
+
+  async function confirmarReabrirMes(){
+    const ano = anoFinancasVisivel, mes = mesFinancasVisivel;
+    const { error } = await Auth.client
+      .from("financas_meses_fechados")
+      .delete()
+      .eq("ano", ano).eq("mes", mes);
+
+    if (error){
+      alert("Não foi possível reabrir o mês agora: " + error.message);
+      return;
+    }
+
+    mesesFechadosCache.delete(`${ano}-${mes}`);
+    delete mesesFechadosDetalheCache[`${ano}-${mes}`];
+    document.getElementById("overlayReabrirMes").classList.remove("visivel");
+    renderizarFinancas();
+    definirMesFaturaPadrao();
   }
 
   function formatarMoeda(valor){
@@ -7366,6 +7609,8 @@
         totaisPorPessoa[chave] = (totaisPorPessoa[chave] || 0) + g.valor;
       }
     });
+
+    renderizarStatusMesFinancas(totaisPorPessoa, totalGeral);
 
     // O balão "Total" e os balões de cada pessoa (que já surgem sozinhos conforme os
     // lançamentos vão sendo criados) funcionam como filtro: clicar num deles filtra o
@@ -11287,7 +11532,19 @@
     // completamente independentes: mudar uma nunca muda a outra. "data" sempre
     // começa no dia 1º do mês escolhido em "mês da fatura", nunca herda nada
     // da data da compra.
-    const dataBase = mesFatura + "-01";
+    let [anoFatura, mesFatura1a12] = mesFatura.split("-").map(Number);
+    let mesFatura0a11 = mesFatura1a12 - 1;
+
+    // Mês fechado não aceita lançamento novo — cai automaticamente no próximo
+    // mês aberto (só isso; editar/excluir/marcar como pago continuam livres)
+    if (mesEstaFechado(anoFatura, mesFatura0a11)){
+      const proximo = proximoMesAbertoAPartir(anoFatura, mesFatura0a11);
+      alert(`${NOMES_MES[mesFatura0a11]}/${anoFatura} está fechado. Esse lançamento vai entrar em ${NOMES_MES[proximo.mes]}/${proximo.ano}.`);
+      anoFatura = proximo.ano;
+      mesFatura0a11 = proximo.mes;
+    }
+
+    const dataBase = `${anoFatura}-${String(mesFatura0a11 + 1).padStart(2, "0")}-01`;
 
     let entradas = [];
 
