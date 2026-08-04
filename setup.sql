@@ -1133,24 +1133,24 @@ $$;
 
 drop policy if exists "Gustavo so ve GU e DI-GU em lancamentos" on public.financas_lancamentos;
 create policy "Gustavo so ve GU e DI-GU em lancamentos"
-  as restrictive
   on public.financas_lancamentos
+  as restrictive
   for select
   to authenticated
   using ( not public.eh_conta_gustavo() or pessoa in ('GU', 'DI/GU') );
 
 drop policy if exists "Gustavo nao insere em lancamentos" on public.financas_lancamentos;
 create policy "Gustavo nao insere em lancamentos"
-  as restrictive
   on public.financas_lancamentos
+  as restrictive
   for insert
   to authenticated
   with check ( not public.eh_conta_gustavo() );
 
 drop policy if exists "Gustavo nao atualiza lancamentos" on public.financas_lancamentos;
 create policy "Gustavo nao atualiza lancamentos"
-  as restrictive
   on public.financas_lancamentos
+  as restrictive
   for update
   to authenticated
   using ( not public.eh_conta_gustavo() )
@@ -1158,32 +1158,32 @@ create policy "Gustavo nao atualiza lancamentos"
 
 drop policy if exists "Gustavo nao exclui lancamentos" on public.financas_lancamentos;
 create policy "Gustavo nao exclui lancamentos"
-  as restrictive
   on public.financas_lancamentos
+  as restrictive
   for delete
   to authenticated
   using ( not public.eh_conta_gustavo() );
 
 drop policy if exists "Gustavo so ve GU e DI-GU em gastos fixos" on public.financas_gastos_fixos;
 create policy "Gustavo so ve GU e DI-GU em gastos fixos"
-  as restrictive
   on public.financas_gastos_fixos
+  as restrictive
   for select
   to authenticated
   using ( not public.eh_conta_gustavo() or pessoa in ('GU', 'DI/GU') );
 
 drop policy if exists "Gustavo nao insere em gastos fixos" on public.financas_gastos_fixos;
 create policy "Gustavo nao insere em gastos fixos"
-  as restrictive
   on public.financas_gastos_fixos
+  as restrictive
   for insert
   to authenticated
   with check ( not public.eh_conta_gustavo() );
 
 drop policy if exists "Gustavo nao atualiza gastos fixos" on public.financas_gastos_fixos;
 create policy "Gustavo nao atualiza gastos fixos"
-  as restrictive
   on public.financas_gastos_fixos
+  as restrictive
   for update
   to authenticated
   using ( not public.eh_conta_gustavo() )
@@ -1191,8 +1191,8 @@ create policy "Gustavo nao atualiza gastos fixos"
 
 drop policy if exists "Gustavo nao exclui gastos fixos" on public.financas_gastos_fixos;
 create policy "Gustavo nao exclui gastos fixos"
-  as restrictive
   on public.financas_gastos_fixos
+  as restrictive
   for delete
   to authenticated
   using ( not public.eh_conta_gustavo() );
