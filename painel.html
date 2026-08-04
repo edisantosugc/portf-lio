@@ -1270,7 +1270,20 @@
   }
   .popover-ordenar button:hover{ background: var(--creme); }
   .popover-ordenar button.ativo{ background: var(--coral); color: var(--branco); }
+  .popover-busca{
+    width: 100%;
+    padding: 7px 9px;
+    margin-bottom: 8px;
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+    font-size: .8rem;
+    font-family: 'Outfit', sans-serif;
+    color: var(--grafite);
+    background: var(--creme);
+  }
+  .popover-busca:focus{ outline: none; border-color: var(--coral); }
   .lista-checks{ display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow-y: auto; padding-right: 6px; }
+  .lista-checks label.escondida-busca{ display: none; }
   .lista-checks label{ display: flex; align-items: flex-start; gap: 8px; font-size: .8rem; line-height: 1.35; cursor: pointer; font-weight: 400; }
   .lista-checks label span{ flex: 1; min-width: 0; word-break: break-word; }
   .lista-checks input[type="checkbox"]{ width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; accent-color: var(--coral); }
@@ -4235,6 +4248,15 @@
   const GASTOS_FIXOS_VARIAVEIS = ["Água", "Luz"];
 
   let gastosFixosCache = [];
+
+  // As 10 contas fixas de sempre são fixas no código (VENCIMENTO_GASTOS_FIXOS), então
+  // "excluir" uma delas não pode removê-la de verdade da lista — só dá pra escondê-la
+  // até a pessoa recadastrar. Isso fica salvo neste aparelho (não sincroniza entre
+  // celular e computador), mas os valores em si continuam apagados de vez no banco.
+  let contasFixasOcultas = new Set(JSON.parse(localStorage.getItem("painelContasFixasOcultas") || "[]"));
+  function salvarContasFixasOcultas(){
+    localStorage.setItem("painelContasFixasOcultas", JSON.stringify([...contasFixasOcultas]));
+  }
 
   // Formata uma data como AAAA-MM-DD (mesmo formato usado na coluna "data" do Supabase)
   function formatarDataISO(data){
@@ -7216,8 +7238,9 @@
   // Contas fixas "de sempre" (as 10 do código) + qualquer conta nova criada
   // direto no painel (aparece no cache assim que alguém salva um valor pra ela)
   function obterNomesGastosFixos(){
+    const nomesPadrao = NOMES_GASTOS_FIXOS.filter(n => !contasFixasOcultas.has(n));
     const nomesCustom = [...new Set(gastosFixosCache.map(g => g.nome))].filter(n => !NOMES_GASTOS_FIXOS.includes(n));
-    return NOMES_GASTOS_FIXOS.concat(nomesCustom.sort());
+    return nomesPadrao.concat(nomesCustom.sort());
   }
 
   // Dia de vencimento de uma conta fixa: as 10 de sempre vêm do código; uma conta
@@ -7410,9 +7433,16 @@
       <button type="button" data-ord="desc" class="${ordenacaoExtrato.coluna === coluna.chave && ordenacaoExtrato.direcao === "desc" ? "ativo" : ""}">${rotuloDesc}</button>
     </div></div>`;
 
-    html += `<div class="popover-secao"><div class="popover-titulo">Filtrar</div><div class="lista-checks">`;
+    html += `<div class="popover-secao"><div class="popover-titulo">Filtrar</div>`;
+    // Colunas de texto (hoje só Descrição) podem ter uma lista longa de opções —
+    // um campo de busca ajuda a achar sem precisar rolar tudo procurando
+    if (coluna.tipo === "texto"){
+      html += `<input type="text" class="popover-busca" data-busca-coluna placeholder="Buscar..." autocomplete="off">`;
+    }
+    html += `<div class="lista-checks">`;
     opcoesColunaExtrato(listaBase, coluna).forEach(v => {
-      html += `<label><input type="checkbox" value="${v}" ${conjunto.has(v) ? "checked" : ""}><span>${coluna.rotulo(v)}</span></label>`;
+      const buscaAttr = coluna.rotulo(v).toLowerCase().replace(/"/g, "&quot;");
+      html += `<label data-texto-busca="${buscaAttr}"><input type="checkbox" value="${v}" ${conjunto.has(v) ? "checked" : ""}><span>${coluna.rotulo(v)}</span></label>`;
     });
     html += `</div></div>`;
 
@@ -7576,6 +7606,19 @@
             renderizarTabelaLancamentos(listaBase);
           });
         });
+
+        // Campo de busca (só em colunas de texto, tipo Descrição) — filtra as
+        // opções da lista de checkbox conforme digita, sem mexer no filtro aplicado
+        const campoBusca = pop.querySelector("[data-busca-coluna]");
+        if (campoBusca){
+          campoBusca.addEventListener("input", () => {
+            const termo = campoBusca.value.trim().toLowerCase();
+            pop.querySelectorAll(".lista-checks label").forEach(label => {
+              const combina = !termo || label.dataset.textoBusca.includes(termo);
+              label.classList.toggle("escondida-busca", !combina);
+            });
+          });
+        }
 
         // Marcar/desmarcar já filtra na hora — sem precisar de um botão "Aplicar"
         // separado — e fecha o painel em seguida, pra não ficar um quadro aberto
@@ -8404,6 +8447,10 @@
     }
 
     gastosFixosCache = gastosFixosCache.concat(data);
+    if (contasFixasOcultas.has(nome)){
+      contasFixasOcultas.delete(nome);
+      salvarContasFixasOcultas();
+    }
     document.getElementById("formNovaContaFixa").reset();
     renderizarFinancas();
   }
@@ -8437,15 +8484,13 @@
     if (!error) renderizarFinancas();
   }
 
-  // Apaga o histórico de uma conta fixa (todos os meses, não só o atual).
-  // Se for uma conta personalizada, ela some da lista de vez. Se for uma das 10
-  // de sempre (fixas no código), ela continua aparecendo, só volta a ficar em
-  // branco — porque não dá pra removê-la da lista sem mexer no código.
+  // Apaga o histórico de uma conta fixa (todos os meses, não só o atual) e some
+  // com a linha inteira da lista. Se for uma das 10 de sempre (fixas no código),
+  // ela some da lista deste aparelho até ser recadastrada no formulário "nova
+  // conta fixa" — não dá pra removê-la do código, só escondê-la.
   async function excluirContaFixa(nome){
     const ehFixaDoCodigo = NOMES_GASTOS_FIXOS.includes(nome);
-    const mensagem = ehFixaDoCodigo
-      ? `Apagar os valores salvos de "${nome}"? Isso limpa o valor, o responsável e o histórico dela em todos os meses. Ela continua na lista (faz parte das contas fixas de sempre), só volta a ficar em branco.`
-      : `Apagar a conta fixa "${nome}" de vez? Isso remove ela (e o histórico de valores) de todos os meses, não só deste.`;
+    const mensagem = `Apagar a conta fixa "${nome}" de vez? Isso remove a linha inteira (valor, responsável e histórico em todos os meses). Pra ter ela de volta, é só cadastrar de novo.`;
 
     if (!confirm(mensagem)) return;
 
@@ -8456,6 +8501,10 @@
 
     if (!error){
       gastosFixosCache = gastosFixosCache.filter(g => g.nome !== nome);
+      if (ehFixaDoCodigo){
+        contasFixasOcultas.add(nome);
+        salvarContasFixasOcultas();
+      }
       renderizarFinancas();
       renderizarAlertasContas();
     }
