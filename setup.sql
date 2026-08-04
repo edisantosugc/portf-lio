@@ -1317,17 +1317,15 @@ create policy "Gustavo nao reabre meses"
 -- comandos daqui, "add table" dá erro se a tabela já foi adicionada antes
 -- (não existe "se não existir" pra isso) — por isso vai dentro de um bloco
 -- que ignora esse erro específico, pra rodar o script de novo sem travar.
-do $$
-begin
-  alter publication supabase_realtime add table
-    public.financas_lancamentos,
-    public.financas_gastos_fixos,
-    public.portal_gustavo_pensao,
-    public.portal_gustavo_pix,
-    public.financas_meses_fechados;
-exception
-  when duplicate_object then
-    null;
-end $$;
+-- Cada tabela num bloco separado (não uma lista só): "add table a, b, c" é um
+-- comando único — se UMA já for membro, o comando inteiro falha e NENHUMA das
+-- outras (nem as genuinamente novas) chega a ser adicionada. Foi isso que
+-- fez financas_meses_fechados nunca entrar de verdade no tempo real quando
+-- as 4 tabelas anteriores já tinham sido adicionadas nas execuções passadas.
+do $$ begin alter publication supabase_realtime add table public.financas_lancamentos; exception when duplicate_object then null; end $$;
+do $$ begin alter publication supabase_realtime add table public.financas_gastos_fixos; exception when duplicate_object then null; end $$;
+do $$ begin alter publication supabase_realtime add table public.portal_gustavo_pensao; exception when duplicate_object then null; end $$;
+do $$ begin alter publication supabase_realtime add table public.portal_gustavo_pix; exception when duplicate_object then null; end $$;
+do $$ begin alter publication supabase_realtime add table public.financas_meses_fechados; exception when duplicate_object then null; end $$;
 
 alter table public.painel_abordagens add column if not exists arquivado_automaticamente boolean not null default false;

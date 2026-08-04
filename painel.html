@@ -439,6 +439,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-bottom: 18px;
   }
   .cartao-colapsavel > summary.resumo-colapsavel::-webkit-details-marker{ display: none; }
   .cartao-colapsavel > summary.resumo-colapsavel h2{ margin-bottom: 0; }
@@ -3261,6 +3262,8 @@
 
     <!-- ===================== ABA: FINANÇAS ===================== -->
     <section id="painelFinancas" class="painel-tab oculto">
+      <div id="areaStatusMesFinancas" style="margin-bottom: 20px;"></div>
+
       <div id="areaAlertasContas"></div>
 
       <div class="cartao">
@@ -3310,8 +3313,6 @@
         <h2>Totais do mês</h2>
         <div class="financas-totais" id="financasTotais"></div>
       </div>
-
-      <div id="areaStatusMesFinancas" style="margin-top: 20px;"></div>
 
       <details class="cartao cartao-colapsavel" style="margin-top: 20px;">
         <summary class="resumo-colapsavel"><h2>Lançamentos do mês</h2><span class="seta-colapsavel">▾</span></summary>
