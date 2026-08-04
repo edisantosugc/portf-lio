@@ -1347,3 +1347,61 @@ do $$ begin alter publication supabase_realtime add table public.portal_gustavo_
 do $$ begin alter publication supabase_realtime add table public.financas_meses_fechados; exception when duplicate_object then null; end $$;
 
 alter table public.painel_abordagens add column if not exists arquivado_automaticamente boolean not null default false;
+
+-- =====================================================================
+-- NOTIFICAÇÕES PUSH (celular, mesmo com o app fechado)
+-- Guarda a "inscrição" de cada aparelho que ativar notificação — uma conta
+-- ("di" = você, "gustavo" = ele) pode ter mais de um aparelho inscrito.
+-- Quem manda a notificação de verdade é a Edge Function send-push (ver
+-- supabase/functions/send-push/index.ts e o LEIA-ME-PUSH.md na raiz do
+-- site), chamada direto pelo painel (fechar mês) ou 1x por dia via pg_cron
+-- (contas vencendo, compromissos do dia, pensão).
+-- =====================================================================
+create table if not exists public.push_subscricoes (
+  id uuid primary key default gen_random_uuid(),
+  conta text not null check (conta in ('di', 'gustavo')),
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.push_subscricoes enable row level security;
+
+drop policy if exists "Autenticados gerenciam inscricoes de push" on public.push_subscricoes;
+create policy "Autenticados gerenciam inscricoes de push"
+  on public.push_subscricoes
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.push_subscricoes to authenticated;
+
+-- Trava extra: a conta do Gustavo só consegue cadastrar inscrição "gustavo",
+-- a sua só consegue cadastrar "di" — ninguém registra inscrição na conta errada
+drop policy if exists "Cada conta so inscreve a propria conta" on public.push_subscricoes;
+create policy "Cada conta so inscreve a propria conta"
+  on public.push_subscricoes
+  as restrictive
+  for insert
+  to authenticated
+  with check ( (conta = 'gustavo') = public.eh_conta_gustavo() );
+
+-- Roda a checagem diária de avisos (contas vencendo, compromissos do dia,
+-- pensão) às 8h de Brasília (11h UTC). Precisa dos mesmos passos do bloco
+-- de agendamento do ig-scheduler logo acima: publicar a Edge Function
+-- send-push primeiro, cadastrar os segredos dela (ver LEIA-ME-PUSH.md), e
+-- SÓ DEPOIS rodar este select — reaproveita o mesmo SCHED_SECRET que o
+-- ig-scheduler/ig-token-refresh já usam.
+select cron.schedule(
+  'send-push-diario',
+  '0 11 * * *',
+  $$
+  select net.http_post(
+    url := 'https://dqtoxxngjqyoibdgmrjr.supabase.co/functions/v1/send-push',
+    headers := jsonb_build_object('x-sched-key', 'SEU_SCHED_SECRET', 'Content-Type', 'application/json'),
+    body := '{}'::jsonb
+  );
+  $$
+);

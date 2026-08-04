@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/push.js"></script>
 <style>
   :root{
     --coral: #000080;
@@ -347,6 +348,7 @@
     </div>
     <div class="topo-direita">
       <button type="button" class="botao-abrir-meses" id="btnAbrirMeses">📅 <span id="rotuloMesAtivo"></span></button>
+      <button type="button" class="botao-abrir-meses" id="btnNotificacoes">🔔 Notificações</button>
       <button type="button" class="botao-sair" id="btnSair">Sair</button>
     </div>
   </div>
@@ -486,8 +488,42 @@
       localStorage.setItem("gustavoMesesFechadosVistos", JSON.stringify([...vistos]));
       banner.classList.add("escondido");
     });
+    configurarBotaoNotificacoes();
     await carregarTudo();
     configurarRealtime();
+  }
+
+  // Botão de notificações push — avisa quando a pensão está perto de vencer
+  // e quando a Edi fecha o mês. Fica em js/push.js, compartilhado com o painel.
+  async function configurarBotaoNotificacoes(){
+    const botao = document.getElementById("btnNotificacoes");
+    if (!botao) return;
+
+    async function atualizarTextoBotao(){
+      const status = await statusNotificacoesPush();
+      if (status === "indisponivel"){
+        botao.textContent = "🔔 Indisponível aqui";
+        botao.disabled = true;
+      } else if (status === "negada"){
+        botao.textContent = "🔕 Bloqueadas";
+      } else if (status === "ativa"){
+        botao.textContent = "🔔 Ativadas";
+      } else {
+        botao.textContent = "🔔 Ativar avisos";
+      }
+    }
+
+    botao.addEventListener("click", async () => {
+      const status = await statusNotificacoesPush();
+      if (status === "ativa"){
+        await desativarNotificacoesPush(sb);
+      } else {
+        await ativarNotificacoesPush(sb, "gustavo");
+      }
+      atualizarTextoBotao();
+    });
+
+    atualizarTextoBotao();
   }
 
   // ============ CARREGAR DADOS ============

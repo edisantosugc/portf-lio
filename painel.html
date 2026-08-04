@@ -216,6 +216,23 @@
   }
   .botao-sair:hover{ border-color: var(--vermelho); color: var(--vermelho); }
 
+  .botao-notificacoes{
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--borda);
+    background: var(--branco);
+    color: var(--grafite);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: .85rem;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: border-color .2s ease, color .2s ease, background .2s ease;
+  }
+  .botao-notificacoes:hover{ border-color: var(--coral); color: var(--coral); }
+  .botao-notificacoes.ativo{ background: var(--coral); border-color: var(--coral); color: #fff; }
+
   /* Overlay para fechar a gaveta no celular */
   .overlay-mobile{
     display: none;
@@ -2965,6 +2982,7 @@
 
     <div class="sidebar-rodape">
       <p class="usuario-email" id="usuarioEmail"></p>
+      <button class="botao-notificacoes" id="botaoNotificacoes" type="button">🔔 Ativar notificações</button>
       <button class="botao-sair" id="botaoSair">Sair</button>
     </div>
   </aside>
@@ -4066,6 +4084,7 @@
 </div>
 
 <script src="js/auth.js"></script>
+<script src="js/push.js"></script>
 <script>
   /* =========================================================================
      ESTADO EM MEMÓRIA
@@ -5964,6 +5983,43 @@
     return digitos.replace(/^(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
   }
 
+  // Botão de notificações push (celular/navegador) — mostra o estado atual
+  // e liga/desliga ao clicar. Fica em js/push.js, compartilhado com o
+  // Portal do Gustavo.
+  async function configurarBotaoNotificacoes(){
+    const botao = document.getElementById("botaoNotificacoes");
+    if (!botao) return;
+
+    async function atualizarTextoBotao(){
+      const status = await statusNotificacoesPush();
+      if (status === "indisponivel"){
+        botao.textContent = "🔔 Notificações indisponíveis aqui";
+        botao.disabled = true;
+      } else if (status === "negada"){
+        botao.textContent = "🔕 Notificações bloqueadas no navegador";
+        botao.classList.remove("ativo");
+      } else if (status === "ativa"){
+        botao.textContent = "🔔 Notificações ativadas";
+        botao.classList.add("ativo");
+      } else {
+        botao.textContent = "🔔 Ativar notificações";
+        botao.classList.remove("ativo");
+      }
+    }
+
+    botao.addEventListener("click", async () => {
+      const status = await statusNotificacoesPush();
+      if (status === "ativa"){
+        await desativarNotificacoesPush(Auth.client);
+      } else {
+        await ativarNotificacoesPush(Auth.client, "di");
+      }
+      atualizarTextoBotao();
+    });
+
+    atualizarTextoBotao();
+  }
+
   /* =========================================================================
      INTERFACE: ABAS, PERÍODO, MENU MOBILE, SAIR
      ========================================================================= */
@@ -6003,6 +6059,7 @@
     });
 
     document.getElementById("botaoSair").addEventListener("click", () => Auth.logout());
+    configurarBotaoNotificacoes();
 
     document.getElementById("botaoModoOculto").addEventListener("click", () => alternarModoOculto());
     document.getElementById("botaoModoOcultoMobile").addEventListener("click", () => alternarModoOculto());
@@ -7530,6 +7587,17 @@
     document.getElementById("overlayFecharMes").classList.remove("visivel");
     renderizarFinancas();
     definirMesFaturaPadrao();
+
+    // Avisa o Gustavo na hora (notificação push) — se ele não tiver ativado
+    // notificações ainda, isso simplesmente não manda nada pra ninguém, sem erro
+    Auth.client.functions.invoke("send-push", {
+      body: {
+        conta: "gustavo",
+        titulo: `Edi fechou ${NOMES_MES[mes]}/${ano}`,
+        corpo: "Confira seu total no Portal.",
+        url: "/gustavo/"
+      }
+    }).catch(erro => console.error("Erro ao notificar o Gustavo do fechamento:", erro));
   }
 
   async function confirmarReabrirMes(){
