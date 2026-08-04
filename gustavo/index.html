@@ -495,32 +495,37 @@
     renderizarConteudo();
   }
 
-  // Busca a pensão do mês atual; se ainda não existe, cria repetindo o valor/
-  // vencimento do mês mais recente que existir (mesma lógica de "repete até
-  // alguém mudar" usada nas contas fixas do painel principal)
+  // Busca a pensão do mês NAVEGÁVEL (anoVisivel/mesVisivel — o mesmo mês que a
+  // barra lateral está mostrando); se ainda não existe registro pra esse mês,
+  // cria repetindo o dia de vencimento e o valor do registro mais recente que
+  // exista ANTES dele (mesma lógica de "repete até alguém mudar" das contas
+  // fixas do painel principal). Assim, navegar pra Dezembro mostra 15/12 (se o
+  // dia configurado for 15), não fica preso no mês em que foi criada.
   async function carregarOuCriarPensao(){
     const { data: doMes } = await sb.from("portal_gustavo_pensao")
-      .select("*").eq("ano", anoCalendarioAtual).eq("mes", mesCalendarioAtual + 1).maybeSingle();
+      .select("*").eq("ano", anoVisivel).eq("mes", mesVisivel + 1).maybeSingle();
 
     if (doMes){
       pensaoAtual = doMes;
       return;
     }
 
-    const { data: anteriores } = await sb.from("portal_gustavo_pensao")
-      .select("*").order("ano", { ascending: false }).order("mes", { ascending: false }).limit(1);
+    const { data: todas } = await sb.from("portal_gustavo_pensao")
+      .select("*").order("ano", { ascending: false }).order("mes", { ascending: false });
+
+    const chaveAlvo = anoVisivel * 12 + (mesVisivel + 1);
+    const base = (todas || []).find(p => (p.ano * 12 + p.mes) < chaveAlvo) || { valor: null, vencimento: null };
 
     // Extrai o dia direto da string "AAAA-MM-DD" (sem passar por new Date(...),
     // que interpreta a data como UTC e podia devolver o dia errado dependendo
     // do fuso do navegador — isso fazia o vencimento "andar pra trás" 1 dia
     // a cada mês que repetia sozinho)
-    const base = (anteriores && anteriores[0]) || { valor: null, vencimento: null };
     const diaVencimento = base.vencimento ? Number(base.vencimento.split("-")[2]) : 20;
-    const novoVencimento = new Date(anoCalendarioAtual, mesCalendarioAtual, diaVencimento);
+    const novoVencimento = new Date(anoVisivel, mesVisivel, diaVencimento);
 
     const { data: criado } = await sb.from("portal_gustavo_pensao")
       .upsert({
-        ano: anoCalendarioAtual, mes: mesCalendarioAtual + 1,
+        ano: anoVisivel, mes: mesVisivel + 1,
         vencimento: formatarDataISO(novoVencimento),
         valor: base.valor, pago: false
       }, { onConflict: "ano,mes" })
@@ -699,7 +704,7 @@
     });
 
     area.querySelectorAll("[data-ano]").forEach(btn => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         anoVisivel = Number(btn.dataset.ano);
         mesVisivel = Number(btn.dataset.mes);
         anoAberto = anoVisivel;
@@ -708,6 +713,11 @@
         renderizarSidebarMes();
         renderizarSecoesDoMes();
         fecharSidebarMes();
+
+        // A Pensão também segue o mês navegado (ver carregarOuCriarPensao) —
+        // busca/gera o registro desse mês específico e redesenha só o card dela
+        await carregarOuCriarPensao();
+        renderizarPensao();
       });
     });
   }
@@ -727,7 +737,7 @@
           <span class="ponto"></span><span>A pensão vence hoje, você precisa fazer o pagamento.</span>
         </div>
         <div class="aviso-pensao-pago ${pago ? "" : "escondido"}">
-          <span>✅</span><span>Pagamento de ${NOMES_MES[mesCalendarioAtual].toLowerCase()} confirmado. Obrigada!</span>
+          <span>✅</span><span>Pagamento de ${NOMES_MES[mesVisivel].toLowerCase()} confirmado. Obrigada!</span>
         </div>
 
         <div class="grade-pensao">
@@ -771,7 +781,7 @@
   async function salvarPensao(campos){
     await sb.from("portal_gustavo_pensao")
       .update(campos)
-      .eq("ano", anoCalendarioAtual).eq("mes", mesCalendarioAtual + 1);
+      .eq("ano", anoVisivel).eq("mes", mesVisivel + 1);
   }
 
   // ============ LANÇAMENTOS DO MÊS (mês navegável — ver sidebar) ============
