@@ -3981,6 +3981,30 @@
   let filtrosColunaExtrato = { data: new Set(), descricao: new Set(), pessoa: new Set(), valor: new Set() };
   let popoverExtratoAberto = null;
 
+  // Trava a rolagem da página inteira (não só a tabela) enquanto o painel de
+  // filtro está aberto no celular. Sem isso, mesmo com position:fixed, o Safari
+  // do iPhone às vezes "arrasta" o painel junto quando a página rola por baixo
+  // dele (bug conhecido do WebKit) — travando a rolagem de vez, não tem como
+  // isso acontecer, porque não tem rolagem nenhuma acontecendo.
+  let scrollYAntesDoPopoverMobile = null;
+  function travarRolagemMobile(){
+    if (scrollYAntesDoPopoverMobile !== null) return;
+    scrollYAntesDoPopoverMobile = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollYAntesDoPopoverMobile}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+  }
+  function destravarRolagemMobile(){
+    if (scrollYAntesDoPopoverMobile === null) return;
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.left = "";
+    document.body.style.right = "";
+    window.scrollTo(0, scrollYAntesDoPopoverMobile);
+    scrollYAntesDoPopoverMobile = null;
+  }
+
   // Estado da aba Finanças UGC (negócio): mês/ano exibidos
   let mesNegocioVisivel = hojeAgenda.getMonth();
   let anoNegocioVisivel = hojeAgenda.getFullYear();
@@ -5774,6 +5798,7 @@
       if (popoverExtratoAberto){
         popoverExtratoAberto.classList.remove("aberto");
         popoverExtratoAberto = null;
+        destravarRolagemMobile();
       }
     });
 
@@ -7519,6 +7544,7 @@
     // senão fica um órfão perdido solto no body depois do re-render
     document.querySelectorAll("body > .popover-filtro").forEach(p => p.remove());
     popoverExtratoAberto = null;
+    destravarRolagemMobile();
 
     areaTabela.innerHTML = `
       ${htmlPilulasExtrato()}
@@ -7554,6 +7580,7 @@
         areaTabela.querySelectorAll(".popover-filtro").forEach(p => p.classList.remove("aberto"));
         if (jaAberto){
           popoverExtratoAberto = null;
+          destravarRolagemMobile();
           return;
         }
         pop.innerHTML = montarPopoverExtrato(coluna, listaBase);
@@ -7563,9 +7590,11 @@
         // No celular, um position:fixed dentro de um container com rolagem lateral
         // (a tabela) não fica de verdade fixo no Safari do iPhone — ele "gruda" na
         // rolagem do container em vez da tela. Solução: tira o painel de dentro da
-        // tabela e põe soltinho direto no body enquanto estiver aberto.
+        // tabela, põe soltinho direto no body, e trava a rolagem da página inteira
+        // enquanto estiver aberto (garantia total contra o bug, não só o fixed).
         if (window.innerWidth <= 900){
           document.body.appendChild(pop);
+          travarRolagemMobile();
         }
 
         // Sem isso, qualquer clique dentro do painel (checkbox, ordenar, limpar)
