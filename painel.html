@@ -425,6 +425,10 @@
   }
   .alerta-conta.atrasado .alerta-conta-botao-pago{ border-color: var(--vermelho); color: var(--vermelho); }
   .alerta-conta-botao-pago:hover{ background: var(--verde); border-color: var(--verde); color: var(--branco); }
+  .alerta-conta.info-pix{ background: rgba(0,0,128,.06); border-color: var(--coral); }
+  .alerta-conta.info-pix .alerta-conta-nome{ color: var(--coral); }
+  .alerta-conta.info-pix .alerta-conta-botao-pago{ border-color: var(--coral); color: var(--coral); }
+  .alerta-conta.info-pix .alerta-conta-botao-pago:hover{ background: var(--coral); border-color: var(--coral); color: var(--branco); }
 
   /* ===================== CARTÕES GENÉRICOS ===================== */
   .cartao{
@@ -1481,6 +1485,8 @@
     font-size: .9rem;
   }
   .resumo-linha.destaque{ background: var(--coral); color: var(--branco); font-weight: 600; }
+  .resumo-linha-pix{ background: rgba(45,122,79,.1); color: var(--verde); font-weight: 600; }
+  .resumo-linha-pix strong{ color: var(--verde); }
   .resumo-linha strong{ font-family: 'Fraunces', serif; font-size: 1.05rem; }
   .resumo-linha.clicavel{ cursor: pointer; transition: background .15s ease; }
   .resumo-linha.clicavel:hover{ background: var(--borda); }
@@ -3294,6 +3300,8 @@
 
     <!-- ===================== ABA: FINANÇAS ===================== -->
     <section id="painelFinancas" class="painel-tab oculto">
+      <div id="areaAvisoPixGustavo" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;"></div>
+
       <div id="areaStatusMesFinancas" style="margin-bottom: 20px;"></div>
 
       <div id="areaAlertasContas"></div>
@@ -4324,6 +4332,11 @@
   // em tal data" no card de status sem precisar buscar de novo no banco
   let mesesFechadosDetalheCache = {};
 
+  // Pix que o Gustavo registrou no portal dele — carregado no início e mantido em
+  // tempo real (ver configurarRealtimePixGustavo), pra "Restante GU" e o aviso de
+  // notificação nunca ficarem desatualizados
+  let pixGustavoCache = [];
+
   function mesEstaFechado(ano, mes){
     return mesesFechadosCache.has(`${ano}-${mes}`);
   }
@@ -4532,9 +4545,19 @@
         console.error("Erro ao carregar meses fechados:", erroMesesFechados);
       }
 
+      try {
+        // Isolado igual acima: portal_gustavo_pix só existe depois do SQL do
+        // Portal do Gustavo ser rodado.
+        pixGustavoCache = await comRetry(() => buscarTudo("portal_gustavo_pix"));
+        configurarRealtimePixGustavo();
+      } catch (erroPixGustavo) {
+        console.error("Erro ao carregar Pix do Gustavo:", erroPixGustavo);
+      }
+
       document.getElementById("areaCarregando").classList.add("oculto");
       renderizarTudo();
       renderizarNotificacoesPopup();
+      renderizarAvisoPixGustavo();
       renderizarAgenda();
       preencherSelectsFinancas();
       try {
@@ -7432,6 +7455,67 @@
     el.textContent = datas.length === 0 ? "" : `Atualizado em ${formatarDataHoraCurta(new Date(Math.max(...datas)))}`;
   }
 
+  /* =========================================================================
+     PIX DO GUSTAVO — notificação + reflexo automático no "Total de gastos"
+     Cada Pix que ele registra no portal dele chega aqui em tempo real: mostra
+     um aviso pra ela conferir/confirmar, e desconta sozinho do "Total de GU"
+     (o total em si nunca muda — o desconto é uma linha nova embaixo dele,
+     "Restante GU"). Se ele excluir um Pix por engano, some dos dois lados
+     também, sem ela precisar fazer nada.
+     ========================================================================= */
+  function configurarRealtimePixGustavo(){
+    Auth.client.channel("painel-pix-gustavo")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "portal_gustavo_pix" }, (payload) => {
+        if (pixGustavoCache.some(p => p.id === payload.new.id)) return;
+        pixGustavoCache.push(payload.new);
+        renderizarAvisoPixGustavo();
+        renderizarFinancas();
+      })
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "portal_gustavo_pix" }, (payload) => {
+        pixGustavoCache = pixGustavoCache.filter(p => p.id !== payload.old.id);
+        renderizarAvisoPixGustavo();
+        renderizarFinancas();
+      })
+      .subscribe();
+  }
+
+  // Pix ainda não confirmados por ela (lembrado neste aparelho, igual ao aviso
+  // de fechamento de mês no portal do Gustavo)
+  function renderizarAvisoPixGustavo(){
+    const area = document.getElementById("areaAvisoPixGustavo");
+    if (!area) return;
+
+    const confirmados = new Set(JSON.parse(localStorage.getItem("painelPixGustavoConfirmados") || "[]"));
+    const pendentes = pixGustavoCache
+      .filter(p => !confirmados.has(p.id))
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    if (pendentes.length === 0){
+      area.innerHTML = "";
+      return;
+    }
+
+    area.innerHTML = pendentes.map(p => `
+      <div class="alerta-conta info-pix" data-id-pix="${p.id}">
+        <div class="alerta-conta-info dado-sensivel">
+          <p class="alerta-conta-nome">💙 Pix do Gustavo</p>
+          <p class="alerta-conta-mensagem">Registrado em ${formatarDataCurta(p.data)} · ${formatarMoeda(Number(p.valor))}</p>
+        </div>
+        <button type="button" class="alerta-conta-botao-pago" data-acao="confirmar-pix-gustavo">Confirmar</button>
+      </div>
+    `).join("");
+
+    area.querySelectorAll("[data-acao='confirmar-pix-gustavo']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.closest("[data-id-pix]").dataset.idPix;
+        const vistos = new Set(JSON.parse(localStorage.getItem("painelPixGustavoConfirmados") || "[]"));
+        vistos.add(id);
+        localStorage.setItem("painelPixGustavoConfirmados", JSON.stringify([...vistos]));
+        renderizarAvisoPixGustavo();
+      });
+    });
+  }
+
   function abrirModalFecharMes(){
     const nomeMes = `${NOMES_MES[mesFinancasVisivel]}/${anoFinancasVisivel}`;
     const { totaisPorPessoa, totalGeral } = ultimoResumoFechamentoFinancas;
@@ -8199,11 +8283,36 @@
 
       // Com uma pessoa selecionada, o rodapé mostra só o total dela — não faz
       // sentido continuar mostrando "quanto sobra pra todo mundo" nesse caso
+      let extraPixGu = "";
+      if (pessoaDetalheGastos === "GU"){
+        // Pix que ele já registrou nesse mesmo mês (o Total de GU em si nunca
+        // muda — isso só soma como linhas extras abaixo dele)
+        const pixDoMes = pixGustavoCache.filter(p => {
+          const [a, m] = p.data.split("-").map(Number);
+          return a === anoFinancasVisivel && (m - 1) === mesFinancasVisivel;
+        });
+        const totalPix = pixDoMes.reduce((soma, p) => soma + Number(p.valor), 0);
+        if (totalPix > 0){
+          const restante = Math.max(totalPessoa - totalPix, 0);
+          extraPixGu = `
+            <div class="resumo-linha resumo-linha-pix">
+              <span>Pix recebido</span>
+              <strong>− ${formatarMoeda(totalPix)}</strong>
+            </div>
+            <div class="resumo-linha destaque">
+              <span>Restante GU</span>
+              <strong>${formatarMoeda(restante)}</strong>
+            </div>
+          `;
+        }
+      }
+
       areaResumo.innerHTML = `
         <div class="resumo-linha destaque">
           <span>Total de ${pessoaDetalheGastos}</span>
           <strong>${formatarMoeda(totalPessoa)}</strong>
         </div>
+        ${extraPixGu}
       `;
       return;
     }
