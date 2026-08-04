@@ -1297,16 +1297,16 @@ grant select, insert, delete on public.financas_meses_fechados to authenticated;
 -- tela dele) — nunca fechar ou reabrir um mês, isso é só da Edilaine.
 drop policy if exists "Gustavo nao fecha meses" on public.financas_meses_fechados;
 create policy "Gustavo nao fecha meses"
-  as restrictive
   on public.financas_meses_fechados
+  as restrictive
   for insert
   to authenticated
   with check ( not public.eh_conta_gustavo() );
 
 drop policy if exists "Gustavo nao reabre meses" on public.financas_meses_fechados;
 create policy "Gustavo nao reabre meses"
-  as restrictive
   on public.financas_meses_fechados
+  as restrictive
   for delete
   to authenticated
   using ( not public.eh_conta_gustavo() );
