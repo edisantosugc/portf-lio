@@ -431,6 +431,20 @@
     margin-bottom: 18px;
   }
 
+  /* Seção "cartao" que vira gaveta/accordion (fechada por padrão) usando
+     <details> nativo — mesmo padrão de disclosure já usado em UGC/Abordagem */
+  .cartao-colapsavel > summary.resumo-colapsavel{
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cartao-colapsavel > summary.resumo-colapsavel::-webkit-details-marker{ display: none; }
+  .cartao-colapsavel > summary.resumo-colapsavel h2{ margin-bottom: 0; }
+  .cartao-colapsavel .seta-colapsavel{ color: var(--texto-suave); font-size: .9rem; transition: transform .15s ease; flex-shrink: 0; }
+  .cartao-colapsavel[open] .seta-colapsavel{ transform: rotate(180deg); }
+
   /* ===================== CARTÕES DE NÚMERO (Menu Principal) ===================== */
   .cartoes-numeros{
     display: grid;
@@ -3231,11 +3245,11 @@
         <div class="financas-totais" id="financasTotais"></div>
       </div>
 
-      <div class="cartao" style="margin-top: 20px;">
-        <h2>Lançamentos do mês</h2>
+      <details class="cartao cartao-colapsavel" style="margin-top: 20px;">
+        <summary class="resumo-colapsavel"><h2>Lançamentos do mês</h2><span class="seta-colapsavel">▾</span></summary>
         <div class="filtros-cartao" id="filtrosCartao"></div>
         <div id="areaTabelaLancamentos"></div>
-      </div>
+      </details>
 
       <div class="cartao" style="margin-top: 20px;">
         <h2>Total de gastos</h2>
