@@ -79,14 +79,49 @@
     color: var(--texto-suave); font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 600;
     padding: 4px 10px; border-radius: 20px; margin-top: 6px;
   }
+  .topo-direita{ display: flex; align-items: center; gap: 10px; }
   .botao-sair{
     background: none; border: 1px solid var(--borda); color: var(--texto-suave); padding: 8px 14px;
     border-radius: 20px; font-size: .78rem; cursor: pointer; font-family: 'Outfit', sans-serif;
   }
   .botao-sair:hover{ border-color: var(--vermelho); color: var(--vermelho); }
+  .botao-abrir-meses{
+    display: none; align-items: center; gap: 6px; background: none; border: 1px solid var(--borda);
+    color: var(--texto-suave); padding: 8px 14px; border-radius: 20px; font-size: .78rem; cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+  }
 
-  .conteudo{ max-width: 760px; margin: 0 auto; padding: 22px 16px 0; display: flex; flex-direction: column; gap: 22px; }
+  /* ---- barra lateral de mês/ano (navegação do histórico da fatura) ---- */
+  .corpo-portal{ display: flex; align-items: flex-start; max-width: 980px; margin: 0 auto; }
+  .sidebar-mes{
+    width: 210px; flex-shrink: 0; background: var(--branco); border-right: 1px solid var(--borda);
+    padding: 22px 16px; position: sticky; top: 65px; max-height: calc(100vh - 65px); overflow-y: auto;
+  }
+  .bloco-ano{ margin-bottom: 18px; }
+  .bloco-ano:last-child{ margin-bottom: 0; }
+  .bloco-ano-titulo{ font-family: 'Fraunces', serif; font-weight: 600; font-size: .92rem; margin-bottom: 6px; }
+  .lista-meses-sidebar{ display: flex; flex-direction: column; gap: 2px; }
+  .botao-mes-sidebar{
+    text-align: left; background: none; border: none; padding: 7px 10px; border-radius: 8px;
+    font-size: .83rem; color: var(--grafite); cursor: pointer; font-family: 'Outfit', sans-serif;
+  }
+  .botao-mes-sidebar:hover{ background: var(--creme); }
+  .botao-mes-sidebar.ativo{ background: var(--coral); color: #fff; font-weight: 600; }
+
+  .conteudo{ flex: 1; min-width: 0; padding: 22px 16px 40px; display: flex; flex-direction: column; gap: 22px; }
   .carregando{ text-align: center; color: var(--texto-suave); font-size: .85rem; padding: 40px 0; }
+
+  .overlay-mobile{ display: none; position: fixed; inset: 0; background: rgba(26,24,22,.4); z-index: 900; }
+  .overlay-mobile.visivel{ display: block; }
+
+  @media (max-width: 780px){
+    .sidebar-mes{
+      position: fixed; left: -260px; top: 0; height: 100vh; max-height: none; width: 240px;
+      z-index: 1000; transition: left .25s ease; box-shadow: 0 0 40px rgba(0,0,0,.2);
+    }
+    .sidebar-mes.aberta{ left: 0; }
+    .botao-abrir-meses{ display: inline-flex; }
+  }
 
   /* ---- card Pensão Lívia ---- */
   .cartao-pensao{ background: var(--branco); border: 2px solid var(--coral); border-radius: 16px; padding: 20px; position: relative; }
@@ -115,11 +150,26 @@
 
   .grade-pensao{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
   .campo-pensao label{ display: block; font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; color: var(--texto-suave); font-weight: 600; margin-bottom: 6px; }
-  .campo-pensao input{
+  .campo-pensao input:not(.input-valor-fixo){
     width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--borda);
     background: var(--creme); font-size: .92rem; font-family: 'Outfit', sans-serif; color: var(--grafite);
   }
-  .campo-pensao input:focus{ outline: none; border-color: var(--coral); }
+  .campo-pensao input:not(.input-valor-fixo):focus{ outline: none; border-color: var(--coral); }
+
+  /* Campo de valor com "R$" fixo à esquerda e número alinhado à direita —
+     mesmo padrão visual usado nos campos de valor do painel principal */
+  .campo-valor-com-prefixo{ position: relative; display: flex; align-items: center; width: 100%; }
+  .campo-valor-com-prefixo .prefixo-rs{
+    position: absolute; left: 12px; font-family: 'Fraunces', serif; font-weight: 600; font-size: .92rem;
+    color: var(--grafite); pointer-events: none;
+  }
+  .input-valor-fixo{
+    width: 100%; padding: 10px 12px 10px 34px; border-radius: 10px; border: 1px solid var(--borda);
+    background: var(--creme); font-family: 'Fraunces', serif; font-weight: 600; font-size: .92rem;
+    color: var(--grafite); text-align: right;
+  }
+  .input-valor-fixo:focus{ outline: none; border-color: var(--coral); }
+  .input-valor-fixo:disabled{ opacity: .7; }
 
   .botao-paguei{
     width: 100%; background: var(--branco); border: 2px solid var(--verde); color: var(--verde); padding: 12px;
@@ -261,11 +311,19 @@
       <div class="sub" id="subtituloMes"></div>
       <div class="selo-leitura">🔒 Somente leitura</div>
     </div>
-    <button type="button" class="botao-sair" id="btnSair">Sair</button>
+    <div class="topo-direita">
+      <button type="button" class="botao-abrir-meses" id="btnAbrirMeses">📅 <span id="rotuloMesAtivo"></span></button>
+      <button type="button" class="botao-sair" id="btnSair">Sair</button>
+    </div>
   </div>
 
-  <div class="conteudo" id="conteudoPortal">
-    <p class="carregando">Carregando...</p>
+  <div class="overlay-mobile" id="overlayMeses"></div>
+
+  <div class="corpo-portal">
+    <div class="sidebar-mes" id="sidebarMes"></div>
+    <div class="conteudo" id="conteudoPortal">
+      <p class="carregando">Carregando...</p>
+    </div>
   </div>
 </div>
 
@@ -283,9 +341,23 @@
   const CARTOES = ["Dígio", "Inter", "Nubank", "Santander", "Mercado Pago", "Dinheiro/Outro"];
 
   const hoje = new Date();
-  const anoAtual = hoje.getFullYear();
-  const mesAtual = hoje.getMonth();
+  const anoCalendarioAtual = hoje.getFullYear();
+  const mesCalendarioAtual = hoje.getMonth();
   const hojeISO = formatarDataISO(hoje);
+
+  // Mês/ano "da fatura" — o padrão que abre sozinho quando ele entra: sempre um
+  // mês à frente do calendário real, igual à lógica já usada no painel principal
+  // (o que se lança agora é a fatura do mês seguinte). Recalculado do zero a
+  // cada carregamento da página, então nunca fica "preso" numa navegação antiga.
+  let mesFaturaPadrao = mesCalendarioAtual + 1;
+  let anoFaturaPadrao = anoCalendarioAtual;
+  if (mesFaturaPadrao > 11){ mesFaturaPadrao = 0; anoFaturaPadrao++; }
+
+  // Mês/ano que ele está NAVEGANDO no histórico — começa no padrão da fatura,
+  // mas muda livremente conforme ele clica em outro mês na barra lateral
+  const PRIMEIRO_ANO_HISTORICO = 2026;
+  let anoVisivel = anoFaturaPadrao;
+  let mesVisivel = mesFaturaPadrao;
 
   function formatarDataISO(d){
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
@@ -358,7 +430,11 @@
   async function mostrarPortal(){
     telaLogin.classList.add("escondida");
     portal.classList.add("visivel");
-    document.getElementById("subtituloMes").textContent = `Financeiro de ${NOMES_MES[mesAtual]}/${anoAtual}`;
+    document.getElementById("btnAbrirMeses").addEventListener("click", () => {
+      document.getElementById("sidebarMes").classList.add("aberta");
+      document.getElementById("overlayMeses").classList.add("visivel");
+    });
+    document.getElementById("overlayMeses").addEventListener("click", fecharSidebarMes);
     await carregarTudo();
     configurarRealtime();
   }
@@ -384,7 +460,7 @@
   // alguém mudar" usada nas contas fixas do painel principal)
   async function carregarOuCriarPensao(){
     const { data: doMes } = await sb.from("portal_gustavo_pensao")
-      .select("*").eq("ano", anoAtual).eq("mes", mesAtual + 1).maybeSingle();
+      .select("*").eq("ano", anoCalendarioAtual).eq("mes", mesCalendarioAtual + 1).maybeSingle();
 
     if (doMes){
       pensaoAtual = doMes;
@@ -396,11 +472,11 @@
 
     const base = (anteriores && anteriores[0]) || { valor: null, vencimento: null };
     const diaVencimento = base.vencimento ? new Date(base.vencimento).getDate() : 20;
-    const novoVencimento = new Date(anoAtual, mesAtual, diaVencimento);
+    const novoVencimento = new Date(anoCalendarioAtual, mesCalendarioAtual, diaVencimento);
 
     const { data: criado } = await sb.from("portal_gustavo_pensao")
       .upsert({
-        ano: anoAtual, mes: mesAtual + 1,
+        ano: anoCalendarioAtual, mes: mesCalendarioAtual + 1,
         vencimento: formatarDataISO(novoVencimento),
         valor: base.valor, pago: false
       }, { onConflict: "ano,mes" })
@@ -470,13 +546,77 @@
 
     renderizarPensao();
     renderizarPillsCartao();
+    renderizarSecoesDoMes();
+
+    document.getElementById("botaoRegistrarPix").addEventListener("click", registrarPix);
+
+    renderizarSidebarMes();
+  }
+
+  // Tudo que depende do mês navegável (sidebar) — chamado de novo sempre que
+  // ele troca de mês, sem precisar redesenhar a página inteira (mantém a
+  // posição da rolagem e o cartão selecionado nas pills)
+  function renderizarSecoesDoMes(){
+    atualizarCabecalhoMes();
     renderizarTabelaExtrato();
     renderizarGavetasCartao();
     renderizarGavetasFixos();
     renderizarPix();
     atualizarTotais();
+  }
 
-    document.getElementById("botaoRegistrarPix").addEventListener("click", registrarPix);
+  function atualizarCabecalhoMes(){
+    const rotulo = `${NOMES_MES[mesVisivel]}/${anoVisivel}`;
+    document.getElementById("subtituloMes").textContent = `Financeiro de ${rotulo}`;
+    document.getElementById("rotuloMesAtivo").textContent = rotulo;
+  }
+
+  // ============ NAVEGAÇÃO POR MÊS/ANO (barra lateral) ============
+  function mesesDisponiveisNoAno(ano){
+    if (ano < PRIMEIRO_ANO_HISTORICO || ano > anoFaturaPadrao) return [];
+    let inicio = 0, fim = 11;
+    if (ano === PRIMEIRO_ANO_HISTORICO) inicio = 8; // Setembro/2026 é o primeiro mês do histórico
+    if (ano === anoFaturaPadrao) fim = mesFaturaPadrao;
+    const meses = [];
+    for (let m = inicio; m <= fim; m++) meses.push(m);
+    return meses;
+  }
+
+  function anosDisponiveis(){
+    const anos = [];
+    for (let a = PRIMEIRO_ANO_HISTORICO; a <= anoFaturaPadrao; a++) anos.push(a);
+    return anos;
+  }
+
+  function fecharSidebarMes(){
+    document.getElementById("sidebarMes").classList.remove("aberta");
+    document.getElementById("overlayMeses").classList.remove("visivel");
+  }
+
+  function renderizarSidebarMes(){
+    const area = document.getElementById("sidebarMes");
+    area.innerHTML = anosDisponiveis().map(ano => `
+      <div class="bloco-ano">
+        <div class="bloco-ano-titulo">${ano}</div>
+        <div class="lista-meses-sidebar">
+          ${mesesDisponiveisNoAno(ano).map(m => `
+            <button type="button" class="botao-mes-sidebar ${ano === anoVisivel && m === mesVisivel ? "ativo" : ""}" data-ano="${ano}" data-mes="${m}">${NOMES_MES[m]}</button>
+          `).join("")}
+        </div>
+      </div>
+    `).join("");
+
+    area.querySelectorAll("[data-ano]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        anoVisivel = Number(btn.dataset.ano);
+        mesVisivel = Number(btn.dataset.mes);
+        filtrosColunaExtrato = { data: new Set(), descricao: new Set(), pessoa: new Set(), valor: new Set() };
+        ordenacaoExtrato = { coluna: null, direcao: "asc" };
+        renderizarSidebarMes();
+        renderizarSecoesDoMes();
+        fecharSidebarMes();
+      });
+    });
   }
 
   // ============ PENSÃO LÍVIA (único bloco editável) ============
@@ -494,7 +634,7 @@
           <span class="ponto"></span><span>A pensão vence hoje, você precisa fazer o pagamento.</span>
         </div>
         <div class="aviso-pensao-pago ${pago ? "" : "escondido"}">
-          <span>✅</span><span>Pagamento de ${NOMES_MES[mesAtual].toLowerCase()} confirmado. Obrigada!</span>
+          <span>✅</span><span>Pagamento de ${NOMES_MES[mesCalendarioAtual].toLowerCase()} confirmado. Obrigada!</span>
         </div>
 
         <div class="grade-pensao">
@@ -504,7 +644,10 @@
           </div>
           <div class="campo-pensao">
             <label>Valor (reajusta todo ano)</label>
-            <input type="text" inputmode="decimal" id="campoValorPensao" value="${p.valor != null ? formatarValorCampo(p.valor) : ""}" ${pago ? "disabled" : ""}>
+            <span class="campo-valor-com-prefixo">
+              <span class="prefixo-rs">R$</span>
+              <input type="text" inputmode="decimal" class="input-valor-fixo" id="campoValorPensao" value="${p.valor != null ? formatarValorCampo(p.valor) : ""}" placeholder="0,00" ${pago ? "disabled" : ""}>
+            </span>
           </div>
         </div>
 
@@ -535,14 +678,14 @@
   async function salvarPensao(campos){
     await sb.from("portal_gustavo_pensao")
       .update(campos)
-      .eq("ano", anoAtual).eq("mes", mesAtual + 1);
+      .eq("ano", anoCalendarioAtual).eq("mes", mesCalendarioAtual + 1);
   }
 
-  // ============ LANÇAMENTOS DO MÊS ============
+  // ============ LANÇAMENTOS DO MÊS (mês navegável — ver sidebar) ============
   function lancamentosDoMes(){
     return lancamentosCache.filter(l => {
       const [ano, mes] = l.data.split("-").map(Number);
-      return ano === anoAtual && (mes - 1) === mesAtual && l.cartao === cartaoAtivo;
+      return ano === anoVisivel && (mes - 1) === mesVisivel && l.cartao === cartaoAtivo;
     });
   }
 
@@ -739,7 +882,7 @@
     const area = document.getElementById("areaGavetasCartao");
     const lancamentosMes = lancamentosCache.filter(l => {
       const [ano, mes] = l.data.split("-").map(Number);
-      return ano === anoAtual && (mes - 1) === mesAtual;
+      return ano === anoVisivel && (mes - 1) === mesVisivel;
     });
 
     const porCartao = CARTOES.map(cartao => {
@@ -779,7 +922,7 @@
   // "mes" em financas_gastos_fixos usa o mesmo índice 0-11 do JS (getMonth()),
   // não o mês de calendário 1-12 — igual ao painel principal usa internamente.
   function gastosFixosDoMesAtual(){
-    const chaveAtual = anoAtual * 12 + mesAtual;
+    const chaveAtual = anoVisivel * 12 + mesVisivel;
     const nomes = [...new Set(gastosFixosCache.map(g => g.nome))];
     return nomes.map(nome => {
       const historico = gastosFixosCache
@@ -830,7 +973,7 @@
   function pixDoMes(){
     return pixCache.filter(p => {
       const [ano, mes] = p.data.split("-").map(Number);
-      return ano === anoAtual && (mes - 1) === mesAtual;
+      return ano === anoVisivel && (mes - 1) === mesVisivel;
     });
   }
 
@@ -874,7 +1017,7 @@
   // ============ TOTAIS ============
   function calcularTotalDi(){
     const totalLancamentos = lancamentosCache
-      .filter(l => { const [a, m] = l.data.split("-").map(Number); return a === anoAtual && (m - 1) === mesAtual; })
+      .filter(l => { const [a, m] = l.data.split("-").map(Number); return a === anoVisivel && (m - 1) === mesVisivel; })
       .reduce((soma, l) => soma + (l.pessoa === "DI/GU" ? Number(l.valor) / 2 : Number(l.valor)), 0);
 
     const totalFixos = gastosFixosDoMesAtual()
