@@ -612,16 +612,6 @@
     const area = document.getElementById("conteudoPortal");
     area.innerHTML = `
       <div id="areaPensao"></div>
-      <div class="cartao-secao secao-colapsavel">
-        <button type="button" class="cabecalho-colapsavel" data-toggle-secao>
-          <h2>Lançamentos do mês</h2>
-          <span class="seta-colapsavel">▾</span>
-        </button>
-        <div class="corpo-colapsavel">
-          <div class="pills-cartao" id="pillsCartao"></div>
-          <div id="areaTabelaExtrato"></div>
-        </div>
-      </div>
       <div class="cartao-secao">
         <h2>Gastos por cartão</h2>
         <div id="areaGavetasCartao"></div>
@@ -655,7 +645,6 @@
     `;
 
     renderizarPensao();
-    renderizarPillsCartao();
     renderizarSecoesDoMes();
 
     document.getElementById("botaoRegistrarPix").addEventListener("click", registrarPix);
@@ -673,7 +662,6 @@
   // posição da rolagem e o cartão selecionado nas pills)
   function renderizarSecoesDoMes(){
     atualizarCabecalhoMes();
-    renderizarTabelaExtrato();
     renderizarGavetasCartao();
     renderizarGavetasFixos();
     renderizarPix();
