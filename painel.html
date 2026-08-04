@@ -8865,7 +8865,13 @@
     });
 
     container.querySelector("[data-acao='ver-grupo-notificacao']").addEventListener("click", () => {
-      container.innerHTML = "";
+      // "Ver X" leva pra aba do grupo — ela vai resolver por lá, então esse
+      // grupo não precisa mais aparecer no pop-up nesta sessão (senão o mesmo
+      // aviso reapareceria assim que ela voltasse). Igual ao "Fechar", mas com
+      // navegação: o próximo aviso pendente (se tiver) já sobe em seguida,
+      // nenhum fica "engolido" pelo anterior.
+      gruposFechadosSessao.add(config.grupo);
+      renderizarNotificacoesPopup();
       navegarParaGrupoLembrete(config.grupo, itemMaisUrgente);
     });
   }
