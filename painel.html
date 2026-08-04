@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Painel | Edilaine Santos</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💙</text></svg>">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -260,6 +261,11 @@
     border: 1px solid var(--borda);
     border-radius: 12px;
     padding: 4px;
+  }
+
+  .ultima-atualizacao-financas{
+    font-size: .82rem;
+    color: var(--texto-suave);
   }
   .periodo-btn{
     padding: 8px 16px;
@@ -2991,6 +2997,7 @@
         <button class="periodo-btn" data-periodo="90">90d</button>
         <button class="periodo-btn" data-periodo="tudo">Tudo</button>
       </div>
+      <div class="ultima-atualizacao-financas oculto" id="ultimaAtualizacaoFinancas"></div>
     </div>
 
     <div class="carregando" id="areaCarregando">Carregando dados...</div>
@@ -6422,6 +6429,7 @@
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
     const abasSemFiltroPeriodo = ["agenda", "financas", "negocio", "abordagem", "clientes", "negociacao", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo"];
     document.getElementById("filtroPeriodo").classList.toggle("oculto", abasSemFiltroPeriodo.includes(aba));
+    document.getElementById("ultimaAtualizacaoFinancas").classList.toggle("oculto", aba !== "financas");
 
     // Lembra a aba atual pra continuar nela se a página for atualizada (F5)
     localStorage.setItem("painelAbaAtiva", aba);
@@ -7377,6 +7385,18 @@
     return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")} às ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   }
 
+  // Mostra quando foi o último lançamento/conta fixa criado (em qualquer mês,
+  // não só o visível), pra ela lembrar se já mexeu no financeiro recentemente
+  function renderizarUltimaAtualizacaoFinancas(){
+    const el = document.getElementById("ultimaAtualizacaoFinancas");
+    if (!el) return;
+    const datas = [...lancamentosCache, ...gastosFixosCache]
+      .map(item => item.created_at)
+      .filter(Boolean)
+      .map(d => new Date(d));
+    el.textContent = datas.length === 0 ? "" : `Atualizado em ${formatarDataHoraCurta(new Date(Math.max(...datas)))}`;
+  }
+
   function abrirModalFecharMes(){
     const nomeMes = `${NOMES_MES[mesFinancasVisivel]}/${anoFinancasVisivel}`;
     const { totaisPorPessoa, totalGeral } = ultimoResumoFechamentoFinancas;
@@ -7612,6 +7632,7 @@
     });
 
     renderizarStatusMesFinancas(totaisPorPessoa, totalGeral);
+    renderizarUltimaAtualizacaoFinancas();
 
     // O balão "Total" e os balões de cada pessoa (que já surgem sozinhos conforme os
     // lançamentos vão sendo criados) funcionam como filtro: clicar num deles filtra o

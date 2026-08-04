@@ -6,6 +6,7 @@
 <title>Portal do Gustavo</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💙</text></svg>">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -631,7 +632,7 @@
         <div class="cartao-total-final">
           <div class="rotulo">Total DI</div>
           <div class="valor" id="totalDiValor">R$ 0,00</div>
-          <div class="explic">Gastos GU + sua parte em DI/GU, cartões e contas fixas</div>
+          <div class="explic" id="ultimaAtualizacaoDi"></div>
         </div>
         <div class="cartao-total-final">
           <div class="rotulo">Total com a Pensão</div>
@@ -1226,6 +1227,15 @@
     const restantePensao = pensaoAtual.pago ? 0 : Number(pensaoAtual.valor || 0);
     document.getElementById("totalDiValor").textContent = formatarMoeda(totalDi);
     document.getElementById("totalPensaoValor").textContent = formatarMoeda(totalDi + restantePensao);
+
+    // Pra ele entender que o valor pode não ser "de hoje" se a Edi não mexeu
+    // no financeiro recentemente
+    const el = document.getElementById("ultimaAtualizacaoDi");
+    const datas = [...lancamentosCache, ...gastosFixosCache]
+      .map(item => item.created_at)
+      .filter(Boolean)
+      .map(d => new Date(d));
+    el.textContent = datas.length === 0 ? "" : `Atualizado em ${formatarDataCurta(formatarDataISO(new Date(Math.max(...datas))))}`;
   }
 
   // ============ INÍCIO ============
