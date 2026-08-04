@@ -7578,12 +7578,15 @@
         });
 
         // Marcar/desmarcar já filtra na hora — sem precisar de um botão "Aplicar"
-        // separado, e sem fechar o painel (pra dar pra marcar mais de uma opção)
+        // separado — e fecha o painel em seguida, pra não ficar um quadro aberto
+        // cobrindo a lista já filtrada embaixo
         pop.querySelectorAll("input[type=checkbox]").forEach(chk => {
           chk.addEventListener("change", () => {
             filtrosColunaExtrato[chave] = new Set([...pop.querySelectorAll("input[type=checkbox]:checked")].map(i => i.value));
             btn.classList.toggle("tem-filtro", filtrosColunaExtrato[chave].size > 0 || ordenacaoExtrato.coluna === chave);
             atualizarListaExtratoAoVivo(listaBase);
+            pop.classList.remove("aberto");
+            popoverExtratoAberto = null;
           });
         });
 
