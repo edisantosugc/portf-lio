@@ -1229,11 +1229,20 @@ create policy "Gustavo nao exclui gastos fixos"
 
 -- Habilita a réplica em tempo real: qualquer alteração feita no painel
 -- principal (novo lançamento, pagar uma conta, etc.) chega sozinha na tela
--- do Gustavo, sem ele precisar atualizar a página.
-alter publication supabase_realtime add table
-  public.financas_lancamentos,
-  public.financas_gastos_fixos,
-  public.portal_gustavo_pensao,
-  public.portal_gustavo_pix;
+-- do Gustavo, sem ele precisar atualizar a página. Ao contrário dos outros
+-- comandos daqui, "add table" dá erro se a tabela já foi adicionada antes
+-- (não existe "se não existir" pra isso) — por isso vai dentro de um bloco
+-- que ignora esse erro específico, pra rodar o script de novo sem travar.
+do $$
+begin
+  alter publication supabase_realtime add table
+    public.financas_lancamentos,
+    public.financas_gastos_fixos,
+    public.portal_gustavo_pensao,
+    public.portal_gustavo_pix;
+exception
+  when duplicate_object then
+    null;
+end $$;
 
 alter table public.painel_abordagens add column if not exists arquivado_automaticamente boolean not null default false;
