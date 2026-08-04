@@ -68,8 +68,18 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Chamada direta: o Supabase já exige um usuário autenticado antes de
-  // deixar a requisição chegar aqui (configuração padrão de Edge Functions).
+  // Chamada direta (do painel/portal): essa função roda com "verify JWT"
+  // desligado no Supabase — precisava, senão a chamada do pg_cron acima
+  // (que não tem login nenhum, só o x-sched-key) seria bloqueada antes de
+  // chegar aqui. Então pra esse caminho (sem x-sched-key), a checagem de
+  // "tem que estar logada" precisa ser feita à mão, senão qualquer pessoa
+  // na internet, sem login nenhum, poderia mandar notificação pra vocês duas.
+  const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const { data: dadosUsuario, error: erroUsuario } = await supabase.auth.getUser(jwt);
+  if (!jwt || erroUsuario || !dadosUsuario?.user) {
+    return new Response(JSON.stringify({ error: "Não autorizado." }), { status: 401 });
+  }
+
   const { conta, titulo, corpo, url } = corpoRequisicao as {
     conta?: string; titulo?: string; corpo?: string; url?: string;
   };
