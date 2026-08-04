@@ -1024,6 +1024,20 @@
   // o banco já filtra isso sozinho pra essa conta (ver setup.sql). A coluna
   // "mes" em financas_gastos_fixos usa o mesmo índice 0-11 do JS (getMonth()),
   // não o mês de calendário 1-12 — igual ao painel principal usa internamente.
+  //
+  // Água e Luz (e qualquer conta marcada "variavel" no registro mais recente)
+  // são exceção: NUNCA repetem o valor do mês anterior, só mostram algo se
+  // tiver sido preenchido naquele mês exato. Faltava essa regra aqui, e por
+  // isso Água/Luz ficavam repetindo um valor de mês anterior indevidamente,
+  // inflando o Total DI em relação ao painel principal.
+  const GASTOS_FIXOS_VARIAVEIS = ["Água", "Luz"];
+
+  function ehVariavel(nome, historicoDoNome){
+    if (GASTOS_FIXOS_VARIAVEIS.includes(nome)) return true;
+    const comFlag = historicoDoNome.find(g => g.variavel !== null && g.variavel !== undefined);
+    return comFlag ? !!comFlag.variavel : false;
+  }
+
   function gastosFixosDoMesAtual(){
     const chaveAtual = anoVisivel * 12 + mesVisivel;
     const nomes = [...new Set(gastosFixosCache.map(g => g.nome))].filter(nome => nomesFixosPermitidos.has(nome));
@@ -1031,11 +1045,20 @@
       const historico = gastosFixosCache
         .filter(g => g.nome === nome && (g.ano * 12 + g.mes) <= chaveAtual)
         .sort((a, b) => (b.ano * 12 + b.mes) - (a.ano * 12 + a.mes));
-      const maisRecenteComValor = historico.find(g => g.valor != null);
       const maisRecenteComPessoa = historico.find(g => g.pessoa);
+
+      let valor;
+      if (ehVariavel(nome, historico)){
+        const registroExato = historico.find(g => g.ano * 12 + g.mes === chaveAtual);
+        valor = (registroExato && registroExato.valor != null) ? Number(registroExato.valor) : 0;
+      } else {
+        const maisRecenteComValor = historico.find(g => g.valor != null);
+        valor = maisRecenteComValor ? Number(maisRecenteComValor.valor) : 0;
+      }
+
       return {
         nome,
-        valor: maisRecenteComValor ? Number(maisRecenteComValor.valor) : 0,
+        valor,
         pessoa: maisRecenteComPessoa ? maisRecenteComPessoa.pessoa : "DI/GU"
       };
     }).filter(g => g.valor > 0);
