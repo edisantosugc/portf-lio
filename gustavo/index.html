@@ -1226,6 +1226,17 @@
     valorCampo.value = "";
     renderizarPix();
     atualizarTotais();
+
+    // Avisa a Edi na hora (notificação push) — se ela não tiver ativado
+    // notificações ainda, isso simplesmente não manda nada pra ninguém, sem erro
+    sb.functions.invoke("send-push", {
+      body: {
+        conta: "di",
+        titulo: `Pix de ${formatarMoeda(valor)} registrado`,
+        corpo: "Confere e confirma no painel.",
+        url: "/painel.html"
+      }
+    }).catch(erro => console.error("Erro ao notificar a Edi do Pix:", erro));
   }
 
   // ============ TOTAIS ============
