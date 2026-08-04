@@ -8802,6 +8802,11 @@
       .filter(({ config }) => !gruposFechadosSessao.has(config.grupo))
       .filter(({ config }) => !(lembretesSnoozeCache[config.grupo] && agora < lembretesSnoozeCache[config.grupo]))
       .sort((a, b) => {
+        // Pix do Gustavo sempre primeiro: é sobre dinheiro e precisa ser
+        // confirmado na hora, não pode ficar escondido atrás de uma conta
+        // vencendo hoje (mesma urgência "0" das outras).
+        if (a.config.grupo === "pix-gustavo") return -1;
+        if (b.config.grupo === "pix-gustavo") return 1;
         const urgenciaA = Math.min(...a.itens.map(i => i.diasParaVencer ?? 0));
         const urgenciaB = Math.min(...b.itens.map(i => i.diasParaVencer ?? 0));
         return urgenciaA - urgenciaB;
