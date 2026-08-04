@@ -14,6 +14,17 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3";
 
+// Sem isso, o navegador nunca chega a mandar a chamada de verdade: antes de
+// um POST "diferente da origem" (o painel chamando a API do Supabase), o
+// navegador manda um pedido OPTIONS perguntando "posso te chamar?" — e sem
+// essas cabeçalhos ele nunca recebe um "sim" (ficava voltando 401 e a
+// notificação nunca saía, mesmo com tudo mais certo).
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "https://edilainesantos.com",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const SCHED_SECRET = Deno.env.get("SCHED_SECRET") ?? "";
@@ -51,6 +62,16 @@ const VENCIMENTO_GASTOS_FIXOS: Record<string, number> = {
 };
 
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: CORS_HEADERS });
+  }
+
+  const respostaJson = (corpo: unknown, status = 200) =>
+    new Response(JSON.stringify(corpo), {
+      status,
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+    });
+
   const ehChamadaAgendada = !!SCHED_SECRET && req.headers.get("x-sched-key") === SCHED_SECRET;
 
   let corpoRequisicao: Record<string, unknown> = {};
@@ -62,10 +83,7 @@ Deno.serve(async (req: Request) => {
 
   if (ehChamadaAgendada) {
     const resultado = await enviarAvisosDiarios();
-    return new Response(JSON.stringify(resultado), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return respostaJson(resultado);
   }
 
   // Chamada direta (do painel/portal): essa função roda com "verify JWT"
@@ -77,7 +95,7 @@ Deno.serve(async (req: Request) => {
   const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
   const { data: dadosUsuario, error: erroUsuario } = await supabase.auth.getUser(jwt);
   if (!jwt || erroUsuario || !dadosUsuario?.user) {
-    return new Response(JSON.stringify({ error: "Não autorizado." }), { status: 401 });
+    return respostaJson({ error: "Não autorizado." }, 401);
   }
 
   const { conta, titulo, corpo, url } = corpoRequisicao as {
@@ -85,14 +103,11 @@ Deno.serve(async (req: Request) => {
   };
 
   if (!conta || !titulo) {
-    return new Response(JSON.stringify({ error: "conta e titulo são obrigatórios" }), { status: 400 });
+    return respostaJson({ error: "conta e titulo são obrigatórios" }, 400);
   }
 
   const enviados = await mandarPraConta(conta, titulo, corpo ?? "", url ?? "/");
-  return new Response(JSON.stringify({ enviados }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  return respostaJson({ enviados });
 });
 
 async function mandarPraConta(conta: string, titulo: string, corpo: string, url: string) {
