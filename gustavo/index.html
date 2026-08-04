@@ -189,6 +189,18 @@
   /* ---- pills/cartão ---- */
   .cartao-secao{ background: var(--branco); border: 1px solid var(--borda); border-radius: 16px; padding: 20px; }
   .cartao-secao h2{ font-size: 1rem; margin-bottom: 14px; }
+
+  /* ---- seção inteira colapsável (ex: Lançamentos do mês) — fechada por padrão ---- */
+  .cabecalho-colapsavel{
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    background: none; border: none; padding: 0; margin-bottom: 0; cursor: pointer; text-align: left;
+    font-family: 'Outfit', sans-serif;
+  }
+  .cabecalho-colapsavel h2{ margin-bottom: 0; }
+  .seta-colapsavel{ color: var(--texto-suave); font-size: .9rem; transition: transform .15s ease; flex-shrink: 0; }
+  .secao-colapsavel.aberta .seta-colapsavel{ transform: rotate(180deg); }
+  .corpo-colapsavel{ display: none; margin-top: 16px; }
+  .secao-colapsavel.aberta .corpo-colapsavel{ display: block; }
   .pills-cartao{ display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
   .pill{
     background: var(--branco); border: 1px solid var(--borda); color: var(--grafite); padding: 9px 16px;
@@ -373,6 +385,10 @@
     const [, mes, dia] = iso.split("-");
     return `${dia}/${mes}`;
   }
+  // Mesmo formato do painel principal: "Descrição (parcela atual/total)"
+  function descricaoComParcela(l){
+    return l.parcela_atual ? `${l.descricao} (${l.parcela_atual}/${l.parcela_total})` : l.descricao;
+  }
   function formatarMoeda(v){
     return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
@@ -522,10 +538,15 @@
     const area = document.getElementById("conteudoPortal");
     area.innerHTML = `
       <div id="areaPensao"></div>
-      <div class="cartao-secao">
-        <h2>Lançamentos do mês</h2>
-        <div class="pills-cartao" id="pillsCartao"></div>
-        <div id="areaTabelaExtrato"></div>
+      <div class="cartao-secao secao-colapsavel">
+        <button type="button" class="cabecalho-colapsavel" data-toggle-secao>
+          <h2>Lançamentos do mês</h2>
+          <span class="seta-colapsavel">▾</span>
+        </button>
+        <div class="corpo-colapsavel">
+          <div class="pills-cartao" id="pillsCartao"></div>
+          <div id="areaTabelaExtrato"></div>
+        </div>
       </div>
       <div class="cartao-secao">
         <h2>Gastos por cartão</h2>
@@ -564,6 +585,11 @@
     renderizarSecoesDoMes();
 
     document.getElementById("botaoRegistrarPix").addEventListener("click", registrarPix);
+
+    // Toda seção colapsável começa fechada — só abre quando ele clica
+    area.querySelectorAll("[data-toggle-secao]").forEach(btn => {
+      btn.addEventListener("click", () => btn.closest(".secao-colapsavel").classList.toggle("aberta"));
+    });
 
     renderizarSidebarMes();
   }
@@ -852,7 +878,7 @@
             ${lista.map(l => `
               <tr>
                 <td>${formatarDataCurta(l.data_compra || l.data)}</td>
-                <td>${l.descricao}</td>
+                <td>${descricaoComParcela(l)}</td>
                 <td><span class="selo-pessoa">${l.pessoa}</span>${l.pessoa === "DI/GU" ? `<div class="linha-parte">sua parte: ${formatarMoeda(l.valor / 2)}</div>` : ""}</td>
                 <td>${formatarMoeda(l.valor)}</td>
               </tr>
@@ -945,8 +971,8 @@
       return { cartao, itens, total };
     });
 
-    area.innerHTML = porCartao.map((c, i) => `
-      <div class="gaveta ${i === 0 ? "aberta" : ""}">
+    area.innerHTML = porCartao.map(c => `
+      <div class="gaveta">
         <div class="gaveta-cabeca">
           <div class="gaveta-titulo"><span class="gaveta-seta">▾</span> ${c.cartao}</div>
           <div class="gaveta-valor">${formatarMoeda(c.total)}</div>
@@ -956,7 +982,7 @@
             ? `<div class="gaveta-item" style="color:var(--texto-suave)">Nenhum gasto seu esse mês.</div>`
             : c.itens.map(l => `
               <div class="gaveta-item">
-                <div class="gaveta-item-desc">${l.descricao}<span class="gaveta-item-tag">${l.pessoa}${l.pessoa === "DI/GU" ? " (sua parte)" : ""} · ${formatarDataCurta(l.data_compra || l.data)}</span></div>
+                <div class="gaveta-item-desc">${descricaoComParcela(l)}<span class="gaveta-item-tag">${l.pessoa}${l.pessoa === "DI/GU" ? " (sua parte)" : ""} · ${formatarDataCurta(l.data_compra || l.data)}</span></div>
                 <div>${formatarMoeda(l.pessoa === "DI/GU" ? Number(l.valor) / 2 : Number(l.valor))}</div>
               </div>
             `).join("")}
@@ -1003,7 +1029,7 @@
     }
 
     area.innerHTML = `
-      <div class="gaveta aberta">
+      <div class="gaveta">
         <div class="gaveta-cabeca">
           <div class="gaveta-titulo"><span class="gaveta-seta">▾</span> Contas fixas (sua parte)</div>
           <div class="gaveta-valor">${formatarMoeda(total)}</div>
