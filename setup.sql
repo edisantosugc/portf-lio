@@ -1048,11 +1048,12 @@ alter table public.painel_abordagens add column if not exists motivo_arquivament
 -- =====================================================================
 
 -- Pensão da Lívia: um registro por mês (vencimento e valor editáveis pelo
--- Gustavo, "pago" vira true quando ele marca o botão "Paguei")
+-- Gustavo, "pago" vira true quando ele marca o botão "Paguei"). vencimento é
+-- uma data completa (não só o dia) pra dar pra mudar de mês pra mês se precisar.
 create table if not exists public.portal_gustavo_pensao (
   ano int not null,
   mes int not null,
-  vencimento int not null default 20,
+  vencimento date not null,
   valor numeric,
   pago boolean not null default false,
   created_at timestamptz not null default now(),
