@@ -492,6 +492,16 @@
   .botao-confirmar-modal-mes{ background: var(--coral); color: #fff; }
   .botao-confirmar-modal-mes:hover{ background: var(--coral-escuro); }
 
+  .modal-nota-nova{ max-width: 380px; padding: 20px; }
+  .modal-nota-nova-topo{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .modal-nota-nova-topo h3{ margin: 0; }
+  .botao-fechar-modal-nota{
+    background: none; border: none; font-size: 1.4rem; line-height: 1; color: var(--texto-suave);
+    cursor: pointer; padding: 0 4px;
+  }
+  .botao-fechar-modal-nota:hover{ color: var(--vermelho); }
+  .modal-nota-nova .nota-cartao{ box-shadow: none; }
+
   /* ===================== CARTÕES DE NÚMERO (Menu Principal) ===================== */
   .cartoes-numeros{
     display: grid;
@@ -1889,7 +1899,9 @@
   .notas-titulo-icone{
     width: 42px; height: 42px; border-radius: 12px; background: rgba(0,0,128,.08); color: var(--coral);
     display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;
+    border: none; padding: 0; cursor: pointer; transition: background .15s ease;
   }
+  .notas-titulo-icone:hover{ background: rgba(0,0,128,.16); }
   .notas-contagem{ font-size: .8rem; color: var(--texto-suave); font-weight: 600; }
   .botao-nova-nota{
     background: var(--coral); color: var(--branco); border: none; border-radius: 50px; padding: 11px 20px;
@@ -2977,6 +2989,17 @@
     </div>
   </div>
 
+  <!-- Nova nota abre centralizada na tela, em vez de lá embaixo na grade -->
+  <div class="overlay-modal-mes" id="overlayNotaNova">
+    <div class="modal-mes modal-nota-nova">
+      <div class="modal-nota-nova-topo">
+        <h3>Nova nota</h3>
+        <button type="button" class="botao-fechar-modal-nota" id="botaoFecharModalNotaNova" aria-label="Fechar">&times;</button>
+      </div>
+      <div id="areaNotaNovaCartao"></div>
+    </div>
+  </div>
+
   <!-- ===================== CONTEÚDO ===================== -->
   <main class="conteudo">
     <div class="topo-conteudo">
@@ -3925,7 +3948,7 @@
       <div class="cartao">
         <div class="notas-cabecalho">
           <div class="notas-titulo">
-            <span class="notas-titulo-icone">💡</span>
+            <button type="button" class="notas-titulo-icone" id="notaBotaoTodas" title="Ver todas as notas, de todas as cores">💡</button>
             <span class="notas-contagem" id="notasContagem">0 notas</span>
           </div>
           <button type="button" class="botao-nova-nota" id="notaBotaoNova">+ Nova Nota</button>
@@ -6238,6 +6261,16 @@
     // ---------- Bloco de Notas ----------
     document.getElementById("notaBotaoNova").addEventListener("click", criarNota);
     document.getElementById("notaBusca").addEventListener("input", renderNotas);
+    document.getElementById("notaBotaoTodas").addEventListener("click", () => {
+      notaFiltroCor = null;
+      document.getElementById("notaBusca").value = "";
+      renderFiltroCoresNotas();
+      renderNotas();
+    });
+    document.getElementById("botaoFecharModalNotaNova").addEventListener("click", fecharModalNotaNova);
+    document.getElementById("overlayNotaNova").addEventListener("click", (e) => {
+      if (e.target.id === "overlayNotaNova") fecharModalNotaNova();
+    });
 
     // ---------- Clientes ----------
     document.getElementById("clienteBotaoNovo").addEventListener("click", () => abrirModalCliente(null));
@@ -10765,9 +10798,9 @@
 
     const campoBusca = document.getElementById("notaBusca");
     const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
-    const filtradas = notasCache.filter(n =>
-      (!notaFiltroCor || n.cor === notaFiltroCor) && (!termo || (n.conteudo || "").toLowerCase().includes(termo))
-    );
+    const filtradas = notasCache
+      .filter(n => (!notaFiltroCor || n.cor === notaFiltroCor) && (!termo || (n.conteudo || "").toLowerCase().includes(termo)))
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // mais recente primeiro
 
     corpo.innerHTML = filtradas.length
       ? `<div class="notas-grade">${filtradas.map(renderNotaCartaoHtml).join("")}</div>`
@@ -10780,20 +10813,61 @@
     renderNotas();
   }
 
+  // Herda a cor do filtro ativo (se ela estiver vendo só as verdes, a nota nova já
+  // nasce verde — senão some da vista assim que criada, escondida pelo próprio filtro)
   async function criarNota(){
+    const corInicial = notaFiltroCor || "azul";
     const { data: inserido, error } = await Auth.client
       .from("painel_notas")
-      .insert({ conteudo: "", cor: "azul", fechada: false })
+      .insert({ conteudo: "", cor: corInicial, fechada: false })
       .select();
 
     if (!error && inserido){
       notasCache = notasCache.concat(inserido);
-      renderNotas();
-      requestAnimationFrame(() => {
-        const area = document.querySelector(`[data-nota-conteudo="${inserido[0].id}"]`);
-        if (area) area.focus();
-      });
+      abrirModalNotaNova(inserido[0]);
     }
+  }
+
+  // Nova nota abre centralizada na tela (não lá embaixo na grade) — a grade só
+  // é atualizada de novo quando o modal fecha (salvando, excluindo ou no X)
+  function abrirModalNotaNova(nota){
+    const area = document.getElementById("areaNotaNovaCartao");
+    area.innerHTML = renderNotaAbertaHtml(nota);
+
+    area.querySelectorAll("[data-nota-conteudo]").forEach(campo => {
+      campo.addEventListener("blur", () => salvarConteudoNota(campo.dataset.notaConteudo, campo.value));
+    });
+    area.querySelectorAll("[data-acao='nota-cor']").forEach(dot => {
+      dot.addEventListener("click", () => {
+        alterarCorNota(dot.dataset.id, dot.dataset.cor);
+        area.querySelectorAll(".nota-cor-mini").forEach(d => d.classList.toggle("ativo", d.dataset.cor === dot.dataset.cor));
+      });
+    });
+    area.querySelectorAll("[data-acao='nota-link-remover']").forEach(btn => {
+      btn.addEventListener("click", () => atualizarNota(btn.dataset.id, { link: null }));
+    });
+    const botaoSalvar = area.querySelector("[data-acao='nota-salvar']");
+    if (botaoSalvar) botaoSalvar.addEventListener("click", async () => {
+      if (await salvarNota(nota.id)) fecharModalNotaNova();
+    });
+    const botaoExcluir = area.querySelector("[data-acao='nota-excluir']");
+    if (botaoExcluir) botaoExcluir.addEventListener("click", async () => {
+      if (await excluirNota(nota.id)) fecharModalNotaNova();
+    });
+
+    document.getElementById("overlayNotaNova").classList.add("visivel");
+    requestAnimationFrame(() => {
+      const textarea = area.querySelector("textarea");
+      if (textarea) textarea.focus();
+    });
+  }
+
+  // Fecha o modal e atualiza a grade — importante mesmo se ela só clicou no X sem
+  // salvar, porque a nota (em branco) já existe no banco e precisa aparecer aberta
+  // na grade normal daqui pra frente
+  function fecharModalNotaNova(){
+    document.getElementById("overlayNotaNova").classList.remove("visivel");
+    renderNotas();
   }
 
   // Atualização genérica de campos da nota (cor, link, fechada, etc.) — sempre re-renderiza
@@ -10827,7 +10901,7 @@
     const valor = input ? input.value.trim() : "";
     const campos = { fechada: true };
     if (valor) campos.link = valor;
-    await atualizarNota(id, campos);
+    return await atualizarNota(id, campos);
   }
 
   async function reabrirNota(id){
@@ -10835,13 +10909,14 @@
   }
 
   async function excluirNota(id){
-    if (!window.confirm("Excluir essa nota? Essa ação não pode ser desfeita.")) return;
+    if (!window.confirm("Excluir essa nota? Essa ação não pode ser desfeita.")) return false;
 
     const { error } = await Auth.client.from("painel_notas").delete().eq("id", id);
     if (!error){
       notasCache = notasCache.filter(n => n.id !== id);
       renderNotas();
     }
+    return !error;
   }
 
   /* =========================================================================
