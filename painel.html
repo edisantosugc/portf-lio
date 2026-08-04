@@ -3300,8 +3300,6 @@
 
     <!-- ===================== ABA: FINANÇAS ===================== -->
     <section id="painelFinancas" class="painel-tab oculto">
-      <div id="areaAvisoPixGustavo" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;"></div>
-
       <div id="areaStatusMesFinancas" style="margin-bottom: 20px;"></div>
 
       <div id="areaAlertasContas"></div>
@@ -7457,63 +7455,35 @@
 
   /* =========================================================================
      PIX DO GUSTAVO — notificação + reflexo automático no "Total de gastos"
-     Cada Pix que ele registra no portal dele chega aqui em tempo real: mostra
-     um aviso pra ela conferir/confirmar, e desconta sozinho do "Total de GU"
-     (o total em si nunca muda — o desconto é uma linha nova embaixo dele,
-     "Restante GU"). Se ele excluir um Pix por engano, some dos dois lados
-     também, sem ela precisar fazer nada.
+     Cada Pix que ele registra no portal dele chega aqui em tempo real: entra
+     na mesma fila de pop-up flutuante (centro da tela) dos outros lembretes
+     (ver CONFIG_GRUPOS_LEMBRETE/renderizarNotificacoesPopup), e desconta
+     sozinho do "Total de GU" (o total em si nunca muda — o desconto é uma
+     linha nova embaixo dele, "Restante GU"). Se ele excluir um Pix por
+     engano, some dos dois lados também, sem ela precisar fazer nada.
      ========================================================================= */
   function configurarRealtimePixGustavo(){
     Auth.client.channel("painel-pix-gustavo")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "portal_gustavo_pix" }, (payload) => {
         if (pixGustavoCache.some(p => p.id === payload.new.id)) return;
         pixGustavoCache.push(payload.new);
-        renderizarAvisoPixGustavo();
+        renderizarNotificacoesPopup();
         renderizarFinancas();
       })
       .on("postgres_changes", { event: "DELETE", schema: "public", table: "portal_gustavo_pix" }, (payload) => {
         pixGustavoCache = pixGustavoCache.filter(p => p.id !== payload.old.id);
-        renderizarAvisoPixGustavo();
+        renderizarNotificacoesPopup();
         renderizarFinancas();
       })
       .subscribe();
   }
 
-  // Pix ainda não confirmados por ela (lembrado neste aparelho, igual ao aviso
-  // de fechamento de mês no portal do Gustavo)
-  function renderizarAvisoPixGustavo(){
-    const area = document.getElementById("areaAvisoPixGustavo");
-    if (!area) return;
-
+  // Pix ainda não confirmados por ela (lembrado neste aparelho)
+  function obterPixGustavoPendentes(){
     const confirmados = new Set(JSON.parse(localStorage.getItem("painelPixGustavoConfirmados") || "[]"));
-    const pendentes = pixGustavoCache
+    return pixGustavoCache
       .filter(p => !confirmados.has(p.id))
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-    if (pendentes.length === 0){
-      area.innerHTML = "";
-      return;
-    }
-
-    area.innerHTML = pendentes.map(p => `
-      <div class="alerta-conta info-pix" data-id-pix="${p.id}">
-        <div class="alerta-conta-info dado-sensivel">
-          <p class="alerta-conta-nome">💙 Pix do Gustavo</p>
-          <p class="alerta-conta-mensagem">Registrado em ${formatarDataCurta(p.data)} · ${formatarMoeda(Number(p.valor))}</p>
-        </div>
-        <button type="button" class="alerta-conta-botao-pago" data-acao="confirmar-pix-gustavo">Confirmar</button>
-      </div>
-    `).join("");
-
-    area.querySelectorAll("[data-acao='confirmar-pix-gustavo']").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = btn.closest("[data-id-pix]").dataset.idPix;
-        const vistos = new Set(JSON.parse(localStorage.getItem("painelPixGustavoConfirmados") || "[]"));
-        vistos.add(id);
-        localStorage.setItem("painelPixGustavoConfirmados", JSON.stringify([...vistos]));
-        renderizarAvisoPixGustavo();
-      });
-    });
   }
 
   function abrirModalFecharMes(){
@@ -8718,6 +8688,16 @@
       grupo: "negocio",
       obter: obterAlertasRecebimentos,
       rotulo: (n) => n === 1 ? "recebimento pendente" : "recebimentos pendentes"
+    },
+    {
+      grupo: "pix-gustavo",
+      obter: obterPixGustavoPendentes,
+      rotulo: (n) => n === 1 ? "Pix registrado pelo Gustavo" : "Pix registrados pelo Gustavo",
+      // Mostra valor e data direto no título — só uma contagem genérica não ajuda
+      // a conferir se é o Pix certo
+      tituloCustom: (itens) => itens.length === 1
+        ? `Gustavo registrou um Pix de ${formatarMoeda(Number(itens[0].valor))} em ${formatarDataCurta(itens[0].data)}`
+        : `Gustavo registrou ${itens.length} Pix — total de ${formatarMoeda(itens.reduce((soma, p) => soma + Number(p.valor), 0))}`
     }
   ];
 
@@ -8769,7 +8749,20 @@
 
     const { config, itens } = fila[0];
     const itemMaisUrgente = itens.slice().sort((a, b) => (a.diasParaVencer ?? 0) - (b.diasParaVencer ?? 0))[0];
-    const titulo = `Você tem ${itens.length > 1 ? itens.length + " " : ""}${config.rotulo(itens.length)}`;
+    const titulo = config.tituloCustom
+      ? config.tituloCustom(itens)
+      : `Você tem ${itens.length > 1 ? itens.length + " " : ""}${config.rotulo(itens.length)}`;
+
+    // Pix do Gustavo não tem "aba" pra navegar nem faz sentido "lembrar em 1h" —
+    // o botão certo aqui é confirmar de vez (marca como visto neste aparelho,
+    // some da fila pra sempre, diferente do X que só esconde até recarregar)
+    const ehPixGustavo = config.grupo === "pix-gustavo";
+    const acoesHtml = ehPixGustavo
+      ? `<button type="button" class="notificacao-popup-botao-pago" data-acao="confirmar-pix-notificacao">Confirmar</button>`
+      : `
+        <button type="button" class="notificacao-popup-botao-pago" data-acao="ver-grupo-notificacao">Ver ${LABEL_ABA_LEMBRETE[config.grupo]}</button>
+        <button type="button" class="notificacao-popup-botao-adiar" data-acao="adiar-notificacao">Lembrar em 1h</button>
+      `;
 
     container.innerHTML = `
       <div class="notificacao-popup" data-grupo="${config.grupo}">
@@ -8777,10 +8770,7 @@
         <div class="notificacao-popup-corpo">
           <p class="notificacao-popup-nome dado-sensivel">${titulo}</p>
         </div>
-        <div class="notificacao-popup-acoes">
-          <button type="button" class="notificacao-popup-botao-pago" data-acao="ver-grupo-notificacao">Ver ${LABEL_ABA_LEMBRETE[config.grupo]}</button>
-          <button type="button" class="notificacao-popup-botao-adiar" data-acao="adiar-notificacao">Lembrar em 1h</button>
-        </div>
+        <div class="notificacao-popup-acoes">${acoesHtml}</div>
       </div>
     `;
 
@@ -8788,6 +8778,16 @@
       gruposFechadosSessao.add(config.grupo);
       renderizarNotificacoesPopup();
     });
+
+    if (ehPixGustavo){
+      container.querySelector("[data-acao='confirmar-pix-notificacao']").addEventListener("click", () => {
+        const confirmados = new Set(JSON.parse(localStorage.getItem("painelPixGustavoConfirmados") || "[]"));
+        itens.forEach(p => confirmados.add(p.id));
+        localStorage.setItem("painelPixGustavoConfirmados", JSON.stringify([...confirmados]));
+        renderizarNotificacoesPopup();
+      });
+      return;
+    }
 
     container.querySelector("[data-acao='adiar-notificacao']").addEventListener("click", () => {
       adiarGrupoLembrete(config.grupo);
