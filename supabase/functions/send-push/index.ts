@@ -111,7 +111,8 @@ Deno.serve(async (req: Request) => {
 });
 
 async function mandarPraConta(conta: string, titulo: string, corpo: string, url: string) {
-  const { data: inscricoes } = await supabase.from("push_subscricoes").select("*").eq("conta", conta);
+  const { data: inscricoes, error: erroBusca } = await supabase.from("push_subscricoes").select("*").eq("conta", conta);
+  console.log(`mandarPraConta(${conta}): ${inscricoes?.length ?? 0} inscrição(ões) encontrada(s)`, erroBusca ?? "");
   let enviados = 0;
   for (const inscricao of inscricoes ?? []) {
     const ok = await mandarUm(inscricao, titulo, corpo, url);
@@ -127,7 +128,8 @@ async function mandarUm(inscricao: any, titulo: string, corpo: string, url: stri
     keys: { p256dh: inscricao.p256dh, auth: inscricao.auth },
   };
   try {
-    await webpush.sendNotification(assinatura, payload);
+    const resultado = await webpush.sendNotification(assinatura, payload);
+    console.log("Push enviado com sucesso:", inscricao.endpoint.slice(0, 60), "status:", resultado?.statusCode);
     return true;
   } catch (erro: any) {
     // Inscrição expirada/inválida (o navegador cancelou por fora) — remove
@@ -135,7 +137,7 @@ async function mandarUm(inscricao: any, titulo: string, corpo: string, url: stri
     if (erro?.statusCode === 410 || erro?.statusCode === 404) {
       await supabase.from("push_subscricoes").delete().eq("id", inscricao.id);
     } else {
-      console.error("Erro enviando push:", erro?.statusCode, erro?.body);
+      console.error("Erro enviando push:", erro?.statusCode, erro?.body, erro?.message ?? erro);
     }
     return false;
   }
