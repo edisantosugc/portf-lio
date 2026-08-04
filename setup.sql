@@ -1035,4 +1035,174 @@ create policy "Usuaria autenticada remove de documentos-juridicos"
 -- =====================================================================
 alter table public.painel_abordagens add column if not exists motivo_arquivamento text
   check (motivo_arquivamento in ('recusou', 'sem_retorno', 'banco_fechado', 'prazo_expirado'));
+
+-- =====================================================================
+-- PORTAL DO GUSTAVO (edilainesantos.com/gustavo)
+-- Página separada, com login próprio, onde ele acompanha os gastos que são
+-- dele (GU) ou conjuntos (DI/GU) e cuida da Pensão da Lívia. Antes de rodar
+-- este bloco, crie o login dele em Authentication > Users > Add user, com:
+--   email: gustavoamoreira@portal.edilainesantos.com
+--   senha: (a que a Edilaine combinou com ele)
+-- Esse e-mail é só uma chave técnica interna — ele nunca vê nem digita um
+-- e-mail, só o código de acesso, na tela de login da página dele.
+-- =====================================================================
+
+-- Pensão da Lívia: um registro por mês (vencimento e valor editáveis pelo
+-- Gustavo, "pago" vira true quando ele marca o botão "Paguei")
+create table if not exists public.portal_gustavo_pensao (
+  ano int not null,
+  mes int not null,
+  vencimento int not null default 20,
+  valor numeric,
+  pago boolean not null default false,
+  created_at timestamptz not null default now(),
+  primary key (ano, mes)
+);
+
+alter table public.portal_gustavo_pensao enable row level security;
+
+drop policy if exists "Autenticados leem a pensao da Livia" on public.portal_gustavo_pensao;
+create policy "Autenticados leem a pensao da Livia"
+  on public.portal_gustavo_pensao
+  for select
+  to authenticated
+  using (true);
+
+drop policy if exists "Autenticados gerenciam a pensao da Livia" on public.portal_gustavo_pensao;
+create policy "Autenticados gerenciam a pensao da Livia"
+  on public.portal_gustavo_pensao
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update on public.portal_gustavo_pensao to authenticated;
+
+-- Pix que o Gustavo registra pra abater do que ele deve. Só ele lança (a
+-- página não tem edição, só registrar novo ou remover um lançado por engano)
+create table if not exists public.portal_gustavo_pix (
+  id uuid primary key default gen_random_uuid(),
+  data date not null,
+  valor numeric not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.portal_gustavo_pix enable row level security;
+
+drop policy if exists "Autenticados leem os pix do Gustavo" on public.portal_gustavo_pix;
+create policy "Autenticados leem os pix do Gustavo"
+  on public.portal_gustavo_pix
+  for select
+  to authenticated
+  using (true);
+
+drop policy if exists "Autenticados registram pix do Gustavo" on public.portal_gustavo_pix;
+create policy "Autenticados registram pix do Gustavo"
+  on public.portal_gustavo_pix
+  for insert
+  to authenticated
+  with check (true);
+
+drop policy if exists "Autenticados removem pix do Gustavo" on public.portal_gustavo_pix;
+create policy "Autenticados removem pix do Gustavo"
+  on public.portal_gustavo_pix
+  for delete
+  to authenticated
+  using (true);
+
+grant select, insert, delete on public.portal_gustavo_pix to authenticated;
+
+-- =====================================================================
+-- Trava de segurança de verdade (não é só esconder na tela): identifica a
+-- conta do Gustavo pelo e-mail técnico dela, e usa policies "restrictive".
+-- Diferente das policies normais (que se somam com OU), uma restrictive
+-- sempre se soma com E a qualquer outra regra que já exista na tabela — ou
+-- seja, ela só ADICIONA um freio, sem precisar tocar nas regras que a
+-- Edilaine já tem hoje em financas_lancamentos/financas_gastos_fixos.
+-- Resultado: mesmo que alguém tente ler essas tabelas direto (fora da tela),
+-- logada como Gustavo só vem GU e DI/GU, e nenhuma escrita é aceita.
+-- =====================================================================
+create or replace function public.eh_conta_gustavo()
+returns boolean
+language sql
+stable
+as $$
+  select coalesce(auth.jwt() ->> 'email', '') = 'gustavoamoreira@portal.edilainesantos.com';
+$$;
+
+drop policy if exists "Gustavo so ve GU e DI-GU em lancamentos" on public.financas_lancamentos;
+create policy "Gustavo so ve GU e DI-GU em lancamentos"
+  as restrictive
+  on public.financas_lancamentos
+  for select
+  to authenticated
+  using ( not public.eh_conta_gustavo() or pessoa in ('GU', 'DI/GU') );
+
+drop policy if exists "Gustavo nao insere em lancamentos" on public.financas_lancamentos;
+create policy "Gustavo nao insere em lancamentos"
+  as restrictive
+  on public.financas_lancamentos
+  for insert
+  to authenticated
+  with check ( not public.eh_conta_gustavo() );
+
+drop policy if exists "Gustavo nao atualiza lancamentos" on public.financas_lancamentos;
+create policy "Gustavo nao atualiza lancamentos"
+  as restrictive
+  on public.financas_lancamentos
+  for update
+  to authenticated
+  using ( not public.eh_conta_gustavo() )
+  with check ( not public.eh_conta_gustavo() );
+
+drop policy if exists "Gustavo nao exclui lancamentos" on public.financas_lancamentos;
+create policy "Gustavo nao exclui lancamentos"
+  as restrictive
+  on public.financas_lancamentos
+  for delete
+  to authenticated
+  using ( not public.eh_conta_gustavo() );
+
+drop policy if exists "Gustavo so ve GU e DI-GU em gastos fixos" on public.financas_gastos_fixos;
+create policy "Gustavo so ve GU e DI-GU em gastos fixos"
+  as restrictive
+  on public.financas_gastos_fixos
+  for select
+  to authenticated
+  using ( not public.eh_conta_gustavo() or pessoa in ('GU', 'DI/GU') );
+
+drop policy if exists "Gustavo nao insere em gastos fixos" on public.financas_gastos_fixos;
+create policy "Gustavo nao insere em gastos fixos"
+  as restrictive
+  on public.financas_gastos_fixos
+  for insert
+  to authenticated
+  with check ( not public.eh_conta_gustavo() );
+
+drop policy if exists "Gustavo nao atualiza gastos fixos" on public.financas_gastos_fixos;
+create policy "Gustavo nao atualiza gastos fixos"
+  as restrictive
+  on public.financas_gastos_fixos
+  for update
+  to authenticated
+  using ( not public.eh_conta_gustavo() )
+  with check ( not public.eh_conta_gustavo() );
+
+drop policy if exists "Gustavo nao exclui gastos fixos" on public.financas_gastos_fixos;
+create policy "Gustavo nao exclui gastos fixos"
+  as restrictive
+  on public.financas_gastos_fixos
+  for delete
+  to authenticated
+  using ( not public.eh_conta_gustavo() );
+
+-- Habilita a réplica em tempo real: qualquer alteração feita no painel
+-- principal (novo lançamento, pagar uma conta, etc.) chega sozinha na tela
+-- do Gustavo, sem ele precisar atualizar a página.
+alter publication supabase_realtime add table
+  public.financas_lancamentos,
+  public.financas_gastos_fixos,
+  public.portal_gustavo_pensao,
+  public.portal_gustavo_pix;
+
 alter table public.painel_abordagens add column if not exists arquivado_automaticamente boolean not null default false;
