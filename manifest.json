@@ -1,0 +1,12 @@
+{
+  "name": "Painel | Edilaine Santos",
+  "short_name": "Painel",
+  "start_url": "/painel.html",
+  "display": "standalone",
+  "background_color": "#F3EEE9",
+  "theme_color": "#000080",
+  "icons": [
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "maskable" }
+  ]
+}
