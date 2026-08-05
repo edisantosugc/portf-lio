@@ -1389,14 +1389,16 @@ create policy "Cada conta so inscreve a propria conta"
   with check ( (conta = 'gustavo') = public.eh_conta_gustavo() );
 
 -- Roda a checagem diária de avisos (contas vencendo, compromissos do dia,
--- pensão) às 8h de Brasília (11h UTC). Precisa dos mesmos passos do bloco
--- de agendamento do ig-scheduler logo acima: publicar a Edge Function
--- send-push primeiro, cadastrar os segredos dela (ver LEIA-ME-PUSH.md), e
--- SÓ DEPOIS rodar este select — reaproveita o mesmo SCHED_SECRET que o
--- ig-scheduler/ig-token-refresh já usam.
+-- pensão, recebimentos) às 10h de Brasília (13h UTC). Precisa dos mesmos
+-- passos do bloco de agendamento do ig-scheduler logo acima: publicar a
+-- Edge Function send-push primeiro, cadastrar os segredos dela (ver
+-- LEIA-ME-PUSH.md), e SÓ DEPOIS rodar este select — reaproveita o mesmo
+-- SCHED_SECRET que o ig-scheduler/ig-token-refresh já usam. Rodar de novo
+-- com o mesmo nome de job atualiza o horário do agendamento já existente,
+-- não cria um duplicado.
 select cron.schedule(
   'send-push-diario',
-  '0 11 * * *',
+  '0 13 * * *',
   $$
   select net.http_post(
     url := 'https://dqtoxxngjqyoibdgmrjr.supabase.co/functions/v1/send-push',
