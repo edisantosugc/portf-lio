@@ -1405,3 +1405,34 @@ select cron.schedule(
   );
   $$
 );
+
+-- Notifica a Edi na hora que chega uma mensagem nova no Portfólio (formulário
+-- de contato do site) — não espera o aviso diário, responder rápido é
+-- prioridade. Mesmo segredo de cima: troque SEU_SCHED_SECRET pelo mesmo
+-- valor usado no cron.schedule acima antes de rodar.
+create or replace function public.notificar_novo_lead_portfolio()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform net.http_post(
+    url := 'https://dqtoxxngjqyoibdgmrjr.supabase.co/functions/v1/send-push',
+    headers := jsonb_build_object('x-sched-key', 'SEU_SCHED_SECRET', 'Content-Type', 'application/json'),
+    body := jsonb_build_object(
+      'conta', 'di',
+      'titulo', 'Nova mensagem de ' || coalesce(new.name, 'alguém') || coalesce(' (' || new.brand || ')', ''),
+      'corpo', coalesce(new.message, 'Confere no painel.'),
+      'url', '/painel.html'
+    )
+  );
+  return new;
+end;
+$$;
+
+drop trigger if exists trigger_notificar_novo_lead on public.portfolio_leads;
+create trigger trigger_notificar_novo_lead
+  after insert on public.portfolio_leads
+  for each row
+  execute function public.notificar_novo_lead_portfolio();

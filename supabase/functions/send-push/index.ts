@@ -1,15 +1,23 @@
 // supabase/functions/send-push/index.ts
 //
 // Manda notificação push pro navegador/celular de quem estiver inscrito
-// (tabela push_subscricoes). Dois jeitos de chamar:
+// (tabela push_subscricoes). Três jeitos de chamar:
 //
 // 1) Direto, de dentro do painel/portal (usuária logada): body como
-//    { conta: "di" | "gustavo", titulo, corpo, url }. Usado hoje só pra
-//    avisar o Gustavo na hora que a Edi fecha o mês.
+//    { conta: "di" | "gustavo", titulo, corpo, url }. Usado hoje pra avisar
+//    o Gustavo na hora que a Edi fecha o mês, e a Edi na hora que ele
+//    registra um Pix.
 //
-// 2) Pelo pg_cron, 1x por dia: header x-sched-key = SCHED_SECRET, body
+// 2) Por um gatilho do banco (trigger em cima de uma tabela, sem login
+//    nenhum): header x-sched-key = SCHED_SECRET + o mesmo body de cima
+//    ({ conta, titulo, corpo, url }). Usado pra avisar a Edi na hora que
+//    chega uma mensagem nova no Portfólio (não pode esperar o diário —
+//    responder rápido é prioridade).
+//
+// 3) Pelo pg_cron, 1x por dia: header x-sched-key = SCHED_SECRET, body
 //    vazio ({}). Aí a função mesma decide o que está vencendo/tarefa do
-//    dia/pensão e manda pra quem precisar — ver enviarAvisosDiarios().
+//    dia/pensão/recebimento e manda pra quem precisar — ver
+//    enviarAvisosDiarios().
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3";
@@ -82,6 +90,18 @@ Deno.serve(async (req: Request) => {
   }
 
   if (ehChamadaAgendada) {
+    // Gatilho do banco mandando uma notificação específica (ex.: mensagem nova
+    // no Portfólio) tem conta+titulo no body, igual a chamada direta do
+    // painel — só que autenticado por x-sched-key em vez de login, porque
+    // quem chama é o próprio Postgres, sem usuária logada.
+    const { conta, titulo, corpo, url } = corpoRequisicao as {
+      conta?: string; titulo?: string; corpo?: string; url?: string;
+    };
+    if (conta && titulo) {
+      const enviados = await mandarPraConta(conta, titulo, corpo ?? "", url ?? "/");
+      return respostaJson({ enviados });
+    }
+
     const resultado = await enviarAvisosDiarios();
     return respostaJson(resultado);
   }
@@ -208,6 +228,29 @@ async function enviarAvisosDiarios() {
       "/painel.html"
     );
     totalDi++;
+  }
+
+  // ---------- Pra ela: recebimentos (Negócio) previstos pra 3, 1 ou 0 dias, ainda não recebidos ----------
+  const { data: recebimentosPendentes } = await supabase
+    .from("negocio_lancamentos")
+    .select("*")
+    .eq("tipo", "ganho")
+    .eq("recebido", false)
+    .not("data_prevista_recebimento", "is", null);
+
+  for (const recebimento of recebimentosPendentes ?? []) {
+    const diasParaVencer = Math.round(
+      (new Date(recebimento.data_prevista_recebimento).getTime() - new Date(hojeISO).getTime()) / 86400000
+    );
+    if ([3, 1, 0].includes(diasParaVencer)) {
+      await mandarPraConta(
+        "di",
+        `Recebimento de ${recebimento.descricao} ${mensagemPrazo(diasParaVencer)}`,
+        "Confere no painel.",
+        "/painel.html"
+      );
+      totalDi++;
+    }
   }
 
   // ---------- Pro Gustavo: pensão vencendo em 3 dias ou hoje, ainda não paga ----------
