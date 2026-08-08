@@ -1446,7 +1446,7 @@ begin
       'conta', 'di',
       'titulo', 'Nova mensagem de ' || coalesce(new.name, 'alguém') || coalesce(' (' || new.brand || ')', ''),
       'corpo', coalesce(new.message, 'Confere no painel.'),
-      'url', '/painel.html'
+      'url', '/painel.html?ir=portfolio'
     )
   );
   return new;

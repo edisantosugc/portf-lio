@@ -25,15 +25,21 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = (event.notification.data && event.notification.data.url) || "/";
+  // Compara só o caminho (sem o "?ir=..."), senão uma aba já aberta em
+  // /painel.html (sem parâmetro nenhum) nunca seria reconhecida como "a
+  // mesma página" de /painel.html?ir=financas, e sempre abriria uma aba nova.
+  const caminho = new URL(url, self.location.origin).pathname;
 
-  // Se já tem uma aba aberta na mesma página, navega ela pra essa mesma URL antes
-  // de focar — só focar (sem navegar) deixava a aba com os dados antigos, de antes
-  // da notificação chegar (mensagem nova do Portfólio não aparecia, pop-up de aviso
-  // não aparecia), porque o painel só busca os dados uma vez, ao carregar a página.
+  // Se já tem uma aba aberta na mesma página, navega ela pra essa URL (com o
+  // ?ir=... de propósito) antes de focar — só focar (sem navegar) deixava a
+  // aba com os dados antigos, de antes da notificação chegar (mensagem nova
+  // não aparecia, pop-up de aviso não aparecia, e não levava direto pro lugar
+  // certo), porque o painel só busca os dados e olha o ?ir= uma vez, ao
+  // carregar a página.
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((lista) => {
       for (const cliente of lista) {
-        if (cliente.url.includes(url) && "navigate" in cliente) {
+        if (new URL(cliente.url).pathname === caminho && "navigate" in cliente) {
           return cliente.navigate(url).then((c) => c.focus());
         }
       }

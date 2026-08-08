@@ -191,7 +191,7 @@ async function enviarAvisosDiarios() {
     if (vencimento === null || cartoesPagosSet.has(cartao)) continue;
     const diasParaVencer = vencimento - dia;
     if ([3, 1, 0].includes(diasParaVencer)) {
-      await mandarPraConta("di", `Fatura ${cartao} ${mensagemPrazo(diasParaVencer)}`, "Confere no painel.", "/painel.html");
+      await mandarPraConta("di", `Fatura ${cartao} ${mensagemPrazo(diasParaVencer)}`, "Confere no painel.", "/painel.html?ir=financas");
       totalDi++;
     }
   }
@@ -208,7 +208,7 @@ async function enviarAvisosDiarios() {
     if (gastosFixosPagosSet.has(nome)) continue;
     const diasParaVencer = vencimento - dia;
     if ([3, 1, 0].includes(diasParaVencer)) {
-      await mandarPraConta("di", `${nome} ${mensagemPrazo(diasParaVencer)}`, "Confere no painel.", "/painel.html");
+      await mandarPraConta("di", `${nome} ${mensagemPrazo(diasParaVencer)}`, "Confere no painel.", "/painel.html?ir=financas");
       totalDi++;
     }
   }
@@ -225,7 +225,7 @@ async function enviarAvisosDiarios() {
       "di",
       `Você tem ${n} compromisso${n === 1 ? "" : "s"} hoje`,
       "Confere sua agenda.",
-      "/painel.html"
+      "/painel.html?ir=agenda"
     );
     totalDi++;
   }
@@ -247,7 +247,7 @@ async function enviarAvisosDiarios() {
         "di",
         `Recebimento de ${recebimento.descricao} ${mensagemPrazo(diasParaVencer)}`,
         "Confere no painel.",
-        "/painel.html"
+        "/painel.html?ir=negocio"
       );
       totalDi++;
     }

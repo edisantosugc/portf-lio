@@ -4574,6 +4574,13 @@
       document.getElementById("areaCarregando").classList.add("oculto");
       renderizarTudo();
       renderizarNotificacoesPopup();
+      // Notificações push mandam pra /painel.html?ir=<grupo> (financas, agenda,
+      // negocio, portfolio) — isso já abre direto na aba certa, sem precisar
+      // clicar em "Ver X" no aviso. Só funciona pros grupos que não dependem de
+      // um item específico (navegarParaGrupoLembrete precisaria do id do item
+      // pra abordagem/clientes/ugc-creator, que não vêm por notificação push).
+      const paramNavegar = new URLSearchParams(location.search).get("ir");
+      if (paramNavegar) navegarParaGrupoLembrete(paramNavegar);
       renderizarAgenda();
       preencherSelectsFinancas();
       try {
