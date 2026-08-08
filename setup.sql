@@ -1396,13 +1396,28 @@ create policy "Cada conta so inscreve a propria conta"
 -- SCHED_SECRET que o ig-scheduler/ig-token-refresh já usam. Rodar de novo
 -- com o mesmo nome de job atualiza o horário do agendamento já existente,
 -- não cria um duplicado.
+-- IMPORTANTE: o cabeçalho 'apikey'/'Authorization' abaixo usa a chave pública
+-- (anon key) do Supabase — a mesma que já aparece em claro em js/auth.js,
+-- index.html, portfolio/index.html e gustavo/index.html. Não é segredo, só
+-- identifica o projeto pra plataforma do Supabase deixar a chamada passar
+-- (a função send-push está publicada com verificação de login ligada, e sem
+-- isso a plataforma barra a chamada com 401 antes mesmo do código dela rodar
+-- — foi por isso que os avisos diários e o de mensagem nova no Portfólio
+-- nunca chegavam, mesmo com o x-sched-key certo). Quem continua checando se
+-- a chamada é de verdade autorizada é o próprio código da send-push, comparando
+-- x-sched-key com o secret SCHED_SECRET.
 select cron.schedule(
   'send-push-diario',
   '0 13 * * *',
   $$
   select net.http_post(
     url := 'https://dqtoxxngjqyoibdgmrjr.supabase.co/functions/v1/send-push',
-    headers := jsonb_build_object('x-sched-key', 'SEU_SCHED_SECRET', 'Content-Type', 'application/json'),
+    headers := jsonb_build_object(
+      'x-sched-key', 'SEU_SCHED_SECRET',
+      'Content-Type', 'application/json',
+      'apikey', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc',
+      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc'
+    ),
     body := '{}'::jsonb
   );
   $$
@@ -1421,7 +1436,12 @@ as $$
 begin
   perform net.http_post(
     url := 'https://dqtoxxngjqyoibdgmrjr.supabase.co/functions/v1/send-push',
-    headers := jsonb_build_object('x-sched-key', 'SEU_SCHED_SECRET', 'Content-Type', 'application/json'),
+    headers := jsonb_build_object(
+      'x-sched-key', 'SEU_SCHED_SECRET',
+      'Content-Type', 'application/json',
+      'apikey', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc',
+      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc'
+    ),
     body := jsonb_build_object(
       'conta', 'di',
       'titulo', 'Nova mensagem de ' || coalesce(new.name, 'alguém') || coalesce(' (' || new.brand || ')', ''),

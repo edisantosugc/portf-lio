@@ -26,10 +26,16 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = (event.notification.data && event.notification.data.url) || "/";
 
+  // Se já tem uma aba aberta na mesma página, navega ela pra essa mesma URL antes
+  // de focar — só focar (sem navegar) deixava a aba com os dados antigos, de antes
+  // da notificação chegar (mensagem nova do Portfólio não aparecia, pop-up de aviso
+  // não aparecia), porque o painel só busca os dados uma vez, ao carregar a página.
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((lista) => {
       for (const cliente of lista) {
-        if (cliente.url.includes(url) && "focus" in cliente) return cliente.focus();
+        if (cliente.url.includes(url) && "navigate" in cliente) {
+          return cliente.navigate(url).then((c) => c.focus());
+        }
       }
       if (self.clients.openWindow) return self.clients.openWindow(url);
     })
