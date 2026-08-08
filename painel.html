@@ -1181,9 +1181,16 @@
      type="date" de forma confiável (já tentamos 3 vezes). Solução definitiva:
      o input real fica invisível por cima (continua funcional, abre o seletor
      nativo ao tocar), e quem aparece de verdade é esse span, estilizado
-     exatamente igual aos campos vizinhos (herda do seletor acima). */
+     exatamente igual aos campos vizinhos (herda do seletor acima).
+     Só faz isso no iOS (classe "precisa-fix-data-ios" no body, ver JS) — em
+     outros navegadores (inclusive computador) deixar o input nativo visível
+     e clicável direto funciona bem, e escondê-lo causava um bug pior: no
+     Chrome desktop o clique só abre o calendário certinho em cima do ícone
+     nativo, que ficava fora da área "ativa" enquanto o input estava
+     invisível, então clicar no campo não abria nada. */
   .campo-data-wrapper{ position: relative; box-sizing: border-box; }
-  .campo-data-wrapper input[type="date"]{
+  .campo-data-exibicao{ display: none; }
+  body.precisa-fix-data-ios .campo-data-wrapper input[type="date"]{
     position: absolute;
     inset: 0;
     width: 100%;
@@ -1192,7 +1199,7 @@
     z-index: 2;
     cursor: pointer;
   }
-  .campo-data-exibicao{
+  body.precisa-fix-data-ios .campo-data-exibicao{
     display: flex;
     align-items: center;
     box-sizing: border-box;
@@ -4123,7 +4130,10 @@
     { chave: "pessoa",    titulo: "Pessoa",    tipo: "lista",  valor: l => l.pessoa || "-",          rotulo: v => v },
     { chave: "valor",     titulo: "Valor",     tipo: "numero", valor: l => Number(l.valor),          rotulo: v => formatarMoeda(v) }
   ];
-  let ordenacaoExtrato = { coluna: null, direcao: "asc" };
+  // Por padrão já vem ordenado por data decrescente (lançamento mais recente
+  // primeiro) — antes disso a tabela ficava na ordem "crua" que vinha do
+  // banco, que era do mais antigo pro mais novo.
+  let ordenacaoExtrato = { coluna: "data", direcao: "desc" };
   let filtrosColunaExtrato = { data: new Set(), descricao: new Set(), pessoa: new Set(), valor: new Set() };
   let popoverExtratoAberto = null;
 
@@ -4451,6 +4461,13 @@
   function atualizarExibicaoData(inputEl, exibicaoEl){
     if (!exibicaoEl) return;
     exibicaoEl.textContent = formatarDataExibicaoLonga(inputEl.value) || "Selecionar data";
+  }
+
+  // Só o iOS precisa do truque de esconder o input nativo (ver comentário do
+  // CSS ".campo-data-wrapper" acima) — liga a classe cedo, antes de qualquer
+  // campo de data ser configurado.
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)){
+    document.body.classList.add("precisa-fix-data-ios");
   }
 
   // Liga um <input type="date"> ao seu <span> de exibição: atualiza o texto sempre
@@ -7909,7 +7926,10 @@
         if (typeof va === "string"){ va = va.toLowerCase(); vb = vb.toLowerCase(); }
         if (va < vb) return ordenacaoExtrato.direcao === "asc" ? -1 : 1;
         if (va > vb) return ordenacaoExtrato.direcao === "asc" ? 1 : -1;
-        return 0;
+        // Empate (mesma data, mesmo valor etc.): o lançamento criado por
+        // último aparece primeiro, em vez de depender da ordem "crua" que
+        // veio do banco.
+        return new Date(b.created_at) - new Date(a.created_at);
       });
     }
     return lista;
