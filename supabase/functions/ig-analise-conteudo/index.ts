@@ -51,10 +51,6 @@ Deno.serve(async (req: Request) => {
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
 
-  if (!ANTHROPIC_API_KEY) {
-    return respostaJson({ error: "ANTHROPIC_API_KEY não configurada nos secrets da função." }, 500);
-  }
-
   const supabase = criarClienteSupabase();
 
   // "Verify JWT" ligado (padrão da plataforma) só garante que veio ALGUM JWT
@@ -65,6 +61,10 @@ Deno.serve(async (req: Request) => {
   const { data: dadosUsuario, error: erroUsuario } = await supabase.auth.getUser(jwt);
   if (!jwt || erroUsuario || !dadosUsuario?.user) {
     return respostaJson({ error: "Não autorizado." }, 401);
+  }
+
+  if (!ANTHROPIC_API_KEY) {
+    return respostaJson({ error: "ANTHROPIC_API_KEY não configurada nos secrets da função." }, 500);
   }
 
   try {
