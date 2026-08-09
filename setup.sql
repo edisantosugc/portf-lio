@@ -1423,6 +1423,28 @@ select cron.schedule(
   $$
 );
 
+-- REVISÃO DE SEGURANÇA (2026-08): o formulário de contato é público e sem
+-- nenhum limite — um script simples poderia mandar milhares de "mensagens"
+-- por minuto, direto pela API, usando a mesma chave pública que já está
+-- visível no site. Sem essa trava, cada uma dessas mandaria uma notificação
+-- push pro seu celular na hora — ou seja, um jeito fácil de te encher de
+-- notificação sem parar. Essa tabela guarda só QUANDO foi a última
+-- notificação de mensagem nova mandada; o gatilho abaixo nunca manda mais
+-- de uma por minuto, não importa quantas mensagens cheguem nesse intervalo
+-- (a primeira da rajada sempre passa na hora — só as seguintes, dentro do
+-- mesmo minuto, ficam de fora do push, mas continuam salvas normalmente e
+-- aparecem no painel).
+create table if not exists public.portfolio_notificacao_controle (
+  id boolean primary key default true,
+  ultimo_envio timestamptz,
+  constraint portfolio_notificacao_controle_linha_unica check (id)
+);
+insert into public.portfolio_notificacao_controle (id, ultimo_envio)
+values (true, null)
+on conflict (id) do nothing;
+
+alter table public.portfolio_notificacao_controle enable row level security;
+
 -- Notifica a Edi na hora que chega uma mensagem nova no Portfólio (formulário
 -- de contato do site) — não espera o aviso diário, responder rápido é
 -- prioridade. Mesmo segredo de cima: troque SEU_SCHED_SECRET pelo mesmo
@@ -1433,7 +1455,20 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  ultimo timestamptz;
 begin
+  select ultimo_envio into ultimo
+  from public.portfolio_notificacao_controle
+  where id = true
+  for update;
+
+  if ultimo is not null and now() - ultimo < interval '60 seconds' then
+    return new;
+  end if;
+
+  update public.portfolio_notificacao_controle set ultimo_envio = now() where id = true;
+
   perform net.http_post(
     url := 'https://dqtoxxngjqyoibdgmrjr.supabase.co/functions/v1/send-push',
     headers := jsonb_build_object(
