@@ -1458,3 +1458,35 @@ create trigger trigger_notificar_novo_lead
   after insert on public.portfolio_leads
   for each row
   execute function public.notificar_novo_lead_portfolio();
+
+-- =====================================================================
+-- REVISÃO DE SEGURANÇA (2026-08): bloqueia o Gustavo por completo nas
+-- tabelas que não são da conta dele. Ele tem login de verdade no sistema
+-- (pro Portal dele), então "authenticated" inclui a conta dele também —
+-- sem essa trava, ele podia, tecnicamente, ler/escrever nessas tabelas por
+-- fora da tela do Portal (chamando a API direto), mesmo a tela dele nunca
+-- mostrando nada disso. Mesmo padrão restrictive já usado em
+-- financas_lancamentos/financas_gastos_fixos, só que aqui bloqueia tudo
+-- (nenhuma exceção "GU"/"DI-GU", porque essas tabelas não são dele em
+-- nenhuma hipótese) em vez de filtrar por pessoa.
+-- =====================================================================
+do $$
+declare
+  tabela text;
+begin
+  foreach tabela in array array[
+    'painel_clientes', 'painel_abordagens', 'painel_projetos',
+    'painel_banco_criativo', 'painel_ugc_trabalhos',
+    'painel_documentos_pessoais', 'painel_documentos_avulsos', 'painel_notas',
+    'painel_ia_mensagens', 'negocio_lancamentos'
+  ]
+  loop
+    execute format(
+      'drop policy if exists "Gustavo bloqueado" on public.%I', tabela
+    );
+    execute format(
+      'create policy "Gustavo bloqueado" on public.%I as restrictive for all to authenticated using (not public.eh_conta_gustavo()) with check (not public.eh_conta_gustavo())',
+      tabela
+    );
+  end loop;
+end $$;
