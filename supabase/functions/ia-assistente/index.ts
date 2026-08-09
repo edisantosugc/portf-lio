@@ -14,6 +14,11 @@ const ANTHROPIC_VERSION = "2023-06-01";
 // qualidade — custa ~2,5x mais que o claude-sonnet-5 usado aqui).
 const MODELO = "claude-sonnet-5";
 
+// Só pra validar que quem chamou está mesmo logada (ver checagem abaixo) —
+// não lê nem escreve nada no banco, por isso a anon key (só ela) já basta.
+import { createClient } from "npm:@supabase/supabase-js@2";
+const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "");
+
 // EDITE AQUI se o site for publicado em outro domínio
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "https://edilainesantos.com",
@@ -59,6 +64,16 @@ Deno.serve(async (req: Request) => {
   try {
     if (!ANTHROPIC_API_KEY) {
       return respostaJson({ error: "ANTHROPIC_API_KEY não configurada nos secrets da função." }, 500);
+    }
+
+    // "Verify JWT" ligado (padrão da plataforma) só garante que veio ALGUM JWT
+    // válido — e a anon key (pública, já exposta no código do site) é um JWT
+    // válido. Sem checar se é mesmo uma pessoa logada, qualquer um na internet
+    // podia chamar essa function direto e gastar seu crédito da Anthropic.
+    const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+    const { data: dadosUsuario, error: erroUsuario } = await supabase.auth.getUser(jwt);
+    if (!jwt || erroUsuario || !dadosUsuario?.user) {
+      return respostaJson({ error: "Não autorizado." }, 401);
     }
 
     const { contexto, mensagens } = await req.json();

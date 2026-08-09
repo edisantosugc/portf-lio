@@ -8,7 +8,7 @@
 // Chamada pelo painel.html (por isso mantém a verificação de JWT do
 // Supabase ligada, como a ia-assistente).
 
-import { GRAPH_BASE, IG_ACCESS_TOKEN, IG_ACCOUNT_ID } from "../_shared/ig.ts";
+import { GRAPH_BASE, IG_ACCESS_TOKEN, IG_ACCOUNT_ID, criarClienteSupabase } from "../_shared/ig.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "https://edilainesantos.com",
@@ -33,6 +33,16 @@ Deno.serve(async (req: Request) => {
 
   if (!IG_ACCESS_TOKEN || !IG_ACCOUNT_ID) {
     return respostaJson({ error: "IG_ACCESS_TOKEN ou IG_ACCOUNT_ID não configurados nos secrets da função." }, 500);
+  }
+
+  // "Verify JWT" ligado (padrão da plataforma) só garante que veio ALGUM JWT
+  // válido — e a anon key (pública, já exposta no código do site) é um JWT
+  // válido. Sem checar se é mesmo uma pessoa logada, qualquer um na internet
+  // podia chamar essa function direto e ler os posts/legendas do Instagram.
+  const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const { data: dadosUsuario, error: erroUsuario } = await criarClienteSupabase().auth.getUser(jwt);
+  if (!jwt || erroUsuario || !dadosUsuario?.user) {
+    return respostaJson({ error: "Não autorizado." }, 401);
   }
 
   const url = new URL(req.url);

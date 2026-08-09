@@ -39,6 +39,16 @@ Deno.serve(async (req: Request) => {
     return respostaJson({ error: "IG_ACCESS_TOKEN ou IG_ACCOUNT_ID não configurados nos secrets da função." }, 500);
   }
 
+  // "Verify JWT" ligado (padrão da plataforma) só garante que veio ALGUM JWT
+  // válido — e a anon key (pública, já exposta no código do site) é um JWT
+  // válido. Sem checar se é mesmo uma pessoa logada, qualquer um na internet
+  // podia chamar essa function direto e ler os dados do Instagram.
+  const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const { data: dadosUsuario, error: erroUsuario } = await criarClienteSupabase().auth.getUser(jwt);
+  if (!jwt || erroUsuario || !dadosUsuario?.user) {
+    return respostaJson({ error: "Não autorizado." }, 401);
+  }
+
   const url = new URL(req.url);
   const diasParam = url.searchParams.get("dias") ?? "15";
   const periodoTudo = diasParam === "tudo";

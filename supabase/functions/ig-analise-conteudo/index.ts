@@ -55,8 +55,19 @@ Deno.serve(async (req: Request) => {
     return respostaJson({ error: "ANTHROPIC_API_KEY não configurada nos secrets da função." }, 500);
   }
 
+  const supabase = criarClienteSupabase();
+
+  // "Verify JWT" ligado (padrão da plataforma) só garante que veio ALGUM JWT
+  // válido — e a anon key (pública, já exposta no código do site) é um JWT
+  // válido. Sem checar se é mesmo uma pessoa logada, qualquer um na internet
+  // podia chamar essa function direto e gastar seu crédito da Anthropic.
+  const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const { data: dadosUsuario, error: erroUsuario } = await supabase.auth.getUser(jwt);
+  if (!jwt || erroUsuario || !dadosUsuario?.user) {
+    return respostaJson({ error: "Não autorizado." }, 401);
+  }
+
   try {
-    const supabase = criarClienteSupabase();
     const desde = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const { data: comentarios, error } = await supabase
       .from("ig_comments")
