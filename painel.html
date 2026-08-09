@@ -7966,7 +7966,7 @@
     return lista.map(l => `
       <tr data-id="${l.id}">
         <td>${formatarDataCurta(l.data_compra || l.data)}</td>
-        <td class="dado-sensivel">${l.descricao}${l.parcela_atual ? ` <span style="color:var(--texto-suave);">(${l.parcela_atual}/${l.parcela_total})</span>` : ""}</td>
+        <td class="dado-sensivel">${igEscaparHtml(l.descricao)}${l.parcela_atual ? ` <span style="color:var(--texto-suave);">(${l.parcela_atual}/${l.parcela_total})</span>` : ""}</td>
         <td>${l.cartao || "-"}</td>
         <td><span class="selo-pessoa">${l.pessoa || "-"}</span></td>
         <td class="dado-sensivel">${formatarMoeda(l.valor)}</td>
@@ -8130,7 +8130,7 @@
       <td><input type="date" id="edicaoData-${id}" value="${lancamento.data_compra || lancamento.data}" title="Data da compra — não muda em qual fatura o lançamento entra"></td>
       <td>
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:nowrap;">
-          <input type="text" id="edicaoDescricao-${id}" value="${lancamento.descricao}" style="flex:1; min-width:90px;" class="dado-sensivel">
+          <input type="text" id="edicaoDescricao-${id}" value="${igEscaparHtml(lancamento.descricao)}" style="flex:1; min-width:90px;" class="dado-sensivel">
           ${lancamento.grupo_parcela ? `
             <div style="display:flex; gap:4px; align-items:center; font-size:.75rem; color:var(--texto-suave); white-space:nowrap; flex-shrink:0;">
               <input type="number" min="1" id="edicaoParcelaAtual-${id}" value="${lancamento.parcela_atual}" style="width:40px; padding:4px; border-radius:6px; border:1px solid var(--borda);">
@@ -9266,7 +9266,7 @@
     return `
       <div class="linha-negocio ${pendente ? "pendente" : ""}" data-id="${n.id}">
         <span class="linha-negocio-data">${formatarDataCurta(n.data)}</span>
-        <span class="linha-negocio-descricao dado-sensivel">${n.descricao}</span>
+        <span class="linha-negocio-descricao dado-sensivel">${igEscaparHtml(n.descricao)}</span>
         ${pendente ? `<span class="selo-pendente-recebimento">${n.data_prevista_recebimento ? "Previsto p/ " + formatarDataCurta(n.data_prevista_recebimento) : "Pendente"}</span>` : ""}
         <span class="linha-negocio-valor ${n.tipo} dado-sensivel">${formatarMoeda(n.valor)}</span>
         ${n.tipo === "ganho" ? `<button type="button" class="botao-recebido-toggle ${n.recebido ? "recebido" : ""}" data-acao="alternar-recebido" aria-label="Marcar como recebido">&#10003;</button>` : ""}
