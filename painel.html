@@ -6894,24 +6894,36 @@
       const origem = lead.source === "popup" ? "Popup" : "Contato";
       const numeroWhats = lead.phone ? lead.phone.replace(/\D/g, "") : null;
 
+      // Toda mensagem recebida vem de um formulário público (qualquer visitante do
+      // site pode preencher), então nome/e-mail/telefone/marca/orçamento/mensagem
+      // são texto NÃO CONFIÁVEL — precisa escapar antes de jogar no innerHTML,
+      // senão alguém poderia mandar um HTML malicioso que roda dentro do painel
+      // logado assim que a mensagem é aberta (XSS armazenado).
+      const nomeSeguro = igEscaparHtml(lead.name) || "Sem nome";
+      const emailSeguro = igEscaparHtml(lead.email) || "e-mail não informado";
+      const telefoneSeguro = igEscaparHtml(lead.phone);
+      const marcaSegura = igEscaparHtml(lead.brand);
+      const orcamentoSeguro = igEscaparHtml(lead.budget);
+      const mensagemSegura = igEscaparHtml(lead.message);
+
       return `
         <div class="cartao-mensagem ${lead.lida ? "" : "nao-lida"}">
           <div class="cartao-mensagem-topo" data-idx="${i}" data-id="${lead.id}">
             <span class="selo-origem">${origem}</span>
             <span class="cartao-mensagem-principal">
-              <span class="cartao-mensagem-nome dado-sensivel">${lead.name || "Sem nome"}</span>
-              <span class="cartao-mensagem-email dado-sensivel">${lead.email || "e-mail não informado"}</span>
+              <span class="cartao-mensagem-nome dado-sensivel">${nomeSeguro}</span>
+              <span class="cartao-mensagem-email dado-sensivel">${emailSeguro}</span>
             </span>
             <span class="cartao-mensagem-data">${data}</span>
             <button type="button" class="cartao-mensagem-excluir" data-acao="excluir-mensagem" aria-label="Excluir mensagem">&times;</button>
           </div>
           <div class="cartao-mensagem-corpo oculto" id="mensagem-${i}">
-            ${lead.phone ? `<p><strong>Telefone:</strong> <span class="dado-sensivel">${lead.phone}</span></p>` : ""}
-            ${lead.brand ? `<p><strong>Marca:</strong> <span class="dado-sensivel">${lead.brand}</span></p>` : ""}
-            ${lead.budget ? `<p><strong>Orçamento:</strong> <span class="dado-sensivel">${lead.budget}</span></p>` : ""}
-            ${lead.message ? `<p><strong>Mensagem:</strong> <span class="dado-sensivel">${lead.message}</span></p>` : ""}
+            ${lead.phone ? `<p><strong>Telefone:</strong> <span class="dado-sensivel">${telefoneSeguro}</span></p>` : ""}
+            ${lead.brand ? `<p><strong>Marca:</strong> <span class="dado-sensivel">${marcaSegura}</span></p>` : ""}
+            ${lead.budget ? `<p><strong>Orçamento:</strong> <span class="dado-sensivel">${orcamentoSeguro}</span></p>` : ""}
+            ${lead.message ? `<p><strong>Mensagem:</strong> <span class="dado-sensivel">${mensagemSegura}</span></p>` : ""}
             <div class="cartao-mensagem-acoes">
-              ${lead.email ? `<a class="botao-pequeno" href="mailto:${lead.email}">Responder por e-mail</a>` : ""}
+              ${lead.email ? `<a class="botao-pequeno" href="mailto:${emailSeguro}">Responder por e-mail</a>` : ""}
               ${numeroWhats ? `<a class="botao-pequeno botao-whats" href="https://wa.me/${numeroWhats}" target="_blank" rel="noopener">WhatsApp</a>` : ""}
             </div>
           </div>
