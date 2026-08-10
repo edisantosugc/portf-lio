@@ -325,11 +325,12 @@ create policy "Usuaria autenticada gerencia seus trabalhos UGC"
 grant select, insert, update, delete on public.painel_ugc_trabalhos to authenticated;
 
 -- =====================================================================
--- IA: IARA (histórico de conversa dos 6 assistentes de IA)
--- Uma linha por mensagem. "contexto" separa as 6 conversas independentes,
+-- IA: IARA (histórico de conversa dos 8 assistentes de IA)
+-- Uma linha por mensagem. "contexto" separa as 8 conversas independentes,
 -- cada uma com seu próprio histórico:
 -- iara_abordagem | iara_estudo_produto | iara_roteiro_ugc | iara_roteiro_insta
--- iara_negociacao_normais | iara_negociacao_criativos
+-- iara_precificacao_ugc_comum | iara_precificacao_ugc_criativo |
+-- iara_precificacao_publicidade | iara_precificacao_ugc_collab
 -- As respostas da IA vêm de uma Supabase Edge Function ("ia-assistente")
 -- que guarda a chave da OpenAI em segredo — ver README/instruções de deploy.
 -- =====================================================================
@@ -337,7 +338,8 @@ create table if not exists public.painel_ia_mensagens (
   id uuid primary key default gen_random_uuid(),
   contexto text not null check (contexto in (
     'iara_abordagem', 'iara_estudo_produto', 'iara_roteiro_ugc', 'iara_roteiro_insta',
-    'iara_negociacao_normais', 'iara_negociacao_criativos'
+    'iara_precificacao_ugc_comum', 'iara_precificacao_ugc_criativo',
+    'iara_precificacao_publicidade', 'iara_precificacao_ugc_collab'
   )),
   papel text not null check (papel in ('user', 'assistant')),
   conteudo text not null,
@@ -357,6 +359,68 @@ create policy "Usuaria autenticada gerencia suas mensagens de IA"
   with check (true);
 
 grant select, insert, update, delete on public.painel_ia_mensagens to authenticated;
+
+-- =====================================================================
+-- IARA: PRECIFICAÇÃO (valor-base por tipo de conteúdo + desconto por
+-- volume). Editável por ela mesma dentro da aba Precificação — não fica
+-- fixo no código, porque preço muda com o tempo.
+-- =====================================================================
+create table if not exists public.painel_iara_precificacao_tipos (
+  id uuid primary key default gen_random_uuid(),
+  tipo text not null unique check (tipo in ('ugc_comum', 'ugc_criativo', 'publicidade', 'ugc_collab')),
+  valor_base numeric,
+  created_at timestamptz not null default now()
+);
+
+-- "publicidade" fica sem valor_base de propósito: ela digita manualmente
+-- o valor combinado com a marca a cada pacote, sem base fixa.
+insert into public.painel_iara_precificacao_tipos (tipo, valor_base) values
+  ('ugc_comum', 347),
+  ('ugc_criativo', 447),
+  ('publicidade', null),
+  ('ugc_collab', 447)
+on conflict (tipo) do nothing;
+
+alter table public.painel_iara_precificacao_tipos enable row level security;
+
+drop policy if exists "Usuaria autenticada gerencia precificacao tipos" on public.painel_iara_precificacao_tipos;
+create policy "Usuaria autenticada gerencia precificacao tipos"
+  on public.painel_iara_precificacao_tipos
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_iara_precificacao_tipos to authenticated;
+
+create table if not exists public.painel_iara_precificacao_desconto (
+  id uuid primary key default gen_random_uuid(),
+  quantidade_min integer not null,
+  quantidade_max integer,
+  desconto_percentual numeric not null,
+  created_at timestamptz not null default now()
+);
+
+insert into public.painel_iara_precificacao_desconto (quantidade_min, quantidade_max, desconto_percentual)
+select * from (values
+  (1, 2, 5),
+  (3, 4, 8),
+  (5, 7, 15),
+  (8, null, 20)
+) as v(quantidade_min, quantidade_max, desconto_percentual)
+where not exists (select 1 from public.painel_iara_precificacao_desconto);
+
+alter table public.painel_iara_precificacao_desconto enable row level security;
+
+drop policy if exists "Usuaria autenticada gerencia precificacao desconto" on public.painel_iara_precificacao_desconto;
+create policy "Usuaria autenticada gerencia precificacao desconto"
+  on public.painel_iara_precificacao_desconto
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_iara_precificacao_desconto to authenticated;
 
 -- =====================================================================
 -- ABORDAGEM (aba "Abordagem" do painel)
@@ -1513,7 +1577,8 @@ begin
     'painel_clientes', 'painel_abordagens', 'painel_projetos',
     'painel_banco_criativo', 'painel_ugc_trabalhos',
     'painel_documentos_pessoais', 'painel_documentos_avulsos', 'painel_notas',
-    'painel_ia_mensagens', 'negocio_lancamentos'
+    'painel_ia_mensagens', 'negocio_lancamentos',
+    'painel_iara_precificacao_tipos', 'painel_iara_precificacao_desconto'
   ]
   loop
     execute format(

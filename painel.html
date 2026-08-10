@@ -1918,12 +1918,52 @@
   }
   .chat-ia-campo:focus{ outline: none; border-color: var(--coral); }
 
-  /* ===================== NEGOCIAÇÃO (calculadora) ===================== */
+  /* ===================== CALCULADORA DE PACOTE (Precificação) ===================== */
   .neg-resultado{ margin-top: 16px; padding: 16px; border-radius: 12px; background: var(--creme); border: 1px solid var(--borda); }
   .neg-resultado-linha{ display: flex; justify-content: space-between; font-size: .88rem; padding: 4px 0; }
   .neg-resultado-linha .rotulo{ color: var(--texto-suave); }
   .neg-resultado-linha .valor{ font-weight: 600; }
   .neg-resultado-linha.destaque .valor{ color: var(--verde); font-family: 'Fraunces', serif; font-size: 1.05rem; }
+
+  /* ===================== PRECIFICAÇÃO (aba Iara) ===================== */
+  .postit-lembrete{
+    background: #DCE4FA; border: 1px solid #AEBBE8; border-radius: 4px;
+    padding: 16px 18px 14px; margin-bottom: 18px; max-width: 260px;
+    box-shadow: 3px 4px 10px rgba(0,0,128,.10); transform: rotate(-1deg);
+  }
+  .postit-lembrete h3{ font-family: 'Fraunces', serif; font-size: .85rem; color: var(--coral); margin: 0 0 8px; }
+  .postit-lembrete ul{ list-style: none; margin: 0; padding: 0; font-size: .84rem; color: #1A1A5C; }
+  .postit-lembrete li{ display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
+  .aviso-precif-manual{
+    font-size: .8rem; color: var(--texto-suave); background: var(--creme);
+    border: 1px dashed var(--borda); border-radius: 8px; padding: 8px 12px; margin-bottom: 14px;
+  }
+  .subtitulo-precif{ font-family: 'Fraunces', serif; font-size: .92rem; margin: 18px 0 10px; }
+  .subtitulo-precif:first-of-type{ margin-top: 4px; }
+  .linha-valor-precif{
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--creme);
+  }
+  .linha-valor-precif:last-child{ border-bottom: none; }
+  .linha-valor-precif .nome-tipo-precif{ font-size: .86rem; font-weight: 600; }
+  .linha-valor-precif .nome-tipo-precif small{ display: block; font-weight: 400; color: var(--texto-suave); font-size: .74rem; margin-top: 2px; }
+  .linha-valor-precif input{
+    width: 110px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--borda);
+    font-family: 'Outfit', sans-serif; font-size: .85rem; text-align: right;
+  }
+  .linha-valor-precif input:disabled{ background: var(--creme); color: var(--texto-suave); }
+  .tabela-desconto-precif{ width: 100%; border-collapse: collapse; margin-top: 6px; font-size: .85rem; }
+  .tabela-desconto-precif th{ text-align: left; color: var(--texto-suave); font-weight: 600; padding: 6px 4px; border-bottom: 1px solid var(--borda); }
+  .tabela-desconto-precif td{ padding: 7px 4px; border-bottom: 1px solid var(--creme); }
+  .tabela-desconto-precif input{
+    width: 64px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--borda);
+    font-family: 'Outfit', sans-serif; font-size: .85rem;
+  }
+  .tabela-desconto-precif .botao-remover-faixa{
+    background: none; border: none; color: var(--texto-suave); cursor: pointer; font-size: .9rem; padding: 4px 8px;
+  }
+  .tabela-desconto-precif .botao-remover-faixa:hover{ color: var(--coral); }
+  .rodape-precif{ display: flex; justify-content: flex-end; margin-top: 16px; }
 
   /* ===================== BLOCO DE NOTAS (Ideias Criativas) ===================== */
   .notas-cabecalho{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
@@ -2484,10 +2524,14 @@
     /* Tabela de Clientes: reforça o toque suave no iOS (a rolagem em si já existia). */
     .clientes-tabela-scroll{ -webkit-overflow-scrolling: touch; }
 
-    /* Calculadora de pacote (Negociação): essa tela não pode ter rolagem lateral —
+    /* Calculadora de pacote (Precificação): essa tela não pode ter rolagem lateral —
        os dois campos empilham em vez de ficar lado a lado. */
-    #iaraNegNormais .ugc-form-grade,
-    #iaraNegCriativos .ugc-form-grade{ grid-template-columns: 1fr; }
+    #iaraPrecificacao .ugc-form-grade{ grid-template-columns: 1fr; }
+
+    /* Seletor de tipo e tabela de desconto por volume também precisam caber
+       na tela pequena sem rolagem lateral forçada. */
+    #seletorTipoPrecificacao{ flex-wrap: wrap; }
+    .tabela-desconto-precif{ display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
     /* Linhas de lançamento (Financeiro UGC — Investimentos/Ganhos/Fechamento por
        ano): reestrutura pra 4 linhas — (1) data + excluir, (2) descrição,
@@ -3812,36 +3856,25 @@
     </section>
 
     <!-- ===================== ABA: IARA (assistente de IA) =====================
-         6 sub-abas, todas passando pela mesma Edge Function "ia-assistente" e
-         pela mesma tabela painel_ia_mensagens (ver comentário mais completo
-         perto de renderizarChatIa/enviarMensagemIa, no <script>). As duas
-         últimas sub-abas (Conteúdos normais/Criativos) são a antiga aba
-         "Negociação", só realocada pra dentro da Iara — a calculadora de
-         pacote continua igual, é só o endereço que muda. ===================== -->
+         5 sub-abas: Estudo de Marca, Abordagens, Roteiros UGC's, Roteiros
+         Insta e Precificação. As 4 primeiras têm 1 conversa cada; a última
+         (Precificação, antiga aba "Negociação" realocada pra dentro da Iara)
+         tem um seletor de tipo (UGC Comum/Criativo/Publicidade/UGC+Collab)
+         com calculadora de pacote + 1 conversa por tipo — 8 contextos de
+         chat no total, todos passando pela mesma Edge Function
+         "ia-assistente" e pela mesma tabela painel_ia_mensagens (ver
+         comentário mais completo perto de renderizarChatIa/enviarMensagemIa,
+         no <script>). ===================== -->
     <section id="painelIara" class="painel-tab oculto">
       <div class="sub-abas-negocio" id="subAbasIara">
-        <button type="button" class="sub-aba-btn ativo" data-subaba="abordagem">Abordagem</button>
-        <button type="button" class="sub-aba-btn" data-subaba="estudo">Estudar marca</button>
-        <button type="button" class="sub-aba-btn" data-subaba="roteiro-ugc">Roteiro UGC</button>
-        <button type="button" class="sub-aba-btn" data-subaba="roteiro-insta">Roteiro Instagram</button>
-        <button type="button" class="sub-aba-btn" data-subaba="normais">Conteúdos normais UGC</button>
-        <button type="button" class="sub-aba-btn" data-subaba="criativos">Criativos</button>
+        <button type="button" class="sub-aba-btn ativo" data-subaba="estudo">Estudo de Marca</button>
+        <button type="button" class="sub-aba-btn" data-subaba="abordagem">Abordagens</button>
+        <button type="button" class="sub-aba-btn" data-subaba="roteiro-ugc">Roteiros UGC's</button>
+        <button type="button" class="sub-aba-btn" data-subaba="roteiro-insta">Roteiros Insta</button>
+        <button type="button" class="sub-aba-btn" data-subaba="precificacao">Precificação</button>
       </div>
 
-      <div id="iaraAbordagem">
-        <div class="cartao">
-          <h2>Escrever abordagem com a Iara</h2>
-          <div class="chat-ia" id="chatIa_iara_abordagem">
-            <div class="chat-ia-mensagens" id="iaMensagens_iara_abordagem"></div>
-            <div class="chat-ia-linha-input">
-              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: marca X, produto Y, já responderam isso..." data-ia-input="iara_abordagem"></textarea>
-              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_abordagem">Enviar</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div id="iaraEstudo" class="oculto">
+      <div id="iaraEstudo">
         <div class="cartao">
           <h2>Estudar marca/produto com a Iara</h2>
           <div class="chat-ia" id="chatIa_iara_estudo_produto">
@@ -3849,6 +3882,19 @@
             <div class="chat-ia-linha-input">
               <textarea class="chat-ia-campo" rows="2" placeholder="Cole o briefing ou descreva a marca..." data-ia-input="iara_estudo_produto"></textarea>
               <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_estudo_produto">Enviar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="iaraAbordagem" class="oculto">
+        <div class="cartao">
+          <h2>Escrever abordagem com a Iara</h2>
+          <div class="chat-ia" id="chatIa_iara_abordagem">
+            <div class="chat-ia-mensagens" id="iaMensagens_iara_abordagem"></div>
+            <div class="chat-ia-linha-input">
+              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: marca X, produto Y, já responderam isso..." data-ia-input="iara_abordagem"></textarea>
+              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_abordagem">Enviar</button>
             </div>
           </div>
         </div>
@@ -3880,64 +3926,104 @@
         </div>
       </div>
 
-      <div id="iaraNegNormais" class="oculto">
+      <div id="iaraPrecificacao" class="oculto">
+        <div class="postit-lembrete">
+          <h3>Lembrete — outros valores</h3>
+          <ul>
+            <li><span>3 Fotos</span><b>R$ 120</b></li>
+            <li><span>3 Stories UGC</span><b>R$ 200</b></li>
+            <li><span>Gancho extra</span><b>R$ 49</b></li>
+            <li><span>+3 meses ADS</span><b>R$ 100</b></li>
+          </ul>
+        </div>
+
         <div class="cartao">
           <h2>Calculadora de pacote</h2>
+          <div class="sub-abas-negocio" id="seletorTipoPrecificacao">
+            <button type="button" class="sub-aba-btn ativo" data-tipo="ugc_comum">UGC Comum</button>
+            <button type="button" class="sub-aba-btn" data-tipo="ugc_criativo">UGC Criativo</button>
+            <button type="button" class="sub-aba-btn" data-tipo="publicidade">Publicidade</button>
+            <button type="button" class="sub-aba-btn" data-tipo="ugc_collab">UGC + Collab</button>
+          </div>
+          <div id="precifAvisoManual" class="aviso-precif-manual oculto">
+            Publicidade não tem valor-base fixo — digite o valor combinado com a marca pra esse pacote.
+          </div>
           <div class="ugc-form-grade">
             <div class="ugc-campo">
-              <label>Valor de 1 vídeo (R$)</label>
-              <input type="number" step="0.01" id="negValorUnidade-normais" placeholder="150">
+              <label>Valor de 1 vídeo/publi (R$)</label>
+              <input type="number" step="0.01" id="precifValorUnidade">
             </div>
             <div class="ugc-campo">
               <label>Quantidade que o cliente quer fechar</label>
-              <input type="number" step="1" min="1" id="negQuantidade-normais" placeholder="5">
+              <input type="number" step="1" min="1" id="precifQuantidade" placeholder="5">
             </div>
           </div>
-          <button type="button" class="botao-add-tarefa" style="margin-top:14px;" data-acao="neg-calcular" data-tier="normais">Calcular pacote</button>
-          <div id="negResultado-normais" class="neg-resultado oculto"></div>
-          <button type="button" class="ugc-btn oculto" style="margin-top:10px;" data-acao="neg-gerar-proposta" data-tier="normais">Gerar texto da proposta</button>
+          <button type="button" class="botao-add-tarefa" style="margin-top:14px;" id="btnPrecifCalcular">Calcular pacote</button>
+          <div id="precifResultado" class="neg-resultado oculto"></div>
+          <button type="button" class="ugc-btn oculto" style="margin-top:10px;" id="btnPrecifProposta">Gerar texto da proposta</button>
         </div>
 
-        <div class="cartao">
-          <h2>Conversar sobre desconto com a Iara</h2>
-          <div class="chat-ia" id="chatIa_iara_negociacao_normais">
-            <div class="chat-ia-mensagens" id="iaMensagens_iara_negociacao_normais"></div>
+        <div class="cartao" id="precifChat_ugc_comum">
+          <h2>Conversar sobre desconto com a Iara — UGC Comum</h2>
+          <div class="chat-ia" id="chatIa_iara_precificacao_ugc_comum">
+            <div class="chat-ia-mensagens" id="iaMensagens_iara_precificacao_ugc_comum"></div>
             <div class="chat-ia-linha-input">
-              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: o cliente pediu mais 10% de desconto, o que acha?" data-ia-input="iara_negociacao_normais"></textarea>
-              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_negociacao_normais">Enviar</button>
+              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: o cliente pediu mais 10% de desconto, o que acha?" data-ia-input="iara_precificacao_ugc_comum"></textarea>
+              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_precificacao_ugc_comum">Enviar</button>
             </div>
           </div>
         </div>
-      </div>
 
-      <div id="iaraNegCriativos" class="oculto">
-        <div class="cartao">
-          <h2>Calculadora de pacote</h2>
-          <div class="ugc-form-grade">
-            <div class="ugc-campo">
-              <label>Valor de 1 criativo (R$)</label>
-              <input type="number" step="0.01" id="negValorUnidade-criativos" placeholder="350">
-            </div>
-            <div class="ugc-campo">
-              <label>Quantidade que o cliente quer fechar</label>
-              <input type="number" step="1" min="1" id="negQuantidade-criativos" placeholder="5">
-            </div>
-          </div>
-          <button type="button" class="botao-add-tarefa" style="margin-top:14px;" data-acao="neg-calcular" data-tier="criativos">Calcular pacote</button>
-          <div id="negResultado-criativos" class="neg-resultado oculto"></div>
-          <button type="button" class="ugc-btn oculto" style="margin-top:10px;" data-acao="neg-gerar-proposta" data-tier="criativos">Gerar texto da proposta</button>
-        </div>
-
-        <div class="cartao">
-          <h2>Conversar sobre desconto com a Iara</h2>
-          <div class="chat-ia" id="chatIa_iara_negociacao_criativos">
-            <div class="chat-ia-mensagens" id="iaMensagens_iara_negociacao_criativos"></div>
+        <div class="cartao oculto" id="precifChat_ugc_criativo">
+          <h2>Conversar sobre desconto com a Iara — UGC Criativo</h2>
+          <div class="chat-ia" id="chatIa_iara_precificacao_ugc_criativo">
+            <div class="chat-ia-mensagens" id="iaMensagens_iara_precificacao_ugc_criativo"></div>
             <div class="chat-ia-linha-input">
-              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: o cliente pediu mais 10% de desconto, o que acha?" data-ia-input="iara_negociacao_criativos"></textarea>
-              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_negociacao_criativos">Enviar</button>
+              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: o cliente pediu mais 10% de desconto, o que acha?" data-ia-input="iara_precificacao_ugc_criativo"></textarea>
+              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_precificacao_ugc_criativo">Enviar</button>
             </div>
           </div>
         </div>
+
+        <div class="cartao oculto" id="precifChat_publicidade">
+          <h2>Conversar sobre desconto com a Iara — Publicidade</h2>
+          <div class="chat-ia" id="chatIa_iara_precificacao_publicidade">
+            <div class="chat-ia-mensagens" id="iaMensagens_iara_precificacao_publicidade"></div>
+            <div class="chat-ia-linha-input">
+              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: o cliente pediu mais 10% de desconto, o que acha?" data-ia-input="iara_precificacao_publicidade"></textarea>
+              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_precificacao_publicidade">Enviar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cartao oculto" id="precifChat_ugc_collab">
+          <h2>Conversar sobre desconto com a Iara — UGC + Collab</h2>
+          <div class="chat-ia" id="chatIa_iara_precificacao_ugc_collab">
+            <div class="chat-ia-mensagens" id="iaMensagens_iara_precificacao_ugc_collab"></div>
+            <div class="chat-ia-linha-input">
+              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: o cliente pediu mais 10% de desconto, o que acha?" data-ia-input="iara_precificacao_ugc_collab"></textarea>
+              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_precificacao_ugc_collab">Enviar</button>
+            </div>
+          </div>
+        </div>
+
+        <details class="cartao cartao-colapsavel">
+          <summary class="resumo-colapsavel"><h2>Editar valores-base e desconto por volume</h2><span class="seta-colapsavel">▾</span></summary>
+
+          <h3 class="subtitulo-precif">Valor-base por tipo</h3>
+          <div id="precifListaTipos"></div>
+
+          <h3 class="subtitulo-precif">Desconto por volume (faixas de quantidade)</h3>
+          <table class="tabela-desconto-precif">
+            <thead><tr><th>De</th><th>Até</th><th>Desconto</th><th></th></tr></thead>
+            <tbody id="precifCorpoDesconto"></tbody>
+          </table>
+          <button type="button" class="ugc-btn" style="margin-top:10px;" id="btnPrecifAddFaixa">+ Adicionar faixa</button>
+
+          <div class="rodape-precif">
+            <button type="button" class="botao-add-tarefa" id="btnPrecifSalvarValores">Salvar valores</button>
+          </div>
+        </details>
       </div>
     </section>
 
@@ -4365,23 +4451,21 @@
   // uma é a lista de mensagens daquela conversa, em ordem cronológica.
   let iaCache = {
     iara_abordagem: [], iara_estudo_produto: [], iara_roteiro_ugc: [], iara_roteiro_insta: [],
-    iara_negociacao_normais: [], iara_negociacao_criativos: []
+    iara_precificacao_ugc_comum: [], iara_precificacao_ugc_criativo: [],
+    iara_precificacao_publicidade: [], iara_precificacao_ugc_collab: []
   };
 
   // EDITE AQUI se quiser mudar quantas mensagens de histórico são reenviadas pra IA a cada chamada
   const IA_HISTORICO_MAXIMO = 30;
 
-  // Guarda o último cálculo de pacote de cada sub-aba da Negociação, pra "Gerar texto da proposta" usar
-  const negUltimoCalculo = { normais: null, criativos: null };
-
-  // EDITE AQUI se quiser mudar as faixas de desconto por volume (moderado, nunca agressivo)
-  const TABELA_DESCONTO_NEGOCIACAO = [
-    { min: 1,  max: 2,        desconto: 0.00 },
-    { min: 3,  max: 4,        desconto: 0.05 },
-    { min: 5,  max: 7,        desconto: 0.10 },
-    { min: 8,  max: 11,       desconto: 0.15 },
-    { min: 12, max: Infinity, desconto: 0.20 }
-  ];
+  // Estado da aba Precificação: tipo selecionado, valores-base e faixas de desconto
+  // (carregados do banco — painel_iara_precificacao_tipos/_desconto — editáveis por ela
+  // mesma na gaveta "Editar valores-base e desconto", nunca fixos no código).
+  const PRECIF_ROTULOS = { ugc_comum: "UGC Comum", ugc_criativo: "UGC Criativo", publicidade: "Publicidade", ugc_collab: "UGC + Collab" };
+  let precifTipoAtual = "ugc_comum";
+  let precifTiposCache = [];
+  let precifDescontoCache = [];
+  let precifUltimoCalculo = null; // { tipo, valorUnidade, quantidade, valorBruto, percentualDesconto, valorComDesconto }
 
   const UGC_ETAPAS = [
     { chave: "novo_lead", nome: "Novo Lead" },
@@ -4689,6 +4773,16 @@
         Object.keys(iaCache).forEach(renderizarChatIa);
       } catch (erroIa) {
         console.error("Erro ao carregar/renderizar chats de IA:", erroIa);
+      }
+      try {
+        // Isolado do carregamento principal: valores-base e desconto por volume da
+        // aba Precificação (Iara) — se a tabela ainda não existir, só fica com os
+        // valores em branco até o SQL ser rodado.
+        precifTiposCache = await comRetry(() => buscarTudo("painel_iara_precificacao_tipos"));
+        precifDescontoCache = await comRetry(() => buscarTudo("painel_iara_precificacao_desconto"));
+        renderizarPrecificacaoIara();
+      } catch (erroPrecif) {
+        console.error("Erro ao carregar/renderizar Precificação da Iara:", erroPrecif);
       }
       try {
         // Isolado do carregamento principal: a tabela painel_abordagens só existe depois
@@ -6259,14 +6353,15 @@
     document.querySelectorAll("#subAbasIara .sub-aba-btn").forEach(btn => {
       btn.addEventListener("click", () => trocarSubAbaIara(btn.dataset.subaba));
     });
-    document.querySelectorAll("[data-acao='neg-calcular']").forEach(btn => {
-      btn.addEventListener("click", () => calcularEExibirPacoteNegociacao(btn.dataset.tier));
+    document.querySelectorAll("#seletorTipoPrecificacao .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => trocarTipoPrecificacao(btn.dataset.tipo));
     });
-    document.querySelectorAll("[data-acao='neg-gerar-proposta']").forEach(btn => {
-      btn.addEventListener("click", () => gerarPropostaNegociacao(btn.dataset.tier));
-    });
+    document.getElementById("btnPrecifCalcular").addEventListener("click", calcularEExibirPrecificacao);
+    document.getElementById("btnPrecifProposta").addEventListener("click", gerarPropostaPrecificacao);
+    document.getElementById("btnPrecifAddFaixa").addEventListener("click", adicionarFaixaDescontoPrecif);
+    document.getElementById("btnPrecifSalvarValores").addEventListener("click", salvarValoresPrecificacao);
 
-    // ---------- Chat de IA (Iara — genérico pras 6 sub-abas) ----------
+    // ---------- Chat de IA (Iara — genérico pras 8 conversas) ----------
     document.querySelectorAll("[data-acao='ia-enviar']").forEach(btn => {
       btn.addEventListener("click", () => {
         const contexto = btn.dataset.contexto;
@@ -6553,12 +6648,11 @@
 
   function trocarSubAbaIara(sub){
     document.querySelectorAll("#subAbasIara .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === sub));
-    document.getElementById("iaraAbordagem").classList.toggle("oculto", sub !== "abordagem");
     document.getElementById("iaraEstudo").classList.toggle("oculto", sub !== "estudo");
+    document.getElementById("iaraAbordagem").classList.toggle("oculto", sub !== "abordagem");
     document.getElementById("iaraRoteiroUgc").classList.toggle("oculto", sub !== "roteiro-ugc");
     document.getElementById("iaraRoteiroInsta").classList.toggle("oculto", sub !== "roteiro-insta");
-    document.getElementById("iaraNegNormais").classList.toggle("oculto", sub !== "normais");
-    document.getElementById("iaraNegCriativos").classList.toggle("oculto", sub !== "criativos");
+    document.getElementById("iaraPrecificacao").classList.toggle("oculto", sub !== "precificacao");
   }
 
   function trocarSubAbaAbordagem(sub){
@@ -12020,10 +12114,11 @@
   }
 
   /* =========================================================================
-     IARA: chat de IA compartilhado pelos 6 contextos da aba (Abordagem,
-     Estudar marca, Roteiro UGC, Roteiro Instagram, Conteúdos normais UGC e
-     Criativos), todos passando pela mesma Edge Function "ia-assistente" e
-     pela mesma tabela painel_ia_mensagens.
+     IARA: chat de IA compartilhado pelos 8 contextos da aba (Abordagem,
+     Estudar marca, Roteiro UGC, Roteiro Instagram, e os 4 tipos dentro de
+     Precificação: UGC Comum, UGC Criativo, Publicidade e UGC + Collab),
+     todos passando pela mesma Edge Function "ia-assistente" e pela mesma
+     tabela painel_ia_mensagens.
      ========================================================================= */
   function renderizarChatIa(contexto){
     const container = document.getElementById(`iaMensagens_${contexto}`);
@@ -12079,56 +12174,170 @@
   }
 
   /* =========================================================================
-     NEGOCIAÇÃO (aba Iara): calculadora de pacote (determinística, sem IA) +
-     geração de proposta e chat de desconto (esses dois via ia-assistente,
-     contexto iara_negociacao_normais / iara_negociacao_criativos — ver
-     seção acima).
+     PRECIFICAÇÃO (aba Iara): calculadora de pacote (determinística, sem IA) +
+     geração de proposta e chat de desconto (via ia-assistente, um contexto
+     iara_precificacao_<tipo> por tipo — ver seção acima). Valores-base e
+     faixas de desconto vêm do banco (painel_iara_precificacao_tipos/_desconto),
+     editáveis por ela na gaveta "Editar valores-base e desconto".
      ========================================================================= */
-  function calcularPacoteNegociacao(valorUnidade, quantidade){
-    const faixa = TABELA_DESCONTO_NEGOCIACAO.find(f => quantidade >= f.min && quantidade <= f.max)
-      || TABELA_DESCONTO_NEGOCIACAO[0];
-    const valorBruto = valorUnidade * quantidade;
-    const valorComDesconto = valorBruto * (1 - faixa.desconto);
-    return {
-      valorUnidade, quantidade,
-      valorBruto,
-      percentualDesconto: faixa.desconto,
-      valorComDesconto,
-      valorPorUnidadeComDesconto: valorComDesconto / quantidade
-    };
+  function renderizarPrecificacaoIara(){
+    const ORDEM_TIPOS = ["ugc_comum", "ugc_criativo", "publicidade", "ugc_collab"];
+
+    document.getElementById("precifListaTipos").innerHTML = ORDEM_TIPOS.map(tipo => {
+      const linha = precifTiposCache.find(r => r.tipo === tipo);
+      const temValor = linha && linha.valor_base !== null && linha.valor_base !== undefined;
+      const manual = tipo === "publicidade";
+      return `
+        <div class="linha-valor-precif">
+          <span class="nome-tipo-precif">${PRECIF_ROTULOS[tipo]}${manual ? '<small>sempre manual, sem valor-base</small>' : ''}</span>
+          <input type="number" step="0.01" data-tipo-precif="${tipo}" value="${temValor ? linha.valor_base : ''}" ${manual ? 'disabled placeholder="—"' : ''}>
+        </div>
+      `;
+    }).join("");
+
+    renderizarCorpoDescontoPrecif();
+    trocarTipoPrecificacao(precifTipoAtual);
   }
 
-  function calcularEExibirPacoteNegociacao(tier){
-    const valorUnidade = parseFloat(document.getElementById(`negValorUnidade-${tier}`).value);
-    const quantidade = parseInt(document.getElementById(`negQuantidade-${tier}`).value, 10);
+  function renderizarCorpoDescontoPrecif(){
+    const faixas = precifDescontoCache.slice().sort((a, b) => a.quantidade_min - b.quantidade_min);
+    const corpo = document.getElementById("precifCorpoDesconto");
+    corpo.innerHTML = faixas.map(f => `
+      <tr>
+        <td><input type="number" step="1" min="1" class="precif-desconto-min" value="${f.quantidade_min}"></td>
+        <td><input type="number" step="1" min="1" class="precif-desconto-max" value="${f.quantidade_max === null || f.quantidade_max === undefined ? '' : f.quantidade_max}" placeholder="sem limite"></td>
+        <td><input type="number" step="1" min="0" max="100" class="precif-desconto-pct" value="${f.desconto_percentual}">%</td>
+        <td><button type="button" class="botao-remover-faixa" title="Remover faixa">✕</button></td>
+      </tr>
+    `).join("");
+    corpo.querySelectorAll(".botao-remover-faixa").forEach(btn => {
+      btn.addEventListener("click", () => btn.closest("tr").remove());
+    });
+  }
+
+  function adicionarFaixaDescontoPrecif(){
+    const corpo = document.getElementById("precifCorpoDesconto");
+    const linha = document.createElement("tr");
+    linha.innerHTML = `
+      <td><input type="number" step="1" min="1" class="precif-desconto-min" value="1"></td>
+      <td><input type="number" step="1" min="1" class="precif-desconto-max" placeholder="sem limite"></td>
+      <td><input type="number" step="1" min="0" max="100" class="precif-desconto-pct" value="0">%</td>
+      <td><button type="button" class="botao-remover-faixa" title="Remover faixa">✕</button></td>
+    `;
+    corpo.appendChild(linha);
+    linha.querySelector(".botao-remover-faixa").addEventListener("click", () => linha.remove());
+  }
+
+  async function salvarValoresPrecificacao(){
+    const btn = document.getElementById("btnPrecifSalvarValores");
+    const textoOriginal = btn.textContent;
+    btn.disabled = true;
+
+    try {
+      const inputsTipos = document.querySelectorAll("#precifListaTipos input[data-tipo-precif]");
+      for (const input of inputsTipos) {
+        if (input.disabled) continue; // publicidade: sempre manual, não tem valor-base salvo
+        const tipo = input.dataset.tipoPrecif;
+        const novoValor = input.value === "" ? null : parseFloat(input.value);
+        const { error } = await Auth.client.from("painel_iara_precificacao_tipos").update({ valor_base: novoValor }).eq("tipo", tipo);
+        if (error) throw error;
+        const linha = precifTiposCache.find(r => r.tipo === tipo);
+        if (linha) linha.valor_base = novoValor;
+      }
+
+      const linhasDesconto = Array.from(document.querySelectorAll("#precifCorpoDesconto tr")).map(tr => ({
+        quantidade_min: parseInt(tr.querySelector(".precif-desconto-min").value, 10),
+        quantidade_max: tr.querySelector(".precif-desconto-max").value === "" ? null : parseInt(tr.querySelector(".precif-desconto-max").value, 10),
+        desconto_percentual: parseFloat(tr.querySelector(".precif-desconto-pct").value)
+      })).filter(f => !isNaN(f.quantidade_min) && !isNaN(f.desconto_percentual));
+
+      const idsAntigos = precifDescontoCache.map(f => f.id);
+      if (idsAntigos.length > 0) {
+        const { error: erroApagar } = await Auth.client.from("painel_iara_precificacao_desconto").delete().in("id", idsAntigos);
+        if (erroApagar) throw erroApagar;
+      }
+      if (linhasDesconto.length > 0) {
+        const { data: novasLinhas, error: erroInserir } = await Auth.client
+          .from("painel_iara_precificacao_desconto").insert(linhasDesconto).select();
+        if (erroInserir) throw erroInserir;
+        precifDescontoCache = novasLinhas;
+      } else {
+        precifDescontoCache = [];
+      }
+
+      renderizarPrecificacaoIara();
+      btn.textContent = "✓ Salvo";
+      setTimeout(() => { btn.textContent = textoOriginal; }, 1800);
+    } catch (erro) {
+      alert("Não foi possível salvar os valores agora: " + (erro.message || erro));
+      btn.textContent = textoOriginal;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function trocarTipoPrecificacao(tipo){
+    precifTipoAtual = tipo;
+    document.querySelectorAll("#seletorTipoPrecificacao .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.tipo === tipo));
+    document.getElementById("precifChat_ugc_comum").classList.toggle("oculto", tipo !== "ugc_comum");
+    document.getElementById("precifChat_ugc_criativo").classList.toggle("oculto", tipo !== "ugc_criativo");
+    document.getElementById("precifChat_publicidade").classList.toggle("oculto", tipo !== "publicidade");
+    document.getElementById("precifChat_ugc_collab").classList.toggle("oculto", tipo !== "ugc_collab");
+    document.getElementById("precifAvisoManual").classList.toggle("oculto", tipo !== "publicidade");
+
+    const linha = precifTiposCache.find(r => r.tipo === tipo);
+    const campoValor = document.getElementById("precifValorUnidade");
+    if (linha && linha.valor_base !== null && linha.valor_base !== undefined) {
+      campoValor.value = linha.valor_base;
+      campoValor.placeholder = "";
+    } else {
+      campoValor.value = "";
+      campoValor.placeholder = tipo === "publicidade" ? "digite o valor combinado" : "ainda sem valor-base salvo";
+    }
+
+    document.getElementById("precifResultado").classList.add("oculto");
+    document.getElementById("btnPrecifProposta").classList.add("oculto");
+  }
+
+  function calcularFaixaDescontoPrecif(quantidade){
+    const faixas = precifDescontoCache.slice().sort((a, b) => a.quantidade_min - b.quantidade_min);
+    const faixa = faixas.find(f => quantidade >= f.quantidade_min && (f.quantidade_max === null || f.quantidade_max === undefined || quantidade <= f.quantidade_max));
+    return faixa ? faixa.desconto_percentual / 100 : 0;
+  }
+
+  function calcularEExibirPrecificacao(){
+    const valorUnidade = parseFloat(document.getElementById("precifValorUnidade").value);
+    const quantidade = parseInt(document.getElementById("precifQuantidade").value, 10);
     if (isNaN(valorUnidade) || isNaN(quantidade) || quantidade < 1) return;
 
-    const calculo = calcularPacoteNegociacao(valorUnidade, quantidade);
-    negUltimoCalculo[tier] = calculo;
+    const percentualDesconto = calcularFaixaDescontoPrecif(quantidade);
+    const valorBruto = valorUnidade * quantidade;
+    const valorComDesconto = valorBruto * (1 - percentualDesconto);
 
-    const areaResultado = document.getElementById(`negResultado-${tier}`);
+    precifUltimoCalculo = { tipo: precifTipoAtual, valorUnidade, quantidade, valorBruto, percentualDesconto, valorComDesconto };
+
+    const areaResultado = document.getElementById("precifResultado");
     areaResultado.classList.remove("oculto");
     areaResultado.innerHTML = `
-      <div class="neg-resultado-linha"><span class="rotulo">Valor cheio (sem desconto)</span><span class="valor">${formatarMoeda(calculo.valorBruto)}</span></div>
-      <div class="neg-resultado-linha"><span class="rotulo">Desconto aplicado</span><span class="valor">${Math.round(calculo.percentualDesconto * 100)}%</span></div>
-      <div class="neg-resultado-linha destaque"><span class="rotulo">Valor do pacote</span><span class="valor">${formatarMoeda(calculo.valorComDesconto)}</span></div>
-      <div class="neg-resultado-linha"><span class="rotulo">Valor por unidade com desconto</span><span class="valor">${formatarMoeda(calculo.valorPorUnidadeComDesconto)}</span></div>
+      <div class="neg-resultado-linha"><span class="rotulo">Valor cheio (sem desconto)</span><span class="valor">${formatarMoeda(valorBruto)}</span></div>
+      <div class="neg-resultado-linha"><span class="rotulo">Desconto aplicado</span><span class="valor">${Math.round(percentualDesconto * 100)}%</span></div>
+      <div class="neg-resultado-linha destaque"><span class="rotulo">Valor do pacote</span><span class="valor">${formatarMoeda(valorComDesconto)}</span></div>
+      <div class="neg-resultado-linha"><span class="rotulo">Valor por unidade com desconto</span><span class="valor">${formatarMoeda(valorComDesconto / quantidade)}</span></div>
     `;
 
-    document.querySelector(`[data-acao="neg-gerar-proposta"][data-tier="${tier}"]`).classList.remove("oculto");
+    document.getElementById("btnPrecifProposta").classList.remove("oculto");
   }
 
-  function gerarPropostaNegociacao(tier){
-    const calculo = negUltimoCalculo[tier];
+  function gerarPropostaPrecificacao(){
+    const calculo = precifUltimoCalculo;
     if (!calculo) return;
 
-    const rotuloTier = tier === "criativos" ? "Criativos" : "conteúdos normais UGC";
-    const texto = `Gere um texto de proposta pronto pra eu mandar pro cliente, sobre um pacote de ${rotuloTier}. `
+    const rotulo = PRECIF_ROTULOS[calculo.tipo];
+    const texto = `Gere um texto de proposta pronto pra eu mandar pro cliente, sobre um pacote de ${rotulo}. `
       + `Valor por unidade: ${formatarMoeda(calculo.valorUnidade)}. Quantidade: ${calculo.quantidade}. `
       + `Desconto aplicado: ${Math.round(calculo.percentualDesconto * 100)}%. Valor final do pacote: ${formatarMoeda(calculo.valorComDesconto)}.`;
 
-    const contexto = tier === "criativos" ? "iara_negociacao_criativos" : "iara_negociacao_normais";
-    enviarMensagemIa(contexto, texto);
+    enviarMensagemIa(`iara_precificacao_${calculo.tipo}`, texto);
   }
 </script>
 </body>
