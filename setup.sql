@@ -325,19 +325,19 @@ create policy "Usuaria autenticada gerencia seus trabalhos UGC"
 grant select, insert, update, delete on public.painel_ugc_trabalhos to authenticated;
 
 -- =====================================================================
--- IA: CRÔ + NEGOCIAÇÃO (histórico de conversa dos 6 assistentes de IA)
+-- IA: IARA (histórico de conversa dos 6 assistentes de IA)
 -- Uma linha por mensagem. "contexto" separa as 6 conversas independentes,
 -- cada uma com seu próprio histórico:
--- cro_abordagem | cro_estudo_produto | cro_roteiro_ugc | cro_roteiro_insta
--- negociacao_normais | negociacao_criativos
+-- iara_abordagem | iara_estudo_produto | iara_roteiro_ugc | iara_roteiro_insta
+-- iara_negociacao_normais | iara_negociacao_criativos
 -- As respostas da IA vêm de uma Supabase Edge Function ("ia-assistente")
--- que guarda a chave da Anthropic em segredo — ver README/instruções de deploy.
+-- que guarda a chave da OpenAI em segredo — ver README/instruções de deploy.
 -- =====================================================================
 create table if not exists public.painel_ia_mensagens (
   id uuid primary key default gen_random_uuid(),
   contexto text not null check (contexto in (
-    'cro_abordagem', 'cro_estudo_produto', 'cro_roteiro_ugc', 'cro_roteiro_insta',
-    'negociacao_normais', 'negociacao_criativos'
+    'iara_abordagem', 'iara_estudo_produto', 'iara_roteiro_ugc', 'iara_roteiro_insta',
+    'iara_negociacao_normais', 'iara_negociacao_criativos'
   )),
   papel text not null check (papel in ('user', 'assistant')),
   conteudo text not null,

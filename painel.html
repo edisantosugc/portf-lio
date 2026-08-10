@@ -1900,7 +1900,7 @@
   @keyframes ugcFlashAtrasado{ 0%{ background: rgba(196,69,60,.28); } 100%{ background: transparent; } }
   @media (prefers-reduced-motion: reduce){ .ugc-linha-flash-atrasado{ animation: none; } }
 
-  /* ===================== CHAT IA (Crô + Negociação) ===================== */
+  /* ===================== CHAT IA (Iara) ===================== */
   .chat-ia{ display: flex; flex-direction: column; height: 50vh; min-height: 340px; }
   .chat-ia-mensagens{
     flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 4px 4px 16px;
@@ -2486,8 +2486,8 @@
 
     /* Calculadora de pacote (Negociação): essa tela não pode ter rolagem lateral —
        os dois campos empilham em vez de ficar lado a lado. */
-    #negociacaoNormais .ugc-form-grade,
-    #negociacaoCriativos .ugc-form-grade{ grid-template-columns: 1fr; }
+    #iaraNegNormais .ugc-form-grade,
+    #iaraNegCriativos .ugc-form-grade{ grid-template-columns: 1fr; }
 
     /* Linhas de lançamento (Financeiro UGC — Investimentos/Ganhos/Fechamento por
        ano): reestrutura pra 4 linhas — (1) data + excluir, (2) descrição,
@@ -2950,9 +2950,9 @@
         Clientes
         <span class="badge-alerta-sidebar oculto" id="badgeAlertaClientes"></span>
       </button>
-      <button class="menu-item" data-tab="negociacao">
-        <svg viewBox="0 0 16 16"><path d="M2 1a1 1 0 0 0-1 1v4.586a1 1 0 0 0 .293.707l7 7a1 1 0 0 0 1.414 0l4.586-4.586a1 1 0 0 0 0-1.414l-7-7A1 1 0 0 0 6.586 1H2zm4 3.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
-        Negociação
+      <button class="menu-item" data-tab="iara">
+        <svg viewBox="0 0 16 16"><path d="M8 15c4.418 0 8-3.134 8-7s-3.582-7-8-7-8 3.134-8 7c0 1.76.743 3.37 1.97 4.6-.097 1.016-.417 2.13-.771 2.966-.079.186.074.394.273.362 2.256-.37 3.597-.938 4.18-1.234A9.06 9.06 0 0 0 8 15z"/></svg>
+        Iara
       </button>
       <button class="menu-item" data-tab="ugc-creator">
         <svg viewBox="0 0 16 16"><path d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5z"/></svg>
@@ -3811,14 +3811,76 @@
       </div>
     </section>
 
-    <!-- ===================== ABA: NEGOCIAÇÃO ===================== -->
-    <section id="painelNegociacao" class="painel-tab oculto">
-      <div class="sub-abas-negocio" id="subAbasNegociacao">
-        <button type="button" class="sub-aba-btn ativo" data-subaba="normais">Conteúdos normais UGC</button>
+    <!-- ===================== ABA: IARA (assistente de IA) =====================
+         6 sub-abas, todas passando pela mesma Edge Function "ia-assistente" e
+         pela mesma tabela painel_ia_mensagens (ver comentário mais completo
+         perto de renderizarChatIa/enviarMensagemIa, no <script>). As duas
+         últimas sub-abas (Conteúdos normais/Criativos) são a antiga aba
+         "Negociação", só realocada pra dentro da Iara — a calculadora de
+         pacote continua igual, é só o endereço que muda. ===================== -->
+    <section id="painelIara" class="painel-tab oculto">
+      <div class="sub-abas-negocio" id="subAbasIara">
+        <button type="button" class="sub-aba-btn ativo" data-subaba="abordagem">Abordagem</button>
+        <button type="button" class="sub-aba-btn" data-subaba="estudo">Estudar marca</button>
+        <button type="button" class="sub-aba-btn" data-subaba="roteiro-ugc">Roteiro UGC</button>
+        <button type="button" class="sub-aba-btn" data-subaba="roteiro-insta">Roteiro Instagram</button>
+        <button type="button" class="sub-aba-btn" data-subaba="normais">Conteúdos normais UGC</button>
         <button type="button" class="sub-aba-btn" data-subaba="criativos">Criativos</button>
       </div>
 
-      <div id="negociacaoNormais">
+      <div id="iaraAbordagem">
+        <div class="cartao">
+          <h2>Escrever abordagem com a Iara</h2>
+          <div class="chat-ia" id="chatIa_iara_abordagem">
+            <div class="chat-ia-mensagens" id="iaMensagens_iara_abordagem"></div>
+            <div class="chat-ia-linha-input">
+              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: marca X, produto Y, já responderam isso..." data-ia-input="iara_abordagem"></textarea>
+              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_abordagem">Enviar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="iaraEstudo" class="oculto">
+        <div class="cartao">
+          <h2>Estudar marca/produto com a Iara</h2>
+          <div class="chat-ia" id="chatIa_iara_estudo_produto">
+            <div class="chat-ia-mensagens" id="iaMensagens_iara_estudo_produto"></div>
+            <div class="chat-ia-linha-input">
+              <textarea class="chat-ia-campo" rows="2" placeholder="Cole o briefing ou descreva a marca..." data-ia-input="iara_estudo_produto"></textarea>
+              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_estudo_produto">Enviar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="iaraRoteiroUgc" class="oculto">
+        <div class="cartao">
+          <h2>Escrever roteiro de UGC com a Iara</h2>
+          <div class="chat-ia" id="chatIa_iara_roteiro_ugc">
+            <div class="chat-ia-mensagens" id="iaMensagens_iara_roteiro_ugc"></div>
+            <div class="chat-ia-linha-input">
+              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: produto, formato, duração, briefing da marca..." data-ia-input="iara_roteiro_ugc"></textarea>
+              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_roteiro_ugc">Enviar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="iaraRoteiroInsta" class="oculto">
+        <div class="cartao">
+          <h2>Escrever roteiro pro Instagram com a Iara</h2>
+          <div class="chat-ia" id="chatIa_iara_roteiro_insta">
+            <div class="chat-ia-mensagens" id="iaMensagens_iara_roteiro_insta"></div>
+            <div class="chat-ia-linha-input">
+              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: tema, vibe que você quer passar..." data-ia-input="iara_roteiro_insta"></textarea>
+              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_roteiro_insta">Enviar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="iaraNegNormais" class="oculto">
         <div class="cartao">
           <h2>Calculadora de pacote</h2>
           <div class="ugc-form-grade">
@@ -3837,18 +3899,18 @@
         </div>
 
         <div class="cartao">
-          <h2>Conversar sobre desconto</h2>
-          <div class="chat-ia" id="chatIa_negociacao_normais">
-            <div class="chat-ia-mensagens" id="iaMensagens_negociacao_normais"></div>
+          <h2>Conversar sobre desconto com a Iara</h2>
+          <div class="chat-ia" id="chatIa_iara_negociacao_normais">
+            <div class="chat-ia-mensagens" id="iaMensagens_iara_negociacao_normais"></div>
             <div class="chat-ia-linha-input">
-              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: o cliente pediu mais 10% de desconto, o que acha?" data-ia-input="negociacao_normais"></textarea>
-              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="negociacao_normais">Enviar</button>
+              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: o cliente pediu mais 10% de desconto, o que acha?" data-ia-input="iara_negociacao_normais"></textarea>
+              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_negociacao_normais">Enviar</button>
             </div>
           </div>
         </div>
       </div>
 
-      <div id="negociacaoCriativos" class="oculto">
+      <div id="iaraNegCriativos" class="oculto">
         <div class="cartao">
           <h2>Calculadora de pacote</h2>
           <div class="ugc-form-grade">
@@ -3867,12 +3929,12 @@
         </div>
 
         <div class="cartao">
-          <h2>Conversar sobre desconto</h2>
-          <div class="chat-ia" id="chatIa_negociacao_criativos">
-            <div class="chat-ia-mensagens" id="iaMensagens_negociacao_criativos"></div>
+          <h2>Conversar sobre desconto com a Iara</h2>
+          <div class="chat-ia" id="chatIa_iara_negociacao_criativos">
+            <div class="chat-ia-mensagens" id="iaMensagens_iara_negociacao_criativos"></div>
             <div class="chat-ia-linha-input">
-              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: o cliente pediu mais 10% de desconto, o que acha?" data-ia-input="negociacao_criativos"></textarea>
-              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="negociacao_criativos">Enviar</button>
+              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: o cliente pediu mais 10% de desconto, o que acha?" data-ia-input="iara_negociacao_criativos"></textarea>
+              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_negociacao_criativos">Enviar</button>
             </div>
           </div>
         </div>
@@ -4299,11 +4361,11 @@
   };
   const IG_EMOJIS = ["🫶","👀","😍","🥰","😂","😮","🔥","✨","💌","👉","🙌","💕"];
 
-  // Estado das conversas de IA da Negociação: uma entrada por contexto, cada
+  // Estado das conversas de IA da aba Iara: uma entrada por contexto, cada
   // uma é a lista de mensagens daquela conversa, em ordem cronológica.
-  // (O Crô usaria esse mesmo mecanismo, mas foi deixado de fora por enquanto.)
   let iaCache = {
-    negociacao_normais: [], negociacao_criativos: []
+    iara_abordagem: [], iara_estudo_produto: [], iara_roteiro_ugc: [], iara_roteiro_insta: [],
+    iara_negociacao_normais: [], iara_negociacao_criativos: []
   };
 
   // EDITE AQUI se quiser mudar quantas mensagens de histórico são reenviadas pra IA a cada chamada
@@ -4620,8 +4682,8 @@
         console.error("Erro ao renderizar UGC Creator:", erroUgc);
       }
       try {
-        // Isolado do carregamento principal: a tabela painel_ia_mensagens só existe depois
-        // que o SQL da IA for rodado no Supabase, então essa busca pode falhar sem travar o resto do painel.
+        // Isolado do carregamento principal, pro histórico de conversa com a Iara
+        // nunca travar o resto do painel se der algum erro.
         const mensagensIa = await comRetry(() => buscarTudo("painel_ia_mensagens"));
         mensagensIa.slice().reverse().forEach(m => { if (iaCache[m.contexto]) iaCache[m.contexto].push(m); });
         Object.keys(iaCache).forEach(renderizarChatIa);
@@ -6193,9 +6255,9 @@
       btn.addEventListener("click", () => trocarSubAbaNegocio(btn.dataset.subaba));
     });
 
-    // ---------- Negociação ----------
-    document.querySelectorAll("#subAbasNegociacao .sub-aba-btn").forEach(btn => {
-      btn.addEventListener("click", () => trocarSubAbaNegociacao(btn.dataset.subaba));
+    // ---------- Iara ----------
+    document.querySelectorAll("#subAbasIara .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => trocarSubAbaIara(btn.dataset.subaba));
     });
     document.querySelectorAll("[data-acao='neg-calcular']").forEach(btn => {
       btn.addEventListener("click", () => calcularEExibirPacoteNegociacao(btn.dataset.tier));
@@ -6204,7 +6266,7 @@
       btn.addEventListener("click", () => gerarPropostaNegociacao(btn.dataset.tier));
     });
 
-    // ---------- Chat de IA (Negociação — o Crô, que também usaria isso, foi deixado de fora por enquanto) ----------
+    // ---------- Chat de IA (Iara — genérico pras 6 sub-abas) ----------
     document.querySelectorAll("[data-acao='ia-enviar']").forEach(btn => {
       btn.addEventListener("click", () => {
         const contexto = btn.dataset.contexto;
@@ -6489,10 +6551,14 @@
     document.getElementById("negocioGeral").classList.toggle("oculto", sub !== "geral");
   }
 
-  function trocarSubAbaNegociacao(sub){
-    document.querySelectorAll("#subAbasNegociacao .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === sub));
-    document.getElementById("negociacaoNormais").classList.toggle("oculto", sub !== "normais");
-    document.getElementById("negociacaoCriativos").classList.toggle("oculto", sub !== "criativos");
+  function trocarSubAbaIara(sub){
+    document.querySelectorAll("#subAbasIara .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === sub));
+    document.getElementById("iaraAbordagem").classList.toggle("oculto", sub !== "abordagem");
+    document.getElementById("iaraEstudo").classList.toggle("oculto", sub !== "estudo");
+    document.getElementById("iaraRoteiroUgc").classList.toggle("oculto", sub !== "roteiro-ugc");
+    document.getElementById("iaraRoteiroInsta").classList.toggle("oculto", sub !== "roteiro-insta");
+    document.getElementById("iaraNegNormais").classList.toggle("oculto", sub !== "normais");
+    document.getElementById("iaraNegCriativos").classList.toggle("oculto", sub !== "criativos");
   }
 
   function trocarSubAbaAbordagem(sub){
@@ -6552,18 +6618,18 @@
     document.getElementById("painelNegocio").classList.toggle("oculto", aba !== "negocio");
     document.getElementById("painelAbordagem").classList.toggle("oculto", aba !== "abordagem");
     document.getElementById("painelClientes").classList.toggle("oculto", aba !== "clientes");
-    document.getElementById("painelNegociacao").classList.toggle("oculto", aba !== "negociacao");
+    document.getElementById("painelIara").classList.toggle("oculto", aba !== "iara");
     document.getElementById("painelUgcCreator").classList.toggle("oculto", aba !== "ugc-creator");
     document.getElementById("painelProjetos").classList.toggle("oculto", aba !== "projetos");
     document.getElementById("painelBancoCriativo").classList.toggle("oculto", aba !== "banco-criativo");
     document.getElementById("painelInstagram").classList.toggle("oculto", aba !== "instagram");
     document.getElementById("painelAdministrativo").classList.toggle("oculto", aba !== "administrativo");
 
-    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", negociacao: "Negociação", "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo" };
+    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", iara: "Iara", "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo" };
     document.getElementById("tituloTopo").textContent = titulos[aba];
 
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
-    const abasSemFiltroPeriodo = ["agenda", "financas", "negocio", "abordagem", "clientes", "negociacao", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo"];
+    const abasSemFiltroPeriodo = ["agenda", "financas", "negocio", "abordagem", "clientes", "iara", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo"];
     document.getElementById("filtroPeriodo").classList.toggle("oculto", abasSemFiltroPeriodo.includes(aba));
     document.getElementById("ultimaAtualizacaoFinancas").classList.toggle("oculto", aba !== "financas");
 
@@ -11954,9 +12020,10 @@
   }
 
   /* =========================================================================
-     CRÔ + NEGOCIAÇÃO: chat de IA compartilhado pelos 6 contextos
-     (4 sub-abas do Crô + 2 sub-abas da Negociação), todos passando pela mesma
-     Edge Function "ia-assistente" e pela mesma tabela painel_ia_mensagens.
+     IARA: chat de IA compartilhado pelos 6 contextos da aba (Abordagem,
+     Estudar marca, Roteiro UGC, Roteiro Instagram, Conteúdos normais UGC e
+     Criativos), todos passando pela mesma Edge Function "ia-assistente" e
+     pela mesma tabela painel_ia_mensagens.
      ========================================================================= */
   function renderizarChatIa(contexto){
     const container = document.getElementById(`iaMensagens_${contexto}`);
@@ -12012,9 +12079,10 @@
   }
 
   /* =========================================================================
-     NEGOCIAÇÃO: calculadora de pacote (determinística, sem IA) + geração de
-     proposta e chat de desconto (esses dois via ia-assistente, contexto
-     negociacao_normais / negociacao_criativos — ver seção acima).
+     NEGOCIAÇÃO (aba Iara): calculadora de pacote (determinística, sem IA) +
+     geração de proposta e chat de desconto (esses dois via ia-assistente,
+     contexto iara_negociacao_normais / iara_negociacao_criativos — ver
+     seção acima).
      ========================================================================= */
   function calcularPacoteNegociacao(valorUnidade, quantidade){
     const faixa = TABELA_DESCONTO_NEGOCIACAO.find(f => quantidade >= f.min && quantidade <= f.max)
@@ -12059,7 +12127,7 @@
       + `Valor por unidade: ${formatarMoeda(calculo.valorUnidade)}. Quantidade: ${calculo.quantidade}. `
       + `Desconto aplicado: ${Math.round(calculo.percentualDesconto * 100)}%. Valor final do pacote: ${formatarMoeda(calculo.valorComDesconto)}.`;
 
-    const contexto = tier === "criativos" ? "negociacao_criativos" : "negociacao_normais";
+    const contexto = tier === "criativos" ? "iara_negociacao_criativos" : "iara_negociacao_normais";
     enviarMensagemIa(contexto, texto);
   }
 </script>
