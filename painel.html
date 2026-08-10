@@ -3961,6 +3961,18 @@
           <button type="button" class="botao-add-tarefa" style="margin-top:14px;" id="btnPrecifCalcular">Calcular pacote</button>
           <div id="precifResultado" class="neg-resultado oculto"></div>
           <button type="button" class="ugc-btn oculto" style="margin-top:10px;" id="btnPrecifProposta">Gerar texto da proposta</button>
+
+          <div id="precifPropostaArea" class="oculto" style="margin-top:16px;">
+            <div class="ugc-campo">
+              <label>Observação extra (opcional)</label>
+              <input type="text" id="precifObservacaoExtra" placeholder='Ex: "Com direito a 6 meses de ADS"'>
+            </div>
+            <div class="ugc-campo" style="margin-top:12px;">
+              <label>Texto da proposta</label>
+              <textarea id="precifTextoProposta" class="chat-ia-campo" rows="5" style="width:100%; resize:vertical;" readonly></textarea>
+            </div>
+            <button type="button" class="botao-add-tarefa" style="margin-top:10px;" id="btnPrecifCopiarProposta">Copiar texto</button>
+          </div>
         </div>
 
         <div class="cartao" id="precifChat_ugc_comum">
@@ -4462,6 +4474,13 @@
   // (carregados do banco — painel_iara_precificacao_tipos/_desconto — editáveis por ela
   // mesma na gaveta "Editar valores-base e desconto", nunca fixos no código).
   const PRECIF_ROTULOS = { ugc_comum: "UGC Comum", ugc_criativo: "UGC Criativo", publicidade: "Publicidade", ugc_collab: "UGC + Collab" };
+  // EDITE AQUI se quiser mudar como cada tipo é descrito dentro do texto da proposta
+  const PRECIF_TEXTO_TIPO = {
+    ugc_comum: "vídeos UGC brutos",
+    ugc_criativo: "vídeos UGC criativos",
+    publicidade: "vídeos de publicidade",
+    ugc_collab: "vídeos UGC + collab"
+  };
   let precifTipoAtual = "ugc_comum";
   let precifTiposCache = [];
   let precifDescontoCache = [];
@@ -6360,6 +6379,8 @@
     document.getElementById("btnPrecifProposta").addEventListener("click", gerarPropostaPrecificacao);
     document.getElementById("btnPrecifAddFaixa").addEventListener("click", adicionarFaixaDescontoPrecif);
     document.getElementById("btnPrecifSalvarValores").addEventListener("click", salvarValoresPrecificacao);
+    document.getElementById("precifObservacaoExtra").addEventListener("input", atualizarTextoPropostaPrecificacao);
+    document.getElementById("btnPrecifCopiarProposta").addEventListener("click", copiarTextoPropostaPrecificacao);
 
     // ---------- Chat de IA (Iara — genérico pras 8 conversas) ----------
     document.querySelectorAll("[data-acao='ia-enviar']").forEach(btn => {
@@ -12297,6 +12318,7 @@
 
     document.getElementById("precifResultado").classList.add("oculto");
     document.getElementById("btnPrecifProposta").classList.add("oculto");
+    document.getElementById("precifPropostaArea").classList.add("oculto");
   }
 
   function calcularFaixaDescontoPrecif(quantidade){
@@ -12315,6 +12337,7 @@
     const valorComDesconto = valorBruto * (1 - percentualDesconto);
 
     precifUltimoCalculo = { tipo: precifTipoAtual, valorUnidade, quantidade, valorBruto, percentualDesconto, valorComDesconto };
+    document.getElementById("precifPropostaArea").classList.add("oculto");
 
     const areaResultado = document.getElementById("precifResultado");
     areaResultado.classList.remove("oculto");
@@ -12328,16 +12351,49 @@
     document.getElementById("btnPrecifProposta").classList.remove("oculto");
   }
 
+  // Texto da proposta é gerado direto aqui (sem IA) a partir dos números já
+  // calculados — determinístico, pra sempre bater exatamente com a calculadora.
+  function montarTextoPropostaPrecificacao(calculo, observacaoExtra){
+    const descricaoTipo = PRECIF_TEXTO_TIPO[calculo.tipo];
+    const qtd = calculo.quantidade;
+
+    let texto = `${qtd} ${descricaoTipo} (inclusos ${qtd} ganchos, 1 para cada vídeo): ${formatarMoeda(calculo.valorComDesconto)} (valor em pacote). `
+      + `Entrega total: ${qtd} vídeos (corpo) + ${qtd} ganchos. `
+      + `O valor total do projeto é de ${formatarMoeda(calculo.valorBruto)}. `
+      + `Para este formato de entrega, consigo ajustar para ${formatarMoeda(calculo.valorComDesconto)} como valor final.`;
+
+    if (observacaoExtra && observacaoExtra.trim()) {
+      texto += ` ${observacaoExtra.trim()}`;
+    }
+
+    return texto;
+  }
+
   function gerarPropostaPrecificacao(){
-    const calculo = precifUltimoCalculo;
-    if (!calculo) return;
+    if (!precifUltimoCalculo) return;
+    document.getElementById("precifObservacaoExtra").value = "";
+    document.getElementById("precifPropostaArea").classList.remove("oculto");
+    atualizarTextoPropostaPrecificacao();
+  }
 
-    const rotulo = PRECIF_ROTULOS[calculo.tipo];
-    const texto = `Gere um texto de proposta pronto pra eu mandar pro cliente, sobre um pacote de ${rotulo}. `
-      + `Valor por unidade: ${formatarMoeda(calculo.valorUnidade)}. Quantidade: ${calculo.quantidade}. `
-      + `Desconto aplicado: ${Math.round(calculo.percentualDesconto * 100)}%. Valor final do pacote: ${formatarMoeda(calculo.valorComDesconto)}.`;
+  function atualizarTextoPropostaPrecificacao(){
+    if (!precifUltimoCalculo) return;
+    const observacaoExtra = document.getElementById("precifObservacaoExtra").value;
+    document.getElementById("precifTextoProposta").value = montarTextoPropostaPrecificacao(precifUltimoCalculo, observacaoExtra);
+  }
 
-    enviarMensagemIa(`iara_precificacao_${calculo.tipo}`, texto);
+  async function copiarTextoPropostaPrecificacao(){
+    const campo = document.getElementById("precifTextoProposta");
+    const btn = document.getElementById("btnPrecifCopiarProposta");
+    const textoOriginal = btn.textContent;
+    try {
+      await navigator.clipboard.writeText(campo.value);
+    } catch (erro) {
+      campo.select();
+      document.execCommand("copy");
+    }
+    btn.textContent = "✓ Copiado";
+    setTimeout(() => { btn.textContent = textoOriginal; }, 1500);
   }
 </script>
 </body>
