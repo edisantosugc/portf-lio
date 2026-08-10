@@ -2,17 +2,16 @@
 //
 // Roda no Deno Edge Runtime da Supabase. Recebe { contexto, mensagens } do
 // painel.html, escolhe o system prompt certo pra cada uma das 6 conversas
-// (4 do Crô + 2 da Negociação) e chama a Messages API da Anthropic com a
-// chave guardada em secret (ANTHROPIC_API_KEY) — a chave nunca fica exposta
+// (4 do Crô + 2 da Negociação) e chama a Chat Completions API da OpenAI com
+// a chave guardada em secret (OPENAI_API_KEY) — a chave nunca fica exposta
 // no código do site. A verificação de JWT do Supabase fica ligada (padrão):
 // só quem está logada no painel consegue chamar essa função.
 
-const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-const ANTHROPIC_VERSION = "2023-06-01";
+const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
-// EDITE AQUI se quiser trocar de modelo (ex: "claude-opus-4-8" pra mais
-// qualidade — custa ~2,5x mais que o claude-sonnet-5 usado aqui).
-const MODELO = "claude-sonnet-5";
+// EDITE AQUI se quiser trocar de modelo (ex: "gpt-4o" pra mais qualidade —
+// custa mais que o gpt-4o-mini usado aqui).
+const MODELO = "gpt-4o-mini";
 
 // Só pra validar que quem chamou está mesmo logada (ver checagem abaixo) —
 // não lê nem escreve nada no banco, por isso a anon key (só ela) já basta.
@@ -62,14 +61,14 @@ Deno.serve(async (req: Request) => {
     });
 
   try {
-    if (!ANTHROPIC_API_KEY) {
-      return respostaJson({ error: "ANTHROPIC_API_KEY não configurada nos secrets da função." }, 500);
+    if (!OPENAI_API_KEY) {
+      return respostaJson({ error: "OPENAI_API_KEY não configurada nos secrets da função." }, 500);
     }
 
     // "Verify JWT" ligado (padrão da plataforma) só garante que veio ALGUM JWT
     // válido — e a anon key (pública, já exposta no código do site) é um JWT
     // válido. Sem checar se é mesmo uma pessoa logada, qualquer um na internet
-    // podia chamar essa function direto e gastar seu crédito da Anthropic.
+    // podia chamar essa function direto e gastar seu crédito da OpenAI.
     const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
     const { data: dadosUsuario, error: erroUsuario } = await supabase.auth.getUser(jwt);
     if (!jwt || erroUsuario || !dadosUsuario?.user) {
@@ -87,44 +86,38 @@ Deno.serve(async (req: Request) => {
       return respostaJson({ error: "Campo 'mensagens' vazio ou ausente." }, 400);
     }
 
-    const mensagensAnthropic = mensagens.map((m: { papel: string; conteudo: string }) => ({
+    const mensagensOpenAI = mensagens.map((m: { papel: string; conteudo: string }) => ({
       role: m.papel === "assistant" ? "assistant" : "user",
       content: String(m.conteudo ?? ""),
     }));
 
-    const resposta = await fetch("https://api.anthropic.com/v1/messages", {
+    const resposta = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": ANTHROPIC_VERSION,
+        "authorization": `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: MODELO,
         max_tokens: 2048,
-        system: systemPrompt,
-        thinking: { type: "disabled" },
-        output_config: { effort: "medium" },
-        messages: mensagensAnthropic,
+        messages: [{ role: "system", content: systemPrompt }, ...mensagensOpenAI],
       }),
     });
 
     if (!resposta.ok) {
       const detalhe = await resposta.text();
-      console.error("Erro da API Anthropic:", resposta.status, detalhe);
+      console.error("Erro da API OpenAI:", resposta.status, detalhe);
       return respostaJson({ error: "Erro ao falar com a IA. Tenta de novo em instantes." }, 502);
     }
 
     const dados = await resposta.json();
+    const escolha = dados.choices?.[0];
 
-    if (dados.stop_reason === "refusal") {
+    if (escolha?.finish_reason === "content_filter") {
       return respostaJson({ resposta: "Essa aqui eu não vou escrever — pede de um outro jeito?" });
     }
 
-    const texto = (dados.content ?? [])
-      .filter((bloco: { type: string }) => bloco.type === "text")
-      .map((bloco: { text: string }) => bloco.text)
-      .join("\n");
+    const texto = escolha?.message?.content ?? "";
 
     return respostaJson({ resposta: texto });
   } catch (erro) {

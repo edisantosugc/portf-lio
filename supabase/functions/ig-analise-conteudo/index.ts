@@ -1,6 +1,6 @@
 // supabase/functions/ig-analise-conteudo/index.ts
 //
-// Lê os comentários recentes (ig_comments) e usa a Anthropic API pra: (1)
+// Lê os comentários recentes (ig_comments) e usa a OpenAI API pra: (1)
 // classificar os que são dúvida ou interesse real, com uma sugestão de ação
 // pra cada um, e (2) sugerir ideias de vídeo com base nos temas mais
 // recorrentes. Chamada pelo painel.html (aba Instagram > Análises), sempre
@@ -19,9 +19,8 @@ function criarClienteSupabase() {
   return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 }
 
-const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-const ANTHROPIC_VERSION = "2023-06-01";
-const MODELO = "claude-sonnet-5";
+const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+const MODELO = "gpt-4o-mini";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "https://edilainesantos.com",
@@ -56,15 +55,15 @@ Deno.serve(async (req: Request) => {
   // "Verify JWT" ligado (padrão da plataforma) só garante que veio ALGUM JWT
   // válido — e a anon key (pública, já exposta no código do site) é um JWT
   // válido. Sem checar se é mesmo uma pessoa logada, qualquer um na internet
-  // podia chamar essa function direto e gastar seu crédito da Anthropic.
+  // podia chamar essa function direto e gastar seu crédito da OpenAI.
   const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
   const { data: dadosUsuario, error: erroUsuario } = await supabase.auth.getUser(jwt);
   if (!jwt || erroUsuario || !dadosUsuario?.user) {
     return respostaJson({ error: "Não autorizado." }, 401);
   }
 
-  if (!ANTHROPIC_API_KEY) {
-    return respostaJson({ error: "ANTHROPIC_API_KEY não configurada nos secrets da função." }, 500);
+  if (!OPENAI_API_KEY) {
+    return respostaJson({ error: "OPENAI_API_KEY não configurada nos secrets da função." }, 500);
   }
 
   try {
@@ -81,41 +80,38 @@ Deno.serve(async (req: Request) => {
       return respostaJson({ oportunidades: [], ideias: [], aviso: "Nenhum comentário registrado nos últimos 30 dias ainda." });
     }
 
-    const listaTexto = comentarios.map((c) => `@${c.username || "desconhecido"}: ${c.texto || ""}`).join("\n");
+    const listaTexto = comentarios.map((c: { username: string; texto: string }) => `@${c.username || "desconhecido"}: ${c.texto || ""}`).join("\n");
 
-    const resposta = await fetch("https://api.anthropic.com/v1/messages", {
+    const resposta = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": ANTHROPIC_VERSION,
+        "authorization": `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: MODELO,
         max_tokens: 3000,
-        system: SYSTEM_PROMPT,
-        thinking: { type: "disabled" },
-        output_config: { effort: "medium" },
-        messages: [{ role: "user", content: listaTexto }],
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: listaTexto },
+        ],
       }),
     });
 
     if (!resposta.ok) {
       const detalhe = await resposta.text();
-      console.error("Erro da API Anthropic em ig-analise-conteudo:", resposta.status, detalhe);
+      console.error("Erro da API OpenAI em ig-analise-conteudo:", resposta.status, detalhe);
       return respostaJson({ error: "Erro ao analisar com a IA. Tenta de novo em instantes." }, 502);
     }
 
     const dadosResposta = await resposta.json();
-    if (dadosResposta.stop_reason === "refusal") {
+    const escolha = dadosResposta.choices?.[0];
+    if (escolha?.finish_reason === "content_filter") {
       return respostaJson({ error: "A IA recusou analisar esse conteúdo." }, 200);
     }
 
-    const texto = (dadosResposta.content ?? [])
-      .filter((bloco: { type: string }) => bloco.type === "text")
-      .map((bloco: { text: string }) => bloco.text)
-      .join("\n")
-      .trim();
+    const texto = (escolha?.message?.content ?? "").trim();
 
     let json: any;
     try {
