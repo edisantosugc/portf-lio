@@ -93,7 +93,7 @@ Deno.serve(async (req: Request) => {
       return respostaJson({ error: "Não autorizado." }, 401);
     }
 
-    const { contexto, mensagens } = await req.json();
+    const { contexto, mensagens, imagemBase64 } = await req.json();
 
     const promptBase = SYSTEM_PROMPTS[contexto];
     if (!promptBase) {
@@ -129,6 +129,19 @@ Deno.serve(async (req: Request) => {
       role: m.papel === "assistant" ? "assistant" : "user",
       content: String(m.conteudo ?? ""),
     }));
+
+    // Imagem anexada no chat (vale só pra essa mensagem, não fica salva):
+    // troca o content da ÚLTIMA mensagem (a atual) de texto simples pra um
+    // array multimodal, mantendo o texto e acrescentando a imagem.
+    if (typeof imagemBase64 === "string" && imagemBase64.startsWith("data:image/")) {
+      const ultima = mensagensOpenAI[mensagensOpenAI.length - 1];
+      if (ultima) {
+        ultima.content = [
+          { type: "text", text: String(ultima.content) },
+          { type: "image_url", image_url: { url: imagemBase64 } },
+        ] as unknown as string;
+      }
+    }
 
     const resposta = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",

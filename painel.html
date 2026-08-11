@@ -2011,6 +2011,19 @@
   .botao-finalizar-iara{ background: var(--verde); color: #fff; border: none; padding: 9px 16px; border-radius: 10px; font-weight: 700; font-size: .8rem; cursor: pointer; font-family: 'Outfit', sans-serif; }
   .botao-finalizar-iara:disabled{ background: var(--borda); cursor: default; }
 
+  .botao-anexar-iara{
+    background: var(--creme); border: 1px solid var(--borda); border-radius: 10px; width: 42px; height: 42px;
+    flex-shrink: 0; font-size: 1.1rem; cursor: pointer; align-self: flex-end;
+  }
+  .botao-anexar-iara:hover{ background: var(--borda); }
+  .botao-anexar-iara:disabled{ opacity: .5; cursor: default; }
+  .chip-anexo-iara{
+    display: flex; align-items: center; gap: 8px; background: var(--creme); border: 1px solid var(--borda);
+    border-radius: 50px; padding: 6px 8px 6px 14px; font-size: .8rem; color: var(--grafite); width: fit-content; margin-bottom: 10px;
+  }
+  .chip-anexo-iara button{ background: none; border: none; cursor: pointer; color: var(--texto-suave); font-size: .85rem; padding: 3px 6px; border-radius: 50%; }
+  .chip-anexo-iara button:hover{ background: var(--borda); }
+
   /* ---- Modal Memória ---- */
   .modal-memoria-iara{ position: fixed; inset: 0; background: rgba(26,24,22,.5); display: none; align-items: center; justify-content: center; z-index: 60; padding: 20px; }
   .modal-memoria-iara.visivel{ display: flex; }
@@ -4062,7 +4075,13 @@
           <div class="cartao">
             <div class="chat-ia" id="chatIaSessao">
               <div class="chat-ia-mensagens" id="iaMensagensSessao"></div>
+              <div class="chip-anexo-iara oculto" id="chipAnexoIara">
+                <span id="chipAnexoNomeIara"></span>
+                <button type="button" id="btnRemoverAnexoIara" title="Remover anexo">✕</button>
+              </div>
               <div class="chat-ia-linha-input">
+                <button type="button" class="botao-anexar-iara" id="btnAnexarIara" title="Anexar foto, PDF ou documento de texto">📎</button>
+                <input type="file" id="campoAnexoIara" class="oculto" accept="image/*,application/pdf,text/plain">
                 <textarea class="chat-ia-campo" id="campoMsgIaraSessao" rows="2" placeholder="Escreva pra Iara..."></textarea>
                 <button type="button" class="botao-add-tarefa" id="btnEnviarIaraSessao">Enviar</button>
               </div>
@@ -4548,6 +4567,7 @@
   let iaraSubAbaAtiva = "estudo";
   let iaraFiltroAtivo = "todos";
   let iaraSessaoAbertaId = null;
+  let iaraAnexoPendente = null; // { tipo: 'imagem'|'documento', nome, conteudo } — conteudo é data-URL (imagem) ou texto extraído (documento)
 
   // EDITE AQUI se quiser mudar quantas mensagens de histórico são reenviadas pra IA a cada chamada
   const IA_HISTORICO_MAXIMO = 30;
@@ -6503,6 +6523,9 @@
       document.getElementById("modalExcluirIara").classList.remove("visivel");
     });
     document.getElementById("btnConfirmarExcluirIara").addEventListener("click", confirmarExclusaoIara);
+    document.getElementById("btnAnexarIara").addEventListener("click", () => document.getElementById("campoAnexoIara").click());
+    document.getElementById("campoAnexoIara").addEventListener("change", processarAnexoIara);
+    document.getElementById("btnRemoverAnexoIara").addEventListener("click", removerAnexoIara);
 
     // ---------- Memória da Iara (documentos globais) ----------
     document.getElementById("btnIaraAbrirMemoria").addEventListener("click", abrirMemoriaIara);
@@ -12340,6 +12363,8 @@
     document.getElementById("iaraAvisoFinalizada").classList.toggle("oculto", !finalizada);
     document.getElementById("campoMsgIaraSessao").disabled = finalizada;
     document.getElementById("btnEnviarIaraSessao").disabled = finalizada;
+    document.getElementById("btnAnexarIara").disabled = finalizada;
+    if (finalizada) removerAnexoIara();
     document.getElementById("btnIaraFinalizarSessao").textContent = finalizada ? "Finalizada" : "Finalizar conversa";
     document.getElementById("btnIaraFinalizarSessao").disabled = finalizada;
     document.getElementById("btnIaraFavoritarSessao").textContent = s.favorito ? "♥" : "♡";
@@ -12355,6 +12380,7 @@
 
   function fecharSessaoIara(){
     iaraSessaoAbertaId = null;
+    removerAnexoIara();
     document.getElementById("iaraVistaLista").classList.remove("oculto");
     document.getElementById("iaraVistaSessao").classList.add("oculto");
     renderizarListaSessoesIara();
@@ -12421,11 +12447,73 @@
     }
   }
 
+  // Anexo (foto/PDF/.txt) no chat de uma conversa — diferente da Memória: vale só
+  // pra essa mensagem, não fica disponível globalmente pras outras conversas.
+  const TAMANHO_MAXIMO_ANEXO_MB = 8;
+
+  async function processarAnexoIara(e){
+    const arquivo = e.target.files[0];
+    e.target.value = "";
+    if (!arquivo) return;
+
+    if (arquivo.size > TAMANHO_MAXIMO_ANEXO_MB * 1024 * 1024) {
+      alert(`Esse arquivo passa de ${TAMANHO_MAXIMO_ANEXO_MB}MB — tenta um menor.`);
+      return;
+    }
+
+    try {
+      if (arquivo.type.startsWith("image/")) {
+        const dataUrl = await new Promise((resolve, reject) => {
+          const leitor = new FileReader();
+          leitor.onload = () => resolve(leitor.result);
+          leitor.onerror = reject;
+          leitor.readAsDataURL(arquivo);
+        });
+        iaraAnexoPendente = { tipo: "imagem", nome: arquivo.name, conteudo: dataUrl };
+      } else if (arquivo.type === "application/pdf") {
+        const textoExtraido = await extrairTextoPdf(arquivo);
+        if (!textoExtraido.trim()) {
+          alert("Não consegui ler texto desse PDF (pode ser um PDF de imagem escaneada, sem texto de verdade dentro).");
+          return;
+        }
+        iaraAnexoPendente = { tipo: "documento", nome: arquivo.name, conteudo: textoExtraido };
+      } else if (arquivo.type === "text/plain") {
+        const texto = await arquivo.text();
+        iaraAnexoPendente = { tipo: "documento", nome: arquivo.name, conteudo: texto };
+      } else {
+        alert("Esse tipo de arquivo ainda não é suportado aqui — só imagens, PDF e .txt por enquanto.");
+        return;
+      }
+
+      document.getElementById("chipAnexoNomeIara").textContent = "📎 " + iaraAnexoPendente.nome;
+      document.getElementById("chipAnexoIara").classList.remove("oculto");
+    } catch (erro) {
+      console.error("Erro ao processar anexo:", erro);
+      alert("Não foi possível ler esse arquivo agora: " + (erro.message || erro));
+    }
+  }
+
+  function removerAnexoIara(){
+    iaraAnexoPendente = null;
+    document.getElementById("chipAnexoIara").classList.add("oculto");
+  }
+
   async function enviarMensagemSessaoIara(){
     const campo = document.getElementById("campoMsgIaraSessao");
-    const texto = campo.value.trim();
-    if (!texto || !iaraSessaoAbertaId) return;
+    const textoDigitado = campo.value.trim();
+    const anexo = iaraAnexoPendente;
+    if ((!textoDigitado && !anexo) || !iaraSessaoAbertaId) return;
     campo.value = "";
+    removerAnexoIara();
+
+    // Documento (PDF/.txt) vira parte do próprio texto da mensagem — a imagem
+    // não, porque manda a imagem de verdade pra IA "enxergar" (ver mais abaixo).
+    let texto = textoDigitado;
+    if (anexo && anexo.tipo === "documento") {
+      texto = `${textoDigitado}\n\n[Anexo: ${anexo.nome}]\n${anexo.conteudo}`.trim();
+    } else if (anexo && anexo.tipo === "imagem") {
+      texto = textoDigitado || `[Anexou uma imagem: ${anexo.nome}]`;
+    }
 
     const sessaoId = iaraSessaoAbertaId;
     const contexto = iaraContextoAtual();
@@ -12458,10 +12546,13 @@
       .slice(-IA_HISTORICO_MAXIMO)
       .map(m => ({ papel: m.papel, conteudo: m.conteudo }));
 
+    // A imagem em si (base64) só vai nessa chamada — não fica salva na
+    // mensagem persistida, pra não inchar a tabela de histórico.
+    const corpoChamada = { contexto, mensagens: historico };
+    if (anexo && anexo.tipo === "imagem") corpoChamada.imagemBase64 = anexo.conteudo;
+
     try {
-      const { data, error } = await Auth.client.functions.invoke("ia-assistente", {
-        body: { contexto, mensagens: historico }
-      });
+      const { data, error } = await Auth.client.functions.invoke("ia-assistente", { body: corpoChamada });
       if (error) throw error;
       if (data && data.error) throw new Error(data.error);
 
