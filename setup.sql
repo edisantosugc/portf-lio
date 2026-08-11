@@ -334,8 +334,41 @@ grant select, insert, update, delete on public.painel_ugc_trabalhos to authentic
 -- As respostas da IA vêm de uma Supabase Edge Function ("ia-assistente")
 -- que guarda a chave da OpenAI em segredo — ver README/instruções de deploy.
 -- =====================================================================
+-- Cada uso vira uma "sessão" (conversa separada, com título, status
+-- andamento/finalizada e favorito) — igual ao Banco Criativo. Uma linha
+-- por conversa; as mensagens dela ficam em painel_ia_mensagens, ligadas
+-- pela coluna sessao_id.
+create table if not exists public.painel_iara_sessoes (
+  id uuid primary key default gen_random_uuid(),
+  contexto text not null check (contexto in (
+    'iara_abordagem', 'iara_estudo_produto', 'iara_roteiro_ugc', 'iara_roteiro_insta',
+    'iara_precificacao_ugc_comum', 'iara_precificacao_ugc_criativo',
+    'iara_precificacao_publicidade', 'iara_precificacao_ugc_collab'
+  )),
+  titulo text not null default 'Nova conversa',
+  status text not null default 'andamento' check (status in ('andamento', 'finalizada')),
+  favorito boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_iara_sessoes_contexto on public.painel_iara_sessoes (contexto, updated_at desc);
+
+alter table public.painel_iara_sessoes enable row level security;
+
+drop policy if exists "Usuaria autenticada gerencia suas sessoes da Iara" on public.painel_iara_sessoes;
+create policy "Usuaria autenticada gerencia suas sessoes da Iara"
+  on public.painel_iara_sessoes
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_iara_sessoes to authenticated;
+
 create table if not exists public.painel_ia_mensagens (
   id uuid primary key default gen_random_uuid(),
+  sessao_id uuid references public.painel_iara_sessoes(id) on delete cascade,
   contexto text not null check (contexto in (
     'iara_abordagem', 'iara_estudo_produto', 'iara_roteiro_ugc', 'iara_roteiro_insta',
     'iara_precificacao_ugc_comum', 'iara_precificacao_ugc_criativo',
@@ -347,6 +380,7 @@ create table if not exists public.painel_ia_mensagens (
 );
 
 create index if not exists idx_painel_ia_mensagens_contexto on public.painel_ia_mensagens (contexto, created_at);
+create index if not exists idx_painel_ia_mensagens_sessao on public.painel_ia_mensagens (sessao_id, created_at);
 
 alter table public.painel_ia_mensagens enable row level security;
 
@@ -359,6 +393,33 @@ create policy "Usuaria autenticada gerencia suas mensagens de IA"
   with check (true);
 
 grant select, insert, update, delete on public.painel_ia_mensagens to authenticated;
+
+-- =====================================================================
+-- IARA: MEMÓRIA (documentos globais — marca pessoal, tom de voz, etc.)
+-- Guarda só o TEXTO (colado direto, ou extraído de PDF no navegador antes
+-- de enviar) — nunca o arquivo em si, então não precisa de bucket de
+-- storage. A Edge Function "ia-assistente" lê tudo daqui e injeta no
+-- prompt de qualquer uma das 8 conversas, não só de uma aba específica.
+-- =====================================================================
+create table if not exists public.painel_iara_documentos (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  tipo text not null check (tipo in ('texto', 'pdf')),
+  conteudo text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.painel_iara_documentos enable row level security;
+
+drop policy if exists "Usuaria autenticada gerencia documentos da Iara" on public.painel_iara_documentos;
+create policy "Usuaria autenticada gerencia documentos da Iara"
+  on public.painel_iara_documentos
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_iara_documentos to authenticated;
 
 -- =====================================================================
 -- IARA: PRECIFICAÇÃO (valor-base por tipo de conteúdo + desconto por
@@ -1578,7 +1639,8 @@ begin
     'painel_banco_criativo', 'painel_ugc_trabalhos',
     'painel_documentos_pessoais', 'painel_documentos_avulsos', 'painel_notas',
     'painel_ia_mensagens', 'negocio_lancamentos',
-    'painel_iara_precificacao_tipos', 'painel_iara_precificacao_desconto'
+    'painel_iara_precificacao_tipos', 'painel_iara_precificacao_desconto',
+    'painel_iara_sessoes', 'painel_iara_documentos'
   ]
   loop
     execute format(

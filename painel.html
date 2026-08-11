@@ -16,6 +16,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<!-- Lê o texto de dentro de PDFs enviados pra Memória da Iara, direto no navegador -->
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.worker.min.js";
+</script>
 
 <style>
   /* ===================== VARIÁVEIS DO DESIGN SYSTEM ===================== */
@@ -1965,6 +1970,84 @@
   .tabela-desconto-precif .botao-remover-faixa:hover{ color: var(--coral); }
   .rodape-precif{ display: flex; justify-content: flex-end; margin-top: 16px; }
 
+  /* ===================== IARA: SESSÕES (cards de conversa) ===================== */
+  .topo-conteudo-iara{ display: flex; justify-content: space-between; align-items: center; margin: 20px 0 16px; flex-wrap: wrap; gap: 10px; }
+  .filtros-linha-iara{ display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .filtro-btn-iara{
+    border: 1px solid var(--borda); background: var(--branco); padding: 8px 14px; border-radius: 50px;
+    font-size: .8rem; font-weight: 600; color: var(--texto-suave); cursor: pointer; font-family: 'Outfit', sans-serif;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .filtro-btn-iara .n{ background: var(--creme); color: var(--grafite); border-radius: 50px; padding: 1px 7px; font-size: .72rem; }
+  .filtro-btn-iara.ativo{ background: var(--coral); color: #fff; border-color: var(--coral); }
+  .filtro-btn-iara.ativo .n{ background: rgba(255,255,255,.25); color: #fff; }
+
+  .grade-cards-iara{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 640px){ .grade-cards-iara{ grid-template-columns: 1fr; } }
+  .card-sessao-iara{ background: var(--branco); border: 1px solid var(--borda); border-radius: 14px; padding: 16px 18px; cursor: pointer; transition: .15s; }
+  .card-sessao-iara:hover{ border-color: var(--coral); }
+  .card-sessao-iara.finalizada{ opacity: .72; }
+  .card-topo-iara{ display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+  .card-titulo-iara{ font-weight: 700; font-size: .94rem; }
+  .selo-status-iara{ font-size: .68rem; font-weight: 700; padding: 3px 9px; border-radius: 50px; white-space: nowrap; }
+  .selo-status-iara.andamento{ background: rgba(0,0,128,.1); color: var(--coral); }
+  .selo-status-iara.finalizada{ background: rgba(63,143,95,.12); color: var(--verde); }
+  .card-resumo-iara{ font-size: .82rem; color: var(--texto-suave); line-height: 1.45; margin-bottom: 12px; min-height: 38px; overflow: hidden; }
+  .card-rodape-iara{ display: flex; justify-content: space-between; align-items: center; }
+  .card-data-iara{ font-size: .74rem; color: var(--texto-suave); }
+  .card-acoes-iara{ display: flex; gap: 4px; }
+  .card-acoes-iara button{ background: none; border: none; cursor: pointer; font-size: .95rem; padding: 5px 7px; border-radius: 8px; color: var(--texto-suave); }
+  .card-acoes-iara button:hover{ background: var(--creme); }
+  .card-acoes-iara .favorito-iara.ativo{ color: #d1495b; }
+  .card-acoes-iara .excluir-iara:hover{ color: var(--coral-escuro, #b23a2e); }
+
+  .vazio-iara{ text-align: center; padding: 50px 20px; color: var(--texto-suave); font-size: .88rem; }
+
+  .vista-sessao-iara.oculto{ display: none; }
+  .topo-sessao-iara{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
+  .botao-voltar-iara{ background: none; border: none; color: var(--coral); font-weight: 700; font-size: .85rem; cursor: pointer; font-family: 'Outfit', sans-serif; padding: 6px 4px; }
+  .acoes-sessao-iara{ display: flex; gap: 8px; }
+  .botao-favoritar-sessao-iara{ background: none; border: 1px solid var(--borda); border-radius: 9px; padding: 8px 12px; cursor: pointer; font-size: .95rem; }
+  .botao-finalizar-iara{ background: var(--verde); color: #fff; border: none; padding: 9px 16px; border-radius: 10px; font-weight: 700; font-size: .8rem; cursor: pointer; font-family: 'Outfit', sans-serif; }
+  .botao-finalizar-iara:disabled{ background: var(--borda); cursor: default; }
+
+  /* ---- Modal Memória ---- */
+  .modal-memoria-iara{ position: fixed; inset: 0; background: rgba(26,24,22,.5); display: none; align-items: center; justify-content: center; z-index: 60; padding: 20px; }
+  .modal-memoria-iara.visivel{ display: flex; }
+  .caixa-memoria-iara{ background: var(--branco); border-radius: 18px; padding: 26px; max-width: 560px; width: 100%; max-height: 82vh; overflow-y: auto; }
+  .topo-memoria-iara{ display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+  .topo-memoria-iara h2{ font-size: 1.15rem; }
+  .fechar-memoria-iara{ background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--texto-suave); line-height: 1; padding: 4px; }
+  .sub-memoria-iara{ font-size: .82rem; color: var(--texto-suave); margin-bottom: 18px; line-height: 1.5; }
+  .form-novo-doc-iara{ background: var(--creme); border: 1px dashed var(--borda); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; }
+  .form-novo-doc-iara label{ display: block; font-size: .76rem; font-weight: 600; color: var(--texto-suave); margin-bottom: 5px; }
+  .form-novo-doc-iara input[type="text"], .form-novo-doc-iara textarea{
+    width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--borda);
+    font-family: 'Outfit', sans-serif; font-size: .85rem; margin-bottom: 10px; background: var(--branco);
+  }
+  .form-novo-doc-iara textarea{ resize: vertical; }
+  .separador-doc-iara{ text-align: center; font-size: .76rem; color: var(--texto-suave); margin: 6px 0 12px; }
+  .aviso-processando-pdf{ font-size: .8rem; color: var(--coral); margin-top: 8px; }
+  .lista-docs-iara{ display: flex; flex-direction: column; gap: 10px; }
+  .item-doc-iara{ border: 1px solid var(--borda); border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .item-doc-nome-iara{ font-weight: 700; font-size: .88rem; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .item-doc-tipo-iara{ font-size: .68rem; font-weight: 700; color: var(--coral); background: rgba(0,0,128,.08); padding: 2px 8px; border-radius: 50px; }
+  .item-doc-trecho-iara{ font-size: .8rem; color: var(--texto-suave); margin-top: 4px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item-doc-acoes-iara button{ background: none; border: none; cursor: pointer; font-size: .9rem; padding: 5px 7px; border-radius: 8px; color: var(--texto-suave); }
+  .item-doc-acoes-iara button:hover{ background: var(--creme); }
+  .vazio-memoria-iara{ text-align: center; padding: 24px; color: var(--texto-suave); font-size: .85rem; }
+
+  /* ---- Modal confirmar exclusão (sessão/documento) ---- */
+  .modal-confirma-iara{ position: fixed; inset: 0; background: rgba(26,24,22,.5); display: none; align-items: center; justify-content: center; z-index: 65; padding: 20px; }
+  .modal-confirma-iara.visivel{ display: flex; }
+  .modal-caixa-iara{ background: var(--branco); border-radius: 16px; padding: 24px; max-width: 340px; width: 100%; }
+  .modal-caixa-iara h3{ font-size: 1rem; }
+  .modal-caixa-iara p{ font-size: .88rem; margin: 10px 0 18px; color: var(--texto-suave); }
+  .modal-botoes-iara{ display: flex; gap: 10px; justify-content: flex-end; }
+  .modal-botoes-iara button{ border: none; padding: 9px 16px; border-radius: 9px; font-weight: 600; font-size: .82rem; cursor: pointer; font-family: 'Outfit', sans-serif; }
+  .btn-cancelar-iara{ background: var(--creme); color: var(--grafite); }
+  .btn-confirmar-excluir-iara{ background: #b23a2e; color: #fff; }
+
   /* ===================== BLOCO DE NOTAS (Ideias Criativas) ===================== */
   .notas-cabecalho{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
   .notas-titulo{ display: flex; align-items: center; gap: 12px; }
@@ -2526,7 +2609,7 @@
 
     /* Calculadora de pacote (Precificação): essa tela não pode ter rolagem lateral —
        os dois campos empilham em vez de ficar lado a lado. */
-    #iaraPrecificacao .ugc-form-grade{ grid-template-columns: 1fr; }
+    #iaraCalculadoraPrecificacao .ugc-form-grade{ grid-template-columns: 1fr; }
 
     /* Seletor de tipo e tabela de desconto por volume também precisam caber
        na tela pequena sem rolagem lateral forçada. */
@@ -3861,10 +3944,12 @@
          (Precificação, antiga aba "Negociação" realocada pra dentro da Iara)
          tem um seletor de tipo (UGC Comum/Criativo/Publicidade/UGC+Collab)
          com calculadora de pacote + 1 conversa por tipo — 8 contextos de
-         chat no total, todos passando pela mesma Edge Function
-         "ia-assistente" e pela mesma tabela painel_ia_mensagens (ver
-         comentário mais completo perto de renderizarChatIa/enviarMensagemIa,
-         no <script>). ===================== -->
+         chat no total, cada um organizado em sessões (cards com
+         favoritar/finalizar/excluir/filtros), todos passando pela mesma
+         Edge Function "ia-assistente" e pela mesma tabela
+         painel_ia_mensagens (ver comentário mais completo perto de
+         renderizarListaSessoesIara/enviarMensagemSessaoIara, no
+         <script>). ===================== -->
     <section id="painelIara" class="painel-tab oculto">
       <div class="sub-abas-negocio" id="subAbasIara">
         <button type="button" class="sub-aba-btn ativo" data-subaba="estudo">Estudo de Marca</button>
@@ -3874,59 +3959,16 @@
         <button type="button" class="sub-aba-btn" data-subaba="precificacao">Precificação</button>
       </div>
 
-      <div id="iaraEstudo">
-        <div class="cartao">
-          <h2>Estudar marca/produto com a Iara</h2>
-          <div class="chat-ia" id="chatIa_iara_estudo_produto">
-            <div class="chat-ia-mensagens" id="iaMensagens_iara_estudo_produto"></div>
-            <div class="chat-ia-linha-input">
-              <textarea class="chat-ia-campo" rows="2" placeholder="Cole o briefing ou descreva a marca..." data-ia-input="iara_estudo_produto"></textarea>
-              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_estudo_produto">Enviar</button>
-            </div>
-          </div>
-        </div>
+      <!-- Só aparece dentro da aba Precificação -->
+      <div class="sub-abas-negocio oculto" id="seletorTipoPrecificacao">
+        <button type="button" class="sub-aba-btn ativo" data-tipo="ugc_comum">UGC Comum</button>
+        <button type="button" class="sub-aba-btn" data-tipo="ugc_criativo">UGC Criativo</button>
+        <button type="button" class="sub-aba-btn" data-tipo="publicidade">Publicidade</button>
+        <button type="button" class="sub-aba-btn" data-tipo="ugc_collab">UGC + Collab</button>
       </div>
 
-      <div id="iaraAbordagem" class="oculto">
-        <div class="cartao">
-          <h2>Escrever abordagem com a Iara</h2>
-          <div class="chat-ia" id="chatIa_iara_abordagem">
-            <div class="chat-ia-mensagens" id="iaMensagens_iara_abordagem"></div>
-            <div class="chat-ia-linha-input">
-              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: marca X, produto Y, já responderam isso..." data-ia-input="iara_abordagem"></textarea>
-              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_abordagem">Enviar</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div id="iaraRoteiroUgc" class="oculto">
-        <div class="cartao">
-          <h2>Escrever roteiro de UGC com a Iara</h2>
-          <div class="chat-ia" id="chatIa_iara_roteiro_ugc">
-            <div class="chat-ia-mensagens" id="iaMensagens_iara_roteiro_ugc"></div>
-            <div class="chat-ia-linha-input">
-              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: produto, formato, duração, briefing da marca..." data-ia-input="iara_roteiro_ugc"></textarea>
-              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_roteiro_ugc">Enviar</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div id="iaraRoteiroInsta" class="oculto">
-        <div class="cartao">
-          <h2>Escrever roteiro pro Instagram com a Iara</h2>
-          <div class="chat-ia" id="chatIa_iara_roteiro_insta">
-            <div class="chat-ia-mensagens" id="iaMensagens_iara_roteiro_insta"></div>
-            <div class="chat-ia-linha-input">
-              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: tema, vibe que você quer passar..." data-ia-input="iara_roteiro_insta"></textarea>
-              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_roteiro_insta">Enviar</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div id="iaraPrecificacao" class="oculto">
+      <!-- Calculadora + edição de valores: só aparece na aba Precificação, acima da lista de conversas -->
+      <div id="iaraCalculadoraPrecificacao" class="oculto">
         <div class="postit-lembrete">
           <h3>Lembrete — outros valores</h3>
           <ul>
@@ -3939,12 +3981,6 @@
 
         <div class="cartao">
           <h2>Calculadora de pacote</h2>
-          <div class="sub-abas-negocio" id="seletorTipoPrecificacao">
-            <button type="button" class="sub-aba-btn ativo" data-tipo="ugc_comum">UGC Comum</button>
-            <button type="button" class="sub-aba-btn" data-tipo="ugc_criativo">UGC Criativo</button>
-            <button type="button" class="sub-aba-btn" data-tipo="publicidade">Publicidade</button>
-            <button type="button" class="sub-aba-btn" data-tipo="ugc_collab">UGC + Collab</button>
-          </div>
           <div id="precifAvisoManual" class="aviso-precif-manual oculto">
             Publicidade não tem valor-base fixo — digite o valor combinado com a marca pra esse pacote.
           </div>
@@ -3975,50 +4011,6 @@
           </div>
         </div>
 
-        <div class="cartao" id="precifChat_ugc_comum">
-          <h2>Conversar sobre desconto com a Iara — UGC Comum</h2>
-          <div class="chat-ia" id="chatIa_iara_precificacao_ugc_comum">
-            <div class="chat-ia-mensagens" id="iaMensagens_iara_precificacao_ugc_comum"></div>
-            <div class="chat-ia-linha-input">
-              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: o cliente pediu mais 10% de desconto, o que acha?" data-ia-input="iara_precificacao_ugc_comum"></textarea>
-              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_precificacao_ugc_comum">Enviar</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="cartao oculto" id="precifChat_ugc_criativo">
-          <h2>Conversar sobre desconto com a Iara — UGC Criativo</h2>
-          <div class="chat-ia" id="chatIa_iara_precificacao_ugc_criativo">
-            <div class="chat-ia-mensagens" id="iaMensagens_iara_precificacao_ugc_criativo"></div>
-            <div class="chat-ia-linha-input">
-              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: o cliente pediu mais 10% de desconto, o que acha?" data-ia-input="iara_precificacao_ugc_criativo"></textarea>
-              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_precificacao_ugc_criativo">Enviar</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="cartao oculto" id="precifChat_publicidade">
-          <h2>Conversar sobre desconto com a Iara — Publicidade</h2>
-          <div class="chat-ia" id="chatIa_iara_precificacao_publicidade">
-            <div class="chat-ia-mensagens" id="iaMensagens_iara_precificacao_publicidade"></div>
-            <div class="chat-ia-linha-input">
-              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: o cliente pediu mais 10% de desconto, o que acha?" data-ia-input="iara_precificacao_publicidade"></textarea>
-              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_precificacao_publicidade">Enviar</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="cartao oculto" id="precifChat_ugc_collab">
-          <h2>Conversar sobre desconto com a Iara — UGC + Collab</h2>
-          <div class="chat-ia" id="chatIa_iara_precificacao_ugc_collab">
-            <div class="chat-ia-mensagens" id="iaMensagens_iara_precificacao_ugc_collab"></div>
-            <div class="chat-ia-linha-input">
-              <textarea class="chat-ia-campo" rows="2" placeholder="Ex: o cliente pediu mais 10% de desconto, o que acha?" data-ia-input="iara_precificacao_ugc_collab"></textarea>
-              <button type="button" class="botao-add-tarefa" data-acao="ia-enviar" data-contexto="iara_precificacao_ugc_collab">Enviar</button>
-            </div>
-          </div>
-        </div>
-
         <details class="cartao cartao-colapsavel">
           <summary class="resumo-colapsavel"><h2>Editar valores-base e desconto por volume</h2><span class="seta-colapsavel">▾</span></summary>
 
@@ -4037,7 +4029,89 @@
           </div>
         </details>
       </div>
+
+      <!-- Lista de conversas em cards (favoritar/finalizar/excluir/filtros), igual ao Banco
+           Criativo. Um bloco só, reaproveitado pelas 8 conversas (4 abas simples + 4 tipos
+           dentro de Precificação) — o conteúdo muda conforme iaraContextoAtual(). -->
+      <div id="iaraSessoesArea">
+        <div class="topo-conteudo-iara">
+          <button type="button" class="botao-add-tarefa" id="btnIaraNovaConversa">+ Nova conversa</button>
+          <button type="button" class="ugc-btn" id="btnIaraAbrirMemoria">🗂️ Memória</button>
+        </div>
+
+        <div id="iaraVistaLista">
+          <div class="filtros-linha-iara" id="iaraFiltrosLinha">
+            <button type="button" class="filtro-btn-iara ativo" data-filtro="todos">Todos <span class="n" id="iaraContTodos">0</span></button>
+            <button type="button" class="filtro-btn-iara" data-filtro="andamento">Em andamento <span class="n" id="iaraContAndamento">0</span></button>
+            <button type="button" class="filtro-btn-iara" data-filtro="finalizada">Finalizados <span class="n" id="iaraContFinalizados">0</span></button>
+            <button type="button" class="filtro-btn-iara" data-filtro="favorito">Favoritos <span class="n" id="iaraContFavoritos">0</span></button>
+          </div>
+          <div class="grade-cards-iara" id="iaraGradeCards"></div>
+          <div class="vazio-iara oculto" id="iaraAreaVazia">Nenhuma conversa aqui ainda — clique em "+ Nova conversa" pra começar.</div>
+        </div>
+
+        <div class="vista-sessao-iara oculto" id="iaraVistaSessao">
+          <div class="topo-sessao-iara">
+            <button type="button" class="botao-voltar-iara" id="btnIaraVoltar">← Voltar pra lista</button>
+            <div class="acoes-sessao-iara">
+              <button type="button" class="botao-favoritar-sessao-iara" id="btnIaraFavoritarSessao" title="Favoritar">♡</button>
+              <button type="button" class="botao-finalizar-iara" id="btnIaraFinalizarSessao">Finalizar conversa</button>
+            </div>
+          </div>
+          <div id="iaraAvisoFinalizada" class="aviso-precif-manual oculto">Essa conversa está finalizada e arquivada — só leitura. Crie uma nova se precisar continuar.</div>
+          <div class="cartao">
+            <div class="chat-ia" id="chatIaSessao">
+              <div class="chat-ia-mensagens" id="iaMensagensSessao"></div>
+              <div class="chat-ia-linha-input">
+                <textarea class="chat-ia-campo" id="campoMsgIaraSessao" rows="2" placeholder="Escreva pra Iara..."></textarea>
+                <button type="button" class="botao-add-tarefa" id="btnEnviarIaraSessao">Enviar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
+
+    <!-- Modal: Memória da Iara (documentos globais, disponíveis em qualquer aba/conversa) -->
+    <div class="modal-memoria-iara" id="modalMemoriaIara">
+      <div class="caixa-memoria-iara">
+        <div class="topo-memoria-iara">
+          <h2>Memória da Iara</h2>
+          <button type="button" class="fechar-memoria-iara" id="btnFecharMemoriaIara">✕</button>
+        </div>
+        <p class="sub-memoria-iara">
+          Tudo que você guardar aqui (marca pessoal, tom de voz, cores, essência, referências) fica
+          disponível pra Iara em qualquer aba — ela consulta antes de responder.
+        </p>
+
+        <div class="form-novo-doc-iara">
+          <label>Nome do documento</label>
+          <input type="text" id="campoNomeDocIara" placeholder='Ex: "Meu tom de voz", "Paleta de cores da marca"'>
+          <label>Colar texto</label>
+          <textarea id="campoConteudoDocIara" rows="3" placeholder="Cole o texto aqui..."></textarea>
+          <button type="button" class="botao-add-tarefa" id="btnAdicionarDocTextoIara">+ Adicionar à memória</button>
+          <div class="separador-doc-iara">ou</div>
+          <label>Enviar PDF (o texto de dentro é extraído automaticamente)</label>
+          <input type="file" id="campoArquivoPdfIara" accept="application/pdf">
+          <p class="aviso-processando-pdf oculto" id="avisoProcessandoPdf">Lendo o PDF...</p>
+        </div>
+
+        <div class="lista-docs-iara" id="listaDocsIara"></div>
+        <div class="vazio-memoria-iara oculto" id="vazioMemoriaIara">Nenhum documento ainda — adicione o primeiro acima.</div>
+      </div>
+    </div>
+
+    <!-- Modal: confirmar exclusão (reaproveitado pra sessão e pra documento) -->
+    <div class="modal-confirma-iara" id="modalExcluirIara">
+      <div class="modal-caixa-iara">
+        <h3 id="tituloModalExcluirIara">Excluir?</h3>
+        <p id="textoModalExcluirIara"></p>
+        <div class="modal-botoes-iara">
+          <button type="button" class="btn-cancelar-iara" id="btnCancelarExcluirIara">Cancelar</button>
+          <button type="button" class="btn-confirmar-excluir-iara" id="btnConfirmarExcluirIara">Excluir</button>
+        </div>
+      </div>
+    </div>
 
 
     <!-- ===================== ABA: UGC CREATOR ===================== -->
@@ -4459,13 +4533,21 @@
   };
   const IG_EMOJIS = ["🫶","👀","😍","🥰","😂","😮","🔥","✨","💌","👉","🙌","💕"];
 
-  // Estado das conversas de IA da aba Iara: uma entrada por contexto, cada
-  // uma é a lista de mensagens daquela conversa, em ordem cronológica.
-  let iaCache = {
-    iara_abordagem: [], iara_estudo_produto: [], iara_roteiro_ugc: [], iara_roteiro_insta: [],
-    iara_precificacao_ugc_comum: [], iara_precificacao_ugc_criativo: [],
-    iara_precificacao_publicidade: [], iara_precificacao_ugc_collab: []
-  };
+  // Estado das conversas de IA da aba Iara: cada uso vira uma "sessão" própria
+  // (título, status andamento/finalizada, favorito) — sessoesCache tem uma
+  // entrada por contexto, com a lista de sessões daquele contexto; as
+  // mensagens de cada sessão ficam em mensagensPorSessao, indexadas pelo id
+  // da sessão.
+  const IARA_CONTEXTOS = [
+    "iara_abordagem", "iara_estudo_produto", "iara_roteiro_ugc", "iara_roteiro_insta",
+    "iara_precificacao_ugc_comum", "iara_precificacao_ugc_criativo",
+    "iara_precificacao_publicidade", "iara_precificacao_ugc_collab"
+  ];
+  let sessoesCache = Object.fromEntries(IARA_CONTEXTOS.map(c => [c, []]));
+  let mensagensPorSessao = {};
+  let iaraSubAbaAtiva = "estudo";
+  let iaraFiltroAtivo = "todos";
+  let iaraSessaoAbertaId = null;
 
   // EDITE AQUI se quiser mudar quantas mensagens de histórico são reenviadas pra IA a cada chamada
   const IA_HISTORICO_MAXIMO = 30;
@@ -4787,11 +4869,27 @@
       try {
         // Isolado do carregamento principal, pro histórico de conversa com a Iara
         // nunca travar o resto do painel se der algum erro.
+        const sessoesIa = await comRetry(() => buscarTudo("painel_iara_sessoes"));
+        sessoesCache = Object.fromEntries(IARA_CONTEXTOS.map(c => [c, []]));
+        sessoesIa.slice().reverse().forEach(s => { if (sessoesCache[s.contexto]) sessoesCache[s.contexto].push(s); });
+
         const mensagensIa = await comRetry(() => buscarTudo("painel_ia_mensagens"));
-        mensagensIa.slice().reverse().forEach(m => { if (iaCache[m.contexto]) iaCache[m.contexto].push(m); });
-        Object.keys(iaCache).forEach(renderizarChatIa);
+        mensagensPorSessao = {};
+        mensagensIa.slice().reverse().forEach(m => {
+          if (!m.sessao_id) return;
+          if (!mensagensPorSessao[m.sessao_id]) mensagensPorSessao[m.sessao_id] = [];
+          mensagensPorSessao[m.sessao_id].push(m);
+        });
+
+        renderizarListaSessoesIara();
       } catch (erroIa) {
         console.error("Erro ao carregar/renderizar chats de IA:", erroIa);
+      }
+      try {
+        // Isolado do carregamento principal: Memória da Iara (documentos globais).
+        documentosMemoriaCache = await comRetry(() => buscarTudo("painel_iara_documentos"));
+      } catch (erroMemoria) {
+        console.error("Erro ao carregar Memória da Iara:", erroMemoria);
       }
       try {
         // Isolado do carregamento principal: valores-base e desconto por volume da
@@ -6382,25 +6480,37 @@
     document.getElementById("precifObservacaoExtra").addEventListener("input", atualizarTextoPropostaPrecificacao);
     document.getElementById("btnPrecifCopiarProposta").addEventListener("click", copiarTextoPropostaPrecificacao);
 
-    // ---------- Chat de IA (Iara — genérico pras 8 conversas) ----------
-    document.querySelectorAll("[data-acao='ia-enviar']").forEach(btn => {
+    // ---------- Chat de IA (Iara — sessões, genérico pras 8 conversas) ----------
+    document.getElementById("btnIaraNovaConversa").addEventListener("click", criarNovaSessaoIara);
+    document.getElementById("btnIaraVoltar").addEventListener("click", fecharSessaoIara);
+    document.getElementById("btnIaraFavoritarSessao").addEventListener("click", () => favoritarSessaoIara(iaraSessaoAbertaId));
+    document.getElementById("btnIaraFinalizarSessao").addEventListener("click", () => finalizarSessaoIara(iaraSessaoAbertaId));
+    document.getElementById("btnEnviarIaraSessao").addEventListener("click", enviarMensagemSessaoIara);
+    document.getElementById("campoMsgIaraSessao").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        document.getElementById("btnEnviarIaraSessao").click();
+      }
+    });
+    document.querySelectorAll(".filtro-btn-iara").forEach(btn => {
       btn.addEventListener("click", () => {
-        const contexto = btn.dataset.contexto;
-        const campo = document.querySelector(`[data-ia-input="${contexto}"]`);
-        const texto = campo.value.trim();
-        if (!texto) return;
-        campo.value = "";
-        enviarMensagemIa(contexto, texto);
+        iaraFiltroAtivo = btn.dataset.filtro;
+        document.querySelectorAll(".filtro-btn-iara").forEach(b => b.classList.toggle("ativo", b === btn));
+        renderizarListaSessoesIara();
       });
     });
-    document.querySelectorAll("[data-ia-input]").forEach(campo => {
-      campo.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey){
-          e.preventDefault();
-          document.querySelector(`[data-acao="ia-enviar"][data-contexto="${campo.dataset.iaInput}"]`).click();
-        }
-      });
+    document.getElementById("btnCancelarExcluirIara").addEventListener("click", () => {
+      document.getElementById("modalExcluirIara").classList.remove("visivel");
     });
+    document.getElementById("btnConfirmarExcluirIara").addEventListener("click", confirmarExclusaoIara);
+
+    // ---------- Memória da Iara (documentos globais) ----------
+    document.getElementById("btnIaraAbrirMemoria").addEventListener("click", abrirMemoriaIara);
+    document.getElementById("btnFecharMemoriaIara").addEventListener("click", () => {
+      document.getElementById("modalMemoriaIara").classList.remove("visivel");
+    });
+    document.getElementById("btnAdicionarDocTextoIara").addEventListener("click", adicionarDocumentoTextoIara);
+    document.getElementById("campoArquivoPdfIara").addEventListener("change", adicionarDocumentoPdfIara);
 
     // ---------- UGC Creator ----------
     document.querySelectorAll("#ugcAlternaVista button").forEach(btn => {
@@ -6668,12 +6778,16 @@
   }
 
   function trocarSubAbaIara(sub){
+    iaraSubAbaAtiva = sub;
     document.querySelectorAll("#subAbasIara .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === sub));
-    document.getElementById("iaraEstudo").classList.toggle("oculto", sub !== "estudo");
-    document.getElementById("iaraAbordagem").classList.toggle("oculto", sub !== "abordagem");
-    document.getElementById("iaraRoteiroUgc").classList.toggle("oculto", sub !== "roteiro-ugc");
-    document.getElementById("iaraRoteiroInsta").classList.toggle("oculto", sub !== "roteiro-insta");
-    document.getElementById("iaraPrecificacao").classList.toggle("oculto", sub !== "precificacao");
+    const ehPrecificacao = sub === "precificacao";
+    document.getElementById("seletorTipoPrecificacao").classList.toggle("oculto", !ehPrecificacao);
+    document.getElementById("iaraCalculadoraPrecificacao").classList.toggle("oculto", !ehPrecificacao);
+
+    iaraFiltroAtivo = "todos";
+    document.querySelectorAll(".filtro-btn-iara").forEach(b => b.classList.toggle("ativo", b.dataset.filtro === "todos"));
+    fecharSessaoIara();
+    renderizarListaSessoesIara();
   }
 
   function trocarSubAbaAbordagem(sub){
@@ -12135,41 +12249,211 @@
   }
 
   /* =========================================================================
-     IARA: chat de IA compartilhado pelos 8 contextos da aba (Abordagem,
-     Estudar marca, Roteiro UGC, Roteiro Instagram, e os 4 tipos dentro de
-     Precificação: UGC Comum, UGC Criativo, Publicidade e UGC + Collab),
-     todos passando pela mesma Edge Function "ia-assistente" e pela mesma
-     tabela painel_ia_mensagens.
+     IARA: sessões (conversas em cards, favoritar/finalizar/excluir/filtros)
+     compartilhadas pelos 8 contextos da aba (Abordagem, Estudar marca,
+     Roteiro UGC, Roteiro Instagram, e os 4 tipos dentro de Precificação:
+     UGC Comum, UGC Criativo, Publicidade e UGC + Collab). Todas passam pela
+     mesma Edge Function "ia-assistente", pela mesma tabela
+     painel_ia_mensagens (agora ligada a uma sessão via sessao_id) e pela
+     tabela painel_iara_sessoes (uma linha por conversa).
      ========================================================================= */
-  function renderizarChatIa(contexto){
-    const container = document.getElementById(`iaMensagens_${contexto}`);
-    if (!container) return;
+  function iaraContextoAtual(){
+    if (iaraSubAbaAtiva === "precificacao") return `iara_precificacao_${precifTipoAtual}`;
+    const MAPA = { estudo: "iara_estudo_produto", abordagem: "iara_abordagem", "roteiro-ugc": "iara_roteiro_ugc", "roteiro-insta": "iara_roteiro_insta" };
+    return MAPA[iaraSubAbaAtiva];
+  }
 
-    container.innerHTML = iaCache[contexto].length
-      ? iaCache[contexto].map(m => `
-          <div class="chat-ia-bolha ${m.papel === "user" ? "usuario" : "assistente"}${m.carregando ? " carregando" : ""}">${m.conteudo}</div>
+  function buscarSessaoIaraPorId(id){
+    return (sessoesCache[iaraContextoAtual()] || []).find(s => s.id === id);
+  }
+
+  function resumoSessaoIara(sessaoId){
+    const msgs = mensagensPorSessao[sessaoId] || [];
+    if (!msgs.length) return "Ainda sem mensagens.";
+    const texto = msgs[msgs.length - 1].conteudo.replace(/\s+/g, " ").trim();
+    return texto.length > 110 ? texto.slice(0, 110) + "…" : texto;
+  }
+
+  function contarSessoesIara(lista){
+    document.getElementById("iaraContTodos").textContent = lista.length;
+    document.getElementById("iaraContAndamento").textContent = lista.filter(s => s.status === "andamento").length;
+    document.getElementById("iaraContFinalizados").textContent = lista.filter(s => s.status === "finalizada").length;
+    document.getElementById("iaraContFavoritos").textContent = lista.filter(s => s.favorito).length;
+  }
+
+  function renderizarListaSessoesIara(){
+    const todas = sessoesCache[iaraContextoAtual()] || [];
+    contarSessoesIara(todas);
+
+    let lista = todas;
+    if (iaraFiltroAtivo === "favorito") lista = todas.filter(s => s.favorito);
+    else if (iaraFiltroAtivo !== "todos") lista = todas.filter(s => s.status === iaraFiltroAtivo);
+
+    const grade = document.getElementById("iaraGradeCards");
+    document.getElementById("iaraAreaVazia").classList.toggle("oculto", lista.length > 0);
+    grade.innerHTML = lista.map(s => `
+      <div class="card-sessao-iara ${s.status === 'finalizada' ? 'finalizada' : ''}" data-id="${s.id}">
+        <div class="card-topo-iara">
+          <span class="card-titulo-iara">${igEscaparHtml(s.titulo)}</span>
+          <span class="selo-status-iara ${s.status}">${s.status === 'andamento' ? 'Em andamento' : 'Finalizada'}</span>
+        </div>
+        <div class="card-resumo-iara">${igEscaparHtml(resumoSessaoIara(s.id))}</div>
+        <div class="card-rodape-iara">
+          <span class="card-data-iara">${formatarDataHoraCurta(s.created_at)}</span>
+          <div class="card-acoes-iara">
+            <button type="button" class="favorito-iara ${s.favorito ? 'ativo' : ''}" data-acao="favoritar" data-id="${s.id}" title="Favoritar">${s.favorito ? '♥' : '♡'}</button>
+            <button type="button" class="excluir-iara" data-acao="excluir" data-id="${s.id}" title="Excluir">🗑</button>
+          </div>
+        </div>
+      </div>
+    `).join("");
+
+    grade.querySelectorAll(".card-sessao-iara").forEach(card => {
+      card.addEventListener("click", (e) => {
+        if (e.target.closest("[data-acao]")) return;
+        abrirSessaoIara(card.dataset.id);
+      });
+    });
+    grade.querySelectorAll("[data-acao='favoritar']").forEach(btn => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); favoritarSessaoIara(btn.dataset.id); });
+    });
+    grade.querySelectorAll("[data-acao='excluir']").forEach(btn => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); pedirExclusaoSessaoIara(btn.dataset.id); });
+    });
+  }
+
+  function renderizarMensagensSessaoIara(){
+    const container = document.getElementById("iaMensagensSessao");
+    const msgs = mensagensPorSessao[iaraSessaoAbertaId] || [];
+    container.innerHTML = msgs.length
+      ? msgs.map(m => `
+          <div class="chat-ia-bolha ${m.papel === "user" ? "usuario" : "assistente"}${m.carregando ? " carregando" : ""}">${igEscaparHtml(m.conteudo)}</div>
         `).join("")
       : `<p class="texto-vazio">Ainda não tem conversa aqui — manda a primeira mensagem.</p>`;
-
     container.scrollTop = container.scrollHeight;
   }
 
-  async function enviarMensagemIa(contexto, texto){
-    if (!iaCache[contexto]) return;
+  function atualizarCabecalhoSessaoIara(){
+    const s = buscarSessaoIaraPorId(iaraSessaoAbertaId);
+    if (!s) return;
+    const finalizada = s.status === "finalizada";
+    document.getElementById("iaraAvisoFinalizada").classList.toggle("oculto", !finalizada);
+    document.getElementById("campoMsgIaraSessao").disabled = finalizada;
+    document.getElementById("btnEnviarIaraSessao").disabled = finalizada;
+    document.getElementById("btnIaraFinalizarSessao").textContent = finalizada ? "Finalizada" : "Finalizar conversa";
+    document.getElementById("btnIaraFinalizarSessao").disabled = finalizada;
+    document.getElementById("btnIaraFavoritarSessao").textContent = s.favorito ? "♥" : "♡";
+  }
 
-    iaCache[contexto].push({ papel: "user", conteudo: texto });
-    renderizarChatIa(contexto);
+  function abrirSessaoIara(id){
+    iaraSessaoAbertaId = id;
+    document.getElementById("iaraVistaLista").classList.add("oculto");
+    document.getElementById("iaraVistaSessao").classList.remove("oculto");
+    renderizarMensagensSessaoIara();
+    atualizarCabecalhoSessaoIara();
+  }
+
+  function fecharSessaoIara(){
+    iaraSessaoAbertaId = null;
+    document.getElementById("iaraVistaLista").classList.remove("oculto");
+    document.getElementById("iaraVistaSessao").classList.add("oculto");
+    renderizarListaSessoesIara();
+  }
+
+  async function criarNovaSessaoIara(){
+    const contexto = iaraContextoAtual();
+    const { data, error } = await Auth.client
+      .from("painel_iara_sessoes")
+      .insert({ contexto, titulo: "Nova conversa", status: "andamento", favorito: false })
+      .select()
+      .single();
+    if (error) { alert("Não foi possível criar a conversa agora: " + error.message); return; }
+    sessoesCache[contexto].unshift(data);
+    mensagensPorSessao[data.id] = [];
+    abrirSessaoIara(data.id);
+  }
+
+  async function favoritarSessaoIara(id){
+    const s = buscarSessaoIaraPorId(id);
+    if (!s) return;
+    s.favorito = !s.favorito;
+    if (iaraSessaoAbertaId === id) atualizarCabecalhoSessaoIara(); else renderizarListaSessoesIara();
+    const { error } = await Auth.client.from("painel_iara_sessoes").update({ favorito: s.favorito }).eq("id", id);
+    if (error) console.error("Erro ao favoritar sessão:", error);
+  }
+
+  async function finalizarSessaoIara(id){
+    const s = buscarSessaoIaraPorId(id);
+    if (!s || s.status === "finalizada") return;
+    s.status = "finalizada";
+    atualizarCabecalhoSessaoIara();
+    const { error } = await Auth.client.from("painel_iara_sessoes").update({ status: "finalizada" }).eq("id", id);
+    if (error) { alert("Não foi possível finalizar agora: " + error.message); s.status = "andamento"; atualizarCabecalhoSessaoIara(); }
+  }
+
+  let iaraExclusaoPendente = null; // { tipo: 'sessao'|'documento', id }
+
+  function pedirExclusaoSessaoIara(id){
+    iaraExclusaoPendente = { tipo: "sessao", id };
+    document.getElementById("tituloModalExcluirIara").textContent = "Excluir esta conversa?";
+    document.getElementById("textoModalExcluirIara").textContent = "Isso apaga tudo que foi conversado nela pra sempre. Não dá pra desfazer.";
+    document.getElementById("modalExcluirIara").classList.add("visivel");
+  }
+
+  async function confirmarExclusaoIara(){
+    if (!iaraExclusaoPendente) return;
+    const { tipo, id } = iaraExclusaoPendente;
+    document.getElementById("modalExcluirIara").classList.remove("visivel");
+    iaraExclusaoPendente = null;
+
+    if (tipo === "sessao") {
+      const contexto = iaraContextoAtual();
+      const { error } = await Auth.client.from("painel_iara_sessoes").delete().eq("id", id);
+      if (error) { alert("Não foi possível excluir agora: " + error.message); return; }
+      sessoesCache[contexto] = sessoesCache[contexto].filter(s => s.id !== id);
+      delete mensagensPorSessao[id];
+      if (iaraSessaoAbertaId === id) fecharSessaoIara(); else renderizarListaSessoesIara();
+    } else if (tipo === "documento") {
+      const { error } = await Auth.client.from("painel_iara_documentos").delete().eq("id", id);
+      if (error) { alert("Não foi possível remover agora: " + error.message); return; }
+      documentosMemoriaCache = documentosMemoriaCache.filter(d => d.id !== id);
+      renderizarListaDocumentosIara();
+    }
+  }
+
+  async function enviarMensagemSessaoIara(){
+    const campo = document.getElementById("campoMsgIaraSessao");
+    const texto = campo.value.trim();
+    if (!texto || !iaraSessaoAbertaId) return;
+    campo.value = "";
+
+    const sessaoId = iaraSessaoAbertaId;
+    const contexto = iaraContextoAtual();
+    const sessao = buscarSessaoIaraPorId(sessaoId);
+    const eraPrimeiraMensagem = !(mensagensPorSessao[sessaoId] && mensagensPorSessao[sessaoId].length);
+    const talvezRenderizar = () => { if (iaraSessaoAbertaId === sessaoId) renderizarMensagensSessaoIara(); };
+
+    if (!mensagensPorSessao[sessaoId]) mensagensPorSessao[sessaoId] = [];
+    mensagensPorSessao[sessaoId].push({ papel: "user", conteudo: texto });
+    talvezRenderizar();
 
     const { error: erroInsercao } = await Auth.client
       .from("painel_ia_mensagens")
-      .insert({ contexto, papel: "user", conteudo: texto });
+      .insert({ sessao_id: sessaoId, contexto, papel: "user", conteudo: texto });
     if (erroInsercao) console.error("Erro ao salvar mensagem:", erroInsercao);
 
-    const mensagemCarregando = { papel: "assistant", conteudo: "…", carregando: true };
-    iaCache[contexto].push(mensagemCarregando);
-    renderizarChatIa(contexto);
+    if (eraPrimeiraMensagem && sessao) {
+      const novoTitulo = texto.length > 48 ? texto.slice(0, 48) + "…" : texto;
+      sessao.titulo = novoTitulo;
+      const { error: erroTitulo } = await Auth.client.from("painel_iara_sessoes").update({ titulo: novoTitulo }).eq("id", sessaoId);
+      if (erroTitulo) console.error("Erro ao titular sessão:", erroTitulo);
+    }
 
-    const historico = iaCache[contexto]
+    const mensagemCarregando = { papel: "assistant", conteudo: "…", carregando: true };
+    mensagensPorSessao[sessaoId].push(mensagemCarregando);
+    talvezRenderizar();
+
+    const historico = mensagensPorSessao[sessaoId]
       .filter(m => !m.carregando)
       .slice(-IA_HISTORICO_MAXIMO)
       .map(m => ({ papel: m.papel, conteudo: m.conteudo }));
@@ -12181,17 +12465,117 @@
       if (error) throw error;
       if (data && data.error) throw new Error(data.error);
 
-      iaCache[contexto] = iaCache[contexto].filter(m => m !== mensagemCarregando);
-      iaCache[contexto].push({ papel: "assistant", conteudo: data.resposta });
-      renderizarChatIa(contexto);
+      mensagensPorSessao[sessaoId] = mensagensPorSessao[sessaoId].filter(m => m !== mensagemCarregando);
+      mensagensPorSessao[sessaoId].push({ papel: "assistant", conteudo: data.resposta });
+      talvezRenderizar();
 
-      await Auth.client.from("painel_ia_mensagens").insert({ contexto, papel: "assistant", conteudo: data.resposta });
+      await Auth.client.from("painel_ia_mensagens").insert({ sessao_id: sessaoId, contexto, papel: "assistant", conteudo: data.resposta });
     } catch (erro) {
       console.error("Erro ao chamar ia-assistente:", erro);
-      iaCache[contexto] = iaCache[contexto].filter(m => m !== mensagemCarregando);
-      iaCache[contexto].push({ papel: "assistant", conteudo: "Deu ruim aqui, tenta de novo — " + (erro.message || erro) });
-      renderizarChatIa(contexto);
+      mensagensPorSessao[sessaoId] = mensagensPorSessao[sessaoId].filter(m => m !== mensagemCarregando);
+      mensagensPorSessao[sessaoId].push({ papel: "assistant", conteudo: "Deu ruim aqui, tenta de novo — " + (erro.message || erro) });
+      talvezRenderizar();
     }
+  }
+
+  /* =========================================================================
+     IARA: MEMÓRIA (documentos globais — marca pessoal, tom de voz, etc.)
+     Guardados como texto puro (colado direto, ou extraído de PDF no
+     navegador com pdf.js antes de enviar). A Edge Function "ia-assistente"
+     lê tudo daqui e injeta no prompt de qualquer uma das 8 conversas.
+     ========================================================================= */
+  let documentosMemoriaCache = [];
+
+  function renderizarListaDocumentosIara(){
+    const lista = document.getElementById("listaDocsIara");
+    document.getElementById("vazioMemoriaIara").classList.toggle("oculto", documentosMemoriaCache.length > 0);
+    const ROTULO_TIPO = { texto: "Texto", pdf: "PDF" };
+    lista.innerHTML = documentosMemoriaCache.map(d => `
+      <div class="item-doc-iara" data-id="${d.id}">
+        <div>
+          <div class="item-doc-nome-iara">${igEscaparHtml(d.nome)} <span class="item-doc-tipo-iara">${ROTULO_TIPO[d.tipo] || d.tipo}</span></div>
+          <div class="item-doc-trecho-iara">${igEscaparHtml(d.conteudo.replace(/\s+/g, " ").trim())}</div>
+        </div>
+        <div class="item-doc-acoes-iara">
+          <button type="button" data-acao="excluir-doc" data-id="${d.id}" title="Remover">🗑</button>
+        </div>
+      </div>
+    `).join("");
+    lista.querySelectorAll("[data-acao='excluir-doc']").forEach(btn => {
+      btn.addEventListener("click", () => pedirExclusaoDocumentoIara(btn.dataset.id));
+    });
+  }
+
+  function pedirExclusaoDocumentoIara(id){
+    iaraExclusaoPendente = { tipo: "documento", id };
+    document.getElementById("tituloModalExcluirIara").textContent = "Remover este documento da memória?";
+    document.getElementById("textoModalExcluirIara").textContent = "A Iara para de considerar esse conteúdo em qualquer aba a partir de agora.";
+    document.getElementById("modalExcluirIara").classList.add("visivel");
+  }
+
+  function abrirMemoriaIara(){
+    document.getElementById("modalMemoriaIara").classList.add("visivel");
+    renderizarListaDocumentosIara();
+  }
+
+  async function adicionarDocumentoTextoIara(){
+    const nome = document.getElementById("campoNomeDocIara").value.trim();
+    const conteudo = document.getElementById("campoConteudoDocIara").value.trim();
+    if (!nome || !conteudo) { alert("Preenche o nome e o texto do documento."); return; }
+
+    const { data, error } = await Auth.client
+      .from("painel_iara_documentos")
+      .insert({ nome, tipo: "texto", conteudo })
+      .select()
+      .single();
+    if (error) { alert("Não foi possível salvar o documento agora: " + error.message); return; }
+
+    documentosMemoriaCache.unshift(data);
+    document.getElementById("campoNomeDocIara").value = "";
+    document.getElementById("campoConteudoDocIara").value = "";
+    renderizarListaDocumentosIara();
+  }
+
+  async function adicionarDocumentoPdfIara(e){
+    const arquivo = e.target.files[0];
+    if (!arquivo) return;
+    const avisoProcessando = document.getElementById("avisoProcessandoPdf");
+    avisoProcessando.classList.remove("oculto");
+
+    try {
+      const texto = await extrairTextoPdf(arquivo);
+      if (!texto.trim()) {
+        alert("Não consegui ler texto desse PDF (pode ser um PDF de imagem escaneada, sem texto de verdade dentro).");
+        return;
+      }
+      const { data, error } = await Auth.client
+        .from("painel_iara_documentos")
+        .insert({ nome: arquivo.name.replace(/\.pdf$/i, ""), tipo: "pdf", conteudo: texto })
+        .select()
+        .single();
+      if (error) throw error;
+      documentosMemoriaCache.unshift(data);
+      renderizarListaDocumentosIara();
+    } catch (erro) {
+      console.error("Erro ao processar PDF:", erro);
+      alert("Não foi possível ler esse PDF agora: " + (erro.message || erro));
+    } finally {
+      avisoProcessando.classList.add("oculto");
+      e.target.value = "";
+    }
+  }
+
+  // EDITE AQUI se quiser trocar a versão do pdf.js (mesma versão do <script> no <head>)
+  async function extrairTextoPdf(arquivo){
+    const bufer = await arquivo.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: bufer }).promise;
+    let texto = "";
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const pagina = await pdf.getPage(i);
+      const conteudoPagina = await pagina.getTextContent();
+      texto += conteudoPagina.items.map(item => item.str).join(" ") + "\n\n";
+    }
+    return texto.trim();
   }
 
   /* =========================================================================
@@ -12300,10 +12684,6 @@
   function trocarTipoPrecificacao(tipo){
     precifTipoAtual = tipo;
     document.querySelectorAll("#seletorTipoPrecificacao .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.tipo === tipo));
-    document.getElementById("precifChat_ugc_comum").classList.toggle("oculto", tipo !== "ugc_comum");
-    document.getElementById("precifChat_ugc_criativo").classList.toggle("oculto", tipo !== "ugc_criativo");
-    document.getElementById("precifChat_publicidade").classList.toggle("oculto", tipo !== "publicidade");
-    document.getElementById("precifChat_ugc_collab").classList.toggle("oculto", tipo !== "ugc_collab");
     document.getElementById("precifAvisoManual").classList.toggle("oculto", tipo !== "publicidade");
 
     const linha = precifTiposCache.find(r => r.tipo === tipo);
@@ -12319,6 +12699,11 @@
     document.getElementById("precifResultado").classList.add("oculto");
     document.getElementById("btnPrecifProposta").classList.add("oculto");
     document.getElementById("precifPropostaArea").classList.add("oculto");
+
+    iaraFiltroAtivo = "todos";
+    document.querySelectorAll(".filtro-btn-iara").forEach(b => b.classList.toggle("ativo", b.dataset.filtro === "todos"));
+    fecharSessaoIara();
+    renderizarListaSessoesIara();
   }
 
   function calcularFaixaDescontoPrecif(quantidade){

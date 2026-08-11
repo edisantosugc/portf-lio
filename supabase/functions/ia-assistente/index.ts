@@ -4,7 +4,9 @@
 // painel.html, escolhe o system prompt certo pra cada uma das 8 conversas da
 // Iara (abordagem, estudo de produto, roteiro UGC, roteiro Instagram, e as 4
 // sub-abas de tipo dentro de Precificação: UGC comum, UGC criativo,
-// publicidade e UGC + Collab) e chama a Chat Completions API da OpenAI com a
+// publicidade e UGC + Collab), busca os documentos da Memória dela
+// (painel_iara_documentos — marca pessoal, tom de voz, etc.) e injeta tudo
+// isso no prompt antes de chamar a Chat Completions API da OpenAI, com a
 // chave guardada em secret (OPENAI_API_KEY) — a chave nunca fica exposta no
 // código do site. A verificação de JWT do Supabase fica ligada (padrão): só
 // quem está logada no painel consegue chamar essa função.
@@ -18,10 +20,17 @@ const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 // custa mais que o gpt-4o-mini usado aqui).
 const MODELO = "gpt-4o-mini";
 
+// EDITE AQUI se quiser aumentar/diminuir quanto da Memória entra em cada
+// mensagem — documentos maiores que isso juntos são cortados, pra não
+// disparar o tamanho (e o custo) de cada chamada à OpenAI.
+const MEMORIA_LIMITE_CARACTERES = 8000;
+
 // Só pra validar que quem chamou está mesmo logada (ver checagem abaixo) —
 // não lê nem escreve nada no banco, por isso a anon key (só ela) já basta.
 import { createClient } from "npm:@supabase/supabase-js@2";
-const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // EDITE AQUI se o site for publicado em outro domínio
 const CORS_HEADERS = {
@@ -86,13 +95,34 @@ Deno.serve(async (req: Request) => {
 
     const { contexto, mensagens } = await req.json();
 
-    const systemPrompt = SYSTEM_PROMPTS[contexto];
-    if (!systemPrompt) {
+    const promptBase = SYSTEM_PROMPTS[contexto];
+    if (!promptBase) {
       return respostaJson({ error: `Contexto inválido: ${contexto}` }, 400);
     }
 
     if (!Array.isArray(mensagens) || mensagens.length === 0) {
       return respostaJson({ error: "Campo 'mensagens' vazio ou ausente." }, 400);
+    }
+
+    // Memória da Iara: documentos que ela guardou (marca pessoal, tom de voz,
+    // etc.) valem pra qualquer conversa, não só uma aba específica. Busca com
+    // o JWT de quem chamou (não a anon key sozinha), pra respeitar a RLS da
+    // tabela — só os documentos da própria usuária autenticada voltam aqui.
+    const supabaseComoUsuaria = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${jwt}` } },
+    });
+    const { data: documentos } = await supabaseComoUsuaria
+      .from("painel_iara_documentos")
+      .select("nome, conteudo")
+      .order("created_at", { ascending: false });
+
+    let systemPrompt = promptBase;
+    if (documentos && documentos.length > 0) {
+      let blocoMemoria = documentos.map((d: { nome: string; conteudo: string }) => `### ${d.nome}\n${d.conteudo}`).join("\n\n");
+      if (blocoMemoria.length > MEMORIA_LIMITE_CARACTERES) {
+        blocoMemoria = blocoMemoria.slice(0, MEMORIA_LIMITE_CARACTERES) + "\n\n[conteúdo cortado — Memória maior do que o limite configurado]";
+      }
+      systemPrompt = `${promptBase}\n\n---\nMEMÓRIA DA IARA (contexto sobre a marca pessoal, tom de voz e essência de Edilaine — leve isso em conta na resposta):\n\n${blocoMemoria}`;
     }
 
     const mensagensOpenAI = mensagens.map((m: { papel: string; conteudo: string }) => ({
