@@ -12510,7 +12510,7 @@
     // não, porque manda a imagem de verdade pra IA "enxergar" (ver mais abaixo).
     let texto = textoDigitado;
     if (anexo && anexo.tipo === "documento") {
-      texto = `${textoDigitado}\n\n[Anexo: ${anexo.nome}]\n${anexo.conteudo}`.trim();
+      texto = `${textoDigitado}\n\nSegue abaixo o texto já extraído do arquivo "${anexo.nome}" — é o conteúdo completo, já em texto puro. Leia e use normalmente, como se fosse parte desta mensagem (você NÃO precisa abrir nenhum arquivo, o texto já está aqui):\n\n${anexo.conteudo}`.trim();
     } else if (anexo && anexo.tipo === "imagem") {
       texto = textoDigitado || `[Anexou uma imagem: ${anexo.nome}]`;
     }
