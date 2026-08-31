@@ -585,6 +585,33 @@ create policy "Usuaria autenticada gerencia suas notas"
 grant select, insert, update, delete on public.painel_notas to authenticated;
 
 -- =====================================================================
+-- MANTRAS (sub-aba "Mantras", dentro de "Ideias Criativas")
+-- Frases/mantras soltas, mesmo formato de post-it do Bloco de Notas. Alimentam o
+-- "Mantra do dia" no Menu Principal, em rodízio (uma frase diferente por dia).
+-- =====================================================================
+create table if not exists public.painel_mantras (
+  id uuid primary key default gen_random_uuid(),
+  conteudo text not null default '',
+  cor text not null default 'azul' check (cor in ('amarelo', 'rosa', 'azul', 'verde', 'cinza', 'vermelho', 'roxo', 'laranja')),
+  fechada boolean not null default false, -- true depois que a pessoa clica em "Salvar" (vira o post-it compacto)
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_mantras_cor on public.painel_mantras (cor);
+
+alter table public.painel_mantras enable row level security;
+
+drop policy if exists "Usuaria autenticada gerencia seus mantras" on public.painel_mantras;
+create policy "Usuaria autenticada gerencia seus mantras"
+  on public.painel_mantras
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_mantras to authenticated;
+
+-- =====================================================================
 -- LEMBRETES: adiamento persistido (pop-up de notificações do painel)
 -- Uma linha por "grupo" de lembrete (abordagem, financas, agenda, portfolio,
 -- clientes, ugc-creator, negocio). Guarda até quando aquele grupo foi adiado
@@ -1639,7 +1666,7 @@ begin
   foreach tabela in array array[
     'painel_clientes', 'painel_abordagens', 'painel_projetos',
     'painel_banco_criativo', 'painel_ugc_trabalhos',
-    'painel_documentos_pessoais', 'painel_documentos_avulsos', 'painel_notas',
+    'painel_documentos_pessoais', 'painel_documentos_avulsos', 'painel_notas', 'painel_mantras',
     'painel_ia_mensagens', 'negocio_lancamentos',
     'painel_iara_precificacao_tipos', 'painel_iara_precificacao_desconto',
     'painel_iara_sessoes', 'painel_iara_documentos'

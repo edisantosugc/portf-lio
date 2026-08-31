@@ -626,6 +626,15 @@
 
   /* ===================== GRÁFICO DE BARRAS (CSS puro) ===================== */
   .grafico-cartao{ margin-bottom: 24px; }
+
+  /* Frase do dia — puxada da aba "Mantras" (Ideias Criativas), sem card/borda atrás,
+     encostada no canto inferior direito do bloco do gráfico */
+  .mantra-do-dia{
+    display: flex; flex-direction: column; align-items: flex-end; text-align: right;
+    margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--borda);
+  }
+  .mantra-do-dia-rotulo{ font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--texto-suave); margin-bottom: 4px; }
+  .mantra-do-dia-frase{ font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: .95rem; color: var(--grafite); max-width: 420px; }
   .grafico-barras{
     display: flex;
     align-items: flex-end;
@@ -3215,6 +3224,10 @@
       <div class="cartao grafico-cartao">
         <h2>Visitas nos últimos 14 dias</h2>
         <div class="grafico-barras" id="graficoBarras"></div>
+        <div class="mantra-do-dia oculto" id="mantraDoDia">
+          <span class="mantra-do-dia-rotulo">Mantra do dia</span>
+          <span class="mantra-do-dia-frase" id="mantraDoDiaTexto"></span>
+        </div>
       </div>
     </section>
 
@@ -4248,6 +4261,7 @@
         <div class="sub-abas-negocio notas-abas" id="notasAbas">
           <button type="button" class="sub-aba-btn ativo" data-notasaba="ideias">💡 Ideias</button>
           <button type="button" class="sub-aba-btn" data-notasaba="utilizadas">✓ Utilizadas <span class="contagem-subaba" id="notasContagemUtilizadas">0</span></button>
+          <button type="button" class="sub-aba-btn" data-notasaba="mantras">✨ Mantras <span class="contagem-subaba" id="mantrasContagem">0</span></button>
         </div>
 
         <div class="notas-filtros">
@@ -4484,7 +4498,11 @@
   // Estado da aba Ideias Criativas: notas do bloco de notas e o filtro de cor selecionado
   let notasCache = [];
   let notaFiltroCor = null; // null = mostra notas de todas as cores
-  let notasAbaAtiva = "ideias"; // "ideias" (padrão) ou "utilizadas" — qual lista aparece na tela
+  let notasAbaAtiva = "ideias"; // "ideias" (padrão), "utilizadas" ou "mantras" — qual lista aparece na tela
+
+  // Estado da sub-aba "Mantras" (dentro de Ideias Criativas): frases soltas que alimentam
+  // o "Mantra do dia" do Menu Principal, em rotação — ver renderMantraDoDia()
+  let mantrasCache = [];
   const NOTA_CORES = [
     { chave: "amarelo", nome: "Amarelo" },
     { chave: "rosa", nome: "Rosa" },
@@ -4949,6 +4967,15 @@
         renderizarNotas();
       } catch (erroNotas) {
         console.error("Erro ao carregar/renderizar Bloco de Notas:", erroNotas);
+      }
+      try {
+        // Isolado do carregamento principal: a tabela painel_mantras só existe depois que
+        // o SQL da sub-aba Mantras for rodado no Supabase, então essa busca pode falhar sem
+        // travar o resto do painel — o "Mantra do dia" só fica escondido até lá.
+        mantrasCache = await comRetry(() => buscarTudo("painel_mantras"));
+        renderMantraDoDia();
+      } catch (erroMantras) {
+        console.error("Erro ao carregar/renderizar Mantras:", erroMantras);
       }
       try {
         // Isolado do carregamento principal: a tabela painel_clientes só existe depois que
@@ -6684,7 +6711,7 @@
     });
 
     // ---------- Bloco de Notas ----------
-    document.getElementById("notaBotaoNova").addEventListener("click", criarNota);
+    document.getElementById("notaBotaoNova").addEventListener("click", criarItemDaAbaAtual);
     document.getElementById("notaBusca").addEventListener("input", renderNotas);
     document.getElementById("notaBotaoTodas").addEventListener("click", () => {
       notaFiltroCor = null;
@@ -11378,7 +11405,15 @@
     document.querySelectorAll("#notasAbas .sub-aba-btn").forEach(btn => {
       btn.classList.toggle("ativo", btn.dataset.notasaba === aba);
     });
+    const botaoNovo = document.getElementById("notaBotaoNova");
+    if (botaoNovo) botaoNovo.textContent = aba === "mantras" ? "+ Novo Mantra" : "+ Nova Nota";
     renderNotas();
+  }
+
+  // Botão "+ Nova Nota"/"+ Novo Mantra" no topo cria o item certo pra sub-aba aberta no momento
+  function criarItemDaAbaAtual(){
+    if (notasAbaAtiva === "mantras") criarMantra();
+    else criarNota();
   }
 
   function renderNotas(){
@@ -11390,6 +11425,16 @@
 
     const contagemUtilizadas = document.getElementById("notasContagemUtilizadas");
     if (contagemUtilizadas) contagemUtilizadas.textContent = notasCache.filter(n => n.utilizada).length;
+
+    const contagemMantras = document.getElementById("mantrasContagem");
+    if (contagemMantras) contagemMantras.textContent = mantrasCache.length;
+
+    renderMantraDoDia(); // mantém o Menu Principal em sincronia com qualquer alteração aqui
+
+    if (notasAbaAtiva === "mantras"){
+      renderMantras(corpo);
+      return;
+    }
 
     if (notasCache.length === 0){
       corpo.innerHTML = `
@@ -11427,6 +11472,200 @@
   function renderizarNotas(){
     renderFiltroCoresNotas();
     renderNotas();
+  }
+
+  /* =========================================================================
+     SUB-ABA: MANTRAS (dentro de Ideias Criativas) — mesmo padrão de post-it das
+     Ideias, só que sem link/utilizada/arrastar. Alimenta o "Mantra do dia" do
+     Menu Principal (ver renderMantraDoDia mais abaixo).
+     ========================================================================= */
+  function renderMantraFechadaHtml(mantra){
+    const textoBruto = (mantra.conteudo || "").trim();
+    const previa = textoBruto ? textoBruto.slice(0, 90) + (textoBruto.length > 90 ? "…" : "") : "Mantra vazio";
+    return `
+      <div class="nota-cartao nota-fechada cor-${mantra.cor}" data-id="${mantra.id}" data-acao="mantra-reabrir" role="button" tabindex="0" aria-label="Reabrir mantra pra editar">
+        <span class="nota-clipe" title="Mantra salvo">✨</span>
+        <p class="nota-fechada-texto">${previa}</p>
+      </div>
+    `;
+  }
+
+  function renderMantraAbertaHtml(mantra){
+    return `
+      <div class="nota-cartao cor-${mantra.cor}" data-id="${mantra.id}">
+        <textarea data-mantra-conteudo="${mantra.id}" placeholder="Escreva o mantra/frase do dia...">${mantra.conteudo || ""}</textarea>
+        <div class="nota-rodape">
+          <div class="nota-cores-mini">
+            ${NOTA_CORES.map(c => `<span class="nota-cor-mini cor-${c.chave} ${mantra.cor === c.chave ? "ativo" : ""}" data-acao="mantra-cor" data-id="${mantra.id}" data-cor="${c.chave}" title="${c.nome}"></span>`).join("")}
+          </div>
+          <div class="nota-rodape-acoes">
+            <button type="button" class="ugc-btn" data-acao="mantra-salvar" data-id="${mantra.id}">Salvar</button>
+            <button type="button" class="nota-excluir" data-acao="mantra-excluir" data-id="${mantra.id}" aria-label="Excluir mantra">&times;</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderMantraCartaoHtml(mantra){
+    return mantra.fechada ? renderMantraFechadaHtml(mantra) : renderMantraAbertaHtml(mantra);
+  }
+
+  function reatarEventosMantras(container){
+    container.querySelectorAll("[data-mantra-conteudo]").forEach(area => {
+      area.addEventListener("blur", () => salvarConteudoMantra(area.dataset.mantraConteudo, area.value));
+    });
+    container.querySelectorAll("[data-acao='mantra-cor']").forEach(dot => {
+      dot.addEventListener("click", () => alterarCorMantra(dot.dataset.id, dot.dataset.cor));
+    });
+    container.querySelectorAll("[data-acao='mantra-excluir']").forEach(btn => {
+      btn.addEventListener("click", () => excluirMantra(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='mantra-salvar']").forEach(btn => {
+      btn.addEventListener("click", () => salvarMantra(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='mantra-reabrir']").forEach(cartao => {
+      const reabrir = () => reabrirMantra(cartao.dataset.id);
+      cartao.addEventListener("click", reabrir);
+      cartao.addEventListener("keydown", (e) => { if (e.key === "Enter") reabrir(); });
+    });
+  }
+
+  function renderMantras(corpo){
+    if (mantrasCache.length === 0){
+      corpo.innerHTML = `
+        <div class="notas-vazio">
+          <div class="notas-vazio-icone">✨</div>
+          <h3>Nenhum mantra ainda</h3>
+          <p>Cadastre frases/mantras aqui — uma diferente aparece por dia no Menu Principal</p>
+          <button type="button" class="notas-vazio-botao" id="mantraBotaoPrimeiro">+ Criar primeiro mantra</button>
+        </div>
+      `;
+      document.getElementById("mantraBotaoPrimeiro").addEventListener("click", criarMantra);
+      return;
+    }
+
+    const campoBusca = document.getElementById("notaBusca");
+    const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
+    const filtradas = mantrasCache
+      .filter(m => (!notaFiltroCor || m.cor === notaFiltroCor) && (!termo || (m.conteudo || "").toLowerCase().includes(termo)))
+      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); // ordem de criação = ordem do rodízio
+
+    if (!filtradas.length){
+      corpo.innerHTML = `<p class="ugc-vazio">Nenhum mantra encontrado.</p>`;
+      return;
+    }
+
+    corpo.innerHTML = `<div class="notas-grade">${filtradas.map(renderMantraCartaoHtml).join("")}</div>`;
+    reatarEventosMantras(corpo);
+  }
+
+  async function criarMantra(){
+    const corInicial = notaFiltroCor || "azul";
+    const { data: inserido, error } = await Auth.client
+      .from("painel_mantras")
+      .insert({ conteudo: "", cor: corInicial, fechada: false })
+      .select();
+
+    if (!error && inserido){
+      mantrasCache = mantrasCache.concat(inserido);
+      abrirModalMantraNovo(inserido[0]);
+    }
+  }
+
+  function abrirModalMantraNovo(mantra){
+    const area = document.getElementById("areaNotaNovaCartao");
+    area.innerHTML = renderMantraAbertaHtml(mantra);
+
+    area.querySelectorAll("[data-mantra-conteudo]").forEach(campo => {
+      campo.addEventListener("blur", () => salvarConteudoMantra(campo.dataset.mantraConteudo, campo.value));
+    });
+    area.querySelectorAll("[data-acao='mantra-cor']").forEach(dot => {
+      dot.addEventListener("click", () => {
+        alterarCorMantra(dot.dataset.id, dot.dataset.cor);
+        area.querySelectorAll(".nota-cor-mini").forEach(d => d.classList.toggle("ativo", d.dataset.cor === dot.dataset.cor));
+      });
+    });
+    const botaoSalvar = area.querySelector("[data-acao='mantra-salvar']");
+    if (botaoSalvar) botaoSalvar.addEventListener("click", async () => {
+      if (await salvarMantra(mantra.id)) fecharModalNotaNova();
+    });
+    const botaoExcluir = area.querySelector("[data-acao='mantra-excluir']");
+    if (botaoExcluir) botaoExcluir.addEventListener("click", async () => {
+      if (await excluirMantra(mantra.id)) fecharModalNotaNova();
+    });
+
+    document.getElementById("overlayNotaNova").classList.add("visivel");
+    requestAnimationFrame(() => {
+      const textarea = area.querySelector("textarea");
+      if (textarea) textarea.focus();
+    });
+  }
+
+  async function atualizarMantra(id, campos){
+    const { error } = await Auth.client.from("painel_mantras").update(campos).eq("id", id);
+    if (!error){
+      const mantra = mantrasCache.find(m => m.id === id);
+      if (mantra) Object.assign(mantra, campos);
+      renderNotas();
+    }
+    return !error;
+  }
+
+  async function salvarConteudoMantra(id, conteudo){
+    const mantra = mantrasCache.find(m => m.id === id);
+    if (mantra && mantra.conteudo === conteudo) return;
+
+    const { error } = await Auth.client.from("painel_mantras").update({ conteudo }).eq("id", id);
+    if (!error && mantra) mantra.conteudo = conteudo;
+    renderMantraDoDia();
+  }
+
+  async function alterarCorMantra(id, cor){
+    await atualizarMantra(id, { cor });
+  }
+
+  async function salvarMantra(id){
+    return await atualizarMantra(id, { fechada: true });
+  }
+
+  async function reabrirMantra(id){
+    await atualizarMantra(id, { fechada: false });
+  }
+
+  async function excluirMantra(id){
+    if (!window.confirm("Excluir esse mantra? Essa ação não pode ser desfeita.")) return false;
+
+    const { error } = await Auth.client.from("painel_mantras").delete().eq("id", id);
+    if (!error){
+      mantrasCache = mantrasCache.filter(m => m.id !== id);
+      renderNotas();
+    }
+    return !error;
+  }
+
+  // "Mantra do dia" no Menu Principal — troca uma vez por dia, sem depender de servidor:
+  // usa o número de dias desde 1970 como índice fixo do dia, então todo mundo que abre o
+  // painel no mesmo dia vê a mesma frase. Quando o ciclo passa do fim da lista, recomeça
+  // do início (%) em vez de ficar vazio.
+  function renderMantraDoDia(){
+    const bloco = document.getElementById("mantraDoDia");
+    const textoEl = document.getElementById("mantraDoDiaTexto");
+    if (!bloco || !textoEl) return;
+
+    const disponiveis = mantrasCache
+      .filter(m => (m.conteudo || "").trim())
+      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+    if (!disponiveis.length){
+      bloco.classList.add("oculto");
+      return;
+    }
+
+    const diaAtual = Math.floor(Date.now() / 86400000);
+    const indice = diaAtual % disponiveis.length;
+    textoEl.textContent = `"${disponiveis[indice].conteudo.trim()}"`;
+    bloco.classList.remove("oculto");
   }
 
   // Herda a cor do filtro ativo (se ela estiver vendo só as verdes, a nota nova já
