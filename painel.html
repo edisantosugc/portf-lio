@@ -2112,6 +2112,11 @@
   .notas-vazio-botao:hover{ border-color: var(--coral); color: var(--coral); }
 
   .notas-grade{ display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 20px; }
+
+  .notas-abas{ margin-top: 18px; margin-bottom: 0; }
+  .sub-aba-btn.arrastando-sobre{ outline: 2px dashed var(--coral); outline-offset: 2px; }
+  .nota-cartao.nota-fechada[draggable="true"]{ cursor: grab; }
+  .nota-cartao.nota-fechada.arrastando{ opacity: .45; }
   .nota-cartao{
     border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px;
     box-shadow: 0 4px 14px rgba(26,24,22,.06); border: 1px solid rgba(0,0,0,.05); min-height: 160px;
@@ -4240,6 +4245,11 @@
           <button type="button" class="botao-nova-nota" id="notaBotaoNova">+ Nova Nota</button>
         </div>
 
+        <div class="sub-abas-negocio notas-abas" id="notasAbas">
+          <button type="button" class="sub-aba-btn ativo" data-notasaba="ideias">💡 Ideias</button>
+          <button type="button" class="sub-aba-btn" data-notasaba="utilizadas">✓ Utilizadas <span class="contagem-subaba" id="notasContagemUtilizadas">0</span></button>
+        </div>
+
         <div class="notas-filtros">
           <div class="notas-busca">
             <span class="notas-busca-icone">🔍</span>
@@ -4474,6 +4484,7 @@
   // Estado da aba Ideias Criativas: notas do bloco de notas e o filtro de cor selecionado
   let notasCache = [];
   let notaFiltroCor = null; // null = mostra notas de todas as cores
+  let notasAbaAtiva = "ideias"; // "ideias" (padrão) ou "utilizadas" — qual lista aparece na tela
   const NOTA_CORES = [
     { chave: "amarelo", nome: "Amarelo" },
     { chave: "rosa", nome: "Rosa" },
@@ -6681,6 +6692,10 @@
       renderFiltroCoresNotas();
       renderNotas();
     });
+    document.querySelectorAll("#notasAbas .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => trocarAbaNotas(btn.dataset.notasaba));
+    });
+    ligarDropzonesAbasNotas();
     document.getElementById("botaoFecharModalNotaNova").addEventListener("click", fecharModalNotaNova);
     document.getElementById("overlayNotaNova").addEventListener("click", (e) => {
       if (e.target.id === "overlayNotaNova") fecharModalNotaNova();
@@ -11250,7 +11265,9 @@
     });
   }
 
-  // Nota "fechada": card compacto com clipe, só a prévia do texto — clicar reabre pra editar
+  // Nota "fechada": card compacto com clipe, só a prévia do texto — clicar reabre pra editar.
+  // Arrastável (draggable) pra soltar em cima da aba "Ideias"/"Utilizadas" e mudar de lista —
+  // sem nenhum botão escrito no card, só o gesto de arrastar.
   function renderNotaFechadaHtml(nota){
     const textoBruto = (nota.conteudo || "").trim();
     const previa = textoBruto ? textoBruto.slice(0, 90) + (textoBruto.length > 90 ? "…" : "") : "Nota vazia";
@@ -11259,7 +11276,7 @@
       : "";
 
     return `
-      <div class="nota-cartao nota-fechada cor-${nota.cor}" data-id="${nota.id}" data-acao="nota-reabrir" role="button" tabindex="0" aria-label="Reabrir nota pra editar">
+      <div class="nota-cartao nota-fechada cor-${nota.cor}" data-id="${nota.id}" data-acao="nota-reabrir" draggable="true" role="button" tabindex="0" aria-label="Reabrir nota pra editar">
         <span class="nota-clipe" title="Nota salva">📎</span>
         <p class="nota-fechada-texto">${previa}</p>
         ${linkHtml}
@@ -11318,6 +11335,50 @@
     container.querySelectorAll("[data-acao='nota-fechada-link']").forEach(a => {
       a.addEventListener("click", (e) => e.stopPropagation());
     });
+    // Arrastar (desktop) — só o post-it fechado é arrastável, soltando em cima da aba
+    // "Ideias" ou "Utilizadas" (ver ligarDropzonesAbasNotas) pra mudar de lista.
+    container.querySelectorAll(".nota-cartao.nota-fechada[draggable='true']").forEach(cartao => {
+      cartao.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", cartao.dataset.id);
+        e.dataTransfer.effectAllowed = "move";
+        cartao.classList.add("arrastando");
+      });
+      cartao.addEventListener("dragend", () => cartao.classList.remove("arrastando"));
+    });
+  }
+
+  // Move uma nota entre "Ideias" (utilizada=false) e "Utilizadas" (utilizada=true)
+  async function moverNota(id, paraUtilizadas){
+    await atualizarNota(id, { utilizada: paraUtilizadas });
+  }
+
+  // Liga as zonas de drop nos botões-aba "Ideias"/"Utilizadas" — arrastar um post-it e soltar
+  // em cima do botão move a nota pra aquela aba. Chamado uma vez só no início (os botões são
+  // fixos no HTML, não são recriados a cada render).
+  function ligarDropzonesAbasNotas(){
+    document.querySelectorAll("#notasAbas .sub-aba-btn").forEach(btn => {
+      const paraUtilizadas = btn.dataset.notasaba === "utilizadas";
+      btn.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        btn.classList.add("arrastando-sobre");
+      });
+      btn.addEventListener("dragleave", () => btn.classList.remove("arrastando-sobre"));
+      btn.addEventListener("drop", (e) => {
+        e.preventDefault();
+        btn.classList.remove("arrastando-sobre");
+        const id = e.dataTransfer.getData("text/plain");
+        if (id) moverNota(id, paraUtilizadas);
+      });
+    });
+  }
+
+  function trocarAbaNotas(aba){
+    notasAbaAtiva = aba;
+    document.querySelectorAll("#notasAbas .sub-aba-btn").forEach(btn => {
+      btn.classList.toggle("ativo", btn.dataset.notasaba === aba);
+    });
+    renderNotas();
   }
 
   function renderNotas(){
@@ -11326,6 +11387,9 @@
 
     const contagem = document.getElementById("notasContagem");
     if (contagem) contagem.textContent = `${notasCache.length} ideia${notasCache.length === 1 ? "" : "s"}`;
+
+    const contagemUtilizadas = document.getElementById("notasContagemUtilizadas");
+    if (contagemUtilizadas) contagemUtilizadas.textContent = notasCache.filter(n => n.utilizada).length;
 
     if (notasCache.length === 0){
       corpo.innerHTML = `
@@ -11342,13 +11406,21 @@
 
     const campoBusca = document.getElementById("notaBusca");
     const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
+    const naAbaUtilizadas = notasAbaAtiva === "utilizadas";
     const filtradas = notasCache
+      .filter(n => !!n.utilizada === naAbaUtilizadas)
       .filter(n => (!notaFiltroCor || n.cor === notaFiltroCor) && (!termo || (n.conteudo || "").toLowerCase().includes(termo)))
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // mais recente primeiro
 
-    corpo.innerHTML = filtradas.length
-      ? `<div class="notas-grade">${filtradas.map(renderNotaCartaoHtml).join("")}</div>`
-      : `<p class="ugc-vazio">Nenhuma nota encontrada.</p>`;
+    if (!filtradas.length){
+      const mensagem = (termo || notaFiltroCor)
+        ? "Nenhuma nota encontrada."
+        : (naAbaUtilizadas ? "Nenhuma ideia utilizada ainda — arraste um post-it de \"Ideias\" pra cá." : "Nenhuma ideia por aqui ainda.");
+      corpo.innerHTML = `<p class="ugc-vazio">${mensagem}</p>`;
+      return;
+    }
+
+    corpo.innerHTML = `<div class="notas-grade">${filtradas.map(renderNotaCartaoHtml).join("")}</div>`;
     reatarEventosNotas(corpo);
   }
 
@@ -11368,6 +11440,7 @@
 
     if (!error && inserido){
       notasCache = notasCache.concat(inserido);
+      if (notasAbaAtiva !== "ideias") trocarAbaNotas("ideias"); // nota nova sempre nasce em "Ideias"
       abrirModalNotaNova(inserido[0]);
     }
   }

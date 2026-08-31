@@ -560,15 +560,17 @@ create table if not exists public.painel_notas (
   cor text not null default 'azul' check (cor in ('amarelo', 'rosa', 'azul', 'verde', 'cinza', 'vermelho', 'roxo', 'laranja')),
   link text,                            -- link de referência opcional (Pinterest, Drive, etc.)
   fechada boolean not null default false, -- true depois que a pessoa clica em "Salvar" (vira o post-it compacto)
+  utilizada boolean not null default false, -- true quando a ideia já foi usada/publicada (aba "Utilizadas" no painel)
   created_at timestamptz not null default now()
 );
 
 create index if not exists idx_painel_notas_cor on public.painel_notas (cor);
 
--- Se a tabela já existia de uma versão anterior (sem as colunas "link"/"fechada"), essas
+-- Se a tabela já existia de uma versão anterior (sem as colunas "link"/"fechada"/"utilizada"), essas
 -- linhas adicionam elas sem apagar nada. Rodar de novo depois que a tabela já existe é seguro.
 alter table public.painel_notas add column if not exists link text;
 alter table public.painel_notas add column if not exists fechada boolean not null default false;
+alter table public.painel_notas add column if not exists utilizada boolean not null default false;
 
 alter table public.painel_notas enable row level security;
 
