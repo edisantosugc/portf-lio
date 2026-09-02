@@ -4413,7 +4413,13 @@
           </div>
           <div class="clientes-tabela-scroll">
             <table class="clientes-tabela">
-              <thead><tr><th>Data</th><th>Número</th><th>Cliente</th><th>Valor</th><th>Anexo</th><th></th></tr></thead>
+              <thead>
+                <tr id="nfTabelaCabecalho">
+                  <th data-nfordenar="data" style="cursor:pointer; user-select:none;">Data<span class="nf-seta-ordenar"></span></th>
+                  <th data-nfordenar="numero" style="cursor:pointer; user-select:none;">Número<span class="nf-seta-ordenar"></span></th>
+                  <th>Cliente</th><th>Valor</th><th>Anexo</th><th></th>
+                </tr>
+              </thead>
               <tbody id="nfTabelaCorpo"></tbody>
             </table>
           </div>
@@ -4601,6 +4607,8 @@
   let nfAnoSelecionado = new Date().getFullYear();
   let nfFiltroClienteId = ""; // "" = todos os clientes
   let nfFiltroMes = "";       // "" = todos os meses, senão "1".."12"
+  let nfOrdenarPor = "data";  // "data" ou "numero" — clicando no cabeçalho da coluna
+  let nfOrdemAsc = false;     // false = decrescente (mais recente/maior número primeiro)
 
   // Ao marcar "Negociação fechada" na aba Abordagem, o painel pede o registro do
   // licenciamento (contrato, valor, vídeos, tempo de veiculação). Se a abordagem ainda não
@@ -6874,6 +6882,14 @@
     document.getElementById("nfFiltroMes").addEventListener("change", (e) => {
       nfFiltroMes = e.target.value;
       renderizarNotasFiscais();
+    });
+    document.querySelectorAll("#nfTabelaCabecalho [data-nfordenar]").forEach(th => {
+      th.addEventListener("click", () => {
+        const campo = th.dataset.nfordenar;
+        nfOrdemAsc = (nfOrdenarPor === campo) ? !nfOrdemAsc : false;
+        nfOrdenarPor = campo;
+        renderizarNotasFiscais();
+      });
     });
 
     // ---------- Modal: Registrar licenciamento ----------
@@ -12363,7 +12379,17 @@
       .filter(nf => Number(nf.data_emissao.slice(0, 4)) === nfAnoSelecionado)
       .filter(nf => !nfFiltroClienteId || nf.cliente_id === nfFiltroClienteId)
       .filter(nf => !nfFiltroMes || Number(nf.data_emissao.slice(5, 7)) === Number(nfFiltroMes))
-      .sort((a, b) => new Date(b.data_emissao) - new Date(a.data_emissao)); // mais recente primeiro
+      .sort((a, b) => {
+        const comparacao = nfOrdenarPor === "numero"
+          ? (a.numero || "").localeCompare(b.numero || "", "pt-BR", { numeric: true })
+          : new Date(a.data_emissao) - new Date(b.data_emissao);
+        return nfOrdemAsc ? comparacao : -comparacao;
+      });
+
+    document.querySelectorAll("#nfTabelaCabecalho [data-nfordenar]").forEach(th => {
+      const seta = th.querySelector(".nf-seta-ordenar");
+      seta.textContent = th.dataset.nfordenar === nfOrdenarPor ? (nfOrdemAsc ? " ▲" : " ▼") : "";
+    });
 
     const totalAno = notasDoAno.reduce((soma, nf) => soma + Number(nf.valor || 0), 0);
     document.getElementById("nfTotalAno").textContent = formatarMoeda(totalAno);
