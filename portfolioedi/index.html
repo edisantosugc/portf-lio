@@ -1053,61 +1053,109 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 22px;
-    margin-top: 44px;
-    align-items: start;
+    margin-top: 88px;
+    align-items: end;
   }
   .pacote-card{
+    position: relative;
     background: var(--branco);
     border: 3px solid var(--tinta);
     border-radius: 20px;
     box-shadow: var(--sombra-dura-sm);
-    padding: 26px 22px 22px;
+    padding: 24px 20px 22px;
     display: flex;
     flex-direction: column;
     text-align: center;
   }
+  /* Bronze e Gold (pontas) são mais baixos; Best Seller e Prata (meio) são
+     mais altos — mesma leitura da referência, com Bronze/Gold alinhados
+     numa base comum (align-items:end no grid acima). */
+  .metal-bronze, .metal-gold{ min-height: 420px; }
+  .metal-best, .metal-prata{ min-height: 478px; }
+
+  /* Fundo de cada card, igual à referência: Bronze em azul claro, Best
+     Seller/Prata em branco, Gold em azul forte — não é a cor do metal, é
+     o ritmo visual do modelo. */
+  .metal-bronze{ background: #b8c2ea; }
+  .metal-gold{ background: var(--vermelho); }
+  .metal-gold .pacote-itens li{ color: var(--creme); border-top-color: rgba(255,255,255,.22); }
+  .metal-gold .pacote-economia{ color: rgba(243,238,233,.75); }
+
+  /* Selo (Bronze/Prata/Gold) flutua colado acima da borda do card, igual
+     um adesivo — por isso é position:absolute, fora do fluxo do card. */
   .pacote-selo{
+    position: absolute;
+    top: -50px; left: 50%;
+    transform: translateX(-50%) rotate(-4deg);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 18px;
+    gap: 6px;
   }
+  .metal-prata .pacote-selo{ transform: translateX(-50%) rotate(3deg); }
+  .metal-gold .pacote-selo{ transform: translateX(-50%) rotate(-3deg); }
   .barra-metal{
-    width: 56px; height: 22px;
-    border-radius: 6px;
+    width: 54px; height: 21px;
+    border-radius: 5px;
     border: 2px solid var(--tinta);
-    transform: rotate(-4deg);
+    box-shadow: inset 0 2px 2px rgba(255,255,255,.55), inset 0 -2px 2px rgba(0,0,0,.3);
   }
-  .metal-bronze .barra-metal{ background: linear-gradient(135deg, #8a4a24, #d98f57); }
-  .metal-prata .barra-metal{ background: linear-gradient(135deg, #8f96a0, #e7ebee); }
-  .metal-gold .barra-metal{ background: linear-gradient(135deg, #a97a12, var(--rosa)); }
+  .metal-bronze .barra-metal{ background: linear-gradient(100deg, #4a2410 0%, #8a4a24 20%, #e8b58c 50%, #8a4a24 80%, #4a2410 100%); }
+  .metal-prata .barra-metal{ background: linear-gradient(100deg, #5c6167 0%, #9099a1 20%, #ffffff 50%, #9099a1 80%, #5c6167 100%); }
+  .metal-gold .barra-metal{ background: linear-gradient(100deg, #6b4a07 0%, #b8860b 20%, #f7de92 50%, #b8860b 80%, #6b4a07 100%); }
   .pacote-selo-texto{
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Playfair Display', serif;
     font-weight: 700;
-    font-size: .95rem;
-    letter-spacing: .12em;
+    font-style: italic;
+    font-size: 1.1rem;
+    letter-spacing: .1em;
     text-transform: uppercase;
+    text-shadow: 1px 1px 0 rgba(255,255,255,.6);
   }
   .metal-bronze .pacote-selo-texto{ color: #8a4a24; }
   .metal-prata .pacote-selo-texto{ color: #6b7178; }
   .metal-gold .pacote-selo-texto{ color: #a97a12; }
 
+  /* Selo do Best Seller: emblema redondo (estilo medalha), com duas fitas
+     pontudas caindo por trás, na mesma leitura do modelo. */
   .selo-best{
-    display: inline-block;
-    align-self: center;
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 86px; height: 86px;
+    border-radius: 50%;
     background: var(--vermelho);
-    color: var(--branco);
+    border: 3px solid var(--branco);
+    box-shadow: 0 0 0 3px var(--tinta);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    z-index: 1;
+  }
+  .selo-best span{
     font-family: 'Oswald', sans-serif;
     font-weight: 700;
-    font-size: .85rem;
-    letter-spacing: .06em;
+    font-size: .66rem;
+    letter-spacing: .05em;
     text-transform: uppercase;
-    padding: 8px 18px;
-    border-radius: 50px;
-    border: 2px solid var(--tinta);
-    margin-bottom: 18px;
+    color: var(--branco);
+    line-height: 1.3;
   }
+  /* Fitas: retângulos com a ponta de baixo recortada em V, saindo de trás
+     do medalhão — por isso ficam atrás dele (z-index menor). */
+  .selo-best::before, .selo-best::after{
+    content: "";
+    position: absolute;
+    top: 58px;
+    width: 24px; height: 34px;
+    background: #00004d;
+    clip-path: polygon(0 0, 100% 0, 100% 72%, 50% 100%, 0 72%);
+    z-index: -1;
+  }
+  .selo-best::before{ left: 6px; transform: rotate(14deg); }
+  .selo-best::after{ right: 6px; transform: rotate(-14deg); }
 
   .pacote-itens{
     list-style: none;
@@ -1116,10 +1164,10 @@
     flex-grow: 1;
   }
   .pacote-itens li{
-    font-size: .92rem;
+    font-size: .86rem;
     color: #4a453e;
     padding: 6px 0;
-    border-top: 1px solid var(--creme-escuro);
+    border-top: 1px solid rgba(42,38,34,.16);
   }
   .pacote-itens li:first-child{ border-top: none; }
 
@@ -1130,23 +1178,27 @@
     border-radius: 12px;
     padding: 10px;
     margin-bottom: 8px;
+    border: 1px solid rgba(0,0,0,.25);
+    box-shadow: inset 0 2px 3px rgba(255,255,255,.45), inset 0 -3px 4px rgba(0,0,0,.3);
   }
-  .metal-bronze .pacote-preco{ background: linear-gradient(135deg, #8a4a24, #c9793f); color: var(--branco); }
-  .metal-best .pacote-preco{ background: var(--vermelho); color: var(--branco); }
-  .metal-prata .pacote-preco{ background: linear-gradient(135deg, #9199a1, #e2e6e9); color: var(--tinta); }
-  .metal-gold .pacote-preco{ background: linear-gradient(135deg, #b8860b, var(--rosa)); color: var(--tinta); }
+  .metal-bronze .pacote-preco{ background: linear-gradient(100deg, #4a2410 0%, #8a4a24 18%, #e8b58c 50%, #8a4a24 82%, #4a2410 100%); color: var(--branco); text-shadow: 0 1px 2px rgba(0,0,0,.45); }
+  .metal-best .pacote-preco{ background: linear-gradient(100deg, #00002e 0%, #000080 18%, #3f66e0 50%, #000080 82%, #00002e 100%); color: var(--branco); text-shadow: 0 1px 2px rgba(0,0,0,.45); }
+  .metal-prata .pacote-preco{ background: linear-gradient(100deg, #5c6167 0%, #9099a1 18%, #ffffff 50%, #9099a1 82%, #5c6167 100%); color: var(--tinta); text-shadow: 0 1px 0 rgba(255,255,255,.5); }
+  .metal-gold .pacote-preco{ background: linear-gradient(100deg, #6b4a07 0%, #b8860b 18%, #f7de92 50%, #b8860b 82%, #6b4a07 100%); color: var(--tinta); text-shadow: 0 1px 0 rgba(255,255,255,.5); }
 
   .pacote-economia{ font-size: .85rem; color: #6b645c; }
 
   .metal-best{
     border-color: var(--rosa);
     box-shadow: 6px 6px 0 var(--rosa);
-    transform: translateY(-10px);
+    transform: translateY(-26px);
+    z-index: 2;
   }
-  .metal-best:hover{ transform: translateY(-10px); }
+  .metal-best:hover{ transform: translateY(-26px); }
 
   @media (max-width: 1010px){
-    .pacotes-grid{ grid-template-columns: repeat(2, 1fr); }
+    .pacotes-grid{ grid-template-columns: repeat(2, 1fr); align-items: stretch; margin-top: 64px; }
+    .metal-bronze, .metal-gold, .metal-best, .metal-prata{ min-height: 0; }
     .metal-best{ transform: none; box-shadow: var(--sombra-dura-sm); }
   }
   @media (max-width: 560px){
@@ -1474,91 +1526,18 @@
   <!-- ===================== 8.5 VALORES / INVESTIMENTOS ===================== -->
   <section class="valores" id="valores">
     <div class="container">
-      <p class="tag-secao reveal">Investimentos</p>
-      <h2 class="titulo-secao reveal">Pacotes pra impulsionar sua marca</h2>
-      <p class="sub-secao reveal">Do teste A/B ao gerenciamento completo de campanhas — escolha o formato que faz mais sentido pra sua marca agora. Também dá pra montar sob medida com os itens avulsos abaixo.</p>
+      <p class="tag-secao reveal" id="valoresTag"></p>
+      <h2 class="titulo-secao reveal" id="valoresTitulo"></h2>
+      <p class="sub-secao reveal" id="valoresSubtitulo"></p>
 
-      <div class="addons-linha reveal">
-        <span class="addon-pill">1 vídeo <strong>R$297</strong></span>
-        <span class="addon-pill">3 fotos <strong>R$120</strong></span>
-        <span class="addon-pill">3 stories UGC <strong>R$200</strong></span>
-        <span class="addon-pill">UGC + Collab <strong>R$397</strong></span>
-        <span class="addon-pill">+3 meses ADS <strong>R$100</strong></span>
-        <span class="addon-pill">Gancho extra <strong>R$49</strong></span>
-      </div>
+      <div class="addons-linha reveal" id="addonsLinha"></div>
 
       <a class="faixa-orcamento reveal" href="https://wa.me/5519993842684?text=Oi%2C%20Edi!%20Quero%20saber%20mais%20sobre%20o%20gerenciamento%20de%20campanhas." target="_blank" rel="noopener" data-contato="contact_whatsapp_valores">
-        <span>Gerenciamento de campanhas — Solicite orçamento</span>
+        <span id="faixaOrcamentoTexto"></span>
         <span class="faixa-orcamento-icone" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.006-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.593 6.592zm3.615-4.934c-.199-.099-1.177-.581-1.36-.647-.183-.066-.315-.099-.448.099-.133.198-.513.647-.627.78-.116.133-.232.148-.43.05-.199-.1-.838-.31-1.595-.985-.59-.526-.988-1.175-1.104-1.373-.116-.198-.012-.304.087-.403.089-.088.198-.232.297-.348.1-.116.133-.198.198-.33.066-.134.033-.248-.016-.347-.05-.099-.448-1.08-.613-1.48-.16-.383-.324-.332-.448-.337-.116-.005-.248-.005-.38-.005a.729.729 0 0 0-.529.247c-.182.198-.696.68-.696 1.658 0 .978.712 1.923.813 2.056.099.133 1.393 2.129 3.376 2.983.472.204.84.326 1.126.417.473.15.904.129 1.245.078.38-.058 1.177-.48 1.343-.943.166-.464.166-.86.117-.943-.05-.083-.183-.133-.383-.232z"/></svg></span>
       </a>
 
-      <div class="pacotes-grid">
-        <article class="pacote-card metal-bronze reveal">
-          <div class="pacote-selo">
-            <span class="barra-metal" aria-hidden="true"></span>
-            <span class="pacote-selo-texto">Bronze</span>
-          </div>
-          <ul class="pacote-itens">
-            <li>1 vídeo teste A/B</li>
-            <li>1 gancho</li>
-            <li>3 fotos</li>
-            <li>Roteiro</li>
-            <li>Gravação</li>
-            <li>Edição</li>
-            <li>3 meses ADS</li>
-          </ul>
-          <div class="pacote-preco">R$370</div>
-          <p class="pacote-economia">Economize R$96</p>
-        </article>
-
-        <article class="pacote-card metal-best reveal">
-          <div class="selo-best">Best Seller</div>
-          <ul class="pacote-itens">
-            <li>2 vídeos</li>
-            <li>3 fotos</li>
-            <li>Roteiro</li>
-            <li>Gravação</li>
-            <li>Edição</li>
-            <li>5 meses ADS</li>
-          </ul>
-          <div class="pacote-preco">R$547</div>
-          <p class="pacote-economia">Economize R$267</p>
-        </article>
-
-        <article class="pacote-card metal-prata reveal">
-          <div class="pacote-selo">
-            <span class="barra-metal" aria-hidden="true"></span>
-            <span class="pacote-selo-texto">Prata</span>
-          </div>
-          <ul class="pacote-itens">
-            <li>3 vídeos</li>
-            <li>3 fotos</li>
-            <li>Roteiro</li>
-            <li>Gravação</li>
-            <li>Edição</li>
-            <li>6 meses ADS</li>
-          </ul>
-          <div class="pacote-preco">R$797</div>
-          <p class="pacote-economia">Economize R$514</p>
-        </article>
-
-        <article class="pacote-card metal-gold reveal">
-          <div class="pacote-selo">
-            <span class="barra-metal" aria-hidden="true"></span>
-            <span class="pacote-selo-texto">Gold</span>
-          </div>
-          <ul class="pacote-itens">
-            <li>5 vídeos</li>
-            <li>5 fotos</li>
-            <li>Roteiro</li>
-            <li>Gravação</li>
-            <li>Edição</li>
-            <li>6 meses ADS</li>
-          </ul>
-          <div class="pacote-preco">R$1.250</div>
-          <p class="pacote-economia">Economize R$935</p>
-        </article>
-      </div>
+      <div class="pacotes-grid" id="pacotesGrid"></div>
     </div>
   </section>
 
@@ -1892,6 +1871,32 @@ const CONFIG_PT = {
     mensagemErro: "Não consegui enviar sua mensagem agora. Tente novamente ou me chame direto no WhatsApp."
   },
 
+  valoresTextos: {
+    tag: "Investimentos",
+    titulo: "Pacotes pra impulsionar sua marca",
+    subtitulo: "Do teste A/B ao gerenciamento completo de campanhas — escolha o formato que faz mais sentido pra sua marca agora. Também dá pra montar sob medida com os itens avulsos abaixo.",
+    faixaOrcamento: "Gerenciamento de campanhas — Solicite orçamento",
+    economizeLabel: "Economize"
+  },
+
+  // EDITE AQUI: itens avulsos (fora dos pacotes fechados)
+  addons: [
+    { nome: "1 vídeo", preco: "R$297" },
+    { nome: "3 fotos", preco: "R$120" },
+    { nome: "3 stories UGC", preco: "R$200" },
+    { nome: "UGC + Collab", preco: "R$397" },
+    { nome: "+3 meses ADS", preco: "R$100" },
+    { nome: "Gancho extra", preco: "R$49" }
+  ],
+
+  // EDITE AQUI: pacotes fechados. "tipo" é "metal" (Bronze/Prata/Gold) ou "best" (Best Seller)
+  pacotes: [
+    { tipo: "metal", metal: "bronze", nome: "Bronze", itens: ["1 vídeo teste A/B", "1 gancho", "3 fotos", "Roteiro", "Gravação", "Edição", "3 meses ADS"], preco: "R$370", economia: "R$96" },
+    { tipo: "best", nome: "Best Seller", itens: ["2 vídeos", "3 fotos", "Roteiro", "Gravação", "Edição", "5 meses ADS"], preco: "R$547", economia: "R$267" },
+    { tipo: "metal", metal: "prata", nome: "Prata", itens: ["3 vídeos", "3 fotos", "Roteiro", "Gravação", "Edição", "6 meses ADS"], preco: "R$797", economia: "R$514" },
+    { tipo: "metal", metal: "gold", nome: "Gold", itens: ["5 vídeos", "5 fotos", "Roteiro", "Gravação", "Edição", "6 meses ADS"], preco: "R$1.250", economia: "R$935" }
+  ],
+
   // EDITE AQUI: texto do rodapé
   rodape: {
     copyrightTexto: "Todos os direitos reservados."
@@ -2139,6 +2144,30 @@ const CONFIG_EN = {
     mensagemSucesso: "Thanks for reaching out! I've received your message and will reply soon.",
     mensagemErro: "I couldn't send your message right now. Please try again or message me directly on WhatsApp."
   },
+
+  valoresTextos: {
+    tag: "Investment",
+    titulo: "Packages to boost your brand",
+    subtitulo: "From A/B test videos to full campaign management — pick the format that fits your brand right now. You can also build a custom mix with the standalone add-ons below.",
+    faixaOrcamento: "Campaign management — Request a quote",
+    economizeLabel: "Save"
+  },
+
+  addons: [
+    { nome: "1 video", preco: "R$297" },
+    { nome: "3 photos", preco: "R$120" },
+    { nome: "3 UGC stories", preco: "R$200" },
+    { nome: "UGC + Collab", preco: "R$397" },
+    { nome: "+3 months ADS", preco: "R$100" },
+    { nome: "Extra hook", preco: "R$49" }
+  ],
+
+  pacotes: [
+    { tipo: "metal", metal: "bronze", nome: "Bronze", itens: ["1 A/B test video", "1 hook", "3 photos", "Script", "Filming", "Editing", "3 months ADS"], preco: "R$370", economia: "R$96" },
+    { tipo: "best", nome: "Best Seller", itens: ["2 videos", "3 photos", "Script", "Filming", "Editing", "5 months ADS"], preco: "R$547", economia: "R$267" },
+    { tipo: "metal", metal: "prata", nome: "Silver", itens: ["3 videos", "3 photos", "Script", "Filming", "Editing", "6 months ADS"], preco: "R$797", economia: "R$514" },
+    { tipo: "metal", metal: "gold", nome: "Gold", itens: ["5 videos", "5 photos", "Script", "Filming", "Editing", "6 months ADS"], preco: "R$1.250", economia: "R$935" }
+  ],
 
   rodape: {
     copyrightTexto: "All rights reserved."
@@ -2531,6 +2560,26 @@ function renderizarConteudo(inicial){
     atualizarSetas();
   })();
 
+  // ---------- Valores / Investimentos ----------
+  document.getElementById("valoresTag").textContent = CONFIG.valoresTextos.tag;
+  document.getElementById("valoresTitulo").textContent = CONFIG.valoresTextos.titulo;
+  document.getElementById("valoresSubtitulo").textContent = CONFIG.valoresTextos.subtitulo;
+  document.getElementById("faixaOrcamentoTexto").textContent = CONFIG.valoresTextos.faixaOrcamento;
+  document.getElementById("addonsLinha").innerHTML = CONFIG.addons.map(a => `
+    <span class="addon-pill">${a.nome} <strong>${a.preco}</strong></span>
+  `).join("");
+  document.getElementById("pacotesGrid").innerHTML = CONFIG.pacotes.map(p => `
+    <article class="pacote-card ${p.tipo === "best" ? "metal-best" : "metal-" + p.metal} reveal">
+      ${p.tipo === "best"
+        ? `<div class="selo-best" aria-hidden="true"><span>Best</span><span>Seller</span></div>`
+        : `<div class="pacote-selo" aria-hidden="true"><span class="barra-metal"></span><span class="pacote-selo-texto">${p.nome}</span></div>`
+      }
+      <ul class="pacote-itens">${p.itens.map(i => `<li>${i}</li>`).join("")}</ul>
+      <div class="pacote-preco">${p.preco}</div>
+      <p class="pacote-economia">${CONFIG.valoresTextos.economizeLabel} ${p.economia}</p>
+    </article>
+  `).join("");
+
   // ---------- Contato: textos da seção e do formulário ----------
   document.getElementById("contatoTag").textContent = CONFIG.contatoTextos.tag;
   document.getElementById("contatoTitulo").textContent = CONFIG.contatoTextos.titulo;
@@ -2770,5 +2819,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 </script>
+
 </body>
 </html>
