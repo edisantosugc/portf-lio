@@ -12380,9 +12380,12 @@
       .filter(nf => !nfFiltroClienteId || nf.cliente_id === nfFiltroClienteId)
       .filter(nf => !nfFiltroMes || Number(nf.data_emissao.slice(5, 7)) === Number(nfFiltroMes))
       .sort((a, b) => {
-        const comparacao = nfOrdenarPor === "numero"
-          ? (a.numero || "").localeCompare(b.numero || "", "pt-BR", { numeric: true })
-          : new Date(a.data_emissao) - new Date(b.data_emissao);
+        const porNumero = () => (a.numero || "").localeCompare(b.numero || "", "pt-BR", { numeric: true });
+        const porData = () => new Date(a.data_emissao) - new Date(b.data_emissao);
+        // Desempate: duas notas na mesma data (ou com o mesmo número) não ficam mais em
+        // ordem aleatória — cai pro outro critério em vez de parar no primeiro empate.
+        let comparacao = nfOrdenarPor === "numero" ? porNumero() : porData();
+        if (comparacao === 0) comparacao = nfOrdenarPor === "numero" ? porData() : porNumero();
         return nfOrdemAsc ? comparacao : -comparacao;
       });
 
