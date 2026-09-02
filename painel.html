@@ -4281,6 +4281,7 @@
       <div class="sub-abas-negocio" id="subAbasAdministrativo">
         <button type="button" class="sub-aba-btn ativo" data-subadmin="documentos">Meus Documentos</button>
         <button type="button" class="sub-aba-btn" data-subadmin="juridico">Jurídico</button>
+        <button type="button" class="sub-aba-btn" data-subadmin="notasfiscais">Notas Fiscais</button>
       </div>
 
       <!-- ---------- Sub-aba: Meus Documentos ---------- -->
@@ -4360,6 +4361,43 @@
                 <tbody id="juridicoTabelaContratosCorpo"></tbody>
               </table>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- Sub-aba: Notas Fiscais ---------- -->
+      <div id="adminNotasFiscais" class="admin-subpainel">
+        <div class="sub-abas-negocio" id="nfAnosBotoes" style="width: fit-content;"></div>
+
+        <div class="topo-abordagem-metricas">
+          <div class="abordagem-cartao-metrica">
+            <span class="valor dado-sensivel" id="nfTotalAno">R$ 0,00</span>
+            <span class="legenda"><strong id="nfContagemAno">0 notas</strong>emitidas no ano selecionado</span>
+          </div>
+        </div>
+
+        <div class="cartao doc-bloco">
+          <div class="doc-bloco-topo"><h2>Nova nota fiscal</h2></div>
+          <div class="ugc-form-grade">
+            <div class="ugc-campo"><label>Data de emissão</label><input type="date" id="nfCampoData"></div>
+            <div class="ugc-campo"><label>Número da NF</label><input type="text" id="nfCampoNumero" placeholder="Ex: 000123"></div>
+            <div class="ugc-campo"><label>Cliente</label><select id="nfCampoCliente" class="dado-sensivel"></select></div>
+            <div class="ugc-campo"><label>Valor</label><input type="text" inputmode="decimal" id="nfCampoValor" class="dado-sensivel" placeholder="Valor R$"></div>
+          </div>
+          <div class="doc-avulso-form-novo" style="margin-top:14px;">
+            <label class="btn-fantasma" for="nfCampoArquivo" style="cursor:pointer;">📎 Anexar PDF da NF</label>
+            <input type="file" id="nfCampoArquivo" accept="application/pdf,image/*" class="oculto">
+            <button type="button" class="botao-add-tarefa" id="nfBotaoAdicionar">+ Adicionar</button>
+          </div>
+          <p class="ugc-nota-mini" id="nfArquivoNomeSelecionado" style="margin-top:8px;"></p>
+        </div>
+
+        <div class="cartao" style="padding:0; overflow:hidden;">
+          <div class="clientes-tabela-scroll">
+            <table class="clientes-tabela">
+              <thead><tr><th>Data</th><th>Número</th><th>Cliente</th><th>Valor</th><th>Anexo</th><th></th></tr></thead>
+              <tbody id="nfTabelaCorpo"></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -4538,6 +4576,11 @@
   let juridicoSubAbaAtual = "licencas";
   let documentosPessoaisCache = null;
   let documentosAvulsosCache = [];
+
+  // Sub-aba "Notas Fiscais" (Administrativo): NFs emitidas no ano, guardadas num só lugar
+  // pra facilitar a declaração de imposto. nfAnoSelecionado começa no ano atual.
+  let notasFiscaisCache = [];
+  let nfAnoSelecionado = new Date().getFullYear();
 
   // Ao marcar "Negociação fechada" na aba Abordagem, o painel pede o registro do
   // licenciamento (contrato, valor, vídeos, tempo de veiculação). Se a abordagem ainda não
@@ -5003,6 +5046,14 @@
         renderizarAdministrativo();
       } catch (erroAdministrativo) {
         console.error("Erro ao carregar/renderizar Administrativo:", erroAdministrativo);
+      }
+      try {
+        // Isolado do carregamento principal: a tabela painel_notas_fiscais (sub-aba Notas
+        // Fiscais, dentro de Administrativo) só existe depois que o SQL for rodado no Supabase.
+        notasFiscaisCache = await comRetry(() => buscarTudo("painel_notas_fiscais"));
+        renderizarNotasFiscais();
+      } catch (erroNotasFiscais) {
+        console.error("Erro ao carregar/renderizar Notas Fiscais:", erroNotasFiscais);
       }
       try {
         // Isolado do carregamento principal: mesma lógica acima, pro seletor "Em quais
@@ -6794,6 +6845,12 @@
       document.getElementById("docAvulsoArquivoNomeSelecionado").textContent = arquivo ? `Arquivo escolhido: ${arquivo.name}` : "";
     });
     document.getElementById("docAvulsoAdicionar").addEventListener("click", adicionarDocumentoAvulso);
+
+    document.getElementById("nfCampoArquivo").addEventListener("change", (e) => {
+      const arquivo = e.target.files[0];
+      document.getElementById("nfArquivoNomeSelecionado").textContent = arquivo ? `Arquivo escolhido: ${arquivo.name}` : "";
+    });
+    document.getElementById("nfBotaoAdicionar").addEventListener("click", adicionarNotaFiscal);
 
     // ---------- Modal: Registrar licenciamento ----------
     document.getElementById("licenciamentoArquivoInput").addEventListener("change", (e) => {
@@ -11961,6 +12018,10 @@
     calcularResumoClientes();
     renderContagensSubAbasClientes();
     renderTabelaClientes();
+    // Mantém o select de cliente da Nota Fiscal em dia sempre que a lista de clientes
+    // muda, preservando o que já estiver escolhido no formulário (se houver).
+    const selectNf = document.getElementById("nfCampoCliente");
+    if (selectNf) preencherSelectClienteUgc(selectNf, selectNf.value);
   }
 
   function abrirModalCliente(id){
@@ -12079,6 +12140,7 @@
     document.querySelectorAll("#subAbasAdministrativo .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subadmin === sub));
     document.getElementById("adminDocumentos").classList.toggle("ativo", sub === "documentos");
     document.getElementById("adminJuridico").classList.toggle("ativo", sub === "juridico");
+    document.getElementById("adminNotasFiscais").classList.toggle("ativo", sub === "notasfiscais");
   }
 
   function trocarSubAbaJuridico(sub){
@@ -12238,6 +12300,114 @@
     if (!error){
       documentosAvulsosCache = documentosAvulsosCache.filter(d => d.id !== id);
       renderizarMeusDocumentos();
+    }
+  }
+
+  /* ---------- Notas Fiscais (Administrativo) ---------- */
+  // Todas as NFs emitidas, separadas por ano de emissão, num só lugar pra facilitar a
+  // declaração de imposto — nada aqui depende de cliente cadastrado, é uma lista solta.
+  function renderizarNotasFiscais(){
+    const anos = Array.from(new Set(notasFiscaisCache.map(nf => Number(nf.data_emissao.slice(0, 4)))));
+    if (!anos.includes(nfAnoSelecionado)) anos.push(nfAnoSelecionado);
+    anos.sort((a, b) => b - a);
+
+    const botoesAno = document.getElementById("nfAnosBotoes");
+    botoesAno.innerHTML = anos.map(ano =>
+      `<button type="button" class="sub-aba-btn ${ano === nfAnoSelecionado ? "ativo" : ""}" data-nfano="${ano}">${ano}</button>`
+    ).join("");
+    botoesAno.querySelectorAll("[data-nfano]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        nfAnoSelecionado = Number(btn.dataset.nfano);
+        renderizarNotasFiscais();
+      });
+    });
+
+    const notasDoAno = notasFiscaisCache
+      .filter(nf => Number(nf.data_emissao.slice(0, 4)) === nfAnoSelecionado)
+      .sort((a, b) => new Date(b.data_emissao) - new Date(a.data_emissao));
+
+    const totalAno = notasDoAno.reduce((soma, nf) => soma + Number(nf.valor || 0), 0);
+    document.getElementById("nfTotalAno").textContent = formatarMoeda(totalAno);
+    document.getElementById("nfContagemAno").textContent = `${notasDoAno.length} nota${notasDoAno.length === 1 ? "" : "s"}`;
+
+    const corpo = document.getElementById("nfTabelaCorpo");
+    corpo.innerHTML = notasDoAno.length
+      ? notasDoAno.map(nf => `
+          <tr data-id="${nf.id}">
+            <td>${formatarDataCurta(nf.data_emissao)}</td>
+            <td>${nf.numero ? igEscaparHtml(nf.numero) : "-"}</td>
+            <td class="dado-sensivel">${clientesCache.find(c => c.id === nf.cliente_id)?.nome_marca || "-"}</td>
+            <td class="dado-sensivel">${formatarMoeda(Number(nf.valor || 0))}</td>
+            <td>${nf.arquivo_url
+              ? `<a href="#" data-acao="nf-abrir" data-caminho="${nf.arquivo_url}">👁 Ver</a>`
+              : `<span style="color:var(--texto-suave);">-</span>`}</td>
+            <td style="text-align:right;"><button type="button" class="ugc-btn-icone perigo" data-acao="nf-remover" data-id="${nf.id}" aria-label="Remover nota fiscal">&times;</button></td>
+          </tr>
+        `).join("")
+      : `<tr><td colspan="6" class="ugc-vazio">Nenhuma nota fiscal em ${nfAnoSelecionado} ainda.</td></tr>`;
+
+    corpo.querySelectorAll("[data-acao='nf-abrir']").forEach(a => {
+      a.addEventListener("click", (e) => { e.preventDefault(); abrirArquivoJuridico(a.dataset.caminho); });
+    });
+    corpo.querySelectorAll("[data-acao='nf-remover']").forEach(btn => {
+      btn.addEventListener("click", () => removerNotaFiscal(btn.dataset.id));
+    });
+  }
+
+  async function adicionarNotaFiscal(){
+    const data = document.getElementById("nfCampoData").value;
+    const numero = document.getElementById("nfCampoNumero").value.trim();
+    const clienteId = document.getElementById("nfCampoCliente").value || null;
+    const valor = desformatarValorCampo(document.getElementById("nfCampoValor").value);
+
+    if (!data){
+      alert("Escolhe a data de emissão da nota fiscal.");
+      return;
+    }
+
+    const arquivoInput = document.getElementById("nfCampoArquivo");
+    const arquivo = arquivoInput.files[0] || null;
+    let enviado = null;
+    if (arquivo){
+      enviado = await enviarArquivoJuridico(arquivo, "notas-fiscais");
+      if (!enviado) return;
+    }
+
+    const dados = {
+      data_emissao: data,
+      numero: numero || null,
+      cliente_id: clienteId,
+      valor: isNaN(valor) ? null : valor,
+      arquivo_url: enviado?.url || null,
+      arquivo_nome: enviado?.nome || null
+    };
+
+    const { data: inserido, error } = await Auth.client.from("painel_notas_fiscais").insert(dados).select();
+    if (error){
+      alert("Não foi possível salvar essa nota fiscal agora: " + error.message);
+      return;
+    }
+
+    notasFiscaisCache = notasFiscaisCache.concat(inserido);
+    nfAnoSelecionado = Number(data.slice(0, 4)); // já mostra o ano que acabou de receber a NF nova
+    document.getElementById("nfCampoData").value = "";
+    document.getElementById("nfCampoNumero").value = "";
+    document.getElementById("nfCampoCliente").value = "";
+    document.getElementById("nfCampoValor").value = "";
+    arquivoInput.value = "";
+    document.getElementById("nfArquivoNomeSelecionado").textContent = "";
+    renderizarNotasFiscais();
+  }
+
+  async function removerNotaFiscal(id){
+    const nf = notasFiscaisCache.find(n => n.id === id);
+    if (!nf) return;
+    if (!window.confirm(`Remover a nota fiscal${nf.numero ? " " + nf.numero : ""}? Essa ação não pode ser desfeita.`)) return;
+
+    const { error } = await Auth.client.from("painel_notas_fiscais").delete().eq("id", id);
+    if (!error){
+      notasFiscaisCache = notasFiscaisCache.filter(n => n.id !== id);
+      renderizarNotasFiscais();
     }
   }
 

@@ -621,6 +621,40 @@ create policy "Usuaria autenticada gerencia seus mantras"
 grant select, insert, update, delete on public.painel_mantras to authenticated;
 
 -- =====================================================================
+-- NOTAS FISCAIS (sub-aba "Notas Fiscais", dentro de "Administrativo")
+-- NFs emitidas no ano, num só lugar pra facilitar a declaração de imposto.
+-- =====================================================================
+create table if not exists public.painel_notas_fiscais (
+  id uuid primary key default gen_random_uuid(),
+  data_emissao date not null,
+  numero text,
+  cliente_id uuid references public.painel_clientes(id) on delete set null,
+  valor numeric,
+  arquivo_url text,       -- caminho no bucket privado "documentos-juridicos"
+  arquivo_nome text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_notas_fiscais_data on public.painel_notas_fiscais (data_emissao);
+
+-- Se a tabela já tinha sido criada numa versão anterior (com "cliente" texto solto em vez
+-- de vínculo de verdade), troca pro vínculo com painel_clientes sem apagar as NFs já salvas.
+alter table public.painel_notas_fiscais add column if not exists cliente_id uuid references public.painel_clientes(id) on delete set null;
+alter table public.painel_notas_fiscais drop column if exists cliente;
+
+alter table public.painel_notas_fiscais enable row level security;
+
+drop policy if exists "Usuaria autenticada gerencia suas notas fiscais" on public.painel_notas_fiscais;
+create policy "Usuaria autenticada gerencia suas notas fiscais"
+  on public.painel_notas_fiscais
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_notas_fiscais to authenticated;
+
+-- =====================================================================
 -- LEMBRETES: adiamento persistido (pop-up de notificações do painel)
 -- Uma linha por "grupo" de lembrete (abordagem, financas, agenda, portfolio,
 -- clientes, ugc-creator, negocio). Guarda até quando aquele grupo foi adiado
@@ -1675,7 +1709,7 @@ begin
   foreach tabela in array array[
     'painel_clientes', 'painel_abordagens', 'painel_projetos',
     'painel_banco_criativo', 'painel_ugc_trabalhos',
-    'painel_documentos_pessoais', 'painel_documentos_avulsos', 'painel_notas', 'painel_mantras',
+    'painel_documentos_pessoais', 'painel_documentos_avulsos', 'painel_notas', 'painel_mantras', 'painel_notas_fiscais',
     'painel_ia_mensagens', 'negocio_lancamentos',
     'painel_iara_precificacao_tipos', 'painel_iara_precificacao_desconto',
     'painel_iara_sessoes', 'painel_iara_documentos'
