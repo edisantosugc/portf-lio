@@ -12339,7 +12339,7 @@
             <td class="dado-sensivel">${clientesCache.find(c => c.id === nf.cliente_id)?.nome_marca || "-"}</td>
             <td class="dado-sensivel">${formatarMoeda(Number(nf.valor || 0))}</td>
             <td>${nf.arquivo_url
-              ? `<a href="#" data-acao="nf-abrir" data-caminho="${nf.arquivo_url}">👁 Ver</a>`
+              ? `<a href="#" data-acao="nf-abrir" data-caminho="${nf.arquivo_url}">👁 Ver Nota Fiscal</a>`
               : `<span style="color:var(--texto-suave);">-</span>`}</td>
             <td style="text-align:right;"><button type="button" class="ugc-btn-icone perigo" data-acao="nf-remover" data-id="${nf.id}" aria-label="Remover nota fiscal">&times;</button></td>
           </tr>
