@@ -152,6 +152,15 @@ create table if not exists public.painel_tarefas (
 
 create index if not exists idx_painel_tarefas_data on public.painel_tarefas (data);
 
+-- Marca de qual agenda do Google veio uma tarefa importada na sincronização: null/"primary" =
+-- agenda principal (padrão), ou o e-mail da agenda pessoal compartilhada. Sem isso, apagar ou
+-- comparar uma tarefa vinda da agenda pessoal acabava indo bater na agenda errada no Google.
+alter table public.painel_tarefas add column if not exists google_calendar_id text;
+
+-- painel_tarefas_google_exclusoes foi criada direto no Table Editor (não tem create table
+-- aqui) — essa linha só garante que a coluna nova existe lá também, sem apagar nada.
+alter table public.painel_tarefas_google_exclusoes add column if not exists google_calendar_id text;
+
 alter table public.painel_tarefas enable row level security;
 
 drop policy if exists "Usuaria autenticada gerencia suas tarefas" on public.painel_tarefas;

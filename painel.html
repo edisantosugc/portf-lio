@@ -4394,6 +4394,14 @@
   let googleTokenClient = null;
   let googleSincronizando = false;
 
+  // Agendas lidas na sincronização: a principal (desta conta logada) sempre, mais a agenda
+  // pessoal, compartilhada com "ver todos os detalhes do evento" por fora do painel (direto
+  // no Google Agenda) — só leitura, novas tarefas criadas aqui continuam indo pra principal.
+  const CALENDARIOS_SINCRONIZADOS = [
+    { id: "primary", chave: null },
+    { id: "diihsantos25@gmail.com", chave: "diihsantos25@gmail.com" }
+  ];
+
   // Estado da aba Finanças: mês/ano exibidos e o filtro de cartão selecionado
   let mesFinancasVisivel = hojeAgenda.getMonth();
   let anoFinancasVisivel = hojeAgenda.getFullYear();
@@ -7609,7 +7617,7 @@
     if (tarefa && tarefa.google_event_id){
       await Auth.client
         .from("painel_tarefas_google_exclusoes")
-        .upsert({ google_event_id: tarefa.google_event_id });
+        .upsert({ google_event_id: tarefa.google_event_id, google_calendar_id: tarefa.google_calendar_id || null });
     }
 
     const { error } = await Auth.client
@@ -7681,7 +7689,8 @@
         .select("*");
 
       for (const exclusao of (exclusoesPendentes || [])){
-        const respostaExclusao = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${exclusao.google_event_id}`, {
+        const calendarioExclusao = encodeURIComponent(exclusao.google_calendar_id || "primary");
+        const respostaExclusao = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarioExclusao}/events/${exclusao.google_event_id}`, {
           method: "DELETE",
           headers: { "Authorization": "Bearer " + accessToken }
         });
@@ -7746,17 +7755,25 @@
         maxResults: "250"
       });
 
-      const respostaLista = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${parametros}`, {
-        headers: { "Authorization": "Bearer " + accessToken }
-      });
+      // Busca cada agenda (principal + pessoal compartilhada) separadamente. Se a pessoal
+      // ainda não foi compartilhada (ou deixou de ser), essa chamada volta com erro e é só
+      // ignorada — a sincronização continua normal com a principal, sem travar nada.
+      const idsConhecidos = new Set(tarefasCache.map(t => t.google_event_id).filter(Boolean));
+      const novasTarefas = [];
+      const idsAtuaisPorCalendario = {}; // "primary" ou o e-mail da agenda -> Set de ids ainda existentes lá
 
-      if (respostaLista.ok){
-        const listaEventos = await respostaLista.json();
-        const idsConhecidos = new Set(tarefasCache.map(t => t.google_event_id).filter(Boolean));
-        const novasTarefas = [];
+      for (const calendario of CALENDARIOS_SINCRONIZADOS){
+        const respostaListaCal = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendario.id)}/events?${parametros}`,
+          { headers: { "Authorization": "Bearer " + accessToken } }
+        );
+        if (!respostaListaCal.ok) continue;
 
-        for (const evento of (listaEventos.items || [])){
-          if (evento.status === "cancelled") continue;
+        const listaEventosCal = await respostaListaCal.json();
+        const itensValidos = (listaEventosCal.items || []).filter(e => e.status !== "cancelled");
+        idsAtuaisPorCalendario[calendario.chave || "primary"] = new Set(itensValidos.map(e => e.id));
+
+        for (const evento of itensValidos){
           if (idsConhecidos.has(evento.id)) continue;
 
           const ehDiaInteiro = !!evento.start.date;
@@ -7771,38 +7788,40 @@
             data: dataTarefa,
             cor: corIndice,
             tipo: COR_GOOGLE_PARA_TIPO[evento.colorId] || "pessoal",
-            google_event_id: evento.id
+            google_event_id: evento.id,
+            google_calendar_id: calendario.chave
           });
         }
+      }
 
-        if (novasTarefas.length > 0){
-          const { data: tarefasInseridas, error } = await Auth.client
-            .from("painel_tarefas")
-            .insert(novasTarefas)
-            .select();
+      if (novasTarefas.length > 0){
+        const { data: tarefasInseridas, error } = await Auth.client
+          .from("painel_tarefas")
+          .insert(novasTarefas)
+          .select();
 
-          if (!error && tarefasInseridas){
-            tarefasCache = tarefasCache.concat(tarefasInseridas);
-          }
+        if (!error && tarefasInseridas){
+          tarefasCache = tarefasCache.concat(tarefasInseridas);
         }
+      }
 
-        // ---------- 3) Tarefas que sumiram do Google (dentro da janela consultada) também saem daqui ----------
-        const idsAtuaisNoGoogle = new Set((listaEventos.items || []).filter(e => e.status !== "cancelled").map(e => e.id));
-        const dataMinISO = formatarDataISO(dataMin);
-        const dataMaxISO = formatarDataISO(dataMax);
-        const tarefasApagadasNoGoogle = tarefasCache.filter(t =>
-          t.google_event_id &&
-          t.data >= dataMinISO && t.data <= dataMaxISO &&
-          !idsAtuaisNoGoogle.has(t.google_event_id)
-        );
+      // ---------- 3) Tarefas que sumiram do Google (dentro da janela consultada) também saem daqui ----------
+      // Cada tarefa só é comparada contra a agenda de onde ela veio — se aquela agenda nem
+      // pôde ser consultada dessa vez (ver "continue" acima), a tarefa fica intocada.
+      const dataMinISO = formatarDataISO(dataMin);
+      const dataMaxISO = formatarDataISO(dataMax);
+      const tarefasApagadasNoGoogle = tarefasCache.filter(t => {
+        if (!t.google_event_id || t.data < dataMinISO || t.data > dataMaxISO) return false;
+        const idsDaAgenda = idsAtuaisPorCalendario[t.google_calendar_id || "primary"];
+        return idsDaAgenda && !idsDaAgenda.has(t.google_event_id);
+      });
 
-        for (const tarefa of tarefasApagadasNoGoogle){
-          await Auth.client.from("painel_tarefas").delete().eq("id", tarefa.id);
-        }
-        if (tarefasApagadasNoGoogle.length > 0){
-          const idsApagados = new Set(tarefasApagadasNoGoogle.map(t => t.id));
-          tarefasCache = tarefasCache.filter(t => !idsApagados.has(t.id));
-        }
+      for (const tarefa of tarefasApagadasNoGoogle){
+        await Auth.client.from("painel_tarefas").delete().eq("id", tarefa.id);
+      }
+      if (tarefasApagadasNoGoogle.length > 0){
+        const idsApagados = new Set(tarefasApagadasNoGoogle.map(t => t.id));
+        tarefasCache = tarefasCache.filter(t => !idsApagados.has(t.id));
       }
 
       renderizarAgenda();
