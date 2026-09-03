@@ -7855,8 +7855,8 @@
       // Busca cada agenda (principal + pessoal compartilhada) separadamente. Se a pessoal
       // ainda não foi compartilhada (ou deixou de ser), essa chamada volta com erro e é só
       // ignorada — a sincronização continua normal com a principal, sem travar nada.
-      const idsConhecidos = new Set(tarefasCache.map(t => t.google_event_id).filter(Boolean));
       const novasTarefas = [];
+      const tarefasParaAtualizar = [];
       const idsAtuaisPorCalendario = {}; // "primary" ou o e-mail da agenda -> Set de ids ainda existentes lá
 
       for (const calendario of CALENDARIOS_SINCRONIZADOS){
@@ -7871,15 +7871,48 @@
         idsAtuaisPorCalendario[calendario.chave || "primary"] = new Set(itensValidos.map(e => e.id));
 
         for (const evento of itensValidos){
-          if (idsConhecidos.has(evento.id)) continue;
-
           const ehDiaInteiro = !!evento.start.date;
           const dataTarefa = ehDiaInteiro ? evento.start.date : formatarDataISO(new Date(evento.start.dateTime));
           const horarioTarefa = ehDiaInteiro ? null : new Date(evento.start.dateTime).toTimeString().slice(0, 5);
+          const tituloEvento = evento.summary || "(sem título)";
+
+          // Evento já conhecido: em vez de ignorar (como antes), confere se título/data/horário
+          // mudaram no Google desde a última sincronização e atualiza aqui também — sem isso,
+          // editar um compromisso já sincronizado nunca refletia no painel.
+          const tarefaExistente = tarefasCache.find(t => t.google_event_id === evento.id);
+          if (tarefaExistente){
+            // O título enviado pro Google leva o emoji junto como texto (ver "1) Envia pro
+            // Google" acima); aqui ele volta separado. Tira esse prefixo antes de comparar,
+            // senão toda tarefa com emoji parecia "editada" logo na sincronização em que
+            // foi criada.
+            const prefixoEmoji = tarefaExistente.emoji ? tarefaExistente.emoji + " " : "";
+            const tituloSemEmoji = prefixoEmoji && tituloEvento.startsWith(prefixoEmoji)
+              ? tituloEvento.slice(prefixoEmoji.length)
+              : tituloEvento;
+
+            // No banco "horario" é um campo time e sempre volta com segundos ("10:30:00"),
+            // mas o que vem do Google (e o que a gente grava) é só "HH:MM" — comparar os dois
+            // formatos direto sempre dava "mudou" mesmo sem mudança nenhuma.
+            const horarioExistenteCurto = tarefaExistente.horario ? tarefaExistente.horario.slice(0, 5) : null;
+
+            const tipoDoEvento = COR_GOOGLE_PARA_TIPO[evento.colorId]; // undefined = cor sem categoria mapeada, não mexe no tipo já salvo
+            const mudou = tarefaExistente.titulo !== tituloSemEmoji
+              || tarefaExistente.data !== dataTarefa
+              || horarioExistenteCurto !== horarioTarefa
+              || (tipoDoEvento && tarefaExistente.tipo !== tipoDoEvento);
+
+            if (mudou){
+              const camposAtualizados = { titulo: tituloSemEmoji, data: dataTarefa, horario: horarioTarefa };
+              if (tipoDoEvento) camposAtualizados.tipo = tipoDoEvento;
+              tarefasParaAtualizar.push({ id: tarefaExistente.id, campos: camposAtualizados });
+            }
+            continue;
+          }
+
           const corIndice = tarefasCache.filter(t => t.data === dataTarefa).length % 5;
 
           novasTarefas.push({
-            titulo: evento.summary || "(sem título)",
+            titulo: tituloEvento,
             emoji: null,
             horario: horarioTarefa,
             data: dataTarefa,
@@ -7899,6 +7932,21 @@
 
         if (!error && tarefasInseridas){
           tarefasCache = tarefasCache.concat(tarefasInseridas);
+        }
+      }
+
+      // ---------- 2b) Aplica no painel as edições feitas no Google em eventos já sincronizados ----------
+      for (const atualizacao of tarefasParaAtualizar){
+        const { error } = await Auth.client
+          .from("painel_tarefas")
+          .update(atualizacao.campos)
+          .eq("id", atualizacao.id);
+
+        if (!error){
+          const tarefa = tarefasCache.find(t => t.id === atualizacao.id);
+          if (tarefa) Object.assign(tarefa, atualizacao.campos);
+        } else {
+          console.error("Erro ao atualizar tarefa vinda do Google:", atualizacao, error);
         }
       }
 
