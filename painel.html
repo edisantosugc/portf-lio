@@ -2194,6 +2194,7 @@
     cursor: pointer; border: 1px solid var(--borda); background: var(--branco); color: var(--grafite);
   }
   .btn-fantasma:hover{ border-color: var(--coral); color: var(--coral); }
+  .btn-fantasma.perigo:hover{ border-color: var(--vermelho); color: var(--vermelho); }
 
   .clientes-cards-resumo{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 20px; }
   .topo-abordagem-metricas{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; }
@@ -9980,8 +9981,9 @@
             <span>PDF ou imagem</span>
             <input type="file" id="ugcEdicaoContratoInput-${item.id}" data-ugc-contrato-input="${item.id}" accept="application/pdf,image/*" class="oculto">
           </label>
-          <div class="${item.contrato_arquivo_url ? "" : "oculto"}" id="ugcEdicaoContratoAcoes-${item.id}" style="display:flex; justify-content:flex-end; margin-top:10px;">
+          <div class="${item.contrato_arquivo_url ? "" : "oculto"}" id="ugcEdicaoContratoAcoes-${item.id}" style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
             <button type="button" class="btn-fantasma" data-acao="ugc-ver-contrato" data-id="${item.id}">👁 Abrir arquivo</button>
+            <button type="button" class="btn-fantasma perigo" data-acao="ugc-remover-contrato" data-id="${item.id}">🗑 Remover</button>
           </div>
           <p class="ugc-nota-mini">Assim que anexar, ele já aparece em Administrativo → Jurídico → Contratos.</p>
         </div>
@@ -10217,6 +10219,9 @@
         if (item?.contrato_arquivo_url) abrirArquivoJuridico(item.contrato_arquivo_url);
       });
     });
+    container.querySelectorAll("[data-acao='ugc-remover-contrato']").forEach(btn => {
+      btn.addEventListener("click", () => removerContratoUgc(btn.dataset.id));
+    });
     container.querySelectorAll("[data-acao='ugc-nf-emitida']").forEach(btn => {
       btn.addEventListener("click", () => atualizarTrabalhoUgc(btn.dataset.id, { nf_status: "emitida" }).then(renderizarUgcCreator));
     });
@@ -10436,6 +10441,18 @@
     const enviado = await enviarArquivoJuridico(file, "contratos");
     if (!enviado) return;
     await atualizarTrabalhoUgc(id, { contrato_arquivo_url: enviado.url, contrato_arquivo_nome: enviado.nome });
+    renderizarUgcCreator();
+    renderizarJuridico();
+  }
+
+  // Só desvincula o arquivo do trabalho (some de Jurídico > Contratos, que lista por
+  // contrato_arquivo_url) — não apaga o arquivo do Storage, mesmo padrão já usado nos
+  // outros documentos avulsos do Administrativo.
+  async function removerContratoUgc(id){
+    const item = ugcCache.find(t => t.id === id);
+    if (!item) return;
+    if (!window.confirm("Remover o contrato anexado desse trabalho? Essa ação não pode ser desfeita.")) return;
+    await atualizarTrabalhoUgc(id, { contrato_arquivo_url: null, contrato_arquivo_nome: null });
     renderizarUgcCreator();
     renderizarJuridico();
   }
