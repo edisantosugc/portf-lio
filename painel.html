@@ -2801,6 +2801,10 @@
         <input type="text" id="clienteCampoMarca" placeholder="Ex: Nike, Avon, Salão da Juju">
       </div>
       <div class="ugc-campo largo">
+        <label>Razão Social</label>
+        <input type="text" id="clienteCampoRazaoSocial" placeholder="Ex: Nike do Brasil Comércio Ltda">
+      </div>
+      <div class="ugc-campo largo">
         <label>CNPJ</label>
         <input type="text" id="clienteCampoCnpj" placeholder="00.000.000/0000-00">
       </div>
@@ -12119,6 +12123,7 @@
     document.getElementById("modalClienteTitulo").textContent = cliente ? "🏢 Editar Cliente" : "🏢 Novo Cliente";
     document.getElementById("clienteModalSalvar").textContent = cliente ? "Salvar alterações" : "Criar Cliente";
     document.getElementById("clienteCampoMarca").value = cliente ? cliente.nome_marca : "";
+    document.getElementById("clienteCampoRazaoSocial").value = cliente ? (cliente.razao_social || "") : "";
     document.getElementById("clienteCampoCnpj").value = cliente ? (cliente.cnpj || "") : "";
     document.getElementById("clienteCampoNicho").value = cliente ? (cliente.nicho || "") : "";
     document.getElementById("clienteCampoNichoOutro").value = cliente ? (cliente.nicho_detalhe || "") : "";
@@ -12159,6 +12164,7 @@
     const nicho = document.getElementById("clienteCampoNicho").value || null;
     const dados = {
       nome_marca: marca,
+      razao_social: document.getElementById("clienteCampoRazaoSocial").value.trim() || null,
       cnpj: document.getElementById("clienteCampoCnpj").value.trim() || null,
       nicho: nicho,
       nicho_detalhe: nicho === "Outro" ? (document.getElementById("clienteCampoNichoOutro").value.trim() || null) : null,

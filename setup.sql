@@ -204,6 +204,9 @@ create index if not exists idx_painel_clientes_status on public.painel_clientes 
 -- versão anterior, essa linha adiciona a coluna sem apagar nada.
 alter table public.painel_clientes add column if not exists nicho_detalhe text;
 
+-- Razão social da empresa (nome oficial no CNPJ), separado do "nome_marca" (nome fantasia).
+alter table public.painel_clientes add column if not exists razao_social text;
+
 alter table public.painel_clientes enable row level security;
 
 drop policy if exists "Usuaria autenticada gerencia seus clientes" on public.painel_clientes;
