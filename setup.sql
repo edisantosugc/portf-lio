@@ -1140,6 +1140,14 @@ alter table public.painel_ugc_trabalhos add column if not exists contrato_arquiv
 alter table public.painel_ugc_trabalhos add column if not exists contrato_arquivo_nome text;
 alter table public.painel_ugc_trabalhos add column if not exists quantidade_videos integer;
 
+-- Nota fiscal do trabalho, escolhida entre as etapas "Entregue" e "Pago". Ao anexar o
+-- arquivo, gera/atualiza sozinho uma linha em painel_notas_fiscais (nota_fiscal_id),
+-- pra não duplicar cadastro entre o UGC Creator e Administrativo > Notas Fiscais.
+alter table public.painel_ugc_trabalhos add column if not exists nf_status text check (nf_status in ('emitida', 'sem_emissao'));
+alter table public.painel_ugc_trabalhos add column if not exists nf_arquivo_url text;
+alter table public.painel_ugc_trabalhos add column if not exists nf_arquivo_nome text;
+alter table public.painel_ugc_trabalhos add column if not exists nota_fiscal_id uuid references public.painel_notas_fiscais(id) on delete set null;
+
 -- =====================================================================
 -- ADMINISTRATIVO > MEUS DOCUMENTOS
 -- Uma linha só (perfil da própria usuária, não por trabalho/cliente).

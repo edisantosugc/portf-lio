@@ -9972,6 +9972,19 @@
             <span class="${item.contrato_ativo ? "" : "ativo"}" data-contrato="nao">Não</span>
           </div>
         </div>
+        <div class="ugc-campo largo">
+          <label>Arquivo do contrato</label>
+          <label class="cliente-area-upload" for="ugcEdicaoContratoInput-${item.id}">
+            <span class="icone-upload">📎</span>
+            <span class="principal" id="ugcEdicaoContratoTexto-${item.id}">${item.contrato_arquivo_nome || "Anexar contrato"}</span>
+            <span>PDF ou imagem</span>
+            <input type="file" id="ugcEdicaoContratoInput-${item.id}" data-ugc-contrato-input="${item.id}" accept="application/pdf,image/*" class="oculto">
+          </label>
+          <div class="${item.contrato_arquivo_url ? "" : "oculto"}" id="ugcEdicaoContratoAcoes-${item.id}" style="display:flex; justify-content:flex-end; margin-top:10px;">
+            <button type="button" class="btn-fantasma" data-acao="ugc-ver-contrato" data-id="${item.id}">👁 Abrir arquivo</button>
+          </div>
+          <p class="ugc-nota-mini">Assim que anexar, ele já aparece em Administrativo → Jurídico → Contratos.</p>
+        </div>
         <div class="ugc-campo">
           <label>Início do tráfego pago</label>
           <input type="date" id="ugcEdicaoTrafegoInicio-${item.id}" value="${item.trafego_pago_inicio || ""}">
@@ -9987,6 +10000,42 @@
       </div>
       ${item.negocio_lancamento_id ? `<p class="ugc-nota-mini">Marca, tipo, valor e data prevista de pagamento ficam sincronizados com o lançamento já criado no Financeiro UGC.</p>` : ""}
       <p class="ugc-nota-mini">Mudar a etapa aqui pula direto pra ela (não precisa ir passo a passo). Escolher "Pago" já lança/atualiza o recebimento no Financeiro UGC.</p>
+    `;
+  }
+
+  // Escolha de nota fiscal do trabalho, mostrada nas etapas "Entregue" e "Pago". Ao
+  // anexar o arquivo, cria/atualiza sozinho a linha em Administrativo > Notas Fiscais
+  // (ver enviarNotaFiscalUgc), sem precisar cadastrar de novo lá.
+  function renderNotaFiscalUgcHtml(item){
+    if (!item.nf_status){
+      return `
+        <div class="ugc-campo largo" style="margin-top:10px;">
+          <label>Nota fiscal desse trabalho</label>
+          <div class="ugc-branch">
+            <button type="button" data-acao="ugc-nf-emitida" data-id="${item.id}">NF emitida</button>
+            <button type="button" data-acao="ugc-nf-sem-emissao" data-id="${item.id}">Sem emissão de NF</button>
+          </div>
+        </div>
+      `;
+    }
+    if (item.nf_status === "sem_emissao"){
+      return `
+        <div class="ugc-detalhe-linha"><span class="rotulo">Nota fiscal</span><span class="valor">Sem emissão</span></div>
+        <button type="button" class="btn-fantasma" data-acao="ugc-nf-refazer" data-id="${item.id}">Marcar que emiti NF, afinal</button>
+      `;
+    }
+    return `
+      <div class="ugc-campo largo" style="margin-top:10px;">
+        <label>Arquivo da nota fiscal</label>
+        <label class="cliente-area-upload" for="ugcNfInput-${item.id}">
+          <span class="icone-upload">📎</span>
+          <span class="principal">${item.nf_arquivo_nome || "Anexar nota fiscal"}</span>
+          <span>PDF ou imagem</span>
+          <input type="file" id="ugcNfInput-${item.id}" data-ugc-nf-input="${item.id}" accept="application/pdf,image/*" class="oculto">
+        </label>
+        ${item.nf_arquivo_url ? `<div style="display:flex; justify-content:flex-end; margin-top:10px;"><button type="button" class="btn-fantasma" data-acao="ugc-nf-abrir" data-id="${item.id}">👁 Abrir arquivo</button></div>` : ""}
+        <p class="ugc-nota-mini">Assim que anexar, ela também aparece em Administrativo → Notas Fiscais.</p>
+      </div>
     `;
   }
 
@@ -10056,9 +10105,13 @@
             <button type="button" data-acao="ugc-marcar-pago" data-id="${item.id}">Pago</button>
           </div>
           ${item.status_pagamento === "a_pagar" ? `<p class="ugc-nota-mini">→ No Financeiro UGC como Pendente de recebimento.</p>` : ""}
+          ${renderNotaFiscalUgcHtml(item)}
         `;
       case "pago":
-        return `<div class="ugc-detalhe-linha"><span class="rotulo">Financeiro UGC</span><span class="valor" style="color:var(--verde)">Recebido ✓</span></div>`;
+        return `
+          <div class="ugc-detalhe-linha"><span class="rotulo">Financeiro UGC</span><span class="valor" style="color:var(--verde)">Recebido ✓</span></div>
+          ${renderNotaFiscalUgcHtml(item)}
+        `;
       case "arquivado":
         return `<div class="ugc-detalhe-linha"><span class="rotulo">Status</span><span class="valor">Concluído e arquivado</span></div>`;
       default:
@@ -10152,6 +10205,37 @@
       const trabalhoId = select.id.replace("ugcEdicaoClienteId-", "");
       const trabalho = ugcCache.find(t => t.id === trabalhoId);
       preencherSelectClienteUgc(select, trabalho ? trabalho.cliente_id : "");
+    });
+    container.querySelectorAll("[data-ugc-contrato-input]").forEach(input => {
+      input.addEventListener("change", (e) => {
+        if (e.target.files[0]) enviarContratoUgc(input.dataset.ugcContratoInput, e.target.files[0]);
+      });
+    });
+    container.querySelectorAll("[data-acao='ugc-ver-contrato']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const item = ugcCache.find(t => t.id === btn.dataset.id);
+        if (item?.contrato_arquivo_url) abrirArquivoJuridico(item.contrato_arquivo_url);
+      });
+    });
+    container.querySelectorAll("[data-acao='ugc-nf-emitida']").forEach(btn => {
+      btn.addEventListener("click", () => atualizarTrabalhoUgc(btn.dataset.id, { nf_status: "emitida" }).then(renderizarUgcCreator));
+    });
+    container.querySelectorAll("[data-acao='ugc-nf-sem-emissao']").forEach(btn => {
+      btn.addEventListener("click", () => atualizarTrabalhoUgc(btn.dataset.id, { nf_status: "sem_emissao" }).then(renderizarUgcCreator));
+    });
+    container.querySelectorAll("[data-acao='ugc-nf-refazer']").forEach(btn => {
+      btn.addEventListener("click", () => atualizarTrabalhoUgc(btn.dataset.id, { nf_status: null }).then(renderizarUgcCreator));
+    });
+    container.querySelectorAll("[data-ugc-nf-input]").forEach(input => {
+      input.addEventListener("change", (e) => {
+        if (e.target.files[0]) enviarNotaFiscalUgc(input.dataset.ugcNfInput, e.target.files[0]);
+      });
+    });
+    container.querySelectorAll("[data-acao='ugc-nf-abrir']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const item = ugcCache.find(t => t.id === btn.dataset.id);
+        if (item?.nf_arquivo_url) abrirArquivoJuridico(item.nf_arquivo_url);
+      });
     });
   }
 
@@ -10345,12 +10429,63 @@
     if (vaiParaPago) await marcarPagamentoUgc(id, "pago");
   }
 
+  // Sobe o contrato pro Storage e salva no trabalho — a partir daí ele já aparece
+  // sozinho em Administrativo > Jurídico > Contratos (que lista todo trabalho com
+  // contrato_arquivo_url preenchido, ver renderizarTabelaContratos).
+  async function enviarContratoUgc(id, file){
+    const enviado = await enviarArquivoJuridico(file, "contratos");
+    if (!enviado) return;
+    await atualizarTrabalhoUgc(id, { contrato_arquivo_url: enviado.url, contrato_arquivo_nome: enviado.nome });
+    renderizarUgcCreator();
+    renderizarJuridico();
+  }
+
+  // Sobe a nota fiscal pro Storage e garante (cria ou atualiza) UM lançamento em
+  // painel_notas_fiscais pra esse trabalho — mesmo padrão de garantirLancamentoNegocioUgc,
+  // pra "Notas Fiscais" nunca duplicar cadastro entre o UGC Creator e o Administrativo.
+  async function enviarNotaFiscalUgc(id, file){
+    const item = ugcCache.find(t => t.id === id);
+    if (!item) return;
+
+    const enviado = await enviarArquivoJuridico(file, "notas-fiscais");
+    if (!enviado) return;
+
+    const dadosNf = {
+      data_emissao: formatarDataISO(new Date()),
+      cliente_id: item.cliente_id || null,
+      valor: item.valor,
+      arquivo_url: enviado.url,
+      arquivo_nome: enviado.nome
+    };
+
+    let notaFiscalId = item.nota_fiscal_id;
+    if (notaFiscalId){
+      const { error } = await Auth.client.from("painel_notas_fiscais").update(dadosNf).eq("id", notaFiscalId);
+      if (error) return;
+      const registro = notasFiscaisCache.find(n => n.id === notaFiscalId);
+      if (registro) Object.assign(registro, dadosNf);
+    } else {
+      const { data: inserido, error } = await Auth.client.from("painel_notas_fiscais").insert(dadosNf).select();
+      if (error || !inserido || !inserido[0]) return;
+      notasFiscaisCache = notasFiscaisCache.concat(inserido);
+      notaFiscalId = inserido[0].id;
+    }
+
+    await atualizarTrabalhoUgc(id, {
+      nf_arquivo_url: enviado.url,
+      nf_arquivo_nome: enviado.nome,
+      nota_fiscal_id: notaFiscalId
+    });
+    renderizarUgcCreator();
+    renderizarNotasFiscais();
+  }
+
   // Remove o trabalho e, se ele já tinha gerado um lançamento no Financeiro UGC
   // ("A pagar"/"Pago"), remove esse lançamento também pra não sobrar cadastro órfão.
   async function removerTrabalhoUgc(id){
     const item = ugcCache.find(t => t.id === id);
     if (!item) return;
-    if (!window.confirm(`Remover o trabalho de "${item.marca}"? Se ele já tiver um lançamento no Financeiro UGC, ele também será removido. Essa ação não pode ser desfeita.`)) return;
+    if (!window.confirm(`Remover o trabalho de "${item.marca}"? Se ele já tiver um lançamento no Financeiro UGC ou uma nota fiscal ligada, eles também serão removidos. Essa ação não pode ser desfeita.`)) return;
 
     const { error } = await Auth.client
       .from("painel_ugc_trabalhos")
@@ -10364,6 +10499,17 @@
         .delete()
         .eq("id", item.negocio_lancamento_id);
       if (!erroNegocio) negocioCache = negocioCache.filter(n => n.id !== item.negocio_lancamento_id);
+    }
+
+    if (item.nota_fiscal_id){
+      const { error: erroNf } = await Auth.client
+        .from("painel_notas_fiscais")
+        .delete()
+        .eq("id", item.nota_fiscal_id);
+      if (!erroNf){
+        notasFiscaisCache = notasFiscaisCache.filter(n => n.id !== item.nota_fiscal_id);
+        renderizarNotasFiscais();
+      }
     }
 
     ugcCache = ugcCache.filter(t => t.id !== id);
