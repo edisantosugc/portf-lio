@@ -22,22 +22,34 @@ function criarClienteSupabase() {
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 const MODELO = "gpt-4o-mini";
 
+// EDITE AQUI se quiser aumentar/diminuir quanto da Memória entra no prompt —
+// mesmo limite usado em ia-assistente, pra não disparar o tamanho/custo da chamada.
+const MEMORIA_LIMITE_CARACTERES = 8000;
+
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "https://edilainesantos.com",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const SYSTEM_PROMPT = `Você analisa comentários de Instagram de uma criadora de conteúdo que ensina UGC (User Generated Content) e gestão de Instagram.
+// Recebe a Memória da IAra já formatada (ou "" se vazia) e a data de hoje, e monta o
+// system prompt na hora — o modelo (gpt-4o-mini) não sabe a data atual sozinho, e sem
+// dizer explicitamente ele tende a "puxar" anos/tendências do próprio treinamento
+// (ex.: sugerir algo "em 2023") em vez de ficar só no que os comentários mostram.
+function montarSystemPrompt(dataHojeExtenso: string, blocoMemoria: string): string {
+  return `Você analisa comentários de Instagram de uma criadora de conteúdo que ensina UGC (User Generated Content) e gestão de Instagram.
 
+Hoje é ${dataHojeExtenso}. Nunca mencione um ano diferente desse (nem anos passados tipo "2023") e não invente tendências/novidades "recentes" da sua própria memória — baseie-se SÓ no que está nos comentários abaixo.
+${blocoMemoria ? `\nContexto sobre a marca pessoal dela (use pra deixar as ideias no tom/nicho certo):\n${blocoMemoria}\n` : ""}
 Você recebe uma lista de comentários recentes (usuário e texto, um por linha). Sua tarefa:
 
 1. Selecione só os comentários que sejam perguntas genuínas ou expressem um interesse real relacionado a algo que ela ensina ou vende. Ignore elogios genéricos sem substância, emojis soltos, spam e comentários irrelevantes.
 2. Para cada um selecionado, classifique como "duvida" (pergunta direta) ou "interesse" (expressa vontade ou necessidade sem perguntar direto), e escreva uma sugestão curta (1 frase) do que responder ou fazer a respeito.
-3. Com base nos temas mais recorrentes entre todos os comentários (selecionados ou não), sugira até 6 ideias de vídeo, cada uma com um título curto e uma descrição de 1 frase.
+3. Com base nos temas REALMENTE recorrentes entre os comentários recebidos (selecionados ou não), sugira até 6 ideias de vídeo, cada uma com um título curto e uma descrição de 1 frase — toda ideia precisa remeter a algo que apareceu de fato nos comentários. Se os comentários forem poucos ou genéricos demais pra sustentar 6 ideias de verdade, sugira menos (pode ser zero) em vez de inventar temas genéricos de internet que não vieram daqui.
 
 Responda SOMENTE com um JSON válido, sem nenhum texto antes ou depois, neste formato exato:
 {"oportunidades":[{"username":"...","texto":"...","tipo":"duvida","sugestao":"..."}],"ideias":[{"titulo":"...","descricao":"..."}]}`;
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -82,6 +94,24 @@ Deno.serve(async (req: Request) => {
 
     const listaTexto = comentarios.map((c: { username: string; texto: string }) => `@${c.username || "desconhecido"}: ${c.texto || ""}`).join("\n");
 
+    // Mesma Memória (marca pessoal, tom de voz, nicho) usada no chat da IAra — assim as
+    // ideias de vídeo saem no nicho/tom certo, não genéricas de criador de conteúdo qualquer.
+    const { data: documentos } = await supabase
+      .from("painel_iara_documentos")
+      .select("nome, conteudo")
+      .order("created_at", { ascending: false });
+
+    let blocoMemoria = "";
+    if (documentos && documentos.length > 0) {
+      blocoMemoria = documentos.map((d: { nome: string; conteudo: string }) => `### ${d.nome}\n${d.conteudo}`).join("\n\n");
+      if (blocoMemoria.length > MEMORIA_LIMITE_CARACTERES) {
+        blocoMemoria = blocoMemoria.slice(0, MEMORIA_LIMITE_CARACTERES) + "\n\n[conteúdo cortado — Memória maior do que o limite configurado]";
+      }
+    }
+
+    const dataHojeExtenso = new Date().toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
+    const systemPrompt = montarSystemPrompt(dataHojeExtenso, blocoMemoria);
+
     const resposta = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -93,7 +123,7 @@ Deno.serve(async (req: Request) => {
         max_tokens: 3000,
         response_format: { type: "json_object" },
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: systemPrompt },
           { role: "user", content: listaTexto },
         ],
       }),
