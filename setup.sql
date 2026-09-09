@@ -1703,6 +1703,36 @@ create trigger trigger_notificar_novo_lead
   execute function public.notificar_novo_lead_portfolio();
 
 -- =====================================================================
+-- INSTAGRAM > ANÁLISES: histórico semanal da "Ideias de vídeo e
+-- oportunidades (por IA)". Cada clique em "Analisar com IA" salva (ou
+-- atualiza, se já existir) UMA linha por semana — semana_inicio é sempre
+-- a segunda-feira daquela semana, calculada no painel.html.
+-- =====================================================================
+create table if not exists public.painel_ig_analises_ia (
+  id uuid primary key default gen_random_uuid(),
+  semana_inicio date not null unique,
+  ideias jsonb not null default '[]'::jsonb,
+  oportunidades jsonb not null default '[]'::jsonb,
+  aviso text,
+  atualizado_em timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_ig_analises_ia_semana on public.painel_ig_analises_ia (semana_inicio);
+
+alter table public.painel_ig_analises_ia enable row level security;
+
+drop policy if exists "Usuaria autenticada gerencia suas analises semanais de IA" on public.painel_ig_analises_ia;
+create policy "Usuaria autenticada gerencia suas analises semanais de IA"
+  on public.painel_ig_analises_ia
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_ig_analises_ia to authenticated;
+
+-- =====================================================================
 -- REVISÃO DE SEGURANÇA (2026-08): bloqueia o Gustavo por completo nas
 -- tabelas que não são da conta dele. Ele tem login de verdade no sistema
 -- (pro Portal dele), então "authenticated" inclui a conta dele também —
@@ -1723,7 +1753,7 @@ begin
     'painel_documentos_pessoais', 'painel_documentos_avulsos', 'painel_notas', 'painel_mantras', 'painel_notas_fiscais',
     'painel_ia_mensagens', 'negocio_lancamentos',
     'painel_iara_precificacao_tipos', 'painel_iara_precificacao_desconto',
-    'painel_iara_sessoes', 'painel_iara_documentos'
+    'painel_iara_sessoes', 'painel_iara_documentos', 'painel_ig_analises_ia'
   ]
   loop
     execute format(

@@ -165,6 +165,10 @@
   .menu-item svg{ width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
   .menu-item:hover{ background: var(--creme); color: var(--grafite); }
   .menu-item.ativo{ background: var(--coral); color: var(--branco); }
+  /* Só o "I" maiúsculo do nome da IAra troca pra fonte serifada (com os tracinhos em
+     cima/embaixo), pra não ser confundido com um "l" minúsculo. A margem negativa
+     compensa o espaço próprio da serifa, pra não abrir vão até o "Ara" ao lado. */
+  .marca-iara{ font-family: 'Fraunces', serif; }
 
   .menu-rotulo{
     font-size: .68rem;
@@ -3111,7 +3115,7 @@
       </button>
       <button class="menu-item" data-tab="iara">
         <svg viewBox="0 0 16 16"><path d="M8 15c4.418 0 8-3.134 8-7s-3.582-7-8-7-8 3.134-8 7c0 1.76.743 3.37 1.97 4.6-.097 1.016-.417 2.13-.771 2.966-.079.186.074.394.273.362 2.256-.37 3.597-.938 4.18-1.234A9.06 9.06 0 0 0 8 15z"/></svg>
-        Iara
+        <span><span class="marca-iara">I</span>Ara</span>
       </button>
       <button class="menu-item" data-tab="ugc-creator">
         <svg viewBox="0 0 16 16"><path d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5z"/></svg>
@@ -3403,9 +3407,19 @@
           <div class="cartao">
             <div class="ig-melhores-topo">
               <h2 style="margin-bottom:0;">Ideias de vídeo e oportunidades (por IA)</h2>
-              <button type="button" class="botao-add-tarefa" id="igBotaoAnalisarIA">✨ Analisar com IA</button>
             </div>
-            <p class="ig-nota" id="igIaUltimaAtualizacao">Ainda não analisado nesta sessão. Clique em "Analisar com IA".</p>
+            <div class="financas-mes-topo" style="margin: 12px 0;">
+              <div class="financas-mes-nav">
+                <button type="button" id="igSemanaAnterior" aria-label="Semana anterior">&#8249;</button>
+                <span class="financas-mes-titulo" id="igSemanaTitulo"></span>
+                <button type="button" id="igSemanaProxima" aria-label="Próxima semana">&#8250;</button>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <button type="button" class="financas-mes-hoje oculto" id="igSemanaBotaoAtual">Semana atual</button>
+                <button type="button" class="botao-add-tarefa" id="igBotaoAnalisarIA">✨ Analisar com IA</button>
+              </div>
+            </div>
+            <p class="ig-nota" id="igIaUltimaAtualizacao">Ainda não analisado nesta semana. Clique em "Analisar com IA".</p>
 
             <div id="igIdeiasVideo"></div>
 
@@ -4105,7 +4119,7 @@
               <div class="chat-ia-linha-input">
                 <button type="button" class="botao-anexar-iara" id="btnAnexarIara" title="Anexar foto, PDF ou documento de texto">📎</button>
                 <input type="file" id="campoAnexoIara" class="oculto" accept="image/*,application/pdf,text/plain">
-                <textarea class="chat-ia-campo" id="campoMsgIaraSessao" rows="2" placeholder="Escreva pra Iara..."></textarea>
+                <textarea class="chat-ia-campo" id="campoMsgIaraSessao" rows="2" placeholder="Escreva pra IAra..."></textarea>
                 <button type="button" class="botao-add-tarefa" id="btnEnviarIaraSessao">Enviar</button>
               </div>
             </div>
@@ -4118,12 +4132,12 @@
     <div class="modal-memoria-iara" id="modalMemoriaIara">
       <div class="caixa-memoria-iara">
         <div class="topo-memoria-iara">
-          <h2>Memória da Iara</h2>
+          <h2>Memória da <span class="marca-iara">I</span>Ara</h2>
           <button type="button" class="fechar-memoria-iara" id="btnFecharMemoriaIara">✕</button>
         </div>
         <p class="sub-memoria-iara">
           Tudo que você guardar aqui (marca pessoal, tom de voz, cores, essência, referências) fica
-          disponível pra Iara em qualquer aba — ela consulta antes de responder.
+          disponível pra IAra em qualquer aba — ela consulta antes de responder.
         </p>
 
         <div class="form-novo-doc-iara">
@@ -4650,8 +4664,10 @@
   let igMelhoresPostsCache = [];      // posts com curtidas/comentarios/salvos/alcance (via ig-media?insights=true)
   let igFiltroPostsAtivo = "melhores";
   let igComentaristasCache = [];      // ranking de quem mais comenta, calculado a partir de ig_comments
-  let igAnaliseIaCache = null;        // { oportunidades, ideias }, só nesta sessão (não é salvo)
+  let igAnaliseIaCache = null;        // { oportunidades, ideias, aviso } da semana selecionada agora (igSemanaSelecionadaInicio)
   let igFiltroOportunidadesAtivo = "tudo";
+  let igAnalisesSemanaisCache = [];   // todo o histórico salvo em painel_ig_analises_ia (uma linha por semana)
+  let igSemanaSelecionadaInicio = null; // segunda-feira (AAAA-MM-DD) da semana em exibição no navegador
 
   // Mapa sub-aba -> id do conteúdo, usado pra trocar de aba dentro do Instagram
   const IG_SUBABAS = {
@@ -5424,6 +5440,61 @@
     `;
   }
 
+  // Segunda-feira (AAAA-MM-DD) da semana que contém hoje — chave usada em
+  // painel_ig_analises_ia.semana_inicio, sempre calculada em horário local.
+  function segundaFeiraAtualISO(){
+    const hoje = new Date();
+    const diaSemana = hoje.getDay(); // 0 = domingo, 1 = segunda, ...
+    const deslocamento = diaSemana === 0 ? -6 : 1 - diaSemana;
+    const segunda = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + deslocamento);
+    return formatarDataISO(segunda);
+  }
+
+  async function carregarAnalisesSemanaisIA(){
+    if (!igSemanaSelecionadaInicio) igSemanaSelecionadaInicio = segundaFeiraAtualISO();
+    try {
+      igAnalisesSemanaisCache = await comRetry(() => buscarTudo("painel_ig_analises_ia"));
+    } catch (erro) {
+      console.error("Erro ao carregar histórico semanal da análise por IA:", erro);
+      igAnalisesSemanaisCache = [];
+    }
+    renderizarAnaliseSemanalIA();
+  }
+
+  // Atualiza o navegador de semana, o status e recarrega Ideias/Oportunidades
+  // com o que estiver salvo (ou não) pra semana selecionada no momento.
+  function renderizarAnaliseSemanalIA(){
+    const semanaAtual = segundaFeiraAtualISO();
+    const ehSemanaAtual = igSemanaSelecionadaInicio === semanaAtual;
+
+    const [ano, mes, dia] = igSemanaSelecionadaInicio.split("-").map(Number);
+    const fimISO = somarDias(igSemanaSelecionadaInicio, 6);
+    const [, mesFim, diaFim] = fimISO.split("-").map(Number);
+    document.getElementById("igSemanaTitulo").textContent = mes === mesFim
+      ? `${dia} – ${diaFim} de ${NOMES_MES[mes - 1]}`
+      : `${dia} de ${NOMES_MES[mes - 1]} – ${diaFim} de ${NOMES_MES[mesFim - 1]}`;
+
+    document.getElementById("igSemanaProxima").disabled = ehSemanaAtual;
+    document.getElementById("igSemanaBotaoAtual").classList.toggle("oculto", ehSemanaAtual);
+    document.getElementById("igBotaoAnalisarIA").classList.toggle("oculto", !ehSemanaAtual);
+
+    const registro = igAnalisesSemanaisCache.find(r => r.semana_inicio === igSemanaSelecionadaInicio);
+    igAnaliseIaCache = registro ? { ideias: registro.ideias, oportunidades: registro.oportunidades, aviso: registro.aviso } : null;
+
+    const statusEl = document.getElementById("igIaUltimaAtualizacao");
+    if (registro){
+      const quando = new Date(registro.atualizado_em).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+      statusEl.textContent = registro.aviso ? registro.aviso : `Salvo em ${quando}`;
+    } else if (ehSemanaAtual){
+      statusEl.textContent = 'Ainda não analisado nesta semana. Clique em "Analisar com IA".';
+    } else {
+      statusEl.textContent = "Nenhuma análise salva nessa semana.";
+    }
+
+    renderizarIdeiasVideo();
+    renderizarOportunidades();
+  }
+
   async function analisarConteudoComIA(){
     const botao = document.getElementById("igBotaoAnalisarIA");
     const statusEl = document.getElementById("igIaUltimaAtualizacao");
@@ -5436,12 +5507,28 @@
       if (error) throw error;
       if (!data || data.error) throw new Error((data && data.error) || "resposta vazia");
 
-      igAnaliseIaCache = data;
-      const agora = new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-      statusEl.textContent = data.aviso ? data.aviso : `Última atualização: ${agora} (nesta sessão)`;
+      const semana = segundaFeiraAtualISO();
+      const dadosSalvar = {
+        semana_inicio: semana,
+        ideias: data.ideias || [],
+        oportunidades: data.oportunidades || [],
+        aviso: data.aviso || null,
+        atualizado_em: new Date().toISOString()
+      };
 
-      renderizarIdeiasVideo();
-      renderizarOportunidades();
+      const registroExistente = igAnalisesSemanaisCache.find(r => r.semana_inicio === semana);
+      if (registroExistente){
+        const { error: erroSalvar } = await Auth.client.from("painel_ig_analises_ia").update(dadosSalvar).eq("id", registroExistente.id);
+        if (erroSalvar) throw erroSalvar;
+        Object.assign(registroExistente, dadosSalvar);
+      } else {
+        const { data: inserido, error: erroSalvar } = await Auth.client.from("painel_ig_analises_ia").insert(dadosSalvar).select();
+        if (erroSalvar) throw erroSalvar;
+        igAnalisesSemanaisCache = igAnalisesSemanaisCache.concat(inserido);
+      }
+
+      igSemanaSelecionadaInicio = semana;
+      renderizarAnaliseSemanalIA();
     } catch (erro) {
       console.error("Erro ao analisar conteúdo do Instagram com IA:", erro);
       statusEl.textContent = "Não foi possível analisar agora. Tenta de novo em instantes.";
@@ -6176,6 +6263,7 @@
           igAnalisesCarregada = true;
           carregarInstagramAnalises();
           carregarMelhoresPosts();
+          carregarAnalisesSemanaisIA();
         }
       });
     });
@@ -6192,6 +6280,7 @@
     document.getElementById("igBotaoAtualizarAnalises").addEventListener("click", () => {
       carregarInstagramAnalises();
       carregarMelhoresPosts();
+      carregarAnalisesSemanaisIA();
     });
     document.querySelectorAll("#igFiltroPosts .sub-aba-btn").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -6208,6 +6297,20 @@
       });
     });
     document.getElementById("igBotaoAnalisarIA").addEventListener("click", analisarConteudoComIA);
+    document.getElementById("igSemanaAnterior").addEventListener("click", () => {
+      igSemanaSelecionadaInicio = somarDias(igSemanaSelecionadaInicio, -7);
+      renderizarAnaliseSemanalIA();
+    });
+    document.getElementById("igSemanaProxima").addEventListener("click", () => {
+      const semanaAtual = segundaFeiraAtualISO();
+      const proxima = somarDias(igSemanaSelecionadaInicio, 7);
+      igSemanaSelecionadaInicio = proxima > semanaAtual ? semanaAtual : proxima;
+      renderizarAnaliseSemanalIA();
+    });
+    document.getElementById("igSemanaBotaoAtual").addEventListener("click", () => {
+      igSemanaSelecionadaInicio = segundaFeiraAtualISO();
+      renderizarAnaliseSemanalIA();
+    });
 
     document.getElementById("igLeadsBusca").addEventListener("input", (e) => {
       igLeadsFiltro = e.target.value;
@@ -7029,8 +7132,8 @@
     document.getElementById("painelInstagram").classList.toggle("oculto", aba !== "instagram");
     document.getElementById("painelAdministrativo").classList.toggle("oculto", aba !== "administrativo");
 
-    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", iara: "Iara", "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo" };
-    document.getElementById("tituloTopo").textContent = titulos[aba];
+    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo" };
+    document.getElementById("tituloTopo").innerHTML = titulos[aba];
 
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
     const abasSemFiltroPeriodo = ["agenda", "financas", "negocio", "abordagem", "clientes", "iara", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo"];
@@ -13386,7 +13489,7 @@
   function pedirExclusaoDocumentoIara(id){
     iaraExclusaoPendente = { tipo: "documento", id };
     document.getElementById("tituloModalExcluirIara").textContent = "Remover este documento da memória?";
-    document.getElementById("textoModalExcluirIara").textContent = "A Iara para de considerar esse conteúdo em qualquer aba a partir de agora.";
+    document.getElementById("textoModalExcluirIara").textContent = "A IAra para de considerar esse conteúdo em qualquer aba a partir de agora.";
     document.getElementById("modalExcluirIara").classList.add("visivel");
   }
 
