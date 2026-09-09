@@ -80,6 +80,7 @@
     justify-content: space-between;
     margin-bottom: 36px;
   }
+  .sidebar-marca{ display: flex; flex-direction: column; gap: 2px; }
   .sidebar-topo .logo{
     font-family: 'Fraunces', serif;
     font-size: 1.3rem;
@@ -87,6 +88,14 @@
     margin-bottom: 0;
   }
   .sidebar-topo .logo .ponto{ color: var(--coral); }
+  .selo-admin{
+    font-family: 'Outfit', sans-serif;
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--texto-suave);
+  }
 
   .botao-modo-oculto{
     display: inline-flex;
@@ -3075,7 +3084,10 @@
   <!-- ===================== SIDEBAR ===================== -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-topo">
-      <p class="logo">meu<span class="ponto">.</span>painel</p>
+      <div class="sidebar-marca">
+        <p class="logo">edi<span class="ponto">.</span>santos</p>
+        <span class="selo-admin">ADMIN</span>
+      </div>
       <button type="button" class="botao-modo-oculto" id="botaoModoOculto" aria-label="Esconder dados sensíveis" title="Esconder dados sensíveis (pra gravar Stories)">
         <svg id="iconeOlhoAberto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
         <svg id="iconeOlhoFechado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="oculto"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.6 21.6 0 0 1 5.06-6.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a21.6 21.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
@@ -3086,7 +3098,7 @@
     <nav class="menu">
       <button class="menu-item ativo" data-tab="principal">
         <svg viewBox="0 0 16 16"><path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 6.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z"/></svg>
-        Menu Principal
+        Dashboard
       </button>
       <button class="menu-item" data-tab="agenda">
         <svg viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5ZM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1Z"/></svg>
@@ -3201,7 +3213,7 @@
     <div class="topo-conteudo">
       <div style="display:flex; align-items:center;">
         <button class="botao-menu-mobile" id="botaoMenuMobile" aria-label="Abrir menu">&#9776;</button>
-        <h1 id="tituloTopo">Menu Principal</h1>
+        <h1 id="tituloTopo">Dashboard</h1>
         <!-- Cópia do botão de olho só pro celular: no mobile a sidebar fica escondida
              (só abre pelo ☰), então sem isso o olho não ficaria "sempre visível" ali. -->
         <button type="button" class="botao-modo-oculto botao-modo-oculto-mobile" id="botaoModoOcultoMobile" aria-label="Esconder dados sensíveis" title="Esconder dados sensíveis (pra gravar Stories)">
@@ -3224,7 +3236,7 @@
 
     <!-- ===================== ABA: MENU PRINCIPAL ===================== -->
     <section id="painelPrincipal" class="painel-tab">
-      <p class="saudacao">Olá! Aqui estão os números do seu biosite.</p>
+      <p class="saudacao">Oiee Edi!! Aqui estão as métricas do seu biosite.</p>
 
       <div class="cartoes-numeros" id="cartoesNumeros"></div>
 
@@ -7132,7 +7144,7 @@
     document.getElementById("painelInstagram").classList.toggle("oculto", aba !== "instagram");
     document.getElementById("painelAdministrativo").classList.toggle("oculto", aba !== "administrativo");
 
-    const titulos = { principal: "Menu Principal", portfolio: "Portfólio", agenda: "Agenda", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo" };
+    const titulos = { principal: "Dashboard", portfolio: "Portfólio", agenda: "Agenda", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo" };
     document.getElementById("tituloTopo").innerHTML = titulos[aba];
 
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
@@ -11971,7 +11983,7 @@
         <div class="notas-vazio">
           <div class="notas-vazio-icone">✨</div>
           <h3>Nenhum mantra ainda</h3>
-          <p>Cadastre frases/mantras aqui — uma diferente aparece por dia no Menu Principal</p>
+          <p>Cadastre frases/mantras aqui — uma diferente aparece por dia no Dashboard</p>
           <button type="button" class="notas-vazio-botao" id="mantraBotaoPrimeiro">+ Criar primeiro mantra</button>
         </div>
       `;
