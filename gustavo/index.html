@@ -387,13 +387,12 @@
   const mesCalendarioAtual = hoje.getMonth();
   const hojeISO = formatarDataISO(hoje);
 
-  // Mês/ano "da fatura" — o padrão que abre sozinho quando ele entra: sempre um
-  // mês à frente do calendário real, igual à lógica já usada no painel principal
-  // (o que se lança agora é a fatura do mês seguinte). Recalculado do zero a
-  // cada carregamento da página, então nunca fica "preso" numa navegação antiga.
-  let mesFaturaPadrao = mesCalendarioAtual + 1;
+  // Mês/ano "da fatura" — o padrão que abre sozinho quando ele entra: o mês
+  // corrente de verdade (calendário real de hoje), pra não confundir cobrança
+  // de um mês com outro. Recalculado do zero a cada carregamento da página,
+  // então nunca fica "preso" numa navegação antiga.
+  let mesFaturaPadrao = mesCalendarioAtual;
   let anoFaturaPadrao = anoCalendarioAtual;
-  if (mesFaturaPadrao > 11){ mesFaturaPadrao = 0; anoFaturaPadrao++; }
 
   // Mês/ano que ele está NAVEGANDO no histórico — começa no padrão da fatura,
   // mas muda livremente conforme ele clica em outro mês na barra lateral
