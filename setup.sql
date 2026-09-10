@@ -1322,6 +1322,36 @@ create policy "Autenticados removem pix do Gustavo"
 grant select, insert, delete on public.portal_gustavo_pix to authenticated;
 
 -- =====================================================================
+-- FINANÇAS > TOTAL DE GASTOS: marcar EDMAR/FUUH/MÃE como "pago" no mês.
+-- Mesmo padrão de financas_cartoes_pagos (uma linha por pessoa+ano+mes),
+-- só que aqui é sempre um marcar/desmarcar manual (essas três não têm
+-- portal próprio pra lançar Pix como o Gustavo tem). Gustavo não tem
+-- nenhum motivo legítimo de ver ou mexer aqui, por isso já nasce no bloqueio
+-- geral dele lá embaixo (ver "Gustavo bloqueado").
+-- =====================================================================
+create table if not exists public.financas_pessoas_pagas (
+  id uuid primary key default gen_random_uuid(),
+  pessoa text not null,
+  ano integer not null,
+  mes integer not null,
+  pago boolean not null default false,
+  created_at timestamptz not null default now(),
+  unique (pessoa, ano, mes)
+);
+
+alter table public.financas_pessoas_pagas enable row level security;
+
+drop policy if exists "Usuaria autenticada gerencia pessoas pagas" on public.financas_pessoas_pagas;
+create policy "Usuaria autenticada gerencia pessoas pagas"
+  on public.financas_pessoas_pagas
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.financas_pessoas_pagas to authenticated;
+
+-- =====================================================================
 -- CORREÇÃO IMPORTANTE: financas_lancamentos e financas_gastos_fixos foram
 -- criadas direto pelo Table Editor do Supabase (nunca passaram por este
 -- setup.sql), e o RLS delas nunca tinha sido ativado de fato — sem RLS
@@ -1753,7 +1783,7 @@ begin
     'painel_documentos_pessoais', 'painel_documentos_avulsos', 'painel_notas', 'painel_mantras', 'painel_notas_fiscais',
     'painel_ia_mensagens', 'negocio_lancamentos',
     'painel_iara_precificacao_tipos', 'painel_iara_precificacao_desconto',
-    'painel_iara_sessoes', 'painel_iara_documentos', 'painel_ig_analises_ia'
+    'painel_iara_sessoes', 'painel_iara_documentos', 'painel_ig_analises_ia', 'financas_pessoas_pagas'
   ]
   loop
     execute format(

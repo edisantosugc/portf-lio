@@ -1318,6 +1318,14 @@
   .financas-total-cartao.geral.clicavel.selecionado{ outline-color: var(--branco); }
   .financas-total-nome{ font-size: .72rem; color: var(--texto-suave); text-transform: uppercase; font-weight: 600; }
   .financas-total-valor{ font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.05rem; margin-top: 2px; }
+  .financas-total-cartao.pago{ background: rgba(45,122,79,.1); }
+  .financas-total-cartao.pago .financas-total-valor{ text-decoration: line-through; color: var(--texto-suave); }
+  .financas-total-toggle-pago{
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    margin-top: 8px; font-size: .68rem; font-weight: 700; color: var(--texto-suave); cursor: pointer;
+  }
+  .financas-total-toggle-pago input{ accent-color: var(--verde); width: 12px; height: 12px; cursor: pointer; }
+  .financas-total-cartao.pago .financas-total-toggle-pago{ color: var(--verde); text-transform: uppercase; letter-spacing: .03em; }
 
   .tabela-lancamentos{ width: 100%; border-collapse: collapse; font-size: .85rem; }
   .tabela-lancamentos th{
@@ -1538,6 +1546,7 @@
   .resumo-linha.destaque{ background: var(--coral); color: var(--branco); font-weight: 600; }
   .resumo-linha-pix{ background: rgba(45,122,79,.1); color: var(--verde); font-weight: 600; }
   .resumo-linha-pix strong{ color: var(--verde); }
+  .resumo-pessoa-quitado{ color: var(--verde); font-weight: 700; font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; }
   .resumo-linha strong{ font-family: 'Fraunces', serif; font-size: 1.05rem; }
   .resumo-linha.clicavel{ cursor: pointer; transition: background .15s ease; }
   .resumo-linha.clicavel:hover{ background: var(--borda); }
@@ -3603,6 +3612,12 @@
         <div class="lista-cartoes-pagar" id="listaCartoesPagar"></div>
         <div class="resumo-linha destaque" id="totalContasPagar" style="margin-top: 12px;"></div>
       </div>
+
+      <details class="cartao cartao-colapsavel" style="margin-top: 20px;">
+        <summary class="resumo-colapsavel"><h2>Quanto falta receber</h2><span class="seta-colapsavel">▾</span></summary>
+        <p class="sub-secao-financas">O "Total" de cada pessoa lá em cima é só referência fixa — aqui embaixo é sempre o "Restante": abate sozinho conforme o Pix (GU) ou as contas (DI) vão sendo pagos, ou quando você marca EDMAR/FUUH/MÃE como pago.</p>
+        <div class="resumo-total-gastos" id="resumoFinalFinancas"></div>
+      </details>
     </section>
 
     <!-- ===================== ABA: FINANÇAS UGC (negócio) ===================== -->
@@ -4758,6 +4773,10 @@
   // Guarda se a fatura de cada cartão, num mês/ano específico, já foi marcada como paga
   let cartoesPagosCache = {};
 
+  // Guarda se EDMAR/FUUH/MÃE já foram marcados como "pago" num mês/ano específico
+  // (chave "pessoa-ano-mes") — reseta sozinho a cada mês novo, igual cartoesPagosCache.
+  let pessoasPagasCache = {};
+
   // Quais meses estão "fechados" (chave "ano-mes", mes 0-11). Fechar um mês só
   // impede lançamento NOVO nele — editar, excluir e marcar como pago continuam
   // funcionando normalmente em qualquer mês, fechado ou não.
@@ -4935,18 +4954,19 @@
     configurarEventosDeInterface();
 
     try {
-      const { eventos, leads, tarefas, lancamentos, pagamentosCartao, gastosFixos, negocio, trabalhosUgc } = await comRetry(async () => {
-        const [eventos, leads, tarefas, lancamentos, pagamentosCartao, gastosFixos, negocio, trabalhosUgc] = await Promise.all([
+      const { eventos, leads, tarefas, lancamentos, pagamentosCartao, pessoasPagas, gastosFixos, negocio, trabalhosUgc } = await comRetry(async () => {
+        const [eventos, leads, tarefas, lancamentos, pagamentosCartao, pessoasPagas, gastosFixos, negocio, trabalhosUgc] = await Promise.all([
           buscarTudo("portfolio_events"),
           buscarTudo("portfolio_leads"),
           buscarTudo("painel_tarefas"),
           buscarTudo("financas_lancamentos"),
           buscarTudo("financas_cartoes_pagos"),
+          buscarTudo("financas_pessoas_pagas"),
           buscarTudo("financas_gastos_fixos"),
           buscarTudo("negocio_lancamentos"),
           buscarTudo("painel_ugc_trabalhos")
         ]);
-        return { eventos, leads, tarefas, lancamentos, pagamentosCartao, gastosFixos, negocio, trabalhosUgc };
+        return { eventos, leads, tarefas, lancamentos, pagamentosCartao, pessoasPagas, gastosFixos, negocio, trabalhosUgc };
       });
       eventosCache = eventos;
       leadsCache = leads;
@@ -4959,6 +4979,11 @@
       cartoesPagosCache = {};
       pagamentosCartao.forEach(p => {
         cartoesPagosCache[`${p.cartao}-${p.ano}-${p.mes}`] = p.pago;
+      });
+
+      pessoasPagasCache = {};
+      pessoasPagas.forEach(p => {
+        pessoasPagasCache[`${p.pessoa}-${p.ano}-${p.mes}`] = p.pago;
       });
 
       try {
@@ -8518,6 +8543,9 @@
 
     // ---------- Total de gastos (quem deve o quê) ----------
     renderizarTotalGastos(lancamentosDoMes, gastosFixosDoMes, totaisPorPessoa, totalGeral);
+
+    // ---------- Quanto falta receber (Restante de cada pessoa, sempre já abatido) ----------
+    renderizarResumoFinalFinancas(lancamentosDoMes, gastosFixosDoMes, totaisPorPessoa);
   }
 
   function iconeFiltroExtrato(){
@@ -8850,6 +8878,59 @@
   // Nomes que aparecem no resumo "Total de gastos" (CASA fica de fora, DI/GU é sempre dividido)
   const PESSOAS_TOTAL_GASTOS = ["DI", "GU", "EDMAR", "FUUH", "MÃE"];
 
+  // EDMAR/FUUH/MÃE não têm portal próprio pra registrar pagamento (diferente do GU, que
+  // lança Pix sozinho) — pra essas três, "pago" é só um marcar/desmarcar manual mesmo.
+  const PESSOAS_TOGGLE_MANUAL = ["EDMAR", "FUUH", "MÃE"];
+
+  // "Restante" de cada pessoa: o "Total" do card continua fixo (referência), mas o que
+  // entra nos resumos é sempre isso aqui — abate sozinho conforme os pagamentos entram,
+  // igual já funcionava só pra GU (Total menos Pix), agora pras 5 pessoas:
+  //  - GU: Total menos os Pix que ele mesmo lançou no portal dele
+  //  - EDMAR/FUUH/MÃE: Total se ainda não marcado pago, 0 se já marcado (pessoasPagasCache)
+  //  - DI: Total menos a fatia dele nos cartões/contas fixas já marcados "pago" em Contas a pagar
+  function calcularRestantePessoa(pessoa, lancamentosDoMes, gastosFixosDoMes, totalPessoa){
+    if (pessoa === "GU"){
+      const pixDoMes = pixGustavoCache.filter(p => p.ano_fatura === anoFinancasVisivel && p.mes_fatura === mesFinancasVisivel);
+      const totalPix = pixDoMes.reduce((soma, p) => soma + Number(p.valor), 0);
+      return Math.max(totalPessoa - totalPix, 0);
+    }
+    if (PESSOAS_TOGGLE_MANUAL.includes(pessoa)){
+      const chave = `${pessoa}-${anoFinancasVisivel}-${mesFinancasVisivel}`;
+      return pessoasPagasCache[chave] ? 0 : totalPessoa;
+    }
+    // DI: soma quanto da fatia dele já está em cartão/conta fixa marcado como pago
+    let pago = 0;
+    lancamentosDoMes.forEach(l => {
+      const chaveCartao = `${l.cartao || "Outro"}-${anoFinancasVisivel}-${mesFinancasVisivel}`;
+      if (!cartoesPagosCache[chaveCartao]) return;
+      if (l.pessoa === pessoa) pago += Number(l.valor);
+      else if (l.pessoa === "DI/GU" && pessoa === "DI") pago += Number(l.valor) / 2;
+    });
+    gastosFixosDoMes.forEach(g => {
+      if (!g.pago || !g.valor) return;
+      if (g.pessoa === pessoa) pago += Number(g.valor);
+      else if (g.pessoa === "DI/GU" && pessoa === "DI") pago += Number(g.valor) / 2;
+    });
+    return Math.max(totalPessoa - pago, 0);
+  }
+
+  async function alternarPessoaPaga(pessoa){
+    const chave = `${pessoa}-${anoFinancasVisivel}-${mesFinancasVisivel}`;
+    const novoValor = !pessoasPagasCache[chave];
+
+    const { error } = await Auth.client
+      .from("financas_pessoas_pagas")
+      .upsert(
+        { pessoa: pessoa, ano: anoFinancasVisivel, mes: mesFinancasVisivel, pago: novoValor },
+        { onConflict: "pessoa,ano,mes" }
+      );
+
+    if (!error){
+      pessoasPagasCache[chave] = novoValor;
+      renderizarFinancas();
+    }
+  }
+
   // Qual pessoa está com o detalhamento aberto no card "Total de gastos" (null = nenhuma)
   let pessoaDetalheGastos = null;
 
@@ -8928,18 +9009,32 @@
   function renderizarTotalGastos(lancamentosDoMes, gastosFixosDoMes, totaisPorPessoa, totalGeral){
     const containerPessoas = document.getElementById("totalGastosPessoas");
 
-    containerPessoas.innerHTML = PESSOAS_TOTAL_GASTOS.map(p => `
-      <div class="financas-total-cartao clicavel ${pessoaDetalheGastos === p ? "selecionado" : ""}" data-pessoa-detalhe="${p}">
-        <p class="financas-total-nome">${p}</p>
-        <p class="financas-total-valor">${formatarMoeda(totaisPorPessoa[p] || 0)}</p>
-      </div>
-    `).join("");
+    containerPessoas.innerHTML = PESSOAS_TOTAL_GASTOS.map(p => {
+      const ehTogglavel = PESSOAS_TOGGLE_MANUAL.includes(p);
+      const pago = ehTogglavel && !!pessoasPagasCache[`${p}-${anoFinancasVisivel}-${mesFinancasVisivel}`];
+      return `
+        <div class="financas-total-cartao clicavel ${pessoaDetalheGastos === p ? "selecionado" : ""} ${pago ? "pago" : ""}" data-pessoa-detalhe="${p}">
+          <p class="financas-total-nome">${p}</p>
+          <p class="financas-total-valor">${formatarMoeda(totaisPorPessoa[p] || 0)}</p>
+          ${ehTogglavel ? `
+            <label class="financas-total-toggle-pago">
+              <input type="checkbox" data-acao="alternar-pessoa-paga" data-pessoa="${p}" ${pago ? "checked" : ""}>
+              ${pago ? "Pago" : "Marcar como pago"}
+            </label>
+          ` : ""}
+        </div>
+      `;
+    }).join("");
     containerPessoas.querySelectorAll(".financas-total-cartao.clicavel").forEach(el => {
       el.addEventListener("click", () => {
         const p = el.dataset.pessoaDetalhe;
         pessoaDetalheGastos = pessoaDetalheGastos === p ? null : p;
         renderizarFinancas();
       });
+    });
+    containerPessoas.querySelectorAll("[data-acao='alternar-pessoa-paga']").forEach(input => {
+      input.addEventListener("click", (e) => e.stopPropagation());
+      input.addEventListener("change", () => alternarPessoaPaga(input.dataset.pessoa));
     });
 
     const areaDetalhe = document.getElementById("detalhePessoaGastos");
@@ -9053,6 +9148,44 @@
         <span>Total que sobra (a receber de todo mundo)</span>
         <strong>${formatarMoeda(totalQueSobra)}</strong>
       </div>
+    `;
+  }
+
+  // Card "Quanto falta receber", no fim da aba Finanças — sempre com o "Restante" de
+  // cada pessoa (nunca o "Total" fixo dos balões lá em cima), somando pra dar o total
+  // geral ainda pendente. Atualiza sozinho conforme os pagamentos vão entrando.
+  function renderizarResumoFinalFinancas(lancamentosDoMes, gastosFixosDoMes, totaisPorPessoa){
+    const areaResumoFinal = document.getElementById("resumoFinalFinancas");
+    if (!areaResumoFinal) return;
+
+    const restantes = {};
+    PESSOAS_TOTAL_GASTOS.forEach(p => {
+      restantes[p] = calcularRestantePessoa(p, lancamentosDoMes, gastosFixosDoMes, totaisPorPessoa[p] || 0);
+    });
+
+    // "Restante da minha parte" = o que GU/EDMAR/FUUH/MÃE ainda vão passar menos tudo que
+    // ainda falta pagar de todas as contas (cartões + contas fixas ainda NÃO marcados pago
+    // em "Contas a pagar"). Negativo = ainda falta sair do bolso dela ("falta"); positivo =
+    // sobra depois de cobrir a dívida toda ("sobra"). Não mexe nos Restantes individuais acima.
+    const itensContasAPagar = montarItensContasAPagar(lancamentosDoMes, gastosFixosDoMes, anoFinancasVisivel, mesFinancasVisivel);
+    const totalContasPendentes = itensContasAPagar.filter(i => !i.pago).reduce((soma, i) => soma + (Number(i.valor) || 0), 0);
+    const restanteOutros = restantes["GU"] + restantes["EDMAR"] + restantes["FUUH"] + restantes["MÃE"];
+    const minhaParte = restanteOutros - totalContasPendentes;
+    const rotuloMinhaParte = minhaParte < 0 ? "falta" : "sobra";
+
+    areaResumoFinal.innerHTML = `
+      <div class="resumo-linha destaque">
+        <span>Restante da minha parte</span>
+        <strong>${formatarMoeda(minhaParte)} (${rotuloMinhaParte})</strong>
+      </div>
+      ${PESSOAS_TOTAL_GASTOS.filter(p => p !== "DI").map(p => `
+        <div class="resumo-linha">
+          <span>${p}</span>
+          ${restantes[p] <= 0
+            ? `<span class="resumo-pessoa-quitado">Pago</span>`
+            : `<strong>${formatarMoeda(restantes[p])}</strong>`}
+        </div>
+      `).join("")}
     `;
   }
 
