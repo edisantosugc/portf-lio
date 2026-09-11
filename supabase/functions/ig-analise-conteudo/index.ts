@@ -50,7 +50,7 @@ Você recebe uma lista de comentários recentes (usuário e texto, um por linha)
 3. Sugira até 8 ideias de vídeo, sempre devolvendo PELO MENOS 3 no total — mesmo sem nenhum comentário aproveitável — combinando até três origens:
    - "comentario": baseada em tema realmente recorrente nos comentários recebidos (só use essa origem se os comentários sustentarem de verdade).
    - "perfil": baseada no posicionamento, tom de voz, estrutura de roteiro ou estratégias de feed (Série, Virais, UGC → Autoridade etc.) da análise de perfil dela, acima.
-   - "tendencia": baseada nas pautas em alta pesquisadas na internet, acima, adaptada pro nicho e tom dela.
+   - "tendencia": baseada nas pautas em alta pesquisadas na internet, acima, adaptada pro nicho e tom dela — só use se a pauta tiver relação de verdade com UGC/criação de conteúdo/desenvolvimento pessoal feminino. Ignore qualquer pauta genérica de comércio/data comemorativa/produto sazonal que tenha vindo na lista sem essa relação.
    Cada ideia tem um título curto, uma descrição de 1 frase, e o campo "origem" marcando de qual dessas três ela veio.
 
 Responda SOMENTE com um JSON válido, sem nenhum texto antes ou depois, neste formato exato:
@@ -72,7 +72,7 @@ async function buscarPautasQuentes(dataHojeExtenso: string): Promise<string> {
       body: JSON.stringify({
         model: MODELO,
         tools: [{ type: "web_search_preview" }],
-        input: `Hoje é ${dataHojeExtenso}. Pesquise na internet quais assuntos estão MAIS EM ALTA agora nos nichos de: UGC (User Generated Content) pago pra marcas, criação de conteúdo/gestão de Instagram, e desenvolvimento pessoal e carreira para mulheres. Liste até 5 pautas reais e atuais (nada inventado), cada uma em uma linha, no formato "Título curto — por que está em alta agora (1 frase)". Responda só a lista, sem introdução nem conclusão.`,
+        input: `Hoje é ${dataHojeExtenso}. Pesquise na internet quais assuntos estão MAIS EM ALTA agora especificamente nos nichos de: UGC (User Generated Content) pago pra marcas, criação de conteúdo/gestão de Instagram, e desenvolvimento pessoal e carreira para mulheres. NÃO traga assuntos genéricos de "em alta no comércio/consumo" (datas comemorativas, produtos sazonais, promoções) nem de outros nichos só porque estão em alta no geral — só o que é realmente sobre criação de conteúdo, UGC, redes sociais ou desenvolvimento pessoal/carreira feminina. Se não achar nada relevante o suficiente pra algum desses temas, prefira listar menos itens (pode ser só 1 ou 2) a forçar um assunto que não tem relação nenhuma. Liste no máximo 5 pautas reais e atuais (nada inventado), cada uma em uma linha, no formato "Título curto — por que está em alta agora (1 frase)". Responda só a lista, sem introdução nem conclusão.`,
       }),
     });
 
