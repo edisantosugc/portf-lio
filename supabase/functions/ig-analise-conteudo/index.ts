@@ -53,7 +53,10 @@ Você recebe uma lista de comentários recentes (usuário e texto, um por linha)
    - "comentario": baseada em tema realmente recorrente nos comentários recebidos (só use essa origem se os comentários sustentarem de verdade).
    - "perfil": baseada no posicionamento, tom de voz, estrutura de roteiro ou estratégias de feed (Série, Virais, UGC → Autoridade etc.) da análise de perfil dela, acima.
    - "tendencia": baseada nas pautas em alta pesquisadas na internet, acima, adaptada pro nicho e tom dela — só use se a pauta tiver relação de verdade com UGC/criação de conteúdo/desenvolvimento pessoal feminino. Ignore qualquer pauta genérica de comércio/data comemorativa/produto sazonal que tenha vindo na lista sem essa relação.
-   Cada ideia tem um título curto, uma descrição de 1 frase, e o campo "origem" marcando de qual dessas três ela veio.
+   Cada ideia tem, além de título curto e descrição de 1 frase:
+   - "origem": marcando de qual das três acima ela veio.
+   - "nicho": o assunto/tema principal da ideia, curto (1-3 palavras) — ex: "UGC", "Desenvolvimento pessoal", "Autoconhecimento", "Finanças", "Gestão de Instagram", ou outro tema que caiba melhor.
+   - "tipoConteudo": qual das quatro estratégias de conteúdo da análise de perfil essa ideia serve melhor — "Autoridade" (reforça ela como referência/mentora, prova técnica ou de resultado), "Conexão" (aproxima, gera identificação, storytelling pessoal), "Viral" (gancho forte pra alcance, formato leve/compartilhável), ou "Série" (conteúdo educativo recorrente, parte de uma sequência). Ela vai usar essa ideia pra gravar o vídeo da semana, então esses dois campos (nicho e tipoConteudo) precisam ficar claros e curtos, prontos pra ela bater o olho e saber do que se trata antes mesmo de ler a descrição.
 4. Monte um "relatorioPerfil" cruzando os posts recentes (acima) com a análise de perfil (acima), em 4 listas de itens curtos (1 frase cada, sem enrolação):
    - "certo": o que está dando certo — conteúdos/temas/formatos que performaram bem E estão alinhados com a análise. Diga pra continuar/replicar.
    - "errado": o que não está dando certo — conteúdos que performaram mal, com uma hipótese do porquê (cruzando com a análise quando der).
@@ -62,7 +65,7 @@ Você recebe uma lista de comentários recentes (usuário e texto, um por linha)
    Se não tiver posts suficientes pra alguma dessas listas, devolva ela como array vazio em vez de inventar — não force conteúdo sem base real. Se não houver NENHUM post na lista de posts recentes, todas as quatro listas vêm vazias.
 
 Responda SOMENTE com um JSON válido, sem nenhum texto antes ou depois, neste formato exato:
-{"oportunidades":[{"username":"...","texto":"...","tipo":"duvida","sugestao":"..."}],"ideias":[{"titulo":"...","descricao":"...","origem":"perfil"}],"relatorioPerfil":{"certo":["..."],"errado":["..."],"foraDoPosicionamento":["..."],"precisaMelhorar":["..."]}}`;
+{"oportunidades":[{"username":"...","texto":"...","tipo":"duvida","sugestao":"..."}],"ideias":[{"titulo":"...","descricao":"...","origem":"perfil","nicho":"Desenvolvimento pessoal","tipoConteudo":"Conexão"}],"relatorioPerfil":{"certo":["..."],"errado":["..."],"foraDoPosicionamento":["..."],"precisaMelhorar":["..."]}}`;
 }
 
 // Pesquisa na internet (via OpenAI Responses API + ferramenta de busca web) os assuntos

@@ -2493,6 +2493,10 @@
   .ig-ideia-origem.comentario{ background: rgba(0,0,128,.08); color: var(--coral); }
   .ig-ideia-origem.perfil{ background: rgba(45,122,79,.14); color: var(--verde); }
   .ig-ideia-origem.tendencia{ background: rgba(201,166,107,.18); color: var(--dourado); }
+  .ig-ideia-tags{ display: flex; flex-wrap: wrap; gap: 5px; margin: 5px 0 6px; }
+  .ig-ideia-tag{ font-size: .68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+  .ig-ideia-tag.tipo{ background: var(--branco); border: 1px solid var(--coral); color: var(--coral); }
+  .ig-ideia-tag.nicho{ background: var(--branco); border: 1px solid var(--borda); color: var(--texto-suave); }
   .ig-relatorio-perfil{ margin-bottom: 16px; }
   .ig-relatorio-perfil-titulo{ font-family: 'Fraunces', serif; font-weight: 600; font-size: 1rem; margin: 0 0 2px; }
   .ig-relatorio-secao{ border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
@@ -5682,6 +5686,12 @@
           <p>${igEscaparHtml(ideia.titulo || "")}</p>
           ${ideia.origem ? `<span class="ig-ideia-origem ${ideia.origem}">${IG_ROTULO_ORIGEM_IDEIA[ideia.origem] || ideia.origem}</span>` : ""}
         </div>
+        ${(ideia.nicho || ideia.tipoConteudo) ? `
+          <div class="ig-ideia-tags">
+            ${ideia.tipoConteudo ? `<span class="ig-ideia-tag tipo">${igEscaparHtml(ideia.tipoConteudo)}</span>` : ""}
+            ${ideia.nicho ? `<span class="ig-ideia-tag nicho">${igEscaparHtml(ideia.nicho)}</span>` : ""}
+          </div>
+        ` : ""}
         <p>${igEscaparHtml(ideia.descricao || "")}</p>
       </div>
     `).join("");
