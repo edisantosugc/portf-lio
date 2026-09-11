@@ -21,11 +21,19 @@ function criarClienteSupabase() {
 }
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-const MODELO = "gpt-4o-mini";
 
-// EDITE AQUI se quiser aumentar/diminuir quanto da Memória entra no prompt —
-// mesmo limite usado em ia-assistente, pra não disparar o tamanho/custo da chamada.
-const MEMORIA_LIMITE_CARACTERES = 8000;
+// gpt-4o (não o -mini): essa análise pede pra seguir várias instruções em camada ao
+// mesmo tempo (10 itens, 5 temas com peso igual, cruzar 3 fontes, citar trecho exato da
+// análise de perfil) — o mini patinava nisso e devolvia resultado raso/incompleto. Custa
+// bem mais por chamada (uns 10-15x o mini), aceito conscientemente por causa disso.
+const MODELO = "gpt-4o";
+
+// EDITE AQUI se quiser aumentar/diminuir quanto da Memória entra no prompt. Bem mais alto
+// que o limite equivalente em ia-assistente (8000) de propósito: os documentos da Memória
+// são concatenados do mais recente pro mais antigo, e um limite baixo cortava a Análise de
+// Perfil inteira fora do prompt sempre que ela não era o documento mais recente — bug real
+// que explicava por que a IA parecia "esquecer" a análise em algumas gerações.
+const MEMORIA_LIMITE_CARACTERES = 40000;
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "https://edilainesantos.com",
@@ -51,17 +59,17 @@ Você recebe uma lista de comentários recentes (usuário e texto, um por linha)
 2. Para cada um selecionado, classifique como "duvida" (pergunta direta) ou "interesse" (expressa vontade ou necessidade sem perguntar direto), e escreva uma sugestão curta (1 frase) do que responder ou fazer a respeito.
 3. Sugira ideias de vídeo combinando até três origens — no total pode chegar até 20 ideias, sempre devolvendo PELO MENOS 3:
    - "comentario": baseada em tema realmente recorrente nos comentários recebidos (só use essa origem se os comentários sustentarem de verdade).
-   - "perfil": baseada no posicionamento, tom de voz, estrutura de roteiro ou estratégias de feed (Série, Virais, UGC → Autoridade etc.) da análise de perfil dela, acima.
-   - "tendencia": SEMPRE gere até 10 ideias dessa origem quando houver pautas em alta disponíveis (acima) — é o volume que ela mais usa pra gravar a semana. Distribua entre os 5 temas do nicho dela, sem travar em só 1-2 repetidos: Finanças/organização financeira, UGC (mercado, formatos, tendências), Desenvolvimento pessoal, Autoconhecimento, e Organização/rotina (tempo, home office, casa, cozinha, administração da vida). Adapte cada pauta pro tom dela e, quando fizer sentido, prefira um formato/ângulo parecido com o que já performou bem nos posts recentes dela (acima). NUNCA use fofoca de celebridade, entretenimento genérico, nem assunto de comércio/data comemorativa/produto sazonal sem relação de verdade com esses 5 temas — descarte qualquer pauta assim mesmo que tenha vindo na pesquisa.
+   - "perfil": baseada no posicionamento, tom de voz, estrutura de roteiro ou estratégias de feed (Série, Virais, UGC → Autoridade etc.) da análise de perfil dela, acima — inclui temas de autoconhecimento e desenvolvimento pessoal (bandeiras de conteúdo, "trabalhar mente e corpo"), que são núcleo do posicionamento dela, não um tema à parte ou opcional.
+   - "tendencia": gere EXATAMENTE 10 ideias dessa origem — só gere menos se a lista de pautas em alta acima tiver vindo vazia (nesse caso, gere o que der com o que houver). É o volume que ela mais usa pra gravar a semana, então não entregue menos por preguiça de variar. Os 5 temas do nicho dela têm TODOS o mesmo peso, nenhum é secundário — incluindo Autoconhecimento e Desenvolvimento pessoal, que fazem parte do núcleo do posicionamento dela (ver, na análise de perfil acima, as seções sobre estrutura de roteiro, bandeiras de conteúdo e "trabalhar mente e corpo"): Finanças/organização financeira, UGC (mercado, formatos, tendências), Desenvolvimento pessoal, Autoconhecimento, Organização/rotina (tempo, home office, casa, cozinha, administração da vida). Cubra OBRIGATORIAMENTE os 5 temas — pelo menos 1 ideia de cada tema antes de repetir qualquer um deles pela segunda vez. Adapte cada pauta pro tom dela e, quando fizer sentido, prefira um formato/ângulo parecido com o que já performou bem nos posts recentes dela (acima). NUNCA use fofoca de celebridade, entretenimento genérico, nem assunto de comércio/data comemorativa/produto sazonal sem relação de verdade com esses 5 temas — descarte qualquer pauta assim mesmo que tenha vindo na pesquisa.
    Cada ideia tem, além de título curto e descrição de 1 frase:
    - "origem": marcando de qual das três acima ela veio.
    - "nicho": o assunto/tema principal da ideia, curto (1-3 palavras) — ex: "UGC", "Desenvolvimento pessoal", "Autoconhecimento", "Finanças", "Organização", "Gestão de Instagram", ou outro tema que caiba melhor.
    - "tipoConteudo": qual das quatro estratégias de conteúdo da análise de perfil essa ideia serve melhor — "Autoridade" (reforça ela como referência/mentora, prova técnica ou de resultado), "Conexão" (aproxima, gera identificação, storytelling pessoal), "Viral" (gancho forte pra alcance, formato leve/compartilhável), ou "Série" (conteúdo educativo recorrente, parte de uma sequência). Ela vai usar essa ideia pra gravar o vídeo da semana, então esses dois campos (nicho e tipoConteudo) precisam ficar claros e curtos, prontos pra ela bater o olho e saber do que se trata antes mesmo de ler a descrição.
-4. Monte um "relatorioPerfil" cruzando os posts recentes (acima) com a análise de perfil (acima), em 4 listas de itens curtos (1 frase cada, sem enrolação):
-   - "certo": o que está dando certo — conteúdos/temas/formatos que performaram bem E estão alinhados com a análise. Diga pra continuar/replicar.
-   - "errado": o que não está dando certo — conteúdos que performaram mal, com uma hipótese do porquê (cruzando com a análise quando der).
-   - "foraDoPosicionamento": práticas ou conteúdos atuais que contrariam a análise de perfil (ex: pontos do "Exorcismo da mentora Edi"), independente de terem performado bem ou mal.
-   - "precisaMelhorar": recomendações práticas e específicas de ajuste, cruzando desempenho real com a análise.
+4. Monte um "relatorioPerfil" cruzando os posts recentes (acima) com a análise de perfil (acima), em 4 listas de itens (1-2 frases cada). PROIBIDO ser genérico (nunca escreva algo tipo "focar em temas que geram mais engajamento" sem dizer QUAL tema, QUAL gancho, QUAL formato) — cada item PRECISA citar ou parafrasear de forma reconhecível o trecho/conceito exato da análise de perfil que embasa aquela recomendação, e terminar com uma ação prática específica (um gancho pra reescrever, um formato pra testar, um tema pra evitar). Exemplo do nível de especificidade esperado: "Esse post não performou porque o gancho abriu direto com a solução, sem o gancho de curiosidade que a análise recomenda — testa reescrever a abertura como 'Você sabia que...' ou 'Depois de tanto tempo fazendo X, descobri Y'."
+   - "certo": o que está dando certo — conteúdos/temas/formatos que performaram bem E estão alinhados com um ponto específico da análise. Diga pra continuar/replicar, citando o que exatamente replicar.
+   - "errado": o que não está dando certo — conteúdos que performaram mal, com uma hipótese do porquê cruzando com um ponto específico da análise (gancho, tema, tom, formato).
+   - "foraDoPosicionamento": práticas ou conteúdos atuais que contrariam um ponto específico da análise de perfil (ex: algo listado em "Exorcismo da mentora Edi"), independente de terem performado bem ou mal — cite o ponto exato que está sendo contrariado.
+   - "precisaMelhorar": recomendações práticas e específicas de ajuste, cruzando desempenho real com um ponto específico da análise.
    Se não tiver posts suficientes pra alguma dessas listas, devolva ela como array vazio em vez de inventar — não force conteúdo sem base real. Se não houver NENHUM post na lista de posts recentes, todas as quatro listas vêm vazias.
 
 Responda SOMENTE com um JSON válido, sem nenhum texto antes ou depois, neste formato exato:
