@@ -2059,6 +2059,24 @@
   .chip-anexo-iara button{ background: none; border: none; cursor: pointer; color: var(--texto-suave); font-size: .85rem; padding: 3px 6px; border-radius: 50%; }
   .chip-anexo-iara button:hover{ background: var(--borda); }
 
+  .botao-anexar-iara.gravando{ background: var(--vermelho); border-color: var(--vermelho); color: var(--branco); }
+  .chip-gravacao-iara{
+    display: flex; align-items: center; gap: 10px; background: rgba(196,69,60,.08); border: 1px solid var(--vermelho);
+    border-radius: 50px; padding: 6px 10px 6px 14px; font-size: .8rem; color: var(--vermelho); width: fit-content; margin-bottom: 10px;
+  }
+  .chip-gravacao-iara.transcrevendo{ background: var(--creme); border-color: var(--borda); color: var(--texto-suave); }
+  .chip-gravacao-iara button{ background: none; border: none; cursor: pointer; font-size: .85rem; padding: 3px 6px; border-radius: 50%; color: inherit; }
+  .chip-gravacao-iara button:hover{ background: rgba(0,0,0,.06); }
+  .chip-gravacao-iara .botao-parar-gravacao-iara{ background: var(--vermelho); color: var(--branco); }
+  .tempo-gravacao-iara{ font-variant-numeric: tabular-nums; font-weight: 700; }
+  .onda-gravacao-iara{ display: flex; align-items: center; gap: 2px; }
+  .onda-gravacao-iara span{ width: 3px; background: var(--vermelho); border-radius: 2px; display: block; animation: pulso-onda-iara 1s ease-in-out infinite; }
+  .onda-gravacao-iara span:nth-child(1){ height: 8px; animation-delay: 0s; }
+  .onda-gravacao-iara span:nth-child(2){ height: 14px; animation-delay: .15s; }
+  .onda-gravacao-iara span:nth-child(3){ height: 10px; animation-delay: .3s; }
+  .onda-gravacao-iara span:nth-child(4){ height: 16px; animation-delay: .45s; }
+  @keyframes pulso-onda-iara{ 0%,100%{ opacity: .4; } 50%{ opacity: 1; } }
+
   /* ---- Modal Memória ---- */
   .modal-memoria-iara{ position: fixed; inset: 0; background: rgba(26,24,22,.5); display: none; align-items: center; justify-content: center; z-index: 60; padding: 20px; }
   .modal-memoria-iara.visivel{ display: flex; }
@@ -4178,9 +4196,11 @@
                 <span id="chipAnexoNomeIara"></span>
                 <button type="button" id="btnRemoverAnexoIara" title="Remover anexo">✕</button>
               </div>
+              <div class="chip-gravacao-iara oculto" id="chipGravacaoIara"></div>
               <div class="chat-ia-linha-input">
                 <button type="button" class="botao-anexar-iara" id="btnAnexarIara" title="Anexar foto, PDF ou documento de texto">📎</button>
                 <input type="file" id="campoAnexoIara" class="oculto" accept="image/*,application/pdf,text/plain">
+                <button type="button" class="botao-anexar-iara" id="btnMicIara" title="Gravar áudio">🎤</button>
                 <textarea class="chat-ia-campo" id="campoMsgIaraSessao" rows="2" placeholder="Escreva pra IAra..."></textarea>
                 <button type="button" class="botao-add-tarefa" id="btnEnviarIaraSessao">Enviar</button>
               </div>
@@ -4762,6 +4782,14 @@
   let iaraFiltroAtivo = "todos";
   let iaraSessaoAbertaId = null;
   let iaraAnexoPendente = null; // { tipo: 'imagem'|'documento', nome, conteudo } — conteudo é data-URL (imagem) ou texto extraído (documento)
+
+  // Gravação de áudio pro microfone do chat da IAra (transcrita via Whisper na function
+  // ia-transcrever-audio). iaraGravador é o MediaRecorder ativo (null = não tá gravando).
+  let iaraGravador = null;
+  let iaraGravacaoStream = null;
+  let iaraGravacaoChunks = [];
+  let iaraGravacaoInicioMs = 0;
+  let iaraGravacaoTimerId = null;
 
   // EDITE AQUI se quiser mudar quantas mensagens de histórico são reenviadas pra IA a cada chamada
   const IA_HISTORICO_MAXIMO = 30;
@@ -6914,6 +6942,7 @@
     document.getElementById("btnAnexarIara").addEventListener("click", () => document.getElementById("campoAnexoIara").click());
     document.getElementById("campoAnexoIara").addEventListener("change", processarAnexoIara);
     document.getElementById("btnRemoverAnexoIara").addEventListener("click", removerAnexoIara);
+    document.getElementById("btnMicIara").addEventListener("click", iniciarGravacaoIara);
 
     // ---------- Memória da Iara (documentos globais) ----------
     document.getElementById("btnIaraAbrirMemoria").addEventListener("click", abrirMemoriaIara);
@@ -13516,7 +13545,11 @@
     document.getElementById("campoMsgIaraSessao").disabled = finalizada;
     document.getElementById("btnEnviarIaraSessao").disabled = finalizada;
     document.getElementById("btnAnexarIara").disabled = finalizada;
-    if (finalizada) removerAnexoIara();
+    document.getElementById("btnMicIara").disabled = finalizada;
+    if (finalizada){
+      removerAnexoIara();
+      if (iaraGravador) cancelarGravacaoIara();
+    }
     document.getElementById("btnIaraFinalizarSessao").textContent = finalizada ? "Finalizada" : "Finalizar conversa";
     document.getElementById("btnIaraFinalizarSessao").disabled = finalizada;
     document.getElementById("btnIaraFavoritarSessao").textContent = s.favorito ? "♥" : "♡";
@@ -13648,6 +13681,120 @@
   function removerAnexoIara(){
     iaraAnexoPendente = null;
     document.getElementById("chipAnexoIara").classList.add("oculto");
+  }
+
+  /* ---------- Microfone (grava, transcreve via Whisper, cai no campo de texto) ---------- */
+
+  async function iniciarGravacaoIara(){
+    if (iaraGravador) return; // já gravando — ignora clique duplo no botão
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      iaraGravacaoStream = stream;
+      iaraGravacaoChunks = [];
+      iaraGravador = new MediaRecorder(stream);
+      iaraGravador.ondataavailable = (e) => { if (e.data.size > 0) iaraGravacaoChunks.push(e.data); };
+      iaraGravador.start();
+      iaraGravacaoInicioMs = Date.now();
+
+      document.getElementById("btnMicIara").classList.add("gravando");
+      renderizarChipGravacaoIara("gravando");
+      atualizarTempoGravacaoIara();
+      iaraGravacaoTimerId = setInterval(atualizarTempoGravacaoIara, 250);
+    } catch (erro) {
+      console.error("Erro ao acessar o microfone:", erro);
+      alert("Não consegui acessar o microfone — verifica se o navegador/site tem permissão de usar o microfone.");
+    }
+  }
+
+  function atualizarTempoGravacaoIara(){
+    const el = document.getElementById("tempoGravacaoIara");
+    if (!el) return;
+    const segundosTotal = Math.floor((Date.now() - iaraGravacaoInicioMs) / 1000);
+    const min = Math.floor(segundosTotal / 60);
+    const seg = String(segundosTotal % 60).padStart(2, "0");
+    el.textContent = `${min}:${seg}`;
+  }
+
+  function pararTimerGravacaoIara(){
+    if (iaraGravacaoTimerId){ clearInterval(iaraGravacaoTimerId); iaraGravacaoTimerId = null; }
+  }
+
+  function encerrarStreamGravacaoIara(){
+    if (iaraGravacaoStream){ iaraGravacaoStream.getTracks().forEach(t => t.stop()); iaraGravacaoStream = null; }
+  }
+
+  function cancelarGravacaoIara(){
+    pararTimerGravacaoIara();
+    if (iaraGravador && iaraGravador.state !== "inactive"){
+      iaraGravador.onstop = encerrarStreamGravacaoIara;
+      iaraGravador.stop();
+    } else {
+      encerrarStreamGravacaoIara();
+    }
+    iaraGravador = null;
+    iaraGravacaoChunks = [];
+    document.getElementById("btnMicIara").classList.remove("gravando");
+    document.getElementById("chipGravacaoIara").classList.add("oculto");
+  }
+
+  async function pararEEnviarGravacaoIara(){
+    if (!iaraGravador) return;
+    pararTimerGravacaoIara();
+    document.getElementById("btnMicIara").classList.remove("gravando");
+
+    const gravadorAtual = iaraGravador;
+    const blobAudio = await new Promise((resolve) => {
+      gravadorAtual.onstop = () => {
+        encerrarStreamGravacaoIara();
+        resolve(new Blob(iaraGravacaoChunks, { type: gravadorAtual.mimeType || "audio/webm" }));
+      };
+      gravadorAtual.stop();
+    });
+    iaraGravador = null;
+
+    if (blobAudio.size === 0){
+      document.getElementById("chipGravacaoIara").classList.add("oculto");
+      return;
+    }
+
+    renderizarChipGravacaoIara("transcrevendo");
+
+    try {
+      const formData = new FormData();
+      formData.append("audio", blobAudio, "gravacao.webm");
+      const { data, error } = await Auth.client.functions.invoke("ia-transcrever-audio", { body: formData });
+      if (error) throw error;
+      if (!data || data.error) throw new Error((data && data.error) || "resposta vazia");
+
+      const campo = document.getElementById("campoMsgIaraSessao");
+      const textoAtual = campo.value.trim();
+      campo.value = textoAtual ? `${textoAtual} ${data.texto || ""}`.trim() : (data.texto || "");
+      campo.focus();
+    } catch (erro) {
+      console.error("Erro ao transcrever áudio:", erro);
+      alert("Não foi possível transcrever o áudio agora. Tenta de novo.");
+    } finally {
+      document.getElementById("chipGravacaoIara").classList.add("oculto");
+    }
+  }
+
+  function renderizarChipGravacaoIara(estado){
+    const chip = document.getElementById("chipGravacaoIara");
+    chip.classList.remove("oculto");
+    chip.classList.toggle("transcrevendo", estado === "transcrevendo");
+
+    if (estado === "gravando"){
+      chip.innerHTML = `
+        <span class="onda-gravacao-iara"><span></span><span></span><span></span><span></span></span>
+        <span class="tempo-gravacao-iara" id="tempoGravacaoIara">0:00</span>
+        <button type="button" id="btnCancelarGravacaoIara" title="Cancelar">✕</button>
+        <button type="button" class="botao-parar-gravacao-iara" id="btnPararGravacaoIara" title="Parar e transcrever">⏹</button>
+      `;
+      document.getElementById("btnCancelarGravacaoIara").addEventListener("click", cancelarGravacaoIara);
+      document.getElementById("btnPararGravacaoIara").addEventListener("click", pararEEnviarGravacaoIara);
+    } else {
+      chip.innerHTML = `Transcrevendo o áudio...`;
+    }
   }
 
   async function enviarMensagemSessaoIara(){
