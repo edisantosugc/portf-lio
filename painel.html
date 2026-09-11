@@ -21,6 +21,10 @@
 <script>
   pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.worker.min.js";
 </script>
+<!-- OCR de apoio: quando uma página do PDF não tem texto selecionável de verdade
+     (ex: PDF de mapa mental exportado como imagem), extrairTextoPdf renderiza a
+     página num canvas e usa isso aqui pra tentar reconhecer o texto mesmo assim -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 
 <style>
   /* ===================== VARIÁVEIS DO DESIGN SYSTEM ===================== */
@@ -13506,7 +13510,7 @@
       } else if (arquivo.type === "application/pdf") {
         const textoExtraido = await extrairTextoPdf(arquivo);
         if (!textoExtraido.trim()) {
-          alert("Não consegui ler texto desse PDF (pode ser um PDF de imagem escaneada, sem texto de verdade dentro).");
+          alert('Não consegui ler texto desse PDF, nem tentando OCR — deve ser uma imagem complicada demais pra reconhecer (comum em mapa mental, diagrama, print de tela cheio de elementos). Cola o texto direto na mensagem em vez de anexar o arquivo.');
           return;
         }
         iaraAnexoPendente = { tipo: "documento", nome: arquivo.name, conteudo: textoExtraido };
@@ -13664,12 +13668,13 @@
     const arquivo = e.target.files[0];
     if (!arquivo) return;
     const avisoProcessando = document.getElementById("avisoProcessandoPdf");
+    avisoProcessando.textContent = "Lendo o PDF...";
     avisoProcessando.classList.remove("oculto");
 
     try {
-      const texto = await extrairTextoPdf(arquivo);
+      const texto = await extrairTextoPdf(arquivo, (status) => { avisoProcessando.textContent = status; });
       if (!texto.trim()) {
-        alert("Não consegui ler texto desse PDF (pode ser um PDF de imagem escaneada, sem texto de verdade dentro).");
+        alert('Não consegui ler texto desse PDF, nem tentando OCR — deve ser uma imagem complicada demais pra reconhecer (comum em mapa mental, diagrama, print de tela cheio de elementos). Copia o texto direto de onde o arquivo foi criado e usa a opção "Colar texto" aqui em cima, que funciona igual.');
         return;
       }
       const { data, error } = await Auth.client
@@ -13690,15 +13695,41 @@
   }
 
   // EDITE AQUI se quiser trocar a versão do pdf.js (mesma versão do <script> no <head>)
-  async function extrairTextoPdf(arquivo){
+  //
+  // "aoMudarStatus" (opcional) é chamado com uma frase curta toda vez que uma página
+  // precisa cair pro caminho de OCR — quem chamar pode usar isso pra atualizar um aviso
+  // na tela, já que OCR demora bem mais que ler texto pronto.
+  async function extrairTextoPdf(arquivo, aoMudarStatus){
     const bufer = await arquivo.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: bufer }).promise;
     let texto = "";
+
     for (let i = 1; i <= pdf.numPages; i++) {
       const pagina = await pdf.getPage(i);
       const conteudoPagina = await pagina.getTextContent();
-      texto += conteudoPagina.items.map(item => item.str).join(" ") + "\n\n";
+      let textoPagina = conteudoPagina.items.map(item => item.str).join(" ").trim();
+
+      // Página sem texto selecionável de verdade — comum em PDF exportado como
+      // imagem/print (ex: ferramentas de mapa mental). Renderiza a página num canvas
+      // e tenta reconhecer o texto via OCR (Tesseract.js) antes de desistir dela.
+      if (textoPagina.length < 10) {
+        if (aoMudarStatus) aoMudarStatus(`Sem texto pronto na página ${i}/${pdf.numPages} — tentando OCR (pode demorar um pouco)...`);
+        try {
+          const canvas = document.createElement("canvas");
+          const viewport = pagina.getViewport({ scale: 2 });
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          await pagina.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+          const resultadoOcr = await Tesseract.recognize(canvas, "por");
+          textoPagina = (resultadoOcr?.data?.text || "").trim();
+        } catch (erroOcr) {
+          console.error(`Erro no OCR da página ${i} do PDF:`, erroOcr);
+        }
+      }
+
+      if (textoPagina) texto += textoPagina + "\n\n";
     }
+
     return texto.trim();
   }
 
