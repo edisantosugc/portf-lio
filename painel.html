@@ -2077,12 +2077,16 @@
   .separador-doc-iara{ text-align: center; font-size: .76rem; color: var(--texto-suave); margin: 6px 0 12px; }
   .aviso-processando-pdf{ font-size: .8rem; color: var(--coral); margin-top: 8px; }
   .lista-docs-iara{ display: flex; flex-direction: column; gap: 10px; }
-  .item-doc-iara{ border: 1px solid var(--borda); border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .item-doc-iara{ border: 1px solid var(--borda); border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; cursor: pointer; }
+  .item-doc-iara:hover{ border-color: var(--coral); }
+  .item-doc-texto-iara{ min-width: 0; flex: 1; }
   .item-doc-nome-iara{ font-weight: 700; font-size: .88rem; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
   .item-doc-tipo-iara{ font-size: .68rem; font-weight: 700; color: var(--coral); background: rgba(0,0,128,.08); padding: 2px 8px; border-radius: 50px; }
   .item-doc-trecho-iara{ font-size: .8rem; color: var(--texto-suave); margin-top: 4px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item-doc-trecho-iara.aberto{ white-space: pre-wrap; overflow-y: auto; max-height: 320px; text-overflow: unset; }
+  .item-doc-acoes-iara{ flex-shrink: 0; }
   .item-doc-acoes-iara button{ background: none; border: none; cursor: pointer; font-size: .9rem; padding: 5px 7px; border-radius: 8px; color: var(--texto-suave); }
-  .item-doc-acoes-iara button:hover{ background: var(--creme); }
+  .item-doc-acoes-iara button:hover{ background: var(--creme); color: var(--vermelho); }
   .vazio-memoria-iara{ text-align: center; padding: 24px; color: var(--texto-suave); font-size: .85rem; }
 
   /* ---- Modal confirmar exclusão (sessão/documento) ---- */
@@ -13614,23 +13618,41 @@
      ========================================================================= */
   let documentosMemoriaCache = [];
 
+  // Qual documento está com o texto completo aberto na lista da Memória (null = nenhum,
+  // só mostra o trechinho resumido de cada um)
+  let documentoMemoriaAberto = null;
+
   function renderizarListaDocumentosIara(){
     const lista = document.getElementById("listaDocsIara");
     document.getElementById("vazioMemoriaIara").classList.toggle("oculto", documentosMemoriaCache.length > 0);
     const ROTULO_TIPO = { texto: "Texto", pdf: "PDF" };
-    lista.innerHTML = documentosMemoriaCache.map(d => `
-      <div class="item-doc-iara" data-id="${d.id}">
-        <div>
-          <div class="item-doc-nome-iara">${igEscaparHtml(d.nome)} <span class="item-doc-tipo-iara">${ROTULO_TIPO[d.tipo] || d.tipo}</span></div>
-          <div class="item-doc-trecho-iara">${igEscaparHtml(d.conteudo.replace(/\s+/g, " ").trim())}</div>
+    lista.innerHTML = documentosMemoriaCache.map(d => {
+      const aberto = documentoMemoriaAberto === d.id;
+      const texto = aberto ? d.conteudo.trim() : d.conteudo.replace(/\s+/g, " ").trim();
+      return `
+        <div class="item-doc-iara" data-id="${d.id}">
+          <div class="item-doc-texto-iara">
+            <div class="item-doc-nome-iara">${igEscaparHtml(d.nome)} <span class="item-doc-tipo-iara">${ROTULO_TIPO[d.tipo] || d.tipo}</span></div>
+            <div class="item-doc-trecho-iara ${aberto ? "aberto" : ""}">${igEscaparHtml(texto)}</div>
+          </div>
+          <div class="item-doc-acoes-iara">
+            <button type="button" data-acao="excluir-doc" data-id="${d.id}" title="Remover">🗑</button>
+          </div>
         </div>
-        <div class="item-doc-acoes-iara">
-          <button type="button" data-acao="excluir-doc" data-id="${d.id}" title="Remover">🗑</button>
-        </div>
-      </div>
-    `).join("");
+      `;
+    }).join("");
+    lista.querySelectorAll(".item-doc-iara").forEach(el => {
+      el.addEventListener("click", () => {
+        const id = el.dataset.id;
+        documentoMemoriaAberto = documentoMemoriaAberto === id ? null : id;
+        renderizarListaDocumentosIara();
+      });
+    });
     lista.querySelectorAll("[data-acao='excluir-doc']").forEach(btn => {
-      btn.addEventListener("click", () => pedirExclusaoDocumentoIara(btn.dataset.id));
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        pedirExclusaoDocumentoIara(btn.dataset.id);
+      });
     });
   }
 
