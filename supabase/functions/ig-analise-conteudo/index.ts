@@ -49,13 +49,13 @@ Você recebe uma lista de comentários recentes (usuário e texto, um por linha)
 
 1. Selecione só os comentários que sejam perguntas genuínas ou expressem um interesse real relacionado a algo que ela ensina ou vende. Ignore elogios genéricos sem substância, emojis soltos, spam e comentários irrelevantes.
 2. Para cada um selecionado, classifique como "duvida" (pergunta direta) ou "interesse" (expressa vontade ou necessidade sem perguntar direto), e escreva uma sugestão curta (1 frase) do que responder ou fazer a respeito.
-3. Sugira até 8 ideias de vídeo, sempre devolvendo PELO MENOS 3 no total — mesmo sem nenhum comentário aproveitável — combinando até três origens:
+3. Sugira ideias de vídeo combinando até três origens — no total pode chegar até 20 ideias, sempre devolvendo PELO MENOS 3:
    - "comentario": baseada em tema realmente recorrente nos comentários recebidos (só use essa origem se os comentários sustentarem de verdade).
    - "perfil": baseada no posicionamento, tom de voz, estrutura de roteiro ou estratégias de feed (Série, Virais, UGC → Autoridade etc.) da análise de perfil dela, acima.
-   - "tendencia": baseada nas pautas em alta pesquisadas na internet, acima, adaptada pro nicho e tom dela — só use se a pauta tiver relação de verdade com UGC/criação de conteúdo/desenvolvimento pessoal feminino. Ignore qualquer pauta genérica de comércio/data comemorativa/produto sazonal que tenha vindo na lista sem essa relação.
+   - "tendencia": SEMPRE gere até 10 ideias dessa origem quando houver pautas em alta disponíveis (acima) — é o volume que ela mais usa pra gravar a semana. Distribua entre os 5 temas do nicho dela, sem travar em só 1-2 repetidos: Finanças/organização financeira, UGC (mercado, formatos, tendências), Desenvolvimento pessoal, Autoconhecimento, e Organização/rotina (tempo, home office, casa, cozinha, administração da vida). Adapte cada pauta pro tom dela e, quando fizer sentido, prefira um formato/ângulo parecido com o que já performou bem nos posts recentes dela (acima). NUNCA use fofoca de celebridade, entretenimento genérico, nem assunto de comércio/data comemorativa/produto sazonal sem relação de verdade com esses 5 temas — descarte qualquer pauta assim mesmo que tenha vindo na pesquisa.
    Cada ideia tem, além de título curto e descrição de 1 frase:
    - "origem": marcando de qual das três acima ela veio.
-   - "nicho": o assunto/tema principal da ideia, curto (1-3 palavras) — ex: "UGC", "Desenvolvimento pessoal", "Autoconhecimento", "Finanças", "Gestão de Instagram", ou outro tema que caiba melhor.
+   - "nicho": o assunto/tema principal da ideia, curto (1-3 palavras) — ex: "UGC", "Desenvolvimento pessoal", "Autoconhecimento", "Finanças", "Organização", "Gestão de Instagram", ou outro tema que caiba melhor.
    - "tipoConteudo": qual das quatro estratégias de conteúdo da análise de perfil essa ideia serve melhor — "Autoridade" (reforça ela como referência/mentora, prova técnica ou de resultado), "Conexão" (aproxima, gera identificação, storytelling pessoal), "Viral" (gancho forte pra alcance, formato leve/compartilhável), ou "Série" (conteúdo educativo recorrente, parte de uma sequência). Ela vai usar essa ideia pra gravar o vídeo da semana, então esses dois campos (nicho e tipoConteudo) precisam ficar claros e curtos, prontos pra ela bater o olho e saber do que se trata antes mesmo de ler a descrição.
 4. Monte um "relatorioPerfil" cruzando os posts recentes (acima) com a análise de perfil (acima), em 4 listas de itens curtos (1 frase cada, sem enrolação):
    - "certo": o que está dando certo — conteúdos/temas/formatos que performaram bem E estão alinhados com a análise. Diga pra continuar/replicar.
@@ -83,7 +83,19 @@ async function buscarPautasQuentes(dataHojeExtenso: string): Promise<string> {
       body: JSON.stringify({
         model: MODELO,
         tools: [{ type: "web_search_preview" }],
-        input: `Hoje é ${dataHojeExtenso}. Pesquise na internet quais assuntos estão MAIS EM ALTA agora especificamente nos nichos de: UGC (User Generated Content) pago pra marcas, criação de conteúdo/gestão de Instagram, e desenvolvimento pessoal e carreira para mulheres. NÃO traga assuntos genéricos de "em alta no comércio/consumo" (datas comemorativas, produtos sazonais, promoções) nem de outros nichos só porque estão em alta no geral — só o que é realmente sobre criação de conteúdo, UGC, redes sociais ou desenvolvimento pessoal/carreira feminina. Se não achar nada relevante o suficiente pra algum desses temas, prefira listar menos itens (pode ser só 1 ou 2) a forçar um assunto que não tem relação nenhuma. Liste no máximo 5 pautas reais e atuais (nada inventado), cada uma em uma linha, no formato "Título curto — por que está em alta agora (1 frase)". Responda só a lista, sem introdução nem conclusão.`,
+        input: `Hoje é ${dataHojeExtenso}. Pesquise na internet quais assuntos estão MAIS EM ALTA agora dentro de CADA UM destes 5 temas — faça uma busca separada pra cada tema, não uma busca genérica só:
+
+1. Finanças pessoais / organização financeira
+2. UGC (User Generated Content) — mercado, formatos, tendências de criadoras de conteúdo
+3. Desenvolvimento pessoal
+4. Autoconhecimento
+5. Organização e rotina (organização de tempo, home office, casa, cozinha — administração da vida no geral)
+
+Pra cada tema, traga de 2 a 3 pautas reais e atuais (nada inventado) — no total, até 15 pautas, cobrindo os 5 temas (não travar em só 1 ou 2 temas repetidos). Se algum tema específico não tiver nada relevante em alta agora, pule ELE (não o total todo) e compense com mais itens dos outros temas.
+
+NÃO traga, em nenhuma hipótese: fofoca de celebridade, entretenimento genérico, nem assuntos de comércio/consumo sazonal (datas comemorativas, produtos, promoções) sem relação de verdade com os 5 temas acima. O foco é conteúdo de valor prático, não entretenimento.
+
+Responda só a lista, sem introdução nem conclusão, uma pauta por linha, no formato "[Tema] Título curto — por que está em alta agora (1 frase)".`,
       }),
     });
 
@@ -207,7 +219,7 @@ Deno.serve(async (req: Request) => {
       },
       body: JSON.stringify({
         model: MODELO,
-        max_tokens: 4000,
+        max_tokens: 6000,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: systemPrompt },
