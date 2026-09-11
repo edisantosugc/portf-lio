@@ -2486,8 +2486,13 @@
   .ig-cartao-ideia{
     background: var(--creme); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
   }
-  .ig-cartao-ideia p:first-child{ font-weight: 700; font-size: .85rem; margin-bottom: 3px; }
+  .ig-cartao-ideia-topo{ display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
+  .ig-cartao-ideia-topo p{ font-weight: 700; font-size: .85rem; margin: 0; }
   .ig-cartao-ideia p:last-child{ font-size: .78rem; color: var(--texto-suave); }
+  .ig-ideia-origem{ font-size: .62rem; font-weight: 700; padding: 2px 9px; border-radius: 50px; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; flex-shrink: 0; }
+  .ig-ideia-origem.comentario{ background: rgba(0,0,128,.08); color: var(--coral); }
+  .ig-ideia-origem.perfil{ background: rgba(45,122,79,.14); color: var(--verde); }
+  .ig-ideia-origem.tendencia{ background: rgba(201,166,107,.18); color: var(--dourado); }
   .ig-oportunidade-item{ border-bottom: 1px solid var(--borda); padding: 12px 0; }
   .ig-oportunidade-item:last-child{ border-bottom: none; }
   .ig-oportunidade-topo{ display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
@@ -5582,6 +5587,11 @@
     }
   }
 
+  // Rótulo de onde a IA tirou cada ideia — "comentario" é a única origem que depende de
+  // ter movimento recente no Instagram; "perfil" e "tendencia" aparecem mesmo sem nenhum
+  // comentário, por isso essa seção não fica mais vazia só por falta de comentário novo.
+  const IG_ROTULO_ORIGEM_IDEIA = { comentario: "Comentários", perfil: "Sua análise de perfil", tendencia: "Pauta em alta" };
+
   function renderizarIdeiasVideo(){
     const container = document.getElementById("igIdeiasVideo");
     const ideias = igAnaliseIaCache?.ideias || [];
@@ -5591,7 +5601,10 @@
     }
     container.innerHTML = ideias.map(ideia => `
       <div class="ig-cartao-ideia dado-sensivel">
-        <p>${igEscaparHtml(ideia.titulo || "")}</p>
+        <div class="ig-cartao-ideia-topo">
+          <p>${igEscaparHtml(ideia.titulo || "")}</p>
+          ${ideia.origem ? `<span class="ig-ideia-origem ${ideia.origem}">${IG_ROTULO_ORIGEM_IDEIA[ideia.origem] || ideia.origem}</span>` : ""}
+        </div>
         <p>${igEscaparHtml(ideia.descricao || "")}</p>
       </div>
     `).join("");

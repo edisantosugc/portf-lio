@@ -32,23 +32,68 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Recebe a Memória da IAra já formatada (ou "" se vazia) e a data de hoje, e monta o
-// system prompt na hora — o modelo (gpt-4o-mini) não sabe a data atual sozinho, e sem
-// dizer explicitamente ele tende a "puxar" anos/tendências do próprio treinamento
-// (ex.: sugerir algo "em 2023") em vez de ficar só no que os comentários mostram.
-function montarSystemPrompt(dataHojeExtenso: string, blocoMemoria: string): string {
+// Recebe a Memória da IAra, as pautas em alta pesquisadas na internet (ambas já
+// formatadas, ou "" se vazias) e a data de hoje, e monta o system prompt na hora — o
+// modelo não sabe a data atual sozinho, e sem dizer explicitamente ele tende a "puxar"
+// anos/tendências do próprio treinamento (ex.: sugerir algo "em 2023") em vez de ficar
+// só no que os comentários/documentos mostram.
+function montarSystemPrompt(dataHojeExtenso: string, blocoMemoria: string, blocoPautasQuentes: string): string {
   return `Você analisa comentários de Instagram de uma criadora de conteúdo que ensina UGC (User Generated Content) e gestão de Instagram.
 
-Hoje é ${dataHojeExtenso}. Nunca mencione um ano diferente desse (nem anos passados tipo "2023") e não invente tendências/novidades "recentes" da sua própria memória — baseie-se SÓ no que está nos comentários abaixo.
-${blocoMemoria ? `\nContexto sobre a marca pessoal dela (use pra deixar as ideias no tom/nicho certo):\n${blocoMemoria}\n` : ""}
-Você recebe uma lista de comentários recentes (usuário e texto, um por linha). Sua tarefa:
+Hoje é ${dataHojeExtenso}. Nunca mencione um ano diferente desse (nem anos passados tipo "2023").
+${blocoMemoria ? `\nContexto sobre a marca pessoal, o posicionamento e a estrutura de roteiro que ela já definiu — use isso como base FIXA pras ideias de vídeo, mesmo quando os comentários abaixo forem poucos ou genéricos. Preste atenção especial em qualquer seção tipo "o que evitar": nunca sugira algo listado ali.\n${blocoMemoria}\n` : ""}
+${blocoPautasQuentes ? `\nPautas em alta agora (pesquisadas na internet) nos nichos de UGC, criação de conteúdo e desenvolvimento pessoal/carreira pra mulheres:\n${blocoPautasQuentes}\n` : ""}
+Você recebe uma lista de comentários recentes (usuário e texto, um por linha) — pode vir vazia ou com poucos comentários úteis, isso é normal e não deve travar a análise. Sua tarefa:
 
 1. Selecione só os comentários que sejam perguntas genuínas ou expressem um interesse real relacionado a algo que ela ensina ou vende. Ignore elogios genéricos sem substância, emojis soltos, spam e comentários irrelevantes.
 2. Para cada um selecionado, classifique como "duvida" (pergunta direta) ou "interesse" (expressa vontade ou necessidade sem perguntar direto), e escreva uma sugestão curta (1 frase) do que responder ou fazer a respeito.
-3. Com base nos temas REALMENTE recorrentes entre os comentários recebidos (selecionados ou não), sugira até 6 ideias de vídeo, cada uma com um título curto e uma descrição de 1 frase — toda ideia precisa remeter a algo que apareceu de fato nos comentários. Se os comentários forem poucos ou genéricos demais pra sustentar 6 ideias de verdade, sugira menos (pode ser zero) em vez de inventar temas genéricos de internet que não vieram daqui.
+3. Sugira até 8 ideias de vídeo, sempre devolvendo PELO MENOS 3 no total — mesmo sem nenhum comentário aproveitável — combinando até três origens:
+   - "comentario": baseada em tema realmente recorrente nos comentários recebidos (só use essa origem se os comentários sustentarem de verdade).
+   - "perfil": baseada no posicionamento, tom de voz, estrutura de roteiro ou estratégias de feed (Série, Virais, UGC → Autoridade etc.) da análise de perfil dela, acima.
+   - "tendencia": baseada nas pautas em alta pesquisadas na internet, acima, adaptada pro nicho e tom dela.
+   Cada ideia tem um título curto, uma descrição de 1 frase, e o campo "origem" marcando de qual dessas três ela veio.
 
 Responda SOMENTE com um JSON válido, sem nenhum texto antes ou depois, neste formato exato:
-{"oportunidades":[{"username":"...","texto":"...","tipo":"duvida","sugestao":"..."}],"ideias":[{"titulo":"...","descricao":"..."}]}`;
+{"oportunidades":[{"username":"...","texto":"...","tipo":"duvida","sugestao":"..."}],"ideias":[{"titulo":"...","descricao":"...","origem":"perfil"}]}`;
+}
+
+// Pesquisa na internet (via OpenAI Responses API + ferramenta de busca web) os assuntos
+// mais quentes agora nos nichos dela. Se der qualquer erro (conta sem acesso à busca,
+// resposta em formato inesperado etc.), devolve "" — a análise continua funcionando
+// normalmente sem a parte de tendências, só não mostra essa origem específica.
+async function buscarPautasQuentes(dataHojeExtenso: string): Promise<string> {
+  try {
+    const resposta = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "authorization": `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: MODELO,
+        tools: [{ type: "web_search_preview" }],
+        input: `Hoje é ${dataHojeExtenso}. Pesquise na internet quais assuntos estão MAIS EM ALTA agora nos nichos de: UGC (User Generated Content) pago pra marcas, criação de conteúdo/gestão de Instagram, e desenvolvimento pessoal e carreira para mulheres. Liste até 5 pautas reais e atuais (nada inventado), cada uma em uma linha, no formato "Título curto — por que está em alta agora (1 frase)". Responda só a lista, sem introdução nem conclusão.`,
+      }),
+    });
+
+    if (!resposta.ok) {
+      console.error("Erro da API OpenAI (busca de pautas quentes):", resposta.status, await resposta.text());
+      return "";
+    }
+
+    const dados = await resposta.json();
+    if (!dados || !Array.isArray(dados.output)) return "";
+    const mensagem = dados.output.find((o: any) => o.type === "message");
+    if (!mensagem || !Array.isArray(mensagem.content)) return "";
+    return mensagem.content
+      .filter((c: any) => c.type === "output_text" && c.text)
+      .map((c: any) => c.text)
+      .join("\n")
+      .trim();
+  } catch (erro) {
+    console.error("Erro inesperado ao buscar pautas quentes:", erro);
+    return "";
+  }
 }
 
 Deno.serve(async (req: Request) => {
@@ -88,14 +133,15 @@ Deno.serve(async (req: Request) => {
       .limit(150);
     if (error) throw error;
 
-    if (!comentarios || comentarios.length === 0) {
-      return respostaJson({ oportunidades: [], ideias: [], aviso: "Nenhum comentário registrado nos últimos 30 dias ainda." });
-    }
+    // Sem comentário nenhum não trava mais a análise — a lista pode ficar vazia aqui,
+    // e as ideias vêm da Memória (análise de perfil) e das pautas quentes mais abaixo.
+    const listaTexto = (comentarios && comentarios.length > 0)
+      ? comentarios.map((c: { username: string; texto: string }) => `@${c.username || "desconhecido"}: ${c.texto || ""}`).join("\n")
+      : "(nenhum comentário registrado nos últimos 30 dias)";
 
-    const listaTexto = comentarios.map((c: { username: string; texto: string }) => `@${c.username || "desconhecido"}: ${c.texto || ""}`).join("\n");
-
-    // Mesma Memória (marca pessoal, tom de voz, nicho) usada no chat da IAra — assim as
-    // ideias de vídeo saem no nicho/tom certo, não genéricas de criador de conteúdo qualquer.
+    // Mesma Memória (marca pessoal, tom de voz, nicho, análise de perfil) usada no chat
+    // da IAra — assim as ideias saem no nicho/tom certo, e a seção nunca fica vazia só
+    // porque faltou comentário: a análise de perfil já dá conteúdo suficiente sozinha.
     const { data: documentos } = await supabase
       .from("painel_iara_documentos")
       .select("nome, conteudo")
@@ -110,7 +156,13 @@ Deno.serve(async (req: Request) => {
     }
 
     const dataHojeExtenso = new Date().toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
-    const systemPrompt = montarSystemPrompt(dataHojeExtenso, blocoMemoria);
+
+    // Pautas quentes pesquisadas na internet (ver buscarPautasQuentes). Se a busca falhar
+    // por qualquer motivo, blocoPautasQuentes fica "" e o prompt final simplesmente não
+    // menciona essa origem, sem quebrar o resto da análise.
+    const blocoPautasQuentes = await buscarPautasQuentes(dataHojeExtenso);
+
+    const systemPrompt = montarSystemPrompt(dataHojeExtenso, blocoMemoria, blocoPautasQuentes);
 
     const resposta = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -156,6 +208,9 @@ Deno.serve(async (req: Request) => {
     return respostaJson({
       oportunidades: Array.isArray(json.oportunidades) ? json.oportunidades : [],
       ideias: Array.isArray(json.ideias) ? json.ideias : [],
+      aviso: (!comentarios || comentarios.length === 0)
+        ? "Sem comentários novos nos últimos 30 dias — as ideias abaixo vêm da sua análise de perfil e de pautas em alta no nicho."
+        : undefined,
     });
   } catch (erro) {
     console.error("Erro inesperado na função ig-analise-conteudo:", erro);
