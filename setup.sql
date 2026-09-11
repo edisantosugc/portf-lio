@@ -1750,6 +1750,11 @@ create table if not exists public.painel_ig_analises_ia (
 
 create index if not exists idx_painel_ig_analises_ia_semana on public.painel_ig_analises_ia (semana_inicio);
 
+-- Relatório de desempenho do perfil (aba "Sua análise de perfil"): cruza os posts
+-- recentes com a Análise de Perfil salva na Memória. Se a tabela já existia de uma
+-- versão anterior, essa linha adiciona a coluna sem apagar nada.
+alter table public.painel_ig_analises_ia add column if not exists relatorio_perfil jsonb;
+
 alter table public.painel_ig_analises_ia enable row level security;
 
 drop policy if exists "Usuaria autenticada gerencia suas analises semanais de IA" on public.painel_ig_analises_ia;

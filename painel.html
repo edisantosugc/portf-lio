@@ -2493,6 +2493,22 @@
   .ig-ideia-origem.comentario{ background: rgba(0,0,128,.08); color: var(--coral); }
   .ig-ideia-origem.perfil{ background: rgba(45,122,79,.14); color: var(--verde); }
   .ig-ideia-origem.tendencia{ background: rgba(201,166,107,.18); color: var(--dourado); }
+  .ig-relatorio-perfil{ margin-bottom: 16px; }
+  .ig-relatorio-perfil-titulo{ font-family: 'Fraunces', serif; font-weight: 600; font-size: 1rem; margin: 0 0 2px; }
+  .ig-relatorio-secao{ border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+  .ig-relatorio-secao:last-child{ margin-bottom: 0; }
+  .ig-relatorio-secao-titulo{ display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: .85rem; margin-bottom: 8px; }
+  .ig-relatorio-secao ul{ margin: 0; padding-left: 18px; }
+  .ig-relatorio-secao li{ font-size: .82rem; line-height: 1.5; margin-bottom: 5px; }
+  .ig-relatorio-secao li:last-child{ margin-bottom: 0; }
+  .ig-relatorio-secao.certo{ background: rgba(45,122,79,.1); }
+  .ig-relatorio-secao.certo .ig-relatorio-secao-titulo{ color: var(--verde); }
+  .ig-relatorio-secao.errado{ background: rgba(201,166,107,.16); }
+  .ig-relatorio-secao.errado .ig-relatorio-secao-titulo{ color: var(--dourado); }
+  .ig-relatorio-secao.fora{ background: rgba(196,69,60,.08); }
+  .ig-relatorio-secao.fora .ig-relatorio-secao-titulo{ color: var(--vermelho); }
+  .ig-relatorio-secao.melhorar{ background: rgba(0,0,128,.08); }
+  .ig-relatorio-secao.melhorar .ig-relatorio-secao-titulo{ color: var(--coral); }
   .ig-oportunidade-item{ border-bottom: 1px solid var(--borda); padding: 12px 0; }
   .ig-oportunidade-item:last-child{ border-bottom: none; }
   .ig-oportunidade-topo{ display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
@@ -3455,13 +3471,16 @@
             </div>
             <p class="ig-nota" id="igIaUltimaAtualizacao">Ainda não analisado nesta semana. Clique em "Analisar com IA".</p>
 
-            <div id="igIdeiasVideo"></div>
-
-            <div class="ig-subabas-mini" id="igFiltroOportunidades" style="margin-top:16px; margin-bottom:14px;">
-              <button type="button" class="sub-aba-btn ativo" data-filtro="tudo">Tudo</button>
+            <div class="ig-subabas-mini" id="igFiltroConteudoIa" style="margin-top:16px; margin-bottom:14px;">
+              <button type="button" class="sub-aba-btn" data-filtro="perfil">Sua análise de perfil</button>
+              <button type="button" class="sub-aba-btn" data-filtro="tendencia">Pauta em alta</button>
               <button type="button" class="sub-aba-btn" data-filtro="duvida">Dúvidas</button>
               <button type="button" class="sub-aba-btn" data-filtro="interesse">Interesses</button>
+              <button type="button" class="sub-aba-btn ativo" data-filtro="tudo">Todas</button>
             </div>
+
+            <div id="igRelatorioPerfil"></div>
+            <div id="igIdeiasVideo"></div>
             <div id="igListaOportunidades"></div>
           </div>
         </div>
@@ -4704,7 +4723,10 @@
   let igFiltroPostsAtivo = "melhores";
   let igComentaristasCache = [];      // ranking de quem mais comenta, calculado a partir de ig_comments
   let igAnaliseIaCache = null;        // { oportunidades, ideias, aviso } da semana selecionada agora (igSemanaSelecionadaInicio)
-  let igFiltroOportunidadesAtivo = "tudo";
+  // Filtro único de "Ideias de vídeo e oportunidades": perfil/tendencia filtram as
+  // ideias (igIdeiasVideo), duvida/interesse filtram as oportunidades (igListaOportunidades),
+  // "tudo" mostra as duas listas inteiras juntas, como já funcionava antes de ter abas.
+  let igFiltroConteudoIaAtivo = "tudo";
   let igAnalisesSemanaisCache = [];   // todo o histórico salvo em painel_ig_analises_ia (uma linha por semana)
   let igSemanaSelecionadaInicio = null; // segunda-feira (AAAA-MM-DD) da semana em exibição no navegador
 
@@ -5528,7 +5550,9 @@
     document.getElementById("igBotaoAnalisarIA").classList.toggle("oculto", !ehSemanaAtual);
 
     const registro = igAnalisesSemanaisCache.find(r => r.semana_inicio === igSemanaSelecionadaInicio);
-    igAnaliseIaCache = registro ? { ideias: registro.ideias, oportunidades: registro.oportunidades, aviso: registro.aviso } : null;
+    igAnaliseIaCache = registro
+      ? { ideias: registro.ideias, oportunidades: registro.oportunidades, aviso: registro.aviso, relatorioPerfil: registro.relatorio_perfil }
+      : null;
 
     const statusEl = document.getElementById("igIaUltimaAtualizacao");
     if (registro){
@@ -5540,6 +5564,7 @@
       statusEl.textContent = "Nenhuma análise salva nessa semana.";
     }
 
+    renderizarRelatorioPerfil();
     renderizarIdeiasVideo();
     renderizarOportunidades();
   }
@@ -5552,7 +5577,11 @@
     statusEl.textContent = "Analisando os comentários recentes com IA, isso pode levar alguns segundos...";
 
     try {
-      const { data, error } = await Auth.client.functions.invoke("ig-analise-conteudo");
+      // Manda os posts recentes já carregados (curtidas/comentários/salvos/alcance) pra
+      // function cruzar com a Memória e montar o relatório de desempenho do perfil.
+      const { data, error } = await Auth.client.functions.invoke("ig-analise-conteudo", {
+        body: { posts: igMelhoresPostsCache }
+      });
       if (error) throw error;
       if (!data || data.error) throw new Error((data && data.error) || "resposta vazia");
 
@@ -5561,6 +5590,7 @@
         semana_inicio: semana,
         ideias: data.ideias || [],
         oportunidades: data.oportunidades || [],
+        relatorio_perfil: data.relatorioPerfil || null,
         aviso: data.aviso || null,
         atualizado_em: new Date().toISOString()
       };
@@ -5592,9 +5622,56 @@
   // comentário, por isso essa seção não fica mais vazia só por falta de comentário novo.
   const IG_ROTULO_ORIGEM_IDEIA = { comentario: "Comentários", perfil: "Sua análise de perfil", tendencia: "Pauta em alta" };
 
+  // As 4 seções do relatório de desempenho, na ordem em que aparecem — cruza os posts
+  // recentes com a análise de perfil, gerado junto com o resto sempre que ela clica em
+  // "Analisar com IA". Só aparece na aba "Sua análise de perfil" (ver renderizarRelatorioPerfil).
+  const IG_SECOES_RELATORIO_PERFIL = [
+    { chave: "certo", classe: "certo", icone: "✅", titulo: "O que está dando certo" },
+    { chave: "errado", classe: "errado", icone: "⚠️", titulo: "O que não está dando certo" },
+    { chave: "foraDoPosicionamento", classe: "fora", icone: "🚫", titulo: "Fora do posicionamento" },
+    { chave: "precisaMelhorar", classe: "melhorar", icone: "🎯", titulo: "O que precisa melhorar" }
+  ];
+
+  function renderizarRelatorioPerfil(){
+    const container = document.getElementById("igRelatorioPerfil");
+    if (!container) return;
+
+    if (igFiltroConteudoIaAtivo !== "perfil"){
+      container.innerHTML = "";
+      return;
+    }
+
+    const relatorio = igAnaliseIaCache?.relatorioPerfil;
+    const secoesComConteudo = relatorio ? IG_SECOES_RELATORIO_PERFIL.filter(s => (relatorio[s.chave] || []).length > 0) : [];
+
+    if (!secoesComConteudo.length){
+      container.innerHTML = igAnaliseIaCache
+        ? `<p class="texto-vazio">Ainda não há posts recentes suficientes pra montar o relatório de desempenho.</p>`
+        : "";
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="ig-relatorio-perfil dado-sensivel">
+        <p class="ig-relatorio-perfil-titulo">Relatório de desempenho do perfil</p>
+        <p class="ig-nota" style="margin-bottom:14px;">Cruza seus posts recentes com a Análise de Perfil salva na Memória.</p>
+        ${secoesComConteudo.map(s => `
+          <div class="ig-relatorio-secao ${s.classe}">
+            <div class="ig-relatorio-secao-titulo">${s.icone} ${s.titulo}</div>
+            <ul>${(relatorio[s.chave] || []).map(item => `<li>${igEscaparHtml(item)}</li>`).join("")}</ul>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
   function renderizarIdeiasVideo(){
     const container = document.getElementById("igIdeiasVideo");
-    const ideias = igAnaliseIaCache?.ideias || [];
+    const todas = igAnaliseIaCache?.ideias || [];
+    const filtro = igFiltroConteudoIaAtivo;
+    const ideias = filtro === "tudo"
+      ? todas
+      : (filtro === "perfil" || filtro === "tendencia") ? todas.filter(i => i.origem === filtro) : [];
     if (!ideias.length){
       container.innerHTML = "";
       return;
@@ -5612,6 +5689,15 @@
 
   function renderizarOportunidades(){
     const container = document.getElementById("igListaOportunidades");
+    const filtro = igFiltroConteudoIaAtivo;
+
+    // "perfil"/"tendencia" são filtros só de ideias — aqui embaixo (dúvidas/interesses,
+    // que vêm sempre de comentário de verdade) não mostra nada nesses dois casos.
+    if (filtro === "perfil" || filtro === "tendencia"){
+      container.innerHTML = "";
+      return;
+    }
+
     const todas = igAnaliseIaCache?.oportunidades || [];
     if (!todas.length){
       container.innerHTML = igAnaliseIaCache
@@ -5619,9 +5705,9 @@
         : "";
       return;
     }
-    const lista = igFiltroOportunidadesAtivo === "tudo"
+    const lista = filtro === "tudo"
       ? todas
-      : todas.filter(o => o.tipo === igFiltroOportunidadesAtivo);
+      : todas.filter(o => o.tipo === filtro);
 
     if (!lista.length){
       container.innerHTML = `<p class="texto-vazio">Nada nessa categoria.</p>`;
@@ -6346,10 +6432,12 @@
         renderizarMelhoresPosts();
       });
     });
-    document.querySelectorAll("#igFiltroOportunidades .sub-aba-btn").forEach(btn => {
+    document.querySelectorAll("#igFiltroConteudoIa .sub-aba-btn").forEach(btn => {
       btn.addEventListener("click", () => {
-        document.querySelectorAll("#igFiltroOportunidades .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b === btn));
-        igFiltroOportunidadesAtivo = btn.dataset.filtro;
+        document.querySelectorAll("#igFiltroConteudoIa .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b === btn));
+        igFiltroConteudoIaAtivo = btn.dataset.filtro;
+        renderizarRelatorioPerfil();
+        renderizarIdeiasVideo();
         renderizarOportunidades();
       });
     });

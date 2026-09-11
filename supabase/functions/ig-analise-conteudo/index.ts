@@ -1,12 +1,13 @@
 // supabase/functions/ig-analise-conteudo/index.ts
 //
-// Lê os comentários recentes (ig_comments) e usa a OpenAI API pra: (1)
-// classificar os que são dúvida ou interesse real, com uma sugestão de ação
-// pra cada um, e (2) sugerir ideias de vídeo com base nos temas mais
-// recorrentes. Chamada pelo painel.html (aba Instagram > Análises), sempre
-// por um clique explícito da pessoa (não em todo carregamento de página),
-// já que cada chamada tem custo de IA. Mantém a verificação de JWT do
-// Supabase ligada, como a ia-assistente.
+// Lê os comentários recentes (ig_comments) e usa a OpenAI API pra: (1) classificar os
+// que são dúvida ou interesse real, com uma sugestão de ação pra cada um; (2) sugerir
+// ideias de vídeo cruzando comentários, a Memória (análise de perfil) e pautas em alta
+// pesquisadas na web; e (3) montar um relatório comparando posts recentes (métricas,
+// mandadas pelo painel.html no corpo da chamada) com a análise de perfil. Chamada pelo
+// painel.html (aba Instagram > Análises), sempre por um clique explícito da pessoa (não
+// em todo carregamento de página), já que cada chamada tem custo de IA. Mantém a
+// verificação de JWT do Supabase ligada, como a ia-assistente.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -37,12 +38,13 @@ const CORS_HEADERS = {
 // modelo não sabe a data atual sozinho, e sem dizer explicitamente ele tende a "puxar"
 // anos/tendências do próprio treinamento (ex.: sugerir algo "em 2023") em vez de ficar
 // só no que os comentários/documentos mostram.
-function montarSystemPrompt(dataHojeExtenso: string, blocoMemoria: string, blocoPautasQuentes: string): string {
-  return `Você analisa comentários de Instagram de uma criadora de conteúdo que ensina UGC (User Generated Content) e gestão de Instagram.
+function montarSystemPrompt(dataHojeExtenso: string, blocoMemoria: string, blocoPautasQuentes: string, blocoPosts: string): string {
+  return `Você analisa comentários e posts de Instagram de uma criadora de conteúdo que ensina UGC (User Generated Content) e gestão de Instagram.
 
 Hoje é ${dataHojeExtenso}. Nunca mencione um ano diferente desse (nem anos passados tipo "2023").
-${blocoMemoria ? `\nContexto sobre a marca pessoal, o posicionamento e a estrutura de roteiro que ela já definiu — use isso como base FIXA pras ideias de vídeo, mesmo quando os comentários abaixo forem poucos ou genéricos. Preste atenção especial em qualquer seção tipo "o que evitar": nunca sugira algo listado ali.\n${blocoMemoria}\n` : ""}
+${blocoMemoria ? `\nContexto sobre a marca pessoal, o posicionamento e a estrutura de roteiro que ela já definiu — use isso como base FIXA pras ideias de vídeo e pro relatório de desempenho, mesmo quando os comentários abaixo forem poucos ou genéricos. Preste atenção especial em qualquer seção tipo "o que evitar": nunca sugira algo listado ali, e sinalize no relatório se algum post recente cair nesses pontos.\n${blocoMemoria}\n` : ""}
 ${blocoPautasQuentes ? `\nPautas em alta agora (pesquisadas na internet) nos nichos de UGC, criação de conteúdo e desenvolvimento pessoal/carreira pra mulheres:\n${blocoPautasQuentes}\n` : ""}
+${blocoPosts ? `\nPosts recentes publicados por ela, com legenda e métricas de desempenho (curtidas, comentários, salvos, alcance/visualizações) — um por linha:\n${blocoPosts}\n` : ""}
 Você recebe uma lista de comentários recentes (usuário e texto, um por linha) — pode vir vazia ou com poucos comentários úteis, isso é normal e não deve travar a análise. Sua tarefa:
 
 1. Selecione só os comentários que sejam perguntas genuínas ou expressem um interesse real relacionado a algo que ela ensina ou vende. Ignore elogios genéricos sem substância, emojis soltos, spam e comentários irrelevantes.
@@ -52,9 +54,15 @@ Você recebe uma lista de comentários recentes (usuário e texto, um por linha)
    - "perfil": baseada no posicionamento, tom de voz, estrutura de roteiro ou estratégias de feed (Série, Virais, UGC → Autoridade etc.) da análise de perfil dela, acima.
    - "tendencia": baseada nas pautas em alta pesquisadas na internet, acima, adaptada pro nicho e tom dela — só use se a pauta tiver relação de verdade com UGC/criação de conteúdo/desenvolvimento pessoal feminino. Ignore qualquer pauta genérica de comércio/data comemorativa/produto sazonal que tenha vindo na lista sem essa relação.
    Cada ideia tem um título curto, uma descrição de 1 frase, e o campo "origem" marcando de qual dessas três ela veio.
+4. Monte um "relatorioPerfil" cruzando os posts recentes (acima) com a análise de perfil (acima), em 4 listas de itens curtos (1 frase cada, sem enrolação):
+   - "certo": o que está dando certo — conteúdos/temas/formatos que performaram bem E estão alinhados com a análise. Diga pra continuar/replicar.
+   - "errado": o que não está dando certo — conteúdos que performaram mal, com uma hipótese do porquê (cruzando com a análise quando der).
+   - "foraDoPosicionamento": práticas ou conteúdos atuais que contrariam a análise de perfil (ex: pontos do "Exorcismo da mentora Edi"), independente de terem performado bem ou mal.
+   - "precisaMelhorar": recomendações práticas e específicas de ajuste, cruzando desempenho real com a análise.
+   Se não tiver posts suficientes pra alguma dessas listas, devolva ela como array vazio em vez de inventar — não force conteúdo sem base real. Se não houver NENHUM post na lista de posts recentes, todas as quatro listas vêm vazias.
 
 Responda SOMENTE com um JSON válido, sem nenhum texto antes ou depois, neste formato exato:
-{"oportunidades":[{"username":"...","texto":"...","tipo":"duvida","sugestao":"..."}],"ideias":[{"titulo":"...","descricao":"...","origem":"perfil"}]}`;
+{"oportunidades":[{"username":"...","texto":"...","tipo":"duvida","sugestao":"..."}],"ideias":[{"titulo":"...","descricao":"...","origem":"perfil"}],"relatorioPerfil":{"certo":["..."],"errado":["..."],"foraDoPosicionamento":["..."],"precisaMelhorar":["..."]}}`;
 }
 
 // Pesquisa na internet (via OpenAI Responses API + ferramenta de busca web) os assuntos
@@ -123,6 +131,17 @@ Deno.serve(async (req: Request) => {
     return respostaJson({ error: "OPENAI_API_KEY não configurada nos secrets da função." }, 500);
   }
 
+  // Posts recentes com métricas, já buscados pelo painel.html (aba Instagram > Análises)
+  // via ig-media?insights=true — reaproveita esse mesmo dado em vez de buscar de novo
+  // aqui (evitaria uma segunda leva de chamadas à Graph API do Instagram por post).
+  let postsRecebidos: any[] = [];
+  try {
+    const corpo = await req.json();
+    if (Array.isArray(corpo?.posts)) postsRecebidos = corpo.posts;
+  } catch {
+    // corpo vazio/ausente é válido (chamada antiga, ou sem posts carregados ainda)
+  }
+
   try {
     const desde = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const { data: comentarios, error } = await supabase
@@ -162,7 +181,20 @@ Deno.serve(async (req: Request) => {
     // menciona essa origem, sem quebrar o resto da análise.
     const blocoPautasQuentes = await buscarPautasQuentes(dataHojeExtenso);
 
-    const systemPrompt = montarSystemPrompt(dataHojeExtenso, blocoMemoria, blocoPautasQuentes);
+    // Só os campos que importam pro relatório, e um limite generoso de posts (o
+    // painel.html já manda no máximo os mais recentes) pra não estourar o prompt.
+    const blocoPosts = postsRecebidos.slice(0, 30).map((p: any) => {
+      const metricas = [
+        p.curtidas != null ? `${p.curtidas} curtidas` : null,
+        p.comentarios != null ? `${p.comentarios} comentários` : null,
+        p.salvos != null ? `${p.salvos} salvos` : null,
+        (p.visualizacoes ?? p.alcance) != null ? `${p.visualizacoes ?? p.alcance} alcance/visualizações` : null,
+      ].filter(Boolean).join(", ");
+      const data = p.data ? String(p.data).slice(0, 10) : "";
+      return `- [${data}] "${(p.legenda || "(sem legenda)").replace(/\n/g, " ")}" — ${metricas || "sem métricas"}`;
+    }).join("\n");
+
+    const systemPrompt = montarSystemPrompt(dataHojeExtenso, blocoMemoria, blocoPautasQuentes, blocoPosts);
 
     const resposta = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -172,7 +204,7 @@ Deno.serve(async (req: Request) => {
       },
       body: JSON.stringify({
         model: MODELO,
-        max_tokens: 3000,
+        max_tokens: 4000,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: systemPrompt },
@@ -205,9 +237,18 @@ Deno.serve(async (req: Request) => {
       return respostaJson({ error: "A IA respondeu num formato inesperado. Tenta de novo." }, 502);
     }
 
+    const relatorioBruto = json.relatorioPerfil && typeof json.relatorioPerfil === "object" ? json.relatorioPerfil : {};
+    const relatorioPerfil = {
+      certo: Array.isArray(relatorioBruto.certo) ? relatorioBruto.certo : [],
+      errado: Array.isArray(relatorioBruto.errado) ? relatorioBruto.errado : [],
+      foraDoPosicionamento: Array.isArray(relatorioBruto.foraDoPosicionamento) ? relatorioBruto.foraDoPosicionamento : [],
+      precisaMelhorar: Array.isArray(relatorioBruto.precisaMelhorar) ? relatorioBruto.precisaMelhorar : [],
+    };
+
     return respostaJson({
       oportunidades: Array.isArray(json.oportunidades) ? json.oportunidades : [],
       ideias: Array.isArray(json.ideias) ? json.ideias : [],
+      relatorioPerfil,
       aviso: (!comentarios || comentarios.length === 0)
         ? "Sem comentários novos nos últimos 30 dias — as ideias abaixo vêm da sua análise de perfil e de pautas em alta no nicho."
         : undefined,
