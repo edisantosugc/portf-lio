@@ -14406,6 +14406,17 @@
     renderizarChecklistSemanal();
   }
 
+  // Lê os campos de hora/texto que estão na tela agora de volta pro chkRascunhoTarefas
+  // — precisa rodar antes de qualquer ação (add/remover linha) que force um re-render,
+  // senão o que ela tinha acabado de digitar nas OUTRAS linhas se perde.
+  function sincronizarRascunhoChecklistComDom(){
+    document.querySelectorAll("#chkCorpoDiario .chk-item-editar").forEach((linha, i) => {
+      if (!chkRascunhoTarefas[i]) return;
+      chkRascunhoTarefas[i].hora = linha.querySelector(".chk-campo-hora").value;
+      chkRascunhoTarefas[i].texto = linha.querySelector(".chk-campo-texto").value;
+    });
+  }
+
   function renderizarChecklistDia(){
     document.getElementById("chkDiaNomeAtual").textContent = chkDiaSemanaDe(chkDataVisivel);
     const corpo = document.getElementById("chkCorpoDiario");
@@ -14424,11 +14435,13 @@
       `;
       corpo.querySelectorAll("[data-acao='chk-remover-tarefa']").forEach(btn => {
         btn.addEventListener("click", () => {
+          sincronizarRascunhoChecklistComDom();
           chkRascunhoTarefas.splice(Number(btn.closest(".chk-item-editar").dataset.i), 1);
           renderizarChecklistDia();
         });
       });
       document.getElementById("chkBotaoAddTarefa").addEventListener("click", () => {
+        sincronizarRascunhoChecklistComDom();
         chkRascunhoTarefas.push({ id: null, hora: "", texto: "" });
         renderizarChecklistDia();
       });
@@ -14494,28 +14507,52 @@
     }
   }
 
+  // Reordena por horário (cronológico) antes de salvar — tarefa sem hora (ex: "Limpar
+  // Théo" logo depois de "07:00 Acordar") acompanha a hora da tarefa anterior com horário
+  // preenchido, em vez de subir sozinha pro topo da lista.
+  function ordenarTarefasChecklistPorHorario(lista){
+    let horaEfetivaAnterior = "00:00";
+    return lista
+      .map((t, i) => {
+        horaEfetivaAnterior = t.hora || horaEfetivaAnterior;
+        return { ...t, _horaEfetiva: horaEfetivaAnterior, _indiceOriginal: i };
+      })
+      .sort((a, b) => a._horaEfetiva.localeCompare(b._horaEfetiva) || a._indiceOriginal - b._indiceOriginal);
+  }
+
   // Salva as tarefas editadas do dia da semana (template, vale pra todas as ocorrências
   // desse dia — não só a data que estava aberta). Atualiza quem já existia (mantendo o
   // id, pra não perder o progresso já marcado em datas passadas), cria quem é novo, e
   // apaga (com o progresso junto, via ON DELETE CASCADE) quem foi removido na edição.
   async function salvarEdicaoChecklistDia(diaSemana){
+    // Lê o valor ATUAL de cada campo na tela — chkRascunhoTarefas só guarda o texto de
+    // quando a edição foi aberta (só serve pra saber o id e a ordem/quantidade de linhas),
+    // nunca é atualizado enquanto ela digita, então usar ele pro texto salvava sempre a
+    // versão antiga por engano.
+    const linhas = document.querySelectorAll("#chkCorpoDiario .chk-item-editar");
+    const editados = Array.from(linhas).map((linha, i) => ({
+      id: chkRascunhoTarefas[i]?.id || null,
+      hora: linha.querySelector(".chk-campo-hora").value.trim(),
+      texto: linha.querySelector(".chk-campo-texto").value.trim()
+    }));
+
     const originais = chkTarefasDoDia(diaSemana);
-    const idsRascunho = new Set(chkRascunhoTarefas.filter(t => t.id).map(t => t.id));
-    const removidos = originais.filter(t => !idsRascunho.has(t.id));
+    const idsEditados = new Set(editados.filter(t => t.id).map(t => t.id));
+    const removidos = originais.filter(t => !idsEditados.has(t.id));
 
     for (const removido of removidos){
       await Auth.client.from("painel_checklist_tarefas").delete().eq("id", removido.id);
     }
 
-    const validos = chkRascunhoTarefas.filter(t => (t.texto || "").trim());
+    const validos = ordenarTarefasChecklistPorHorario(editados.filter(t => t.texto));
     for (let i = 0; i < validos.length; i++){
       const t = validos[i];
       if (t.id){
-        await Auth.client.from("painel_checklist_tarefas").update({ hora: t.hora.trim(), texto: t.texto.trim(), ordem: i }).eq("id", t.id);
+        await Auth.client.from("painel_checklist_tarefas").update({ hora: t.hora, texto: t.texto, ordem: i }).eq("id", t.id);
       } else {
         const { data: inserido, error } = await Auth.client
           .from("painel_checklist_tarefas")
-          .insert({ dia_semana: diaSemana, hora: t.hora.trim(), texto: t.texto.trim(), ordem: i })
+          .insert({ dia_semana: diaSemana, hora: t.hora, texto: t.texto, ordem: i })
           .select()
           .single();
         if (!error && inserido) chkTarefasCache.push(inserido);
