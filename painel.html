@@ -2853,7 +2853,7 @@
 
   .chk-painel{
     position: fixed; bottom: 20px; right: 20px; z-index: 70;
-    width: 330px; max-height: min(600px, 80vh);
+    width: 330px; max-height: min(600px, 80vh); max-height: min(600px, 80dvh);
     background: var(--branco); border-radius: 18px; box-shadow: 0 12px 30px rgba(26,24,22,.22);
     display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--borda);
   }
@@ -2903,7 +2903,7 @@
   }
   .chk-item-semanal input.chk-texto-semanal:focus{ outline:none; }
 
-  .chk-corpo-diario{ padding: 10px 16px 14px; overflow-y: auto; flex:1; }
+  .chk-corpo-diario{ padding: 10px 16px 14px; overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; min-height: 0; }
 
   .chk-item{ display:flex; align-items:flex-start; gap: 10px; padding: 7px 0; }
   .chk-item input[type=checkbox]{ margin-top: 3px; width:16px; height:16px; accent-color: var(--coral); flex-shrink:0; cursor:pointer; }
@@ -2937,6 +2937,11 @@
     width:100%; margin-top:10px; padding:9px; border-radius:8px; border:none; background: var(--coral); color: var(--branco);
     font-family:'Outfit', sans-serif; font-weight:700; font-size:.8rem; cursor:pointer;
   }
+  .chk-botao-copiar-todos{
+    width:100%; margin-top:8px; padding:8px; border-radius:8px; border:1px solid var(--borda); background:none; color: var(--texto-suave);
+    font-family:'Outfit', sans-serif; font-weight:600; font-size:.75rem; cursor:pointer;
+  }
+  .chk-botao-copiar-todos:hover{ border-color: var(--coral); color: var(--coral); }
 
   @media (max-width: 480px){
     .chk-painel{ width: calc(100vw - 24px); right: 12px; bottom: 12px; }
@@ -14432,6 +14437,7 @@
       `).join("") + `
         <button type="button" class="chk-botao-add-tarefa" id="chkBotaoAddTarefa">+ Adicionar tarefa</button>
         <button type="button" class="chk-botao-salvar-edicao" id="chkBotaoSalvarEdicaoDia">Salvar</button>
+        <button type="button" class="chk-botao-copiar-todos" id="chkBotaoCopiarTodos">Aplicar ${diaSemana} a todos os dias</button>
       `;
       corpo.querySelectorAll("[data-acao='chk-remover-tarefa']").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -14446,6 +14452,10 @@
         renderizarChecklistDia();
       });
       document.getElementById("chkBotaoSalvarEdicaoDia").addEventListener("click", () => salvarEdicaoChecklistDia(diaSemana));
+      document.getElementById("chkBotaoCopiarTodos").addEventListener("click", async () => {
+        await salvarEdicaoChecklistDia(diaSemana);
+        await copiarDiaParaTodosChecklist(diaSemana);
+      });
       return;
     }
 
@@ -14563,6 +14573,30 @@
     // e seguro do que tentar remendar chkTarefasCache manualmente depois de tanta mudança).
     chkTarefasCache = await comRetry(() => buscarTudo("painel_checklist_tarefas"));
     chkModoEdicaoDia = false;
+    renderizarChecklistDia();
+  }
+
+  // Substitui as tarefas de TODOS os outros dias da semana pelas do dia de origem —
+  // pra virar o "padrão" que ela edita dia a dia depois, em vez de recomeçar do zero em
+  // cada um. Apaga as tarefas antigas dos outros dias (o progresso marcado em datas
+  // passadas some junto, por ON DELETE CASCADE) e recria com o mesmo texto/horário.
+  async function copiarDiaParaTodosChecklist(diaOrigem){
+    if (!window.confirm(`Isso substitui as tarefas de TODOS os outros dias da semana pelas de ${diaOrigem}. O progresso já marcado nos outros dias se perde. Continuar?`)) return;
+
+    const tarefasOrigem = chkTarefasDoDia(diaOrigem);
+    const outrosDias = CHK_DIAS_SEMANA_ORDENADOS.filter(d => d !== diaOrigem);
+
+    for (const dia of outrosDias){
+      for (const antiga of chkTarefasDoDia(dia)){
+        await Auth.client.from("painel_checklist_tarefas").delete().eq("id", antiga.id);
+      }
+      for (let i = 0; i < tarefasOrigem.length; i++){
+        const t = tarefasOrigem[i];
+        await Auth.client.from("painel_checklist_tarefas").insert({ dia_semana: dia, hora: t.hora, texto: t.texto, ordem: i });
+      }
+    }
+
+    chkTarefasCache = await comRetry(() => buscarTudo("painel_checklist_tarefas"));
     renderizarChecklistDia();
   }
 
