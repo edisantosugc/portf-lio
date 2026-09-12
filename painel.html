@@ -2861,11 +2861,14 @@
 
   .chk-cabeca{ background: var(--coral); color: var(--branco); padding: 14px 16px 12px; flex-shrink: 0; }
   .chk-cabeca-topo{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px; }
-  .chk-cabeca-topo strong{ font-family:'Fraunces', serif; font-size: 1rem; }
+  .chk-cabeca-topo strong{ font-family:'Fraunces', serif; font-size: 1rem; cursor:pointer; }
   .chk-acoes-cabeca{ display:flex; align-items:center; gap:2px; }
   .chk-acoes-cabeca button{ background:none; border:none; color: var(--branco); font-size: 1rem; cursor:pointer; opacity:.85; padding:3px 5px; }
   .chk-acoes-cabeca button:hover{ opacity:1; }
-  .chk-navegador-dia{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .chk-navegador-dia{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding-top: 10px; border-top: 1px solid rgba(255,255,255,.3);
+  }
   .chk-navegador-dia button{
     background: rgba(255,255,255,.18); border:none; color: var(--branco); width:26px; height:26px; border-radius:50%;
     cursor:pointer; font-size:.85rem; display:flex; align-items:center; justify-content:center; flex-shrink:0;
@@ -4630,7 +4633,7 @@
 <div class="chk-painel oculto" id="chkPainel">
   <div class="chk-cabeca">
     <div class="chk-cabeca-topo">
-      <strong>Checklist Diário</strong>
+      <strong id="chkTituloWidget" title="Minimizar">Checklist Diário</strong>
       <div class="chk-acoes-cabeca">
         <button type="button" id="chkBotaoEditarDia" title="Editar tarefas do dia">✎</button>
         <button type="button" id="chkBotaoFechar" title="Minimizar">✕</button>
@@ -14552,15 +14555,18 @@
     }
   }
 
+  function minimizarChecklistWidget(){
+    document.getElementById("chkPainel").classList.add("oculto");
+    document.getElementById("chkBotaoFlutuante").classList.remove("oculto");
+  }
+
   function configurarEventosChecklistDiario(){
     document.getElementById("chkBotaoFlutuante").addEventListener("click", () => {
       document.getElementById("chkPainel").classList.remove("oculto");
       document.getElementById("chkBotaoFlutuante").classList.add("oculto");
     });
-    document.getElementById("chkBotaoFechar").addEventListener("click", () => {
-      document.getElementById("chkPainel").classList.add("oculto");
-      document.getElementById("chkBotaoFlutuante").classList.remove("oculto");
-    });
+    document.getElementById("chkBotaoFechar").addEventListener("click", minimizarChecklistWidget);
+    document.getElementById("chkTituloWidget").addEventListener("click", minimizarChecklistWidget);
     document.getElementById("chkDiaAnterior").addEventListener("click", () => {
       chkModoEdicaoDia = false;
       chkDataVisivel = somarDias(chkDataVisivel, -1);
