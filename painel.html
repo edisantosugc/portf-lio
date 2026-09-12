@@ -148,13 +148,6 @@
     user-select: none;
     transition: filter .15s ease;
   }
-  body.modo-oculto .dado-sensivel:hover,
-  body.modo-oculto .financas-total-valor:hover,
-  body.modo-oculto .resumo-linha > strong:hover,
-  body.modo-oculto .input-valor-fixo:hover,
-  body.modo-oculto .ano-dado > strong:hover,
-  body.modo-oculto .ugc-marca:hover,
-  body.modo-oculto .ugc-valor:hover{ filter: blur(2.5px); }
   /* Contadores que aparecem soltos na sidebar (nº de mensagens/leads novos por aba) */
   body.modo-oculto .badge-alerta-sidebar{ filter: blur(4px); }
 
@@ -14452,7 +14445,7 @@
     }).join("") + `
       <div class="chk-observacao">
         <label>Observação <span class="chk-salvo-observacao oculto" id="chkSalvoObservacao">✓ Salvo</span></label>
-        <textarea id="chkCampoObservacao" placeholder="Ex: deixei de fazer tal coisa por conta disso...">${igEscaparHtml(chkObservacoesCache[chkDataVisivel] || "")}</textarea>
+        <textarea id="chkCampoObservacao">${igEscaparHtml(chkObservacoesCache[chkDataVisivel] || "")}</textarea>
       </div>
     `;
     corpo.querySelectorAll(".chk-item input[type=checkbox]").forEach(cb => {
