@@ -2845,6 +2845,107 @@
   @media (max-width: 360px){
     .jur-resumo{ grid-template-columns: 1fr; }
   }
+
+  /* ===================== WIDGET: CHECKLIST DIÁRIO ===================== */
+  .chk-flutuante{
+    position: fixed; bottom: 20px; right: 20px; z-index: 70;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--coral); color: var(--branco);
+    padding: 12px 18px; border-radius: 999px; border: none; cursor: pointer;
+    font-family: 'Outfit', sans-serif; font-weight: 700; font-size: .85rem;
+    box-shadow: 0 12px 30px rgba(26,24,22,.22);
+  }
+  .chk-flutuante:hover{ background: var(--coral-escuro); }
+  .chk-flutuante.oculto{ display: none; }
+
+  .chk-painel{
+    position: fixed; bottom: 20px; right: 20px; z-index: 70;
+    width: 330px; max-height: min(600px, 80vh);
+    background: var(--branco); border-radius: 18px; box-shadow: 0 12px 30px rgba(26,24,22,.22);
+    display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--borda);
+  }
+  .chk-painel.oculto{ display: none; }
+
+  .chk-cabeca{ background: var(--coral); color: var(--branco); padding: 14px 16px 12px; flex-shrink: 0; }
+  .chk-cabeca-topo{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px; }
+  .chk-cabeca-topo strong{ font-family:'Fraunces', serif; font-size: 1rem; }
+  .chk-acoes-cabeca{ display:flex; align-items:center; gap:2px; }
+  .chk-acoes-cabeca button{ background:none; border:none; color: var(--branco); font-size: 1rem; cursor:pointer; opacity:.85; padding:3px 5px; }
+  .chk-acoes-cabeca button:hover{ opacity:1; }
+  .chk-navegador-dia{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .chk-navegador-dia button{
+    background: rgba(255,255,255,.18); border:none; color: var(--branco); width:26px; height:26px; border-radius:50%;
+    cursor:pointer; font-size:.85rem; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .chk-navegador-dia button:hover{ background: rgba(255,255,255,.3); }
+  .chk-dia-nome{ font-weight:700; font-size:.85rem; letter-spacing:.03em; text-transform:uppercase; }
+
+  .chk-cabeca-semanal{
+    display:flex; align-items:center; justify-content:space-between; width:100%; flex-shrink: 0;
+    background: rgba(107,127,215,.14); color: #4d5fc0;
+  }
+  :root[data-theme="dark"] .chk-cabeca-semanal, :root:not([data-theme="light"]) .chk-cabeca-semanal{ background: rgba(159,176,255,.16); color: #b7c4ff; }
+  .chk-rotulo-semanal{
+    background:none; border:none; color: inherit; cursor:pointer; flex:1; text-align:left;
+    padding: 8px 0 8px 16px; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+  }
+  .chk-acoes-semanal{ display:flex; align-items:center; gap:2px; flex-shrink:0; padding-right: 8px; }
+  .chk-acoes-semanal button{ background:none; border:none; color: inherit; cursor:pointer; font-size:.9rem; padding:6px 7px; border-radius:6px; }
+  .chk-acoes-semanal button:hover{ background: rgba(107,127,215,.2); }
+  .chk-seta{ display:inline-block; transition: transform .15s ease; }
+  .chk-seta.aberta{ transform: rotate(180deg); }
+  .chk-corpo-semanal{ background: rgba(107,127,215,.14); padding: 4px 16px 14px; flex-shrink: 0; }
+  :root[data-theme="dark"] .chk-corpo-semanal, :root:not([data-theme="light"]) .chk-corpo-semanal{ background: rgba(159,176,255,.16); }
+
+  .chk-item-semanal{ display:flex; align-items:center; gap:8px; padding: 8px 0; font-size: .82rem; border-bottom: 1px solid rgba(107,127,215,.2); }
+  .chk-item-semanal:last-child{ border-bottom:none; }
+  .chk-item-semanal .chk-dia-semanal{ font-weight: 700; flex-shrink:0; width: 60px; }
+  .chk-item-semanal .chk-texto-semanal-leitura{ flex:1; }
+  .chk-item-semanal input.chk-texto-semanal{
+    flex:1; background: var(--branco); border:1px solid #6B7FD7; border-radius:6px; padding:3px 6px;
+    font-family:'Outfit', sans-serif; font-size:.82rem; color: var(--grafite);
+  }
+  .chk-item-semanal input.chk-texto-semanal:focus{ outline:none; }
+
+  .chk-corpo-diario{ padding: 10px 16px 14px; overflow-y: auto; flex:1; }
+
+  .chk-item{ display:flex; align-items:flex-start; gap: 10px; padding: 7px 0; }
+  .chk-item input[type=checkbox]{ margin-top: 3px; width:16px; height:16px; accent-color: var(--coral); flex-shrink:0; cursor:pointer; }
+  .chk-item label{ font-size: .84rem; line-height:1.5; cursor:pointer; }
+  .chk-item label .chk-hora{ font-weight:700; text-decoration: underline; text-decoration-color: var(--borda); }
+  .chk-item.marcado label .chk-texto-tarefa{
+    background: rgba(45,122,79,.28); border-radius: 3px; box-decoration-break: clone; -webkit-box-decoration-break: clone; padding: 1px 3px;
+  }
+
+  .chk-observacao{ margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--borda); }
+  .chk-observacao label{ display:flex; align-items:center; gap:6px; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color: var(--texto-suave); margin-bottom:6px; }
+  .chk-salvo-observacao{ color: var(--verde); font-weight: 700; text-transform: none; letter-spacing: normal; font-size: .7rem; }
+  .chk-observacao textarea{
+    width:100%; min-height:50px; border:1px solid var(--borda); border-radius:10px; padding:8px 10px;
+    font-family:'Outfit', sans-serif; font-size:.82rem; resize: vertical; background: var(--creme); color: var(--grafite);
+  }
+
+  .chk-item-editar{ display:flex; align-items:center; gap:6px; padding: 5px 0; }
+  .chk-item-editar input[type=text]{
+    border:1px solid var(--borda); border-radius:7px; padding:6px 8px; font-family:'Outfit', sans-serif; font-size:.8rem; background: var(--creme); color: var(--grafite);
+  }
+  .chk-item-editar .chk-campo-hora{ width: 58px; flex-shrink:0; }
+  .chk-item-editar .chk-campo-texto{ flex:1; min-width:0; }
+  .chk-item-editar button{ background:none; border:none; cursor:pointer; color: var(--vermelho); font-size:.9rem; flex-shrink:0; padding:2px 4px; }
+  .chk-botao-add-tarefa{
+    width:100%; margin-top:8px; padding:8px; border-radius:8px; border:1px dashed var(--borda); background:none;
+    color: var(--texto-suave); font-family:'Outfit', sans-serif; font-size:.78rem; cursor:pointer;
+  }
+  .chk-botao-add-tarefa:hover{ border-color: var(--coral); color: var(--coral); }
+  .chk-botao-salvar-edicao{
+    width:100%; margin-top:10px; padding:9px; border-radius:8px; border:none; background: var(--coral); color: var(--branco);
+    font-family:'Outfit', sans-serif; font-weight:700; font-size:.8rem; cursor:pointer;
+  }
+
+  @media (max-width: 480px){
+    .chk-painel{ width: calc(100vw - 24px); right: 12px; bottom: 12px; }
+    .chk-flutuante{ right: 12px; bottom: 12px; }
+  }
 </style>
 </head>
 <body>
@@ -4530,6 +4631,37 @@
   </main>
 </div>
 
+<!-- ===================== WIDGET: CHECKLIST DIÁRIO (fixo, aparece em qualquer aba) ===================== -->
+<button type="button" class="chk-flutuante" id="chkBotaoFlutuante">📋 Checklist Diário</button>
+
+<div class="chk-painel oculto" id="chkPainel">
+  <div class="chk-cabeca">
+    <div class="chk-cabeca-topo">
+      <strong>Checklist Diário</strong>
+      <div class="chk-acoes-cabeca">
+        <button type="button" id="chkBotaoEditarDia" title="Editar tarefas do dia">✎</button>
+        <button type="button" id="chkBotaoFechar" title="Minimizar">✕</button>
+      </div>
+    </div>
+    <div class="chk-navegador-dia">
+      <button type="button" id="chkDiaAnterior" aria-label="Dia anterior">‹</button>
+      <span class="chk-dia-nome" id="chkDiaNomeAtual"></span>
+      <button type="button" id="chkDiaProximo" aria-label="Próximo dia">›</button>
+    </div>
+  </div>
+
+  <div class="chk-cabeca-semanal">
+    <button type="button" class="chk-rotulo-semanal" id="chkBotaoToggleSemanal">Organização Semanal</button>
+    <div class="chk-acoes-semanal">
+      <button type="button" id="chkBotaoEditarSemanal" title="Editar">✎</button>
+      <button type="button" id="chkBotaoSetaSemanal" title="Expandir"><span class="chk-seta">▾</span></button>
+    </div>
+  </div>
+  <div class="chk-corpo-semanal oculto" id="chkCorpoSemanal"></div>
+
+  <div class="chk-corpo-diario" id="chkCorpoDiario"></div>
+</div>
+
 <script src="js/auth.js"></script>
 <script src="js/push.js"></script>
 <script>
@@ -5179,6 +5311,13 @@
         renderMantraDoDia();
       } catch (erroMantras) {
         console.error("Erro ao carregar/renderizar Mantras:", erroMantras);
+      }
+      try {
+        // Isolado do carregamento principal: as tabelas do Checklist Diário só existem
+        // depois que o SQL desse widget for rodado no Supabase.
+        await carregarChecklistDiario();
+      } catch (erroChecklist) {
+        console.error("Erro ao carregar/renderizar o Checklist Diário:", erroChecklist);
       }
       try {
         // Isolado do carregamento principal: a tabela painel_clientes só existe depois que
@@ -14215,6 +14354,251 @@
     btn.textContent = "✓ Copiado";
     setTimeout(() => { btn.textContent = textoOriginal; }, 1500);
   }
+
+  /* =========================================================================
+     WIDGET: CHECKLIST DIÁRIO — fixo em qualquer aba do painel (fora das seções
+     .painel-tab, então o toggle de aba não afeta ele). Duas partes:
+     - Tarefas por dia da semana (template SEGUNDA..DOMINGO, editável no lápis do
+       cabeçalho) + progresso (feito/não) e Observação, esses dois por DATA real.
+     - Organização Semanal: resumo de 1 linha por dia, editável à parte.
+     ========================================================================= */
+  const CHK_DIAS_SEMANA = ["DOMINGO", "SEGUNDA", "TERÇA", "QUARTA", "QUINTA", "SEXTA", "SÁBADO"];
+  const CHK_DIAS_SEMANA_ORDENADOS = ["SEGUNDA", "TERÇA", "QUARTA", "QUINTA", "SEXTA", "SÁBADO", "DOMINGO"];
+
+  let chkTarefasCache = [];        // todas as linhas de painel_checklist_tarefas (todo dia da semana junto)
+  let chkProgressoCache = {};      // chave "AAAA-MM-DD|tarefaId" -> boolean
+  let chkObservacoesCache = {};    // chave "AAAA-MM-DD" -> texto
+  let chkSemanalCache = {};        // chave "SEGUNDA".."DOMINGO" -> texto
+  let chkDataVisivel = formatarDataISO(new Date());
+  let chkModoEdicaoDia = false;
+  let chkRascunhoTarefas = [];     // usado só durante o modo de edição do dia
+  let chkModoEdicaoSemanal = false;
+
+  function chkDiaSemanaDe(dataISO){
+    const [ano, mes, dia] = dataISO.split("-").map(Number);
+    return CHK_DIAS_SEMANA[new Date(ano, mes - 1, dia).getDay()];
+  }
+
+  function chkTarefasDoDia(diaSemana){
+    return chkTarefasCache.filter(t => t.dia_semana === diaSemana).sort((a, b) => a.ordem - b.ordem);
+  }
+
+  async function carregarChecklistDiario(){
+    const nomesTabelas = ["painel_checklist_tarefas", "painel_checklist_progresso", "painel_checklist_observacoes", "painel_checklist_semanal"];
+    const resultados = await Promise.allSettled(nomesTabelas.map(nome => comRetry(() => buscarTudo(nome))));
+
+    const erros = [];
+    resultados.forEach((r, i) => {
+      if (r.status === "rejected") erros.push(`${nomesTabelas[i]}: ${r.reason?.message || r.reason}`);
+    });
+    if (erros.length){
+      console.error("Erro ao carregar o Checklist Diário:", erros);
+      document.getElementById("chkCorpoDiario").innerHTML = `<p class="texto-vazio" style="color:var(--vermelho); font-size:.78rem;">Não consegui carregar o Checklist Diário:<br>${erros.map(e => igEscaparHtml(e)).join("<br>")}</p>`;
+      return;
+    }
+
+    const [tarefas, progresso, observacoes, semanal] = resultados.map(r => r.value);
+    chkTarefasCache = tarefas;
+    chkProgressoCache = {};
+    progresso.forEach(p => { chkProgressoCache[`${p.data}|${p.tarefa_id}`] = p.feito; });
+    chkObservacoesCache = {};
+    observacoes.forEach(o => { chkObservacoesCache[o.data] = o.texto; });
+    chkSemanalCache = {};
+    semanal.forEach(s => { chkSemanalCache[s.dia] = s.texto; });
+
+    renderizarChecklistDia();
+    renderizarChecklistSemanal();
+  }
+
+  function renderizarChecklistDia(){
+    document.getElementById("chkDiaNomeAtual").textContent = chkDiaSemanaDe(chkDataVisivel);
+    const corpo = document.getElementById("chkCorpoDiario");
+    const diaSemana = chkDiaSemanaDe(chkDataVisivel);
+
+    if (chkModoEdicaoDia){
+      corpo.innerHTML = chkRascunhoTarefas.map((t, i) => `
+        <div class="chk-item-editar" data-i="${i}">
+          <input type="text" class="chk-campo-hora" value="${t.hora || ""}" placeholder="hora">
+          <input type="text" class="chk-campo-texto" value="${t.texto || ""}">
+          <button type="button" data-acao="chk-remover-tarefa" title="Remover">🗑</button>
+        </div>
+      `).join("") + `
+        <button type="button" class="chk-botao-add-tarefa" id="chkBotaoAddTarefa">+ Adicionar tarefa</button>
+        <button type="button" class="chk-botao-salvar-edicao" id="chkBotaoSalvarEdicaoDia">Salvar</button>
+      `;
+      corpo.querySelectorAll("[data-acao='chk-remover-tarefa']").forEach(btn => {
+        btn.addEventListener("click", () => {
+          chkRascunhoTarefas.splice(Number(btn.closest(".chk-item-editar").dataset.i), 1);
+          renderizarChecklistDia();
+        });
+      });
+      document.getElementById("chkBotaoAddTarefa").addEventListener("click", () => {
+        chkRascunhoTarefas.push({ id: null, hora: "", texto: "" });
+        renderizarChecklistDia();
+      });
+      document.getElementById("chkBotaoSalvarEdicaoDia").addEventListener("click", () => salvarEdicaoChecklistDia(diaSemana));
+      return;
+    }
+
+    const tarefas = chkTarefasDoDia(diaSemana);
+    corpo.innerHTML = tarefas.map(t => {
+      const feito = !!chkProgressoCache[`${chkDataVisivel}|${t.id}`];
+      return `
+        <div class="chk-item ${feito ? "marcado" : ""}">
+          <input type="checkbox" id="chkItem-${t.id}" data-tarefa-id="${t.id}" ${feito ? "checked" : ""}>
+          <label for="chkItem-${t.id}">${t.hora ? `<span class="chk-hora">${igEscaparHtml(t.hora)}</span> - ` : ""}<span class="chk-texto-tarefa">${igEscaparHtml(t.texto)}</span></label>
+        </div>
+      `;
+    }).join("") + `
+      <div class="chk-observacao">
+        <label>Observação <span class="chk-salvo-observacao oculto" id="chkSalvoObservacao">✓ Salvo</span></label>
+        <textarea id="chkCampoObservacao" placeholder="Ex: deixei de fazer tal coisa por conta disso...">${igEscaparHtml(chkObservacoesCache[chkDataVisivel] || "")}</textarea>
+      </div>
+    `;
+    corpo.querySelectorAll(".chk-item input[type=checkbox]").forEach(cb => {
+      cb.addEventListener("change", () => alternarTarefaChecklist(cb.dataset.tarefaId, cb.checked));
+    });
+    const campoObservacao = document.getElementById("chkCampoObservacao");
+    campoObservacao.addEventListener("blur", (e) => salvarObservacaoChecklist(e.target.value));
+    campoObservacao.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        salvarObservacaoChecklist(campoObservacao.value);
+        campoObservacao.blur();
+      }
+    });
+  }
+
+  async function alternarTarefaChecklist(tarefaId, feito){
+    const chave = `${chkDataVisivel}|${tarefaId}`;
+    chkProgressoCache[chave] = feito; // otimista — a linha já pinta na hora, sem esperar o servidor
+    document.querySelector(`#chkCorpoDiario [data-tarefa-id="${tarefaId}"]`)?.closest(".chk-item")?.classList.toggle("marcado", feito);
+
+    const { error } = await Auth.client
+      .from("painel_checklist_progresso")
+      .upsert({ data: chkDataVisivel, tarefa_id: tarefaId, feito }, { onConflict: "data,tarefa_id" });
+    if (error) console.error("Erro ao salvar progresso do Checklist Diário:", error);
+  }
+
+  async function salvarObservacaoChecklist(texto){
+    const textoAntigo = chkObservacoesCache[chkDataVisivel] || "";
+    if (texto === textoAntigo) return;
+    chkObservacoesCache[chkDataVisivel] = texto;
+    const { error } = await Auth.client
+      .from("painel_checklist_observacoes")
+      .upsert({ data: chkDataVisivel, texto }, { onConflict: "data" });
+    if (error){
+      console.error("Erro ao salvar observação do Checklist Diário:", error);
+      return;
+    }
+    const selo = document.getElementById("chkSalvoObservacao");
+    if (selo){
+      selo.classList.remove("oculto");
+      setTimeout(() => selo.classList.add("oculto"), 1500);
+    }
+  }
+
+  // Salva as tarefas editadas do dia da semana (template, vale pra todas as ocorrências
+  // desse dia — não só a data que estava aberta). Atualiza quem já existia (mantendo o
+  // id, pra não perder o progresso já marcado em datas passadas), cria quem é novo, e
+  // apaga (com o progresso junto, via ON DELETE CASCADE) quem foi removido na edição.
+  async function salvarEdicaoChecklistDia(diaSemana){
+    const originais = chkTarefasDoDia(diaSemana);
+    const idsRascunho = new Set(chkRascunhoTarefas.filter(t => t.id).map(t => t.id));
+    const removidos = originais.filter(t => !idsRascunho.has(t.id));
+
+    for (const removido of removidos){
+      await Auth.client.from("painel_checklist_tarefas").delete().eq("id", removido.id);
+    }
+
+    const validos = chkRascunhoTarefas.filter(t => (t.texto || "").trim());
+    for (let i = 0; i < validos.length; i++){
+      const t = validos[i];
+      if (t.id){
+        await Auth.client.from("painel_checklist_tarefas").update({ hora: t.hora.trim(), texto: t.texto.trim(), ordem: i }).eq("id", t.id);
+      } else {
+        const { data: inserido, error } = await Auth.client
+          .from("painel_checklist_tarefas")
+          .insert({ dia_semana: diaSemana, hora: t.hora.trim(), texto: t.texto.trim(), ordem: i })
+          .select()
+          .single();
+        if (!error && inserido) chkTarefasCache.push(inserido);
+      }
+    }
+
+    // Recarrega do zero pra garantir que o cache bate certinho com o banco (mais simples
+    // e seguro do que tentar remendar chkTarefasCache manualmente depois de tanta mudança).
+    chkTarefasCache = await comRetry(() => buscarTudo("painel_checklist_tarefas"));
+    chkModoEdicaoDia = false;
+    renderizarChecklistDia();
+  }
+
+  function renderizarChecklistSemanal(){
+    document.getElementById("chkCorpoSemanal").innerHTML = CHK_DIAS_SEMANA_ORDENADOS.map(dia => `
+      <div class="chk-item-semanal">
+        <span class="chk-dia-semanal">${dia}</span>
+        ${chkModoEdicaoSemanal
+          ? `<input type="text" class="chk-texto-semanal" data-dia="${dia}" value="${(chkSemanalCache[dia] || "").replace(/"/g, "&quot;")}">`
+          : `<span class="chk-texto-semanal-leitura">${igEscaparHtml(chkSemanalCache[dia] || "")}</span>`}
+      </div>
+    `).join("");
+    document.getElementById("chkBotaoEditarSemanal").textContent = chkModoEdicaoSemanal ? "✓" : "✎";
+    document.getElementById("chkBotaoEditarSemanal").title = chkModoEdicaoSemanal ? "Salvar" : "Editar";
+  }
+
+  async function salvarEdicaoChecklistSemanal(){
+    const linhas = document.querySelectorAll("#chkCorpoSemanal input.chk-texto-semanal");
+    for (const input of linhas){
+      const dia = input.dataset.dia;
+      const texto = input.value.trim();
+      chkSemanalCache[dia] = texto;
+      const { error } = await Auth.client
+        .from("painel_checklist_semanal")
+        .upsert({ dia, texto }, { onConflict: "dia" });
+      if (error) console.error("Erro ao salvar Organização Semanal:", error);
+    }
+  }
+
+  function configurarEventosChecklistDiario(){
+    document.getElementById("chkBotaoFlutuante").addEventListener("click", () => {
+      document.getElementById("chkPainel").classList.remove("oculto");
+      document.getElementById("chkBotaoFlutuante").classList.add("oculto");
+    });
+    document.getElementById("chkBotaoFechar").addEventListener("click", () => {
+      document.getElementById("chkPainel").classList.add("oculto");
+      document.getElementById("chkBotaoFlutuante").classList.remove("oculto");
+    });
+    document.getElementById("chkDiaAnterior").addEventListener("click", () => {
+      chkModoEdicaoDia = false;
+      chkDataVisivel = somarDias(chkDataVisivel, -1);
+      renderizarChecklistDia();
+    });
+    document.getElementById("chkDiaProximo").addEventListener("click", () => {
+      chkModoEdicaoDia = false;
+      chkDataVisivel = somarDias(chkDataVisivel, 1);
+      renderizarChecklistDia();
+    });
+    document.getElementById("chkBotaoEditarDia").addEventListener("click", () => {
+      if (!chkModoEdicaoDia){
+        chkRascunhoTarefas = chkTarefasDoDia(chkDiaSemanaDe(chkDataVisivel)).map(t => ({ id: t.id, hora: t.hora || "", texto: t.texto }));
+      }
+      chkModoEdicaoDia = !chkModoEdicaoDia;
+      renderizarChecklistDia();
+    });
+    document.getElementById("chkBotaoToggleSemanal").addEventListener("click", () => {
+      const fechado = document.getElementById("chkCorpoSemanal").classList.toggle("oculto");
+      document.querySelector("#chkBotaoSetaSemanal .chk-seta").classList.toggle("aberta", !fechado);
+    });
+    document.getElementById("chkBotaoEditarSemanal").addEventListener("click", async () => {
+      if (chkModoEdicaoSemanal) await salvarEdicaoChecklistSemanal();
+      chkModoEdicaoSemanal = !chkModoEdicaoSemanal;
+      renderizarChecklistSemanal();
+      document.getElementById("chkCorpoSemanal").classList.remove("oculto");
+      document.querySelector("#chkBotaoSetaSemanal .chk-seta").classList.add("aberta");
+    });
+  }
+
+  configurarEventosChecklistDiario();
 </script>
 </body>
 </html>

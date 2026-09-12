@@ -624,6 +624,173 @@ create policy "Usuaria autenticada gerencia seus mantras"
 grant select, insert, update, delete on public.painel_mantras to authenticated;
 
 -- =====================================================================
+-- WIDGET "CHECKLIST DIÁRIO" (fixo no canto, aparece em qualquer aba do painel)
+-- painel_checklist_semanal: resumo de 1 linha por dia da semana (aba "Organização
+--   Semanal" dentro do widget).
+-- painel_checklist_tarefas: template de tarefas por dia da semana (SEGUNDA..DOMINGO)
+--   — editar aqui vale pra toda ocorrência futura/passada desse dia, não só uma data.
+-- painel_checklist_progresso: se uma tarefa foi marcada feita, por DATA REAL (não por
+--   dia da semana) — por isso referencia o id da tarefa, não o texto.
+-- painel_checklist_observacoes: texto livre por DATA REAL.
+-- =====================================================================
+create table if not exists public.painel_checklist_semanal (
+  dia text primary key check (dia in ('SEGUNDA','TERÇA','QUARTA','QUINTA','SEXTA','SÁBADO','DOMINGO')),
+  texto text not null default '',
+  updated_at timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.painel_checklist_tarefas (
+  id uuid primary key default gen_random_uuid(),
+  dia_semana text not null check (dia_semana in ('SEGUNDA','TERÇA','QUARTA','QUINTA','SEXTA','SÁBADO','DOMINGO')),
+  hora text,
+  texto text not null,
+  ordem integer not null default 0,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_painel_checklist_tarefas_dia on public.painel_checklist_tarefas (dia_semana);
+
+create table if not exists public.painel_checklist_progresso (
+  id uuid primary key default gen_random_uuid(),
+  data date not null,
+  tarefa_id uuid not null references public.painel_checklist_tarefas(id) on delete cascade,
+  feito boolean not null default false,
+  created_at timestamptz not null default now(),
+  unique (data, tarefa_id)
+);
+create index if not exists idx_painel_checklist_progresso_data on public.painel_checklist_progresso (data);
+
+create table if not exists public.painel_checklist_observacoes (
+  data date primary key,
+  texto text not null default '',
+  updated_at timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+
+alter table public.painel_checklist_semanal enable row level security;
+alter table public.painel_checklist_tarefas enable row level security;
+alter table public.painel_checklist_progresso enable row level security;
+alter table public.painel_checklist_observacoes enable row level security;
+
+drop policy if exists "Usuaria autenticada gerencia checklist semanal" on public.painel_checklist_semanal;
+create policy "Usuaria autenticada gerencia checklist semanal" on public.painel_checklist_semanal for all to authenticated using (true) with check (true);
+grant select, insert, update, delete on public.painel_checklist_semanal to authenticated;
+
+drop policy if exists "Usuaria autenticada gerencia checklist tarefas" on public.painel_checklist_tarefas;
+create policy "Usuaria autenticada gerencia checklist tarefas" on public.painel_checklist_tarefas for all to authenticated using (true) with check (true);
+grant select, insert, update, delete on public.painel_checklist_tarefas to authenticated;
+
+drop policy if exists "Usuaria autenticada gerencia checklist progresso" on public.painel_checklist_progresso;
+create policy "Usuaria autenticada gerencia checklist progresso" on public.painel_checklist_progresso for all to authenticated using (true) with check (true);
+grant select, insert, update, delete on public.painel_checklist_progresso to authenticated;
+
+drop policy if exists "Usuaria autenticada gerencia checklist observacoes" on public.painel_checklist_observacoes;
+create policy "Usuaria autenticada gerencia checklist observacoes" on public.painel_checklist_observacoes for all to authenticated using (true) with check (true);
+grant select, insert, update, delete on public.painel_checklist_observacoes to authenticated;
+
+-- Seed inicial com a rotina real que ela já usava (só entra se as tabelas ainda
+-- estiverem vazias, pra rodar esse arquivo de novo no futuro não duplicar nem
+-- sobrescrever edições que ela já tiver feito pelo painel).
+insert into public.painel_checklist_semanal (dia, texto)
+select * from (values
+  ('SEGUNDA', 'Abordar Marcas'),
+  ('TERÇA', 'Descanso Total'),
+  ('QUARTA', 'Roteiros'),
+  ('QUINTA', 'Revisão Roteiros + Gravação'),
+  ('SEXTA', 'Limpar casa / Lavar roupas / Marmitas'),
+  ('SÁBADO', 'Gravar (Editar)'),
+  ('DOMINGO', 'Estudar + Autocuidado')
+) as v(dia, texto)
+where not exists (select 1 from public.painel_checklist_semanal);
+
+insert into public.painel_checklist_tarefas (dia_semana, hora, texto, ordem)
+select * from (values
+  ('SEGUNDA','07:00','Acordar / Escovar dente',0),
+  ('SEGUNDA','','Limpar Théo / Passeio Théo',1),
+  ('SEGUNDA','07:30','Cardio',2),
+  ('SEGUNDA','08:30','Café da Manhã / SkinCare',3),
+  ('SEGUNDA','09:00','Organizar pra gravar (COMPARAÇÃO + PLANEJAMENTO) capas para os vídeos',4),
+  ('SEGUNDA','12:00','Almoço',5),
+  ('SEGUNDA','12:30','Treino',6),
+  ('SEGUNDA','14:00','Editar vídeo e agendar postagem',7),
+  ('SEGUNDA','16:00','Levar Théo p/ fazer raio X',8),
+  ('SEGUNDA','18:00','Finish',9),
+  ('SEGUNDA','19:00','Fazer take com Gustavo brindando Gin, e o Théo entre nós',10),
+  ('SEGUNDA','22:00','Ler',11),
+  ('SEGUNDA','22:30','Meditar',12),
+  ('SEGUNDA','23:00','Agradecer e dormir',13),
+
+  ('TERÇA','07:00','Acordar / Escovar dentes',0),
+  ('TERÇA','','Limpar Théo / Passeio Théo',1),
+  ('TERÇA','07:30','Treino',2),
+  ('TERÇA','08:30','Cardio',3),
+  ('TERÇA','09:30','Café da Manhã / SkinCare',4),
+  ('TERÇA','','Editar vídeo PLANEJAMENTO e agendar postagem',5),
+  ('TERÇA','10:30','Descanso (TEMPO DE QUALIDADE)',6),
+  ('TERÇA','22:00','Ler',7),
+  ('TERÇA','22:30','Meditar',8),
+  ('TERÇA','23:00','Agradecer e dormir',9),
+
+  ('QUARTA','07:00','Acordar / Escovar dentes / Limpar Théo / Passeio Théo',0),
+  ('QUARTA','07:30','Cardio',1),
+  ('QUARTA','08:30','Café da Manhã / SkinCare',2),
+  ('QUARTA','09:00','GRAVAR VÍDEO MAX SLASH + BASTIDORES',3),
+  ('QUARTA','12:00','Almoço',4),
+  ('QUARTA','12:30','Treino',5),
+  ('QUARTA','14:00','UGC - ROTEIROS (Orgânico / Tiktok + dia das mães)',6),
+  ('QUARTA','18:00','Finish',7),
+  ('QUARTA','22:00','Ler',8),
+  ('QUARTA','22:30','Meditar',9),
+  ('QUARTA','23:00','Agradecer e dormir',10),
+
+  ('QUINTA','07:00','Acordar / Escovar dentes / Limpar Théo / Passeio Théo',0),
+  ('QUINTA','07:30','Treino / Cardio',1),
+  ('QUINTA','08:30','Café da Manhã / SkinCare',2),
+  ('QUINTA','09:00','EDITAR VÍDEO MAX STASH + BASTIDORES',3),
+  ('QUINTA','12:00','Almoço',4),
+  ('QUINTA','12:30','Cardio',5),
+  ('QUINTA','13:30','Atualizar portfólio',6),
+  ('QUINTA','18:00','Finish',7),
+  ('QUINTA','22:00','Ler',8),
+  ('QUINTA','22:30','Meditar',9),
+  ('QUINTA','23:00','Agradecer e dormir',10),
+
+  ('SEXTA','07:00','Acordar / Escovar dentes / Limpar Théo / Passeio Théo',0),
+  ('SEXTA','07:30','Cardio',1),
+  ('SEXTA','08:30','Café da Manhã / SkinCare',2),
+  ('SEXTA','09:00','Gravar vídeo PRAZER, EDI',3),
+  ('SEXTA','12:00','Almoço',4),
+  ('SEXTA','12:30','Treino',5),
+  ('SEXTA','14:00','UGC - 👖 CASA / ROUPA / MARMITAS',6),
+  ('SEXTA','18:00','Finish',7),
+  ('SEXTA','22:00','Ler',8),
+  ('SEXTA','22:30','Meditar',9),
+  ('SEXTA','23:00','Agradecer e dormir',10),
+
+  ('SÁBADO','07:00','Acordar / Escovar dentes / Limpar Théo / Passeio Théo',0),
+  ('SÁBADO','07:30','Cardio',1),
+  ('SÁBADO','09:00','GRAVAR',2),
+  ('SÁBADO','08:30','Café da Manhã / SkinCare',3),
+  ('SÁBADO','12:00','Almoço',4),
+  ('SÁBADO','14:00','UGC - GRAVAR + EDITAR',5),
+  ('SÁBADO','18:00','Finish',6),
+  ('SÁBADO','22:00','Ler',7),
+  ('SÁBADO','22:30','Meditar',8),
+  ('SÁBADO','23:00','Agradecer e dormir',9),
+
+  ('DOMINGO','07:00','Acordar / Escovar dentes / Limpar Théo / Passeio Théo',0),
+  ('DOMINGO','07:30','Cardio',1),
+  ('DOMINGO','08:30','Café da Manhã / SkinCare',2),
+  ('DOMINGO','12:00','Almoço',3),
+  ('DOMINGO','14:00','UGC - ESTUDAR MARCA E POSICIONAMENTO + AUTOCUIDADO',4),
+  ('DOMINGO','18:00','Finish',5),
+  ('DOMINGO','22:00','Ler',6),
+  ('DOMINGO','22:30','Meditar',7),
+  ('DOMINGO','23:00','Agradecer e dormir',8)
+) as v(dia_semana, hora, texto, ordem)
+where not exists (select 1 from public.painel_checklist_tarefas);
+
+-- =====================================================================
 -- NOTAS FISCAIS (sub-aba "Notas Fiscais", dentro de "Administrativo")
 -- NFs emitidas no ano, num só lugar pra facilitar a declaração de imposto.
 -- =====================================================================
@@ -1788,7 +1955,8 @@ begin
     'painel_documentos_pessoais', 'painel_documentos_avulsos', 'painel_notas', 'painel_mantras', 'painel_notas_fiscais',
     'painel_ia_mensagens', 'negocio_lancamentos',
     'painel_iara_precificacao_tipos', 'painel_iara_precificacao_desconto',
-    'painel_iara_sessoes', 'painel_iara_documentos', 'painel_ig_analises_ia', 'financas_pessoas_pagas'
+    'painel_iara_sessoes', 'painel_iara_documentos', 'painel_ig_analises_ia', 'financas_pessoas_pagas',
+    'painel_checklist_semanal', 'painel_checklist_tarefas', 'painel_checklist_progresso', 'painel_checklist_observacoes'
   ]
   loop
     execute format(
