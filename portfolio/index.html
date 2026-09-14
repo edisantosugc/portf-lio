@@ -555,6 +555,228 @@
     font-size: .8rem; flex-shrink: 0; border: 2px solid var(--tinta);
   }
 
+  /* ===================== CONTEÚDOS EM DESTAQUE =====================
+     Grid de 2 colunas fixas: a coluna ESQUERDA é sempre o card de feedback
+     (nunca muda de lugar); a coluna DIREITA mostra um vídeo por vez, e as
+     setas/pontinhos alternam entre os vídeos disponíveis, sem afetar o card
+     da esquerda. EDITE OS CONTEÚDOS lá embaixo, em CONFIG.destaques
+     (campos "fixo" e "videos"). */
+  .destaques-conteudo{ background: var(--branco); overflow: hidden; }
+  .destaques-carrossel{ position: relative; margin-top: 40px; }
+  .destaques-carrossel .seta-btn{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    background: var(--branco);
+    box-shadow: var(--sombra-dura-sm);
+  }
+  .destaques-carrossel .seta-esq{ left: -8px; }
+  .destaques-carrossel .seta-dir{ right: -8px; }
+  .destaques-pista{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 24px;
+    padding: 10px 54px;
+  }
+  .card-destaque{
+    justify-self: center;
+    width: 100%;
+    max-width: 300px;
+    border: 4px solid var(--tinta);
+    border-radius: 24px;
+    background: var(--branco);
+    box-shadow: var(--sombra-dura);
+    overflow: hidden;
+    opacity: .55;
+    transform: scale(.92);
+    transition: opacity .4s ease, transform .4s ease, box-shadow .4s ease;
+    cursor: pointer;
+  }
+  .card-destaque.ativo{ opacity: 1; transform: scale(1); box-shadow: 9px 9px 0 var(--vermelho); cursor: default; }
+  .card-destaque[data-tipo="video"]{ cursor: pointer; }
+  .destaque-midia{ position: relative; aspect-ratio: 4 / 5; display: flex; align-items: center; justify-content: center; }
+  /* Placeholder do print de feedback: mesmo tracejado dourado das tags da
+     seção (".tag-secao"), pra ficar claramente "no estilo do site" mesmo
+     sem o arquivo final. */
+  .destaque-midia.midia-feedback{
+    background: var(--creme);
+    border: 3px dashed var(--rosa);
+    margin: 12px;
+    border-radius: 16px;
+  }
+  /* Quando já existe o print real, o card deixa de ter altura fixa (o print
+     é um texto vertical — cortar como se fosse foto perderia linhas do
+     depoimento). Mesmo tratamento do print inteiro, sem corte, que já é
+     usado na seção de Depoimentos (".card-depoimento img"). */
+  .destaque-midia.midia-feedback.tem-foto{ aspect-ratio: auto; display: block; }
+  .destaque-print{ display: block; width: 100%; height: auto; border-radius: 13px; }
+  .destaque-midia.midia-feedback .destaque-placeholder{ color: var(--tinta); }
+  .destaque-icone-placeholder{ width: 34px; height: 34px; margin-bottom: 10px; fill: var(--rosa); }
+  .midia-feedback .destaque-icone-placeholder{ fill: var(--vermelho); }
+  /* Placeholder do vídeo do Théo: fundo azul royal sólido (cor de destaque
+     do site) com o mesmo botão de play redondo usado nos vídeos reais do
+     Portfólio (".play-botao"), em vez de um gradiente genérico. */
+  /* Mesma proporção vertical (9:16) dos vídeos do Portfólio, pra miniatura
+     do YouTube encaixar sem sobra nem corte estranho. */
+  .destaque-midia.midia-video{ background: var(--vermelho); aspect-ratio: 9 / 16; }
+  .destaque-midia.midia-video .play-botao{ position: static; transform: none; margin-bottom: 12px; }
+  .destaque-midia.midia-video .destaque-placeholder{ color: var(--branco); }
+
+  /* ===================== "GOSTINHO" DE CARROSSEL NO CARD DE VÍDEO =====================
+     Atrás do vídeo em foco, uma fatia desfocada e escurecida do outro vídeo
+     espia dos dois lados — dá a sensação de que tem mais conteúdo pra
+     navegar, sem precisar de um carrossel de verdade (só 2 vídeos). */
+  .destaque-video-slot{
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+  }
+  .destaque-video-slot .card-destaque{ position: relative; z-index: 1; }
+  .destaque-peek{
+    position: absolute;
+    top: 6%;
+    bottom: 6%;
+    width: 42px;
+    border-radius: 16px;
+    overflow: hidden;
+    filter: blur(3px);
+    opacity: .5;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .destaque-peek::after{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(42,38,34,.4);
+  }
+  .destaque-peek .peek-img{
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+  }
+  .destaque-peek-esq{ left: 0; }
+  .destaque-peek-dir{ right: 0; }
+  @media (max-width: 900px){
+    .destaque-peek{ width: 22px; }
+  }
+  @media (max-width: 480px){
+    .destaque-peek{ display: none; }
+  }
+  .destaque-placeholder{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: .85rem;
+    letter-spacing: .03em;
+    text-align: center;
+    padding: 0 22px;
+  }
+  .destaque-legenda{ padding: 16px 18px; text-align: center; }
+  .destaque-legenda strong{
+    display: block;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--vermelho);
+  }
+  .destaque-legenda span{ display: block; font-size: .88rem; color: #4a453e; margin-top: 4px; }
+  /* Print real das métricas do vídeo (o mesmo arquivo enviado, sem recriar
+     os ícones) — só limita a largura pra não estourar o card. */
+  .destaque-metricas-img{ display: block; width: 100%; max-width: 260px; height: auto; margin: 0 auto; }
+  /* Legenda com uma mãozinha branca (estilo cursor "hand pointer") desenhando
+     um traço azul fino embaixo, do exato tamanho do texto — da esquerda pra
+     direita. Em loop: desenha indo, some o traço e volta só reposicionando,
+     pra desenhar de novo. O traço é uma barra de CSS (não SVG esticado), pra
+     nunca ficar mais larga nem mais grossa do que o texto. */
+  span.destaque-legenda-riscada{
+    position: relative;
+    display: inline-block;
+    /* padding-top afasta a frase do texto de cima; padding-bottom foi
+       reduzido na mesma medida (46px → 36px) pra compensar, então a altura
+       total da caixa não muda — e por isso o traço e a mãozinha (que usam
+       "bottom" contando a partir do fim dessa caixa) continuam exatamente
+       no mesmo lugar de antes, só a frase "sobe" o traço fica mais perto. */
+    padding-top: 10px;
+    padding-bottom: 36px;
+  }
+  .destaque-risco-traco{
+    position: absolute;
+    left: 0;
+    bottom: 30px;
+    width: 100%;
+    height: .08em;
+    min-height: 1.5px;
+    background: var(--vermelho);
+    border-radius: 2px;
+    transform-origin: left center;
+    transform: scaleX(0);
+    animation: destaque-riscar 3.2s ease-in-out infinite;
+  }
+  /* Ícone da mãozinha — posição calibrada à mão na ferramenta de arrastar
+     (você mesma arrastou até a ponta do dedo encostar no traço e me passou
+     a coordenada exata: left/bottom abaixo são literalmente esse valor,
+     sem conversão — por isso o "padding-bottom" da legenda e o "bottom" do
+     traço acima usam os mesmos números da ferramenta de teste, pra evitar
+     erro de tradução entre as duas escalas). Tamanho fixo de verdade
+     (12x14px), não um "wrapper" de largura zero — a regra global do site
+     "svg{ max-width:100% }" (lá no topo do arquivo) encolhe qualquer svg
+     dentro de um contêiner de largura zero pra zero também, e foi isso que
+     fez a mão sumir numa versão anterior. O preenchimento é sólido (sem
+     filtro de contorno): testado à mão que um filtro tipo feMorphology
+     rasteriza com pouca resolução nesse tamanho e fica esmaecido — aqui o
+     contorno preto vem de uma cópia do próprio desenho, preenchida e um
+     pouco maior, atrás da mão branca. Essa cópia maior estoura um pouco o
+     viewBox original do ícone, então o "overflow: visible" abaixo é
+     essencial — sem ele, o navegador corta a ponta do dedo e a lateral da
+     mão bem no canto do desenho. A posição "left" é deslocada pra alinhar
+     a PONTA DO DEDO indicador com o início/fim do traço (30% da largura de
+     12px = 3,6px), não o canto da caixinha do ícone. */
+  .destaque-risco-mao{
+    position: absolute;
+    bottom: 17px;
+    left: -3.6px;
+    width: 12px;
+    height: 14px;
+    overflow: visible;
+    animation: destaque-mao-mover 3.2s ease-in-out infinite;
+  }
+  @keyframes destaque-riscar{
+    0%{ transform: scaleX(0); }
+    42%{ transform: scaleX(1); }
+    52%{ transform: scaleX(1); }
+    54%{ transform: scaleX(0); }
+    100%{ transform: scaleX(0); }
+  }
+  @keyframes destaque-mao-mover{
+    0%{ left: -3.6px; }
+    42%{ left: calc(100% - 3.6px); }
+    52%{ left: calc(100% - 3.6px); }
+    100%{ left: -3.6px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .destaque-risco-traco{ animation: none; transform: scaleX(1); }
+    .destaque-risco-mao{ animation: none; left: calc(100% - 3.6px); }
+  }
+  .destaques-pontos{ display: flex; justify-content: center; gap: 10px; margin-top: 22px; }
+  .ponto-destaque{
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--tinta);
+    background: var(--branco);
+    cursor: pointer;
+    padding: 0;
+  }
+  .ponto-destaque.ativo{ background: var(--vermelho); border-color: var(--vermelho); }
+
   /* ===================== PORTFÓLIO ===================== */
   .portfolio{ background: var(--branco); }
   .filtro-nichos{
@@ -1048,6 +1270,8 @@
     .sobre .container{ grid-template-columns: minmax(0, 1fr); }
     .sobre-foto{ width: 100%; max-width: 340px; margin: 0 auto; }
     .sobre-texto{ min-width: 0; }
+    .destaques-pista{ padding: 10px 42px; gap: 16px; }
+    .card-destaque{ width: 220px; }
 
     /* A sobreposição negativa (margin-left/top) usada no título "Sobre mim"
        depende de medir com precisão a largura exata da letra "s" na fonte
@@ -1121,6 +1345,10 @@
     .hero-botoes .pill-btn{ justify-content: center; }
     .portfolio-card{ flex-basis: 165px; }
     .campo-linha{ grid-template-columns: 1fr; }
+    .destaques-pista{ padding: 8px 34px; gap: 12px; }
+    .card-destaque{ width: 78vw; max-width: 260px; }
+    .destaques-carrossel .seta-esq{ left: -4px; }
+    .destaques-carrossel .seta-dir{ right: -4px; }
   }
 </style>
 </head>
@@ -1233,6 +1461,25 @@
         <div id="sobreTexto"></div>
         <ul class="sobre-lista" id="sobreLista"></ul>
       </div>
+    </div>
+  </section>
+
+  <!-- ===================== 4.5 CONTEÚDOS EM DESTAQUE =====================
+       Coluna esquerda fixa (feedback) + coluna direita com um vídeo por vez
+       (as setas trocam qual vídeo aparece). Para editar os itens, veja
+       CONFIG.destaques mais abaixo no arquivo. -->
+  <section class="destaques-conteudo" id="destaques">
+    <div class="container">
+      <p class="tag-secao reveal" id="destaquesTag"></p>
+      <h2 class="titulo-secao reveal" id="destaquesTitulo"></h2>
+      <p class="sub-secao reveal" id="destaquesSubtitulo"></p>
+
+      <div class="destaques-carrossel reveal">
+        <button type="button" class="seta-btn seta-esq" id="destaquesSetaEsq" aria-label="Ver conteúdo anterior">‹</button>
+        <div class="destaques-pista" id="destaquesPista"></div>
+        <button type="button" class="seta-btn seta-dir" id="destaquesSetaDir" aria-label="Ver próximo conteúdo">›</button>
+      </div>
+      <div class="destaques-pontos" id="destaquesPontos"></div>
     </div>
   </section>
 
@@ -1461,6 +1708,46 @@ const CONFIG_PT = {
     ]
   },
 
+  destaquesTextos: {
+    tag: "Em destaque",
+    titulo: "Conteúdos em Destaque",
+    subtitulo: "Alguns dos conteúdos que mais geraram conexão e conversão."
+  },
+
+  // EDITE AQUI: conteúdos do carrossel "Conteúdos em Destaque".
+  // "fixo" é o card da coluna ESQUERDA — sempre o mesmo, nunca muda (hoje é
+  // o print de feedback). "videos" é a lista de vídeos que aparece na coluna
+  // DIREITA; só um vídeo aparece por vez, e as setas/pontinhos alternam entre
+  // eles (o 1º da lista é o que aparece primeiro). Pra adicionar um vídeo
+  // novo, copie um bloco { ... } de dentro de "videos" e troque os campos.
+  destaques: {
+    fixo: {
+      tipo: "imagem",
+      imagem: "imagens/destaque-feedback-1.jpg",
+      estatistica: "Atualizadíssima ao que funciona em tráfego pago",
+      legenda: "12 vendas em curto prazo",
+      legendaDestacada: true
+    },
+    videos: [
+      {
+        tipo: "video",
+        videoId: "6GuW7LC-6yE",
+        legenda: "Problema x Solução – Criativo Gêmeas"
+      },
+      {
+        tipo: "video",
+        videoId: "C5vleYWynVM",
+        legenda: "Educativo – Palitinhos de enriquecimento ambiental, com o Théo",
+        metricasImagem: "imagens/destaque-theo-metricas.png"
+      },
+      {
+        tipo: "video",
+        videoId: "sldWgcR84co",
+        legenda: "Storytelling – Esponja limpeza extrema"
+      }
+    ]
+  },
+
   portfolioTextos: {
     tag: "Portfólio",
     titulo: "Trabalhos que já viraram resultado para as marcas",
@@ -1479,38 +1766,37 @@ const CONFIG_PT = {
   // "marca" não aparece no site (é só para os relatórios do painel); a legenda mostrada no
   // card é sempre "titulo". Para adicionar um vídeo, copie um bloco { ... } e troque os campos.
   portfolio: [
-    // Saúde e Bem-estar
+    // Saúde e Bem-estar (ordem e itens sincronizados com o doc VÍDEOS.docx)
     { marca: "Max Titanium", titulo: "Narrador – Barrinha de proteína", categoria: "Saúde e Bem-estar", gradiente: "grad-1", videoId: "Zd0B7ttQZJQ" },
-    { marca: "Shopee", titulo: "Orgânico – Conjuntinho fitness", categoria: "Saúde e Bem-estar", gradiente: "grad-2", videoId: "Y4YrncO4UZo" },
-    { marca: "Dreams Burn", titulo: "Storytelling – Cubo termogênico", categoria: "Saúde e Bem-estar", gradiente: "grad-3", videoId: "3pbXGVEFaog" },
+    { marca: "Dreams Burn", titulo: "Storytelling – Cubo termogênico", categoria: "Saúde e Bem-estar", gradiente: "grad-2", videoId: "3pbXGVEFaog" },
+    { marca: "Shopee", titulo: "Orgânico – Conjuntinho fitness", categoria: "Saúde e Bem-estar", gradiente: "grad-3", videoId: "Y4YrncO4UZo" },
     { marca: "Max Titanium", titulo: "Depoimento – Whey drink", categoria: "Saúde e Bem-estar", gradiente: "grad-4", videoId: "KbJBIB5RHCI" },
-    { marca: "Rap 10", titulo: "Rotina – Receita pizza fit", categoria: "Saúde e Bem-estar", gradiente: "grad-5", videoId: "Jme4EkWP1oY" },
+    // Rap 10 (Jme4EkWP1oY) retirado: não consta no VÍDEOS.docx
 
     // Casa e Decoração
-    { marca: "Condor", titulo: "Storytelling – Mop PVA e rolo de tirar pelo", categoria: "Casa e Decoração", gradiente: "grad-6", videoId: "rjblZsgruDA" },
-    { marca: "Eletrolux", titulo: "Educativo – Refil filtro purificador de água", categoria: "Casa e Decoração", gradiente: "grad-1", videoId: "e6SAuK22QwM" },
-    { marca: "Shopee", titulo: "Marketplace – Capa de colchão impermeável", categoria: "Casa e Decoração", gradiente: "grad-2", videoId: "AbXbrKyfHcQ" },
-    { marca: "Condor", titulo: "Storytelling – Esponja limpeza extrema", categoria: "Casa e Decoração", gradiente: "grad-3", videoId: "sldWgcR84co" },
-    { marca: "Dobuê", titulo: "Orgânico – Debate entre irmãs, mesa de jantar", categoria: "Casa e Decoração", gradiente: "grad-4", videoId: "AmDppLUwvuc" },
-    { marca: "Shein", titulo: "Marketplace – Jogo de cama", categoria: "Casa e Decoração", gradiente: "grad-5", videoId: "vSGOS-KIKUE" },
-    { marca: "Coala", titulo: "Depoimento – Kit cheirinho orquídea negra", categoria: "Casa e Decoração", gradiente: "grad-6", videoId: "ogsVF7O7wMM" },
+    { marca: "Condor", titulo: "Storytelling – Mop PVA e rolo de tirar pelo", categoria: "Casa e Decoração", gradiente: "grad-5", videoId: "rjblZsgruDA" },
+    { marca: "Eletrolux", titulo: "Educativo – Refil filtro purificador de água", categoria: "Casa e Decoração", gradiente: "grad-6", videoId: "e6SAuK22QwM" },
+    { marca: "Shopee", titulo: "Marketplace – Capa de colchão impermeável", categoria: "Casa e Decoração", gradiente: "grad-1", videoId: "AbXbrKyfHcQ" },
+    { marca: "Shein", titulo: "Marketplace – Jogo de cama", categoria: "Casa e Decoração", gradiente: "grad-2", videoId: "vSGOS-KIKUE" },
+    { marca: "Coala", titulo: "Depoimento – Kit cheirinho orquídea negra", categoria: "Casa e Decoração", gradiente: "grad-3", videoId: "ogsVF7O7wMM" },
+    // Dobuê (AmDppLUwvuc) retirado: não consta no VÍDEOS.docx
 
-    // Pet
+    // Pet (o vídeo da Natuka/Théo saiu daqui porque agora ele tem destaque
+    // próprio na seção "Conteúdos em Destaque" — é o mesmo vídeo, só que
+    // promovido, como no doc VÍDEOS.docx, que o separa em "DESTAQUES (1 VÍDEO)")
     { marca: "FreePet", titulo: "Storytelling – Limpa canil + neutralizador de odores", categoria: "Pet", gradiente: "grad-1", videoId: "d1fmuHk5sEU" },
-    { marca: "Natuka", titulo: "Educativo – Palitinhos enriquecimento ambiental", categoria: "Pet", gradiente: "grad-2", videoId: "C5vleYWynVM" },
-    { marca: "Petiko", titulo: "Unboxing divertido – Petiscos e brinquedos", categoria: "Pet", gradiente: "grad-3", videoId: "c6-PNqQZslE" },
-    { marca: "Nutrafases", titulo: "Depoimento – Suplemento alimentar probiótico", categoria: "Pet", gradiente: "grad-4", videoId: "t9FO_B2oydI" },
-    { marca: "New Pet", titulo: "Storytelling – Bebedouro de água inteligente", categoria: "Pet", gradiente: "grad-5", videoId: "pkf21wmwvvs" },
+    { marca: "Petiko", titulo: "Unboxing divertido – Petiscos e brinquedos", categoria: "Pet", gradiente: "grad-2", videoId: "c6-PNqQZslE" },
+    { marca: "Nutrafases", titulo: "Depoimento – Suplemento alimentar probiótico", categoria: "Pet", gradiente: "grad-3", videoId: "t9FO_B2oydI" },
+    { marca: "New Pet", titulo: "Storytelling – Bebedouro de água inteligente", categoria: "Pet", gradiente: "grad-4", videoId: "pkf21wmwvvs" },
 
     // Beleza e Autocuidado
-    { marca: "Condor", titulo: "Storytelling – Pincéis de maquiagem", categoria: "Beleza e Autocuidado", gradiente: "grad-6", videoId: "usONnfgOlzU" },
-    { marca: "Alva", titulo: "Narrador/Educativo – Raspador de língua", categoria: "Beleza e Autocuidado", gradiente: "grad-1", videoId: "k17j7zWKmuA" },
-    { marca: "Mayara", titulo: "Experiência – Design de sobrancelha", categoria: "Beleza e Autocuidado", gradiente: "grad-2", videoId: "8K0wrl9mf0U" },
-    { marca: "Condor", titulo: "Educativo – Escova de dente antibac", categoria: "Beleza e Autocuidado", gradiente: "grad-3", videoId: "M7HjEF0YcqU" },
-    { marca: "Pantene", titulo: "Storytelling – Tônico capilar", categoria: "Beleza e Autocuidado", gradiente: "grad-4", videoId: "38m6Q-Pr5S0" },
-    { marca: "Condor", titulo: "Dica – Kit escova de cabelo com canetinhas para colorir", categoria: "Beleza e Autocuidado", gradiente: "grad-5", videoId: "rqMTFESTsAw" },
-    { marca: "Alva", titulo: "Review – Desodorante cristal", categoria: "Beleza e Autocuidado", gradiente: "grad-6", videoId: "vOmNzVuLXJw" },
-    { marca: "Dermacyd", titulo: "Storytelling – Sabonete íntimo", categoria: "Beleza e Autocuidado", gradiente: "grad-1", videoId: "KMh3cYekKEM" },
+    { marca: "Condor", titulo: "Storytelling – Pincéis de maquiagem", categoria: "Beleza e Autocuidado", gradiente: "grad-5", videoId: "usONnfgOlzU" },
+    { marca: "Alva", titulo: "Narrador/Educativo – Raspador de língua", categoria: "Beleza e Autocuidado", gradiente: "grad-6", videoId: "k17j7zWKmuA" },
+    { marca: "Mayara", titulo: "Experiência – Design de sobrancelha", categoria: "Beleza e Autocuidado", gradiente: "grad-1", videoId: "8K0wrl9mf0U" },
+    { marca: "Condor", titulo: "Educativo – Escova de dente antibac", categoria: "Beleza e Autocuidado", gradiente: "grad-2", videoId: "M7HjEF0YcqU" },
+    { marca: "Condor", titulo: "Dica – Kit escova de cabelo com canetinhas para colorir", categoria: "Beleza e Autocuidado", gradiente: "grad-3", videoId: "rqMTFESTsAw" },
+    { marca: "Alva", titulo: "Review – Desodorante cristal", categoria: "Beleza e Autocuidado", gradiente: "grad-4", videoId: "vOmNzVuLXJw" },
+    // Dermacyd (KMh3cYekKEM) e Pantene (38m6Q-Pr5S0) retirados (confirmado em "VÍDEOS ANTIGOS - RETIRADOS.docx")
 
     // Moda e Acessórios
     { marca: "Vans", titulo: "Criativo – 1 tênis, vários looks", categoria: "Moda e Acessórios", gradiente: "grad-2", videoId: "80XKBvwlWfU" },
@@ -1523,7 +1809,7 @@ const CONFIG_PT = {
     { marca: "Konta IA", titulo: "Storytelling – Aplicativo organização financeira", categoria: "Tech & Apps", gradiente: "grad-1", videoId: "v2zf26ctp98" },
     { marca: "Samsung", titulo: "Unboxing ASMR – Tablet", categoria: "Tech & Apps", gradiente: "grad-2", videoId: "H7vk2JF62PM" },
     { marca: "Hollyland", titulo: "Dicas – Microfone", categoria: "Tech & Apps", gradiente: "grad-3", videoId: "uCHl56vK6Zc" },
-    { marca: "QCY", titulo: "Depoimento – Fone de ouvido", categoria: "Tech & Apps", gradiente: "grad-4", videoId: "Mb6rUOi0qAs" },
+    // QCY (Mb6rUOi0qAs) retirado (confirmado em "VÍDEOS ANTIGOS - RETIRADOS.docx")
 
     // Serviços e Experiências
     { marca: "Dr. Lava Tudo", titulo: "Storytelling – Limpeza automotiva", categoria: "Serviços e Experiências", gradiente: "grad-5", videoId: "V2rAhr3_D7E" },
@@ -1531,9 +1817,10 @@ const CONFIG_PT = {
     { marca: "Dr. Lava Tudo", titulo: "Storytelling – Limpeza de sofá + colchão", categoria: "Serviços e Experiências", gradiente: "grad-1", videoId: "Y3b5WeKfBP0" },
     { marca: "Show de Pizzaiolo", titulo: "Tráfego pago – Rodízio de pizza em domicílio (foco em alcançar franqueados)", categoria: "Serviços e Experiências", gradiente: "grad-2", videoId: "7n_Mol2CiSM" },
 
-    // Datas Comemorativas
-    { marca: "Yool", titulo: "Podcast junino (criativo gêmeas) – Respondendo perguntas, saia godê", categoria: "Datas Comemorativas", gradiente: "grad-3", videoId: "bzI86bSqRDQ" },
-    { marca: "Yool", titulo: "Site na parede (criativo) – Diversos produtos junino", categoria: "Datas Comemorativas", gradiente: "grad-4", videoId: "pvBmrnzCdHA" }
+    // Datas Comemorativas (Clínica Panzerri primeiro, ordem ajustada no VÍDEOS.docx)
+    { marca: "Clínica Panzerri", titulo: "Storytelling – Dia das Mães", categoria: "Datas Comemorativas", gradiente: "grad-3", videoId: "0I-u5Lg0l1k" },
+    { marca: "Yool", titulo: "Podcast junino (criativo gêmeas) – Respondendo perguntas, saia godê", categoria: "Datas Comemorativas", gradiente: "grad-4", videoId: "bzI86bSqRDQ" },
+    { marca: "Yool", titulo: "Site na parede (criativo) – Diversos produtos junino", categoria: "Datas Comemorativas", gradiente: "grad-5", videoId: "pvBmrnzCdHA" }
   ],
 
   fotosUgcTextos: {
@@ -1725,6 +2012,40 @@ const CONFIG_EN = {
     ]
   },
 
+  destaquesTextos: {
+    tag: "Highlights",
+    titulo: "Featured Content",
+    subtitulo: "Some of the content that generated the most buzz and results."
+  },
+
+  destaques: {
+    fixo: {
+      tipo: "imagem",
+      imagem: "imagens/destaque-feedback-1.jpg",
+      estatistica: "Always up to date with what works in paid traffic",
+      legenda: "12 sales in a short time",
+      legendaDestacada: true
+    },
+    videos: [
+      {
+        tipo: "video",
+        videoId: "6GuW7LC-6yE",
+        legenda: "Problem x Solution – Twins Creative"
+      },
+      {
+        tipo: "video",
+        videoId: "C5vleYWynVM",
+        legenda: "Educational – Enrichment chew sticks, featuring Théo",
+        metricasImagem: "imagens/destaque-theo-metricas.png"
+      },
+      {
+        tipo: "video",
+        videoId: "sldWgcR84co",
+        legenda: "Storytelling – Extreme-clean sponge"
+      }
+    ]
+  },
+
   portfolioTextos: {
     tag: "Portfolio",
     titulo: "Work that has already delivered results for brands",
@@ -1739,36 +2060,31 @@ const CONFIG_EN = {
   portfolio: [
     // Health & Wellness
     { marca: "Max Titanium", titulo: "Voiceover – Protein bar", categoria: "Health & Wellness", gradiente: "grad-1", videoId: "Zd0B7ttQZJQ" },
-    { marca: "Shopee", titulo: "Organic – Fitness set", categoria: "Health & Wellness", gradiente: "grad-2", videoId: "Y4YrncO4UZo" },
-    { marca: "Dreams Burn", titulo: "Storytelling – Thermogenic cube", categoria: "Health & Wellness", gradiente: "grad-3", videoId: "3pbXGVEFaog" },
+    { marca: "Dreams Burn", titulo: "Storytelling – Thermogenic cube", categoria: "Health & Wellness", gradiente: "grad-2", videoId: "3pbXGVEFaog" },
+    { marca: "Shopee", titulo: "Organic – Fitness set", categoria: "Health & Wellness", gradiente: "grad-3", videoId: "Y4YrncO4UZo" },
     { marca: "Max Titanium", titulo: "Testimonial – Whey drink", categoria: "Health & Wellness", gradiente: "grad-4", videoId: "KbJBIB5RHCI" },
-    { marca: "Rap 10", titulo: "Routine – Fit pizza recipe", categoria: "Health & Wellness", gradiente: "grad-5", videoId: "Jme4EkWP1oY" },
 
     // Home & Decor
-    { marca: "Condor", titulo: "Storytelling – PVA mop and lint roller", categoria: "Home & Decor", gradiente: "grad-6", videoId: "rjblZsgruDA" },
-    { marca: "Eletrolux", titulo: "Educational – Water filter refill", categoria: "Home & Decor", gradiente: "grad-1", videoId: "e6SAuK22QwM" },
-    { marca: "Shopee", titulo: "Marketplace – Waterproof mattress cover", categoria: "Home & Decor", gradiente: "grad-2", videoId: "AbXbrKyfHcQ" },
-    { marca: "Condor", titulo: "Storytelling – Extreme-clean sponge", categoria: "Home & Decor", gradiente: "grad-3", videoId: "sldWgcR84co" },
-    { marca: "Dobuê", titulo: "Organic – Sisters' debate, dinner table", categoria: "Home & Decor", gradiente: "grad-4", videoId: "AmDppLUwvuc" },
-    { marca: "Shein", titulo: "Marketplace – Bedding set", categoria: "Home & Decor", gradiente: "grad-5", videoId: "vSGOS-KIKUE" },
-    { marca: "Coala", titulo: "Testimonial – Black orchid scent kit", categoria: "Home & Decor", gradiente: "grad-6", videoId: "ogsVF7O7wMM" },
+    { marca: "Condor", titulo: "Storytelling – PVA mop and lint roller", categoria: "Home & Decor", gradiente: "grad-5", videoId: "rjblZsgruDA" },
+    { marca: "Eletrolux", titulo: "Educational – Water filter refill", categoria: "Home & Decor", gradiente: "grad-6", videoId: "e6SAuK22QwM" },
+    { marca: "Shopee", titulo: "Marketplace – Waterproof mattress cover", categoria: "Home & Decor", gradiente: "grad-1", videoId: "AbXbrKyfHcQ" },
+    { marca: "Shein", titulo: "Marketplace – Bedding set", categoria: "Home & Decor", gradiente: "grad-2", videoId: "vSGOS-KIKUE" },
+    { marca: "Coala", titulo: "Testimonial – Black orchid scent kit", categoria: "Home & Decor", gradiente: "grad-3", videoId: "ogsVF7O7wMM" },
 
-    // Pet
+    // Pet (Natuka/Théo's video moved to the "Featured Content" section — same
+    // video, now promoted, matching how the source doc splits it out too)
     { marca: "FreePet", titulo: "Storytelling – Kennel cleaner + odor neutralizer", categoria: "Pet", gradiente: "grad-1", videoId: "d1fmuHk5sEU" },
-    { marca: "Natuka", titulo: "Educational – Enrichment chew sticks", categoria: "Pet", gradiente: "grad-2", videoId: "C5vleYWynVM" },
-    { marca: "Petiko", titulo: "Fun unboxing – Treats and toys", categoria: "Pet", gradiente: "grad-3", videoId: "c6-PNqQZslE" },
-    { marca: "Nutrafases", titulo: "Testimonial – Probiotic supplement", categoria: "Pet", gradiente: "grad-4", videoId: "t9FO_B2oydI" },
-    { marca: "New Pet", titulo: "Storytelling – Smart water fountain", categoria: "Pet", gradiente: "grad-5", videoId: "pkf21wmwvvs" },
+    { marca: "Petiko", titulo: "Fun unboxing – Treats and toys", categoria: "Pet", gradiente: "grad-2", videoId: "c6-PNqQZslE" },
+    { marca: "Nutrafases", titulo: "Testimonial – Probiotic supplement", categoria: "Pet", gradiente: "grad-3", videoId: "t9FO_B2oydI" },
+    { marca: "New Pet", titulo: "Storytelling – Smart water fountain", categoria: "Pet", gradiente: "grad-4", videoId: "pkf21wmwvvs" },
 
     // Beauty & Self-Care
-    { marca: "Condor", titulo: "Storytelling – Makeup brushes", categoria: "Beauty & Self-Care", gradiente: "grad-6", videoId: "usONnfgOlzU" },
-    { marca: "Alva", titulo: "Voiceover/Educational – Tongue scraper", categoria: "Beauty & Self-Care", gradiente: "grad-1", videoId: "k17j7zWKmuA" },
-    { marca: "Mayara", titulo: "Experience – Eyebrow design", categoria: "Beauty & Self-Care", gradiente: "grad-2", videoId: "8K0wrl9mf0U" },
-    { marca: "Condor", titulo: "Educational – Antibacterial toothbrush", categoria: "Beauty & Self-Care", gradiente: "grad-3", videoId: "M7HjEF0YcqU" },
-    { marca: "Pantene", titulo: "Storytelling – Hair tonic", categoria: "Beauty & Self-Care", gradiente: "grad-4", videoId: "38m6Q-Pr5S0" },
-    { marca: "Condor", titulo: "Tip – Hairbrush kit with coloring markers", categoria: "Beauty & Self-Care", gradiente: "grad-5", videoId: "rqMTFESTsAw" },
-    { marca: "Alva", titulo: "Review – Crystal deodorant", categoria: "Beauty & Self-Care", gradiente: "grad-6", videoId: "vOmNzVuLXJw" },
-    { marca: "Dermacyd", titulo: "Storytelling – Intimate soap", categoria: "Beauty & Self-Care", gradiente: "grad-1", videoId: "KMh3cYekKEM" },
+    { marca: "Condor", titulo: "Storytelling – Makeup brushes", categoria: "Beauty & Self-Care", gradiente: "grad-5", videoId: "usONnfgOlzU" },
+    { marca: "Alva", titulo: "Voiceover/Educational – Tongue scraper", categoria: "Beauty & Self-Care", gradiente: "grad-6", videoId: "k17j7zWKmuA" },
+    { marca: "Mayara", titulo: "Experience – Eyebrow design", categoria: "Beauty & Self-Care", gradiente: "grad-1", videoId: "8K0wrl9mf0U" },
+    { marca: "Condor", titulo: "Educational – Antibacterial toothbrush", categoria: "Beauty & Self-Care", gradiente: "grad-2", videoId: "M7HjEF0YcqU" },
+    { marca: "Condor", titulo: "Tip – Hairbrush kit with coloring markers", categoria: "Beauty & Self-Care", gradiente: "grad-3", videoId: "rqMTFESTsAw" },
+    { marca: "Alva", titulo: "Review – Crystal deodorant", categoria: "Beauty & Self-Care", gradiente: "grad-4", videoId: "vOmNzVuLXJw" },
 
     // Fashion & Accessories
     { marca: "Vans", titulo: "Creative – 1 sneaker, many looks", categoria: "Fashion & Accessories", gradiente: "grad-2", videoId: "80XKBvwlWfU" },
@@ -1781,7 +2097,6 @@ const CONFIG_EN = {
     { marca: "Konta IA", titulo: "Storytelling – Finance organizer app", categoria: "Tech & Apps", gradiente: "grad-1", videoId: "v2zf26ctp98" },
     { marca: "Samsung", titulo: "ASMR unboxing – Tablet", categoria: "Tech & Apps", gradiente: "grad-2", videoId: "H7vk2JF62PM" },
     { marca: "Hollyland", titulo: "Tips – Microphone", categoria: "Tech & Apps", gradiente: "grad-3", videoId: "uCHl56vK6Zc" },
-    { marca: "QCY", titulo: "Testimonial – Headphones", categoria: "Tech & Apps", gradiente: "grad-4", videoId: "Mb6rUOi0qAs" },
 
     // Services & Experiences
     { marca: "Dr. Lava Tudo", titulo: "Storytelling – Car detailing", categoria: "Services & Experiences", gradiente: "grad-5", videoId: "V2rAhr3_D7E" },
@@ -1789,9 +2104,10 @@ const CONFIG_EN = {
     { marca: "Dr. Lava Tudo", titulo: "Storytelling – Sofa + mattress cleaning", categoria: "Services & Experiences", gradiente: "grad-1", videoId: "Y3b5WeKfBP0" },
     { marca: "Show de Pizzaiolo", titulo: "Paid traffic – At-home pizza buffet (franchisee-focused)", categoria: "Services & Experiences", gradiente: "grad-2", videoId: "7n_Mol2CiSM" },
 
-    // Special Occasions
-    { marca: "Yool", titulo: "June-festival podcast (twins creative) – Q&A, flared skirt", categoria: "Special Occasions", gradiente: "grad-3", videoId: "bzI86bSqRDQ" },
-    { marca: "Yool", titulo: "Wall-mounted display (creative) – Various June-festival products", categoria: "Special Occasions", gradiente: "grad-4", videoId: "pvBmrnzCdHA" }
+    // Special Occasions (Clínica Panzerri first, order updated per VÍDEOS.docx)
+    { marca: "Clínica Panzerri", titulo: "Storytelling – Mother's Day", categoria: "Special Occasions", gradiente: "grad-3", videoId: "0I-u5Lg0l1k" },
+    { marca: "Yool", titulo: "June-festival podcast (twins creative) – Q&A, flared skirt", categoria: "Special Occasions", gradiente: "grad-4", videoId: "bzI86bSqRDQ" },
+    { marca: "Yool", titulo: "Wall-mounted display (creative) – Various June-festival products", categoria: "Special Occasions", gradiente: "grad-5", videoId: "pvBmrnzCdHA" }
   ],
 
   fotosUgcTextos: {
@@ -1909,6 +2225,11 @@ const ICONES_SVG = {
 // mais restritos) o acesso ao localStorage lança um erro em vez de simplesmente
 // retornar vazio, o que travaria todo o restante deste script — incluindo a
 // renderização dos balõezinhos, portfólio, serviços etc.
+// Índice do conteúdo em foco no carrossel "Conteúdos em Destaque". Fica fora
+// de renderizarConteudo() de propósito, pra não voltar pro primeiro item toda
+// vez que a pessoa troca o idioma (PT/EN).
+let destaqueAtivo = 0;
+
 let idiomaAtual = "pt";
 try { idiomaAtual = localStorage.getItem("portfolio_idioma") || "pt"; } catch (e) {}
 let CONFIG = idiomaAtual === "en" ? CONFIG_EN : CONFIG_PT;
@@ -2053,6 +2374,130 @@ function renderizarConteudo(inicial){
   document.getElementById("sobreTexto").innerHTML = CONFIG.sobre.paragrafos.map(p => `<p>${p}</p>`).join("");
   document.getElementById("sobreLista").innerHTML = CONFIG.sobre.destaques
     .map((item, i) => `<li class="chip-sobre${i === 0 ? " chip-azul" : ""}">${item}</li>`).join("");
+
+  // ---------- Conteúdos em Destaque ----------
+  document.getElementById("destaquesTag").textContent = CONFIG.destaquesTextos.tag;
+  document.getElementById("destaquesTitulo").textContent = CONFIG.destaquesTextos.titulo;
+  document.getElementById("destaquesSubtitulo").textContent = CONFIG.destaquesTextos.subtitulo;
+  if (destaqueAtivo >= CONFIG.destaques.videos.length) destaqueAtivo = 0;
+
+  // Ícone simples de "aspas" pra representar o print de feedback enquanto o
+  // arquivo real não chega (mesmo estilo de ícone usado no rodapé/contato).
+  const ICONE_ASPAS_SVG = '<svg class="destaque-icone-placeholder" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11H6a1 1 0 0 1-1-1V7a3 3 0 0 1 3-3h1v2H8a1 1 0 0 0-1 1v1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H9zm9 0h-3a1 1 0 0 1-1-1V7a3 3 0 0 1 3-3h1v2h-1a1 1 0 0 0-1 1v1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1z"/></svg>';
+
+  // Mãozinha branca (estilo cursor "hand pointer", com contorno escuro pra
+  // aparecer em qualquer fundo) que desliza sobre o traço azul embaixo da
+  // legenda em destaque (ex.: "12 vendas em curto prazo").
+  // Ícone real "hand-pointer" (o clássico cursor que aparece ao passar o
+  // mouse sobre um link — dorso da mão, dedo indicador em riste). O contorno
+  // preto é feito com um filtro (dilata uma cópia preta atrás, cobre com a
+  // mão branca na frente) — testado visualmente antes de aplicar, porque um
+  // "stroke" comum quebra esse tipo de ícone em pedaços soltos.
+  const SVG_MAO_DESTAQUE = '<svg class="destaque-risco-mao" viewBox="0 0 448 512" aria-hidden="true"><g transform="translate(224,256) scale(1.22) translate(-224,-256)"><path fill="var(--tinta)" d="M128 40c0-22.1 17.9-40 40-40s40 17.9 40 40v148.2c8.5-7.6 19.7-12.2 32-12.2c20.6 0 38.2 13 45 31.2c8.8-9.3 21.2-15.2 35-15.2c25.3 0 46 19.5 47.9 44.3c8.5-7.7 19.8-12.3 32.1-12.3c26.5 0 48 21.5 48 48v112c0 70.7-57.3 128-128 128h-85.3c-5 0-9.9-.3-14.7-1c-55.3-5.6-106.2-34-140-79L8 336c-13.3-17.7-9.7-42.7 8-56s42.7-9.7 56 8l56 74.7zm112 264c0-8.8-7.2-16-16-16s-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16zm48-16c-8.8 0-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16v-96c0-8.8-7.2-16-16-16m80 16c0-8.8-7.2-16-16-16s-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16z"/></g><path fill="var(--branco)" d="M128 40c0-22.1 17.9-40 40-40s40 17.9 40 40v148.2c8.5-7.6 19.7-12.2 32-12.2c20.6 0 38.2 13 45 31.2c8.8-9.3 21.2-15.2 35-15.2c25.3 0 46 19.5 47.9 44.3c8.5-7.7 19.8-12.3 32.1-12.3c26.5 0 48 21.5 48 48v112c0 70.7-57.3 128-128 128h-85.3c-5 0-9.9-.3-14.7-1c-55.3-5.6-106.2-34-140-79L8 336c-13.3-17.7-9.7-42.7 8-56s42.7-9.7 56 8l56 74.7zm112 264c0-8.8-7.2-16-16-16s-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16zm48-16c-8.8 0-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16v-96c0-8.8-7.2-16-16-16m80 16c0-8.8-7.2-16-16-16s-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16z"/></svg>';
+
+  // Monta o HTML de um card (usado tanto pro card fixo do feedback quanto
+  // pro card de vídeo atual). Os dois ficam sempre "ativo" (cheios, nítidos)
+  // porque agora só um card de cada tipo aparece por vez em cada coluna.
+  function construirCardDestaque(d, ehVideo){
+    let conteudoMidia;
+    let legendaHtml;
+    if (ehVideo) {
+      // Miniatura real do vídeo, igual ao esquema usado nos cards do
+      // Portfólio (puxa direto da própria miniatura do YouTube).
+      conteudoMidia = d.videoId
+        ? `<div class="foto-real" style="background-image:url('https://i.ytimg.com/vi/${d.videoId}/hqdefault.jpg');"></div><span class="play-botao" aria-hidden="true"></span>`
+        : `<span class="destaque-placeholder"><span class="play-botao" aria-hidden="true"></span>${d.legenda}</span>`;
+      if (d.metricasImagem) {
+        // Print real das métricas (o mesmo arquivo do documento, sem
+        // recriar os ícones — pediu pra não alterar nada nele).
+        legendaHtml = `<img class="destaque-metricas-img" src="${d.metricasImagem}" alt="Métricas do vídeo: ${d.legenda}" loading="lazy">`;
+      } else if (d.estatistica) {
+        legendaHtml = `<strong>${d.estatistica}</strong><span>${d.legenda}</span>`;
+      } else {
+        legendaHtml = `<span>${d.legenda}</span>`;
+      }
+    } else {
+      // Print de texto: mostra a imagem inteira, sem cortar (mesmo
+      // tratamento da seção de Depoimentos), diferente do vídeo que usa
+      // um recorte fixo.
+      conteudoMidia = d.imagem
+        ? `<img class="destaque-print" src="${d.imagem}" alt="${d.legenda}" loading="lazy">`
+        : `<span class="destaque-placeholder">${ICONE_ASPAS_SVG}${d.legenda}</span>`;
+      // Legenda com o traço + mãozinha desenhando embaixo, pra chamar
+      // atenção (liga/desliga com "legendaDestacada" no CONFIG.destaques.fixo).
+      const legendaSpan = d.legendaDestacada
+        ? `<span class="destaque-legenda-riscada">${d.legenda}<span class="destaque-risco-traco" aria-hidden="true"></span>${SVG_MAO_DESTAQUE}</span>`
+        : `<span>${d.legenda}</span>`;
+      legendaHtml = `<strong>${d.estatistica || ""}</strong>${legendaSpan}`;
+    }
+    return `
+      <button type="button" class="card-destaque ativo" data-tipo="${ehVideo ? "video" : "imagem"}" data-video-id="${d.videoId || ""}" aria-label="${d.legenda}">
+        <div class="destaque-midia ${ehVideo ? "midia-video" : "midia-feedback"}${!ehVideo && d.imagem ? " tem-foto" : ""}">
+          ${conteudoMidia}
+        </div>
+        <div class="destaque-legenda">
+          ${legendaHtml}
+        </div>
+      </button>
+    `;
+  }
+
+  // "Gostinho" desfocado do outro vídeo, espiando atrás do card em foco —
+  // só decorativo (não recebe clique), pra dar a sensação de carrossel com
+  // mais conteúdo, tipo a referência que a Edi mandou.
+  function construirPeek(v){
+    if (!v || !v.videoId) return "";
+    return `<div class="peek-img" style="background-image:url('https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg');"></div>`;
+  }
+
+  function renderizarDestaques(){
+    const pista = document.getElementById("destaquesPista");
+    const videos = CONFIG.destaques.videos;
+    const videoAtivo = videos[destaqueAtivo];
+    const videoAnterior = videos.length > 1 ? videos[(destaqueAtivo - 1 + videos.length) % videos.length] : null;
+    const videoProximo = videos.length > 1 ? videos[(destaqueAtivo + 1) % videos.length] : null;
+    // Coluna esquerda: sempre o card fixo (feedback), nunca muda.
+    // Coluna direita: o vídeo atual (índice "destaqueAtivo") num "slot" com
+    // as bordas desfocadas do vídeo anterior/próximo espiando de cada lado
+    // (com só 2 vídeos, os dois lados mostram o mesmo; com 3 ou mais, cada
+    // lado mostra um vizinho diferente) — as setas/pontinhos trocam só esse
+    // card, sem mexer no da esquerda.
+    const peekHtml = videoAnterior ? `
+      <div class="destaque-peek destaque-peek-esq" aria-hidden="true">${construirPeek(videoAnterior)}</div>
+      <div class="destaque-peek destaque-peek-dir" aria-hidden="true">${construirPeek(videoProximo)}</div>
+    ` : "";
+    pista.innerHTML = construirCardDestaque(CONFIG.destaques.fixo, false)
+      + `<div class="destaque-video-slot">${peekHtml}${construirCardDestaque(videoAtivo, true)}</div>`;
+
+    document.getElementById("destaquesPontos").innerHTML = videos.map((v, i) => `
+      <button type="button" class="ponto-destaque${i === destaqueAtivo ? " ativo" : ""}" data-indice="${i}" aria-label="Ver vídeo ${i + 1} de ${videos.length}"></button>
+    `).join("");
+
+    // Clicar no card de vídeo abre o mesmo modal usado no Portfólio. O card
+    // do feedback é só imagem, não faz nada ao clicar.
+    pista.onclick = (e) => {
+      const card = e.target.closest(".card-destaque");
+      if (!card || card.dataset.tipo !== "video" || !card.dataset.videoId) return;
+      abrirModalVideo(card.dataset.videoId, card);
+    };
+    document.getElementById("destaquesPontos").onclick = (e) => {
+      const ponto = e.target.closest(".ponto-destaque");
+      if (!ponto) return;
+      destaqueAtivo = Number(ponto.dataset.indice);
+      renderizarDestaques();
+    };
+  }
+  renderizarDestaques();
+
+  document.getElementById("destaquesSetaEsq").onclick = () => {
+    const total = CONFIG.destaques.videos.length;
+    destaqueAtivo = (destaqueAtivo - 1 + total) % total;
+    renderizarDestaques();
+  };
+  document.getElementById("destaquesSetaDir").onclick = () => {
+    destaqueAtivo = (destaqueAtivo + 1) % CONFIG.destaques.videos.length;
+    renderizarDestaques();
+  };
 
   // ---------- Portfólio: uma fileira por nicho, com setas estilo Netflix ----------
   document.getElementById("portfolioTag").textContent = CONFIG.portfolioTextos.tag;
