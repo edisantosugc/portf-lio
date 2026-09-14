@@ -777,6 +777,68 @@
   }
   .ponto-destaque.ativo{ background: var(--vermelho); border-color: var(--vermelho); }
 
+  /* ===================== CONTEÚDOS EM DESTAQUE NO MOBILE =====================
+     Na tela estreita não cabe o grid de 2 colunas do desktop, então essa
+     fileira separada substitui ele por completo: rolagem lateral nativa
+     (funciona com o dedo, arrastando — mesma técnica já usada em
+     ".linha-scroll" e nas outras fileiras do site), com scroll-snap pra
+     cada item "encaixar" centralizado. O item ainda não centralizado fica
+     desfocado/menor (dá o "gostinho" do próximo conteúdo) — quem controla
+     isso é a classe ".card-mobile-ativo", ligada via IntersectionObserver
+     no JS conforme a rolagem. Escondida no desktop; some ".destaques-carrossel"
+     e ".destaques-pontos" (feitos pro desktop) só aparecem a partir de 761px. */
+  .destaques-carrossel-mobile{ display: none; }
+  .destaques-pista-mobile{ display: none; }
+  @media (max-width: 760px){
+    .destaques-carrossel{ display: none; }
+    .destaques-pontos{ display: none; }
+    .destaques-carrossel-mobile{
+      position: relative;
+      display: block;
+    }
+    .destaques-carrossel-mobile .seta-btn{
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 3;
+      background: var(--branco);
+      box-shadow: var(--sombra-dura-sm);
+    }
+    .destaques-carrossel-mobile .seta-esq{ left: 2px; }
+    .destaques-carrossel-mobile .seta-dir{ right: 2px; }
+    .destaques-carrossel-mobile .seta-btn:hover:not(:disabled){
+      transform: translateY(calc(-50% - 2px));
+    }
+    .destaques-pista-mobile{
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      padding: 30px 9vw 12px;
+      margin-top: 10px;
+      scrollbar-width: none;
+    }
+    .destaques-pista-mobile::-webkit-scrollbar{ display: none; }
+    .destaques-pista-mobile .card-destaque{
+      flex: 0 0 82vw;
+      max-width: 300px;
+      scroll-snap-align: center;
+      opacity: .5;
+      transform: scale(.92);
+      filter: blur(1.5px);
+      transition: opacity .3s ease, transform .3s ease, filter .3s ease;
+      cursor: pointer;
+    }
+    .destaques-pista-mobile .card-destaque.card-mobile-ativo{
+      opacity: 1;
+      transform: scale(1);
+      filter: none;
+    }
+  }
+
   /* ===================== PORTFÓLIO ===================== */
   .portfolio{ background: var(--branco); }
   .filtro-nichos{
@@ -1492,6 +1554,20 @@
         <button type="button" class="seta-btn seta-dir" id="destaquesSetaDir" aria-label="Ver próximo conteúdo">›</button>
       </div>
       <div class="destaques-pontos" id="destaquesPontos"></div>
+
+      <!-- Versão mobile: em vez do grid de 2 colunas fixas do desktop, uma
+           fileira que desliza com o dedo (rolagem nativa com "scroll-snap",
+           já usada em outras fileiras do site) — cabe só uma coluna na tela
+           estreita, então aqui os conteúdos ficam em sequência, um de cada
+           vez, começando pelo vídeo em foco. Só aparece em telas pequenas
+           (ver CSS "@media (max-width: 760px)"). As setinhas são só um
+           reforço visual de que dá pra passar pro lado (o gesto de arrastar
+           já funciona sem elas) — clicar rola um cartão inteiro. -->
+      <div class="destaques-carrossel-mobile">
+        <button type="button" class="seta-btn seta-esq" id="destaquesSetaEsqMobile" aria-label="Ver conteúdo anterior">‹</button>
+        <div class="destaques-pista-mobile" id="destaquesPistaMobile"></div>
+        <button type="button" class="seta-btn seta-dir" id="destaquesSetaDirMobile" aria-label="Ver próximo conteúdo">›</button>
+      </div>
     </div>
   </section>
 
@@ -2498,6 +2574,51 @@ function renderizarConteudo(inicial){
       destaqueAtivo = Number(ponto.dataset.indice);
       renderizarDestaques();
     };
+
+    renderizarDestaquesMobile(videoAtivo, videos);
+  }
+
+  // Fileira separada só pro mobile: vídeo em foco primeiro, depois o
+  // depoimento, depois os demais vídeos — uma coluna só, deslizando com o
+  // dedo (ver CSS "@media (max-width: 760px)"). Usa os mesmos cards
+  // (construirCardDestaque) do desktop, só numa ordem e visual diferentes.
+  function renderizarDestaquesMobile(videoAtivo, videos){
+    const pistaMobile = document.getElementById("destaquesPistaMobile");
+    if (!pistaMobile) return;
+    const outrosVideos = videos.filter(v => v !== videoAtivo);
+    const itens = [
+      { dado: videoAtivo, ehVideo: true },
+      { dado: CONFIG.destaques.fixo, ehVideo: false },
+      ...outrosVideos.map(v => ({ dado: v, ehVideo: true }))
+    ];
+    pistaMobile.innerHTML = itens.map(it => construirCardDestaque(it.dado, it.ehVideo)).join("");
+
+    pistaMobile.onclick = (e) => {
+      const card = e.target.closest(".card-destaque");
+      if (!card || card.dataset.tipo !== "video" || !card.dataset.videoId) return;
+      abrirModalVideo(card.dataset.videoId, card);
+    };
+
+    // Marca como "em foco" (nítido, tamanho normal) o card mais visível no
+    // meio da tela conforme a pessoa arrasta o dedo pros lados.
+    if (window._observadorDestaquesMobile) window._observadorDestaquesMobile.disconnect();
+    const observador = new IntersectionObserver((entradas) => {
+      entradas.forEach((entrada) => {
+        entrada.target.classList.toggle("card-mobile-ativo", entrada.intersectionRatio > 0.6);
+      });
+    }, { root: pistaMobile, threshold: [0, 0.6, 1] });
+    pistaMobile.querySelectorAll(".card-destaque").forEach((card) => observador.observe(card));
+    window._observadorDestaquesMobile = observador;
+
+    // Setinhas do mobile: só reforçam visualmente que dá pra passar pro
+    // lado — clicar rola um cartão inteiro (o arrastar com o dedo já
+    // funciona sozinho, por causa do scroll-snap nativo acima).
+    const setaEsqMobile = document.getElementById("destaquesSetaEsqMobile");
+    const setaDirMobile = document.getElementById("destaquesSetaDirMobile");
+    if (setaEsqMobile && setaDirMobile) {
+      setaEsqMobile.onclick = () => pistaMobile.scrollBy({ left: -pistaMobile.clientWidth * 0.85, behavior: "smooth" });
+      setaDirMobile.onclick = () => pistaMobile.scrollBy({ left: pistaMobile.clientWidth * 0.85, behavior: "smooth" });
+    }
   }
   renderizarDestaques();
 
