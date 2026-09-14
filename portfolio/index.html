@@ -841,6 +841,18 @@
   }
   .seta-btn:hover:not(:disabled){ background: var(--vermelho); color: var(--branco); transform: translateY(-2px); }
   .seta-btn:disabled{ opacity: .3; cursor: default; }
+  /* Nos carrosséis (Serviços, Depoimentos, Destaques) a setinha fica
+     centralizada na vertical com "transform: translateY(-50%)". Sem a regra
+     abaixo, passar o mouse trocava esse transform pelo "translateY(-2px)"
+     do hover genérico acima, fazendo a setinha pular de lugar — e como o
+     pulo tira a setinha de baixo do cursor, o hover liga e desliga sem
+     parar (o "tremor" reportado). Aqui soma as duas: mantém centralizada e
+     ainda sobe um pouquinho. */
+  .servicos-carrossel .seta-btn:hover:not(:disabled),
+  .depoimentos-carrossel .seta-btn:hover:not(:disabled),
+  .destaques-carrossel .seta-btn:hover:not(:disabled){
+    transform: translateY(calc(-50% - 2px));
+  }
   .linha-scroll{
     display: flex;
     justify-content: safe center;
@@ -1743,7 +1755,7 @@ const CONFIG_PT = {
       {
         tipo: "video",
         videoId: "sldWgcR84co",
-        legenda: "Storytelling – Esponja limpeza extrema"
+        legenda: "Depoimento – Esponja limpeza extrema"
       }
     ]
   },
@@ -2041,7 +2053,7 @@ const CONFIG_EN = {
       {
         tipo: "video",
         videoId: "sldWgcR84co",
-        legenda: "Storytelling – Extreme-clean sponge"
+        legenda: "Testimonial – Extreme-clean sponge"
       }
     ]
   },
