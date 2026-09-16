@@ -7516,14 +7516,14 @@
     const visitas = eventos.filter(e => e.event_type === "page_view");
     const cliques = eventos.filter(e => e.event_type === "button_click");
     const visitantesUnicos = contarVisitantesUnicos(visitas);
-    const cliquesVerPortfolio = cliques.filter(e => e.event_name === "cta_portfolio_biosite");
+    const cliquesVerPortfolio = cliques.filter(e => e.event_name === "contact_whatsapp_portfolio");
 
     // Métricas do biosite (edilainesantos.com). Vídeos e mensagens não aparecem
     // aqui porque só existem dentro do Portfólio (/portfolio/) — ficam na aba dele.
     const cartoes = [
       { numero: visitas.length, rotulo: "Visitas", destaque: true },
       { numero: visitantesUnicos, rotulo: "Visitantes únicos" },
-      { numero: cliquesVerPortfolio.length, rotulo: "Cliques em Ver Portfólio" }
+      { numero: cliquesVerPortfolio.length, rotulo: "Solicite meu portfólio" }
     ];
 
     document.getElementById("cartoesNumeros").innerHTML = cartoes.map(c => `
