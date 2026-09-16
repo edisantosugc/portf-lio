@@ -2971,21 +2971,20 @@ function definirIdioma(idioma){
 }
 
 // Origem de quem chegou ao Portfólio: "direto" é usado no link
-// edilainesantos.com/ugcportfolio (abordagens e cadastros de plataforma); "bio" é
-// marcado pelo próprio biosite ao clicar em "Meu portfólio 🦋". Sem nenhuma das duas
-// marcações (busca, link salvo, compartilhamento externo, etc.), fica como "outro".
+// edilainesantos.com/ugcportfolio (abordagem direta a marcas); "plataforma" é usado no
+// link edilainesantos.com/plataforma (cadastros em plataformas de creator/UGC). Sem
+// nenhuma das duas marcações (busca, link salvo, compartilhamento externo, etc.), fica
+// como "outro".
 function obterOrigemPortfolio(){
-  // "direto" pode vir marcado na sessão (link /ugcportfolio, sem aparecer na URL) ou,
-  // se alguém compartilhar um link com "?origem=direto" na mão, por aí também.
-  // "bio" vem sempre pela URL: o link do biosite abre em nova aba (target="_blank"
-  // rel="noopener"), e rel="noopener" impede a nova aba de herdar o sessionStorage
-  // da aba de origem — por isso não dá pra confiar em sessionStorage para essa marcação.
+  // Ambas podem vir marcadas na sessão (links /ugcportfolio e /plataforma, sem aparecer
+  // na URL) ou, se alguém compartilhar um link com "?origem=direto"/"?origem=plataforma"
+  // na mão, por aí também.
   const paramsUrl = new URLSearchParams(window.location.search);
   const origemUrl = paramsUrl.get("origem");
-  if (origemUrl === "direto" || origemUrl === "bio") return origemUrl;
+  if (origemUrl === "direto" || origemUrl === "plataforma") return origemUrl;
   try {
     const origemSalva = sessionStorage.getItem("origem_portfolio");
-    if (origemSalva === "direto" || origemSalva === "bio") return origemSalva;
+    if (origemSalva === "direto" || origemSalva === "plataforma") return origemSalva;
   } catch (erro) {}
   return "outro";
 }

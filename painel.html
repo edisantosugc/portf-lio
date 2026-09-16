@@ -7647,19 +7647,19 @@
     renderizarMensagens(leads);
   }
 
-  // Quem chegou ao Portfólio pelo link da bio (clique real em "Meu portfólio 🦋" no
-  // biosite, marcado via sessionStorage) x quem chegou pelo link direto
-  // (edilainesantos.com/ugcportfolio, usado em abordagens e cadastros de plataforma).
+  // Quem chegou ao Portfólio pelo link direto (edilainesantos.com/ugcportfolio, usado
+  // em abordagem direta a marcas) x quem chegou pelo link de plataforma
+  // (edilainesantos.com/plataforma, usado em cadastros de plataformas de creator/UGC).
   // Quem não tem nenhuma das duas marcações (busca, link salvo, compartilhamento
   // externo) não entra em nenhum dos dois cards — por isso a soma dos dois pode ser
   // menor que o total de visitas.
   function renderizarOrigemPortfolio(visitas){
-    const viaBio = visitas.filter(e => e.metadata && e.metadata.origem === "bio");
     const viaDireto = visitas.filter(e => e.metadata && e.metadata.origem === "direto");
+    const viaPlataforma = visitas.filter(e => e.metadata && e.metadata.origem === "plataforma");
 
     const cartoes = [
-      { numero: viaBio.length, unicos: contarVisitantesUnicos(viaBio), rotulo: "Via link da bio (Instagram)" },
-      { numero: viaDireto.length, unicos: contarVisitantesUnicos(viaDireto), rotulo: "Via link direto (abordagens/plataformas)", destaque: true }
+      { numero: viaDireto.length, unicos: contarVisitantesUnicos(viaDireto), rotulo: "Via abordagem direta", destaque: true },
+      { numero: viaPlataforma.length, unicos: contarVisitantesUnicos(viaPlataforma), rotulo: "Via plataformas" }
     ];
 
     document.getElementById("cartoesOrigemPortfolio").innerHTML = cartoes.map(c => `
