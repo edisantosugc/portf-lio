@@ -1288,8 +1288,32 @@
   .contato-item span{ font-size: .9rem; color: rgba(255,255,255,.8); }
 
   /* ===================== VALORES / INVESTIMENTOS ===================== */
-  .valores{ background: var(--creme); }
+  .valores{
+    background-color: var(--creme);
+    background-image: url("/portfolio/imagens/textura-hero.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+  }
+  /* Nessa seção o título grande "INVESTIMENTOS" substitui o padrão
+     tag+título+subtítulo usado no resto do site — os três elementos
+     continuam existindo (JS/conteúdo) por baixo, só ficam escondidos aqui. */
+  .valores .tag-secao, .valores .sub-secao{ display: none; }
 
+  .valores-topo{
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .valores-titulo{
+    font-size: clamp(2.2rem, 6vw, 3.4rem);
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: var(--vermelho);
+    text-align: center;
+    margin: 0;
+  }
   .addons-linha{
     display: flex;
     flex-wrap: wrap;
@@ -1306,7 +1330,7 @@
     color: var(--branco);
     background: var(--vermelho);
     border: 2px solid var(--tinta);
-    border-radius: 50px;
+    border-radius: 8px;
     padding: 8px 16px;
   }
   .addon-pill strong{ font-family: 'Oswald', sans-serif; font-weight: 700; }
@@ -1318,10 +1342,10 @@
     gap: 12px;
     max-width: 640px;
     margin: 22px auto 0;
-    background: var(--tinta);
-    color: var(--creme);
+    background: var(--vermelho);
+    color: var(--branco);
     border: 3px solid var(--tinta);
-    border-radius: 50px;
+    border-radius: 12px;
     padding: 14px 26px;
     font-family: 'Oswald', sans-serif;
     font-weight: 700;
@@ -1343,7 +1367,7 @@
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
-  .faixa-orcamento-icone svg{ width: 14px; height: 14px; fill: var(--tinta); }
+  .faixa-orcamento-icone svg{ width: 14px; height: 14px; fill: var(--branco); }
 
   .pacotes-grid{
     display: grid;
@@ -1354,11 +1378,11 @@
   }
   .pacote-card{
     position: relative;
-    background: var(--branco);
+    overflow: visible;
     border: 3px solid var(--tinta);
     border-radius: 20px;
     box-shadow: var(--sombra-dura-sm);
-    padding: 24px 20px 22px;
+    padding: 0 20px 22px;
     display: flex;
     flex-direction: column;
     text-align: center;
@@ -1369,89 +1393,51 @@
   .metal-bronze, .metal-gold{ min-height: 420px; }
   .metal-best, .metal-prata{ min-height: 478px; }
 
-  /* Fundo de cada card, igual à referência: Bronze em azul claro, Best
-     Seller/Prata em branco, Gold em azul forte — não é a cor do metal, é
-     o ritmo visual do modelo. */
-  .metal-bronze{ background: #b8c2ea; }
-  .metal-gold{ background: var(--vermelho); }
-  .metal-gold .pacote-itens li{ color: var(--creme); border-top-color: rgba(255,255,255,.22); }
-  .metal-gold .pacote-economia{ color: rgba(243,238,233,.75); }
+  /* Cores de fundo por pacote, igual à referência: Bronze/Gold em
+     azul-marinho (texto branco), Best Seller/Prata em branco (texto escuro). */
+  .metal-bronze, .metal-gold{ background: var(--vermelho); color: var(--branco); }
+  .metal-best, .metal-prata{ background: var(--branco); color: var(--tinta); }
 
-  /* Selo (Bronze/Prata/Gold) flutua colado acima da borda do card, igual
-     um adesivo — por isso é position:absolute, fora do fluxo do card. */
+  /* Nome do pacote (texto em arco, por cima da borda do card) + barrinha
+     real (imagem recortada da referência, centralizada bem em cima da
+     borda — metade aparece dentro do card, metade fora). Reaproveitado nos
+     três metais (Bronze/Prata/Gold). */
   .pacote-selo{
-    position: absolute;
-    top: -50px; left: 50%;
-    transform: translateX(-50%) rotate(-4deg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-  }
-  .metal-prata .pacote-selo{ transform: translateX(-50%) rotate(3deg); }
-  .metal-gold .pacote-selo{ transform: translateX(-50%) rotate(-3deg); }
-  .barra-metal{
-    width: 54px; height: 21px;
-    border-radius: 5px;
-    border: 2px solid var(--tinta);
-    box-shadow: inset 0 2px 2px rgba(255,255,255,.55), inset 0 -2px 2px rgba(0,0,0,.3);
-  }
-  .metal-bronze .barra-metal{ background: linear-gradient(100deg, #4a2410 0%, #8a4a24 20%, #e8b58c 50%, #8a4a24 80%, #4a2410 100%); }
-  .metal-prata .barra-metal{ background: linear-gradient(100deg, #5c6167 0%, #9099a1 20%, #ffffff 50%, #9099a1 80%, #5c6167 100%); }
-  .metal-gold .barra-metal{ background: linear-gradient(100deg, #6b4a07 0%, #b8860b 20%, #f7de92 50%, #b8860b 80%, #6b4a07 100%); }
-  .pacote-selo-texto{
-    font-family: 'Playfair Display', serif;
-    font-weight: 700;
-    font-style: italic;
-    font-size: 1.1rem;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    text-shadow: 1px 1px 0 rgba(255,255,255,.6);
-  }
-  .metal-bronze .pacote-selo-texto{ color: #8a4a24; }
-  .metal-prata .pacote-selo-texto{ color: #6b7178; }
-  .metal-gold .pacote-selo-texto{ color: #a97a12; }
-
-  /* Selo do Best Seller: emblema redondo (estilo medalha), com duas fitas
-     pontudas caindo por trás, na mesma leitura do modelo. */
-  .selo-best{
-    position: absolute;
-    top: -60px; left: 50%;
-    transform: translateX(-50%);
-    width: 86px; height: 86px;
-    border-radius: 50%;
-    background: var(--vermelho);
-    border: 3px solid var(--branco);
-    box-shadow: 0 0 0 3px var(--tinta);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1px;
+    position: relative;
     z-index: 1;
+    /* A barrinha fica no fluxo normal, centralizada bem em cima da borda
+       superior do card — a margem negativa abaixo sobe aproximadamente
+       metade da altura dela, pra metade ficar fora e metade dentro. */
+    margin: -40px 0 8px;
+    display: flex;
+    justify-content: center;
   }
-  .selo-best span{
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: .66rem;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    color: var(--branco);
-    line-height: 1.3;
+  .pacote-selo-barra-img{
+    width: 110px;
+    display: block;
+    filter: drop-shadow(0 3px 3px rgba(0,0,0,.25));
   }
-  /* Fitas: retângulos com a ponta de baixo recortada em V, saindo de trás
-     do medalhão — por isso ficam atrás dele (z-index menor). */
-  .selo-best::before, .selo-best::after{
-    content: "";
+  .pacote-selo-nome-svg{
     position: absolute;
-    top: 58px;
-    width: 24px; height: 34px;
-    background: #00004d;
-    clip-path: polygon(0 0, 100% 0, 100% 72%, 50% 100%, 0 72%);
-    z-index: -1;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%);
+    margin-bottom: -6px;
+    width: 150px;
+    overflow: visible;
   }
-  .selo-best::before{ left: 6px; transform: rotate(14deg); }
-  .selo-best::after{ right: 6px; transform: rotate(-14deg); }
+  .metal-gold .pacote-selo-barra-img{ transform: rotate(-2deg); }
+
+  /* Best Seller: selo redondo desenhado em SVG (não em imagem recortada) —
+     o print de referência é pequeno demais pra recortar sem ficar borrado,
+     então aqui é vetor puro: sempre nítido, em qualquer tamanho de tela. */
+  .selo-best-svg{
+    width: 92px;
+    height: 92px;
+    margin: -40px auto 10px;
+    display: block;
+    filter: drop-shadow(0 3px 3px rgba(0,0,0,.3));
+  }
 
   .pacote-itens{
     list-style: none;
@@ -1459,13 +1445,60 @@
     padding: 0;
     flex-grow: 1;
   }
-  .pacote-itens li{
-    font-size: .86rem;
-    color: #4a453e;
-    padding: 6px 0;
-    border-top: 1px solid rgba(42,38,34,.16);
+  .pacote-itens li{ font-size: .86rem; font-weight: 700; padding: 6px 0; border-top: 1px solid; }
+  .metal-bronze .pacote-itens li, .metal-gold .pacote-itens li{
+    color: rgba(255,255,255,.92); border-top-color: rgba(255,255,255,.22);
+  }
+  .metal-best .pacote-itens li, .metal-prata .pacote-itens li{
+    color: #4a453e; border-top-color: rgba(42,38,34,.16);
   }
   .pacote-itens li:first-child{ border-top: none; }
+
+  /* =========================================================================
+     AJUSTES FEITOS NO MODO DE EDIÇÃO DA PRÉVIA (exportados por ela e
+     aplicados aqui de verdade). Altura dos cards, tamanho/posição dos
+     selos e nomes, e posição de cada item da lista dentro do card.
+     ========================================================================= */
+  .metal-gold{ min-height: 0; height: 414px; }
+  .metal-best{ min-height: 0; height: 447px; }
+  .metal-prata{ min-height: 0; height: 447px; }
+
+  .metal-bronze .pacote-selo-nome-svg{ transform: translateX(-50%) translate(-9px, -3px) scale(1.2); }
+  .metal-bronze .pacote-selo-barra-img{ transform: translate(-7px, -4px) scale(1.05); }
+  .metal-best .selo-best-svg{ transform: translate(0px, -10px) scale(1.2); }
+  .metal-prata .pacote-selo-nome-svg{ transform: translateX(-50%) translate(-4px, 5px) scale(1.3); }
+  .metal-prata .pacote-selo-barra-img{ transform: translate(-6px, 5px) scale(1.05); }
+  .metal-gold .pacote-selo-nome-svg{ transform: translateX(-50%) translate(7px, -2px) scale(1.35); }
+  .metal-gold .pacote-selo-barra-img{ transform: rotate(-2deg) translate(13px, -4px) scale(1.05); }
+
+  .metal-bronze .pacote-itens li:nth-child(1){ transform: translate(0px, 14px); }
+  .metal-bronze .pacote-itens li:nth-child(2){ transform: translate(-1px, 15px); }
+  .metal-bronze .pacote-itens li:nth-child(3){ transform: translate(0px, 15px); }
+  .metal-bronze .pacote-itens li:nth-child(4){ transform: translate(1px, 16px); }
+  .metal-bronze .pacote-itens li:nth-child(5){ transform: translate(0px, 18px); }
+  .metal-bronze .pacote-itens li:nth-child(6){ transform: translate(0px, 19px); }
+  .metal-bronze .pacote-itens li:nth-child(7){ transform: translate(-2px, 19px); }
+
+  .metal-best .pacote-itens li:nth-child(1){ transform: translate(2px, 25px); }
+  .metal-best .pacote-itens li:nth-child(2){ transform: translate(2px, 26px); }
+  .metal-best .pacote-itens li:nth-child(3){ transform: translate(1px, 28px); }
+  .metal-best .pacote-itens li:nth-child(4){ transform: translate(1px, 28px); }
+  .metal-best .pacote-itens li:nth-child(5){ transform: translate(1px, 31px); }
+  .metal-best .pacote-itens li:nth-child(6){ transform: translate(2px, 31px); }
+
+  .metal-prata .pacote-itens li:nth-child(1){ transform: translate(3px, 39px); }
+  .metal-prata .pacote-itens li:nth-child(2){ transform: translate(2px, 41px); }
+  .metal-prata .pacote-itens li:nth-child(3){ transform: translate(1px, 40px); }
+  .metal-prata .pacote-itens li:nth-child(4){ transform: translate(1px, 41px); }
+  .metal-prata .pacote-itens li:nth-child(5){ transform: translate(1px, 42px); }
+  .metal-prata .pacote-itens li:nth-child(6){ transform: translate(1px, 41px); }
+
+  .metal-gold .pacote-itens li:nth-child(1){ transform: translate(0px, 21px); }
+  .metal-gold .pacote-itens li:nth-child(2){ transform: translate(0px, 23px); }
+  .metal-gold .pacote-itens li:nth-child(3){ transform: translate(0px, 23px); }
+  .metal-gold .pacote-itens li:nth-child(4){ transform: translate(0px, 26px); }
+  .metal-gold .pacote-itens li:nth-child(5){ transform: translate(0px, 27px); }
+  .metal-gold .pacote-itens li:nth-child(6){ transform: translate(0px, 28px); }
 
   .pacote-preco{
     font-family: 'Oswald', sans-serif;
@@ -1482,11 +1515,10 @@
   .metal-prata .pacote-preco{ background: linear-gradient(100deg, #5c6167 0%, #9099a1 18%, #ffffff 50%, #9099a1 82%, #5c6167 100%); color: var(--tinta); text-shadow: 0 1px 0 rgba(255,255,255,.5); }
   .metal-gold .pacote-preco{ background: linear-gradient(100deg, #6b4a07 0%, #b8860b 18%, #f7de92 50%, #b8860b 82%, #6b4a07 100%); color: var(--tinta); text-shadow: 0 1px 0 rgba(255,255,255,.5); }
 
-  .pacote-economia{ font-size: .85rem; color: #6b645c; }
+  .metal-bronze .pacote-economia, .metal-gold .pacote-economia{ font-size: .85rem; font-weight: 700; color: rgba(255,255,255,.75); }
+  .metal-best .pacote-economia, .metal-prata .pacote-economia{ font-size: .85rem; font-weight: 700; color: #6b645c; }
 
   .metal-best{
-    border-color: var(--rosa);
-    box-shadow: 6px 6px 0 var(--rosa);
     transform: translateY(-26px);
     z-index: 2;
   }
@@ -1862,7 +1894,9 @@
   <section class="valores" id="valores">
     <div class="container">
       <p class="tag-secao reveal" id="valoresTag"></p>
-      <h2 class="titulo-secao reveal" id="valoresTitulo"></h2>
+      <div class="valores-topo reveal">
+        <h2 class="valores-titulo" id="valoresTitulo"></h2>
+      </div>
       <p class="sub-secao reveal" id="valoresSubtitulo"></p>
 
       <div class="addons-linha reveal" id="addonsLinha"></div>
@@ -1941,7 +1975,7 @@
 const VALORES_PT = {
   valoresTextos: {
     tag: "Investimentos",
-    titulo: "Pacotes pra impulsionar sua marca",
+    titulo: "Investimentos",
     subtitulo: "Do teste A/B ao gerenciamento completo de campanhas — escolha o formato que faz mais sentido pra sua marca agora. Também dá pra montar sob medida com os itens avulsos abaixo.",
     faixaOrcamento: "Gerenciamento de campanhas — Solicite orçamento",
     economizeLabel: "Economize"
@@ -1969,7 +2003,7 @@ const VALORES_PT = {
 const VALORES_EN = {
   valoresTextos: {
     tag: "Investment",
-    titulo: "Packages to boost your brand",
+    titulo: "Investment",
     subtitulo: "From A/B test videos to full campaign management — pick the format that fits your brand right now. You can also build a custom mix with the standalone add-ons below.",
     faixaOrcamento: "Campaign management — Request a quote",
     economizeLabel: "Save"
@@ -2561,12 +2595,48 @@ function renderizarConteudo(inicial){
   document.getElementById("addonsLinha").innerHTML = VALORES.addons.map(a => `
     <span class="addon-pill">${a.nome} <strong>${a.preco}</strong></span>
   `).join("");
+  // Selo do Best Seller: vetor (SVG), não imagem recortada — o print de
+  // referência é pequeno demais pra recortar esse badge sem ficar borrado.
+  const SELO_BEST_SVG = `
+    <svg class="selo-best-svg" viewBox="0 0 120 120" aria-hidden="true">
+      <polygon points="60.0,4.0 67.0,11.5 75.8,6.3 80.4,15.4 90.3,12.9 92.1,23.0 102.3,23.3 101.2,33.5 110.9,36.7 107.0,46.2 115.4,52.0 109.0,60.0 115.4,68.0 107.0,73.8 110.9,83.3 101.2,86.5 102.3,96.7 92.1,97.0 90.3,107.1 80.4,104.6 75.8,113.7 67.0,108.5 60.0,116.0 53.0,108.5 44.2,113.7 39.6,104.6 29.7,107.1 27.9,97.0 17.7,96.7 18.8,86.5 9.1,83.3 13.0,73.8 4.6,68.0 11.0,60.0 4.6,52.0 13.0,46.2 9.1,36.7 18.8,33.5 17.7,23.3 27.9,23.0 29.7,12.9 39.6,15.4 44.2,6.3 53.0,11.5"
+        fill="#000080" stroke="#ffffff" stroke-width="3"/>
+      <circle cx="60" cy="60" r="40" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-dasharray="2,3" opacity=".55"/>
+      <text x="60" y="46" text-anchor="middle" font-family="'Oswald', sans-serif" font-weight="700" font-size="11" fill="#ffffff" letter-spacing="2">★ ★ ★</text>
+      <text x="60" y="65" text-anchor="middle" font-family="'Oswald', sans-serif" font-weight="700" font-size="16" fill="#ffffff" letter-spacing=".5">BEST</text>
+      <text x="60" y="83" text-anchor="middle" font-family="'Oswald', sans-serif" font-weight="700" font-size="16" fill="#ffffff" letter-spacing=".5">SELLER</text>
+    </svg>
+  `;
+
+  // Barrinha de metal (Bronze/Prata/Gold) em vetor — antes era um recorte
+  // de foto (não é desenhado em CSS/SVG) — igual ao pedido, recortada da
+  // própria imagem de referência, sem redesenhar o formato da barrinha.
+  const CORES_NOME_METAL = { bronze: "#c9703a", prata: "#6b7178", gold: "#c9a015" };
+
+  // Nome do pacote em arco (curvado), igual à referência — usa SVG só pro
+  // texto (a barrinha continua sendo a foto recortada, ver seloPacote).
+  function seloNomeCurvoSVG(p){
+    const cor = CORES_NOME_METAL[p.metal];
+    const id = "arcoNome" + p.metal;
+    return `
+      <svg class="pacote-selo-nome-svg" viewBox="0 0 170 46" aria-hidden="true">
+        <path id="${id}" d="M 8 38 Q 85 2 162 38" fill="none"/>
+        <text font-family="'Oswald', sans-serif" font-weight="700" font-size="19" letter-spacing="2"
+          fill="${cor}" stroke="#2a2622" stroke-width=".6" paint-order="stroke fill">
+          <textPath href="#${id}" startOffset="50%" text-anchor="middle">${p.nome.toUpperCase()}</textPath>
+        </text>
+      </svg>
+    `;
+  }
+
+  function seloPacote(p){
+    if (p.tipo === "best") return SELO_BEST_SVG;
+    return `<div class="pacote-selo">${seloNomeCurvoSVG(p)}<img class="pacote-selo-barra-img" src="/portfolio/imagens/selos/selo-${p.metal}-barra.png" alt="${p.nome}"></div>`;
+  }
+
   document.getElementById("pacotesGrid").innerHTML = VALORES.pacotes.map(p => `
     <article class="pacote-card ${p.tipo === "best" ? "metal-best" : "metal-" + p.metal} reveal">
-      ${p.tipo === "best"
-        ? `<div class="selo-best" aria-hidden="true"><span>Best</span><span>Seller</span></div>`
-        : `<div class="pacote-selo" aria-hidden="true"><span class="barra-metal"></span><span class="pacote-selo-texto">${p.nome}</span></div>`
-      }
+      ${seloPacote(p)}
       <ul class="pacote-itens">${p.itens.map(i => `<li>${i}</li>`).join("")}</ul>
       <div class="pacote-preco">${p.preco}</div>
       <p class="pacote-economia">${VALORES.valoresTextos.economizeLabel} ${p.economia}</p>
