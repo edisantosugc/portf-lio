@@ -158,7 +158,7 @@ const CONFIG_PT = {
   // card é sempre "titulo". Para adicionar um vídeo, copie um bloco { ... } e troque os campos.
   portfolio: [
     // Fitness (ordem e itens sincronizados com o doc VÍDEOS.docx)
-    { marca: "Via Fight", titulo: "Storytelling – Jaquetinha fitness", categoria: "Fitness", gradiente: "grad-1", videoId: "bUh7OpIOI18" },
+    { marca: "Via Fight", titulo: "Storytelling – Jaquetinha fitness", categoria: "Fitness", gradiente: "grad-1", videoId: "7oAktYjTXx4" },
     { marca: "Max Titanium", titulo: "Narrador – Barrinha de proteína", categoria: "Fitness", gradiente: "grad-2", videoId: "Zd0B7ttQZJQ" },
     { marca: "Via Fight", titulo: "Rotina – Conjunto fitness", categoria: "Fitness", gradiente: "grad-3", videoId: "hzA0a3U7ass" },
     { marca: "Dreams Burn", titulo: "Storytelling – Cubo termogênico", categoria: "Fitness", gradiente: "grad-4", videoId: "3pbXGVEFaog" },
@@ -452,7 +452,7 @@ const CONFIG_EN = {
 
   portfolio: [
     // Fitness
-    { marca: "Via Fight", titulo: "Storytelling – Fitness jacket", categoria: "Fitness", gradiente: "grad-1", videoId: "bUh7OpIOI18" },
+    { marca: "Via Fight", titulo: "Storytelling – Fitness jacket", categoria: "Fitness", gradiente: "grad-1", videoId: "7oAktYjTXx4" },
     { marca: "Max Titanium", titulo: "Voiceover – Protein bar", categoria: "Fitness", gradiente: "grad-2", videoId: "Zd0B7ttQZJQ" },
     { marca: "Via Fight", titulo: "Routine – Fitness set", categoria: "Fitness", gradiente: "grad-3", videoId: "hzA0a3U7ass" },
     { marca: "Dreams Burn", titulo: "Storytelling – Thermogenic cube", categoria: "Fitness", gradiente: "grad-4", videoId: "3pbXGVEFaog" },
