@@ -89,3 +89,29 @@ porque tanto o painel quanto o pg_cron mandam um jeito de se identificar
 ⚠️ No iPhone, notificação push só funciona se o app já estiver instalado na
 tela de início (Safari > Compartilhar > Adicionar à Tela de Início) e em
 iOS 16.4 ou mais novo. Numa aba comum do Safari, sem instalar, não funciona.
+
+## 6. Extra: e-mail do briefing (edilainesantos.com/formularioadmin)
+
+O formulário de briefing manda notificação push (igual ao resto deste
+guia) **e** um e-mail pra você, os dois no mesmo instante em que alguém
+envia. A parte do push já funciona sozinha com o `send-push` configurado
+acima; pra ligar o e-mail também, faltam mais 3 passos:
+
+1. Crie uma conta grátis em [resend.com](https://resend.com) **usando o
+   e-mail edilainesantosugc@gmail.com** (sem verificar domínio próprio, a
+   Resend só deixa mandar e-mail pro endereço com que você se cadastrou —
+   e é exatamente esse o destino que queremos, então não precisa verificar
+   nada).
+2. Em **API Keys**, crie uma chave nova e copie o valor (começa com `re_`).
+3. No painel do Supabase, em **Project Settings > Edge Functions >
+   Secrets**, cadastre:
+
+| Segredo | O que é |
+|---|---|
+| `RESEND_API_KEY` | A chave que você copiou no passo 2 |
+
+4. Publique a função: `supabase functions deploy send-briefing-email`
+   (essa também mantém a verificação de login ligada — quem chama é o
+   gatilho do banco, com o header `x-sched-key`, igual ao `send-push`).
+
+Pronto — no próximo briefing preenchido, o e-mail chega junto com o push.

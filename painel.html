@@ -3267,11 +3267,15 @@
         Agenda
         <span class="badge-alerta-sidebar oculto" id="badgeAlertaAgenda"></span>
       </button>
+      <button class="menu-item" data-tab="mensagens">
+        <svg viewBox="0 0 16 16"><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z"/></svg>
+        Mensagens
+        <span class="badge-alerta-sidebar oculto" id="badgeMensagensPortfolio"></span>
+      </button>
       <p class="menu-rotulo">Empresa</p>
       <button class="menu-item" data-tab="portfolio">
         <svg viewBox="0 0 16 16"><path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/></svg>
         Portfólio
-        <span class="badge-alerta-sidebar oculto" id="badgeMensagensPortfolio"></span>
       </button>
       <button class="menu-item" data-tab="instagram">
         <svg viewBox="0 0 16 16"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.556 0 5.83 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.444.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.83 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.444-.445.719-.891.923-1.417.198-.509.333-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.174-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 8 0zm0 1.441c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.232s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.232s.008-2.389.046-3.232c.036-.78.166-1.204.276-1.485.145-.374.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.843-.038 1.096-.046 3.232-.046zm0 2.451a4.108 4.108 0 1 0 0 8.216 4.108 4.108 0 0 0 0-8.216zm0 6.775a2.667 2.667 0 1 1 0-5.334 2.667 2.667 0 0 1 0 5.334zm5.23-6.937a.96.96 0 1 1-1.92 0 .96.96 0 0 1 1.92 0z"/></svg>
@@ -3443,11 +3447,6 @@
         <div class="cartao">
           <h2>Cliques para contato</h2>
           <div id="listaContatoCliques"></div>
-        </div>
-
-        <div class="cartao" id="cartaoMensagensRecebidas">
-          <h2>Mensagens recebidas</h2>
-          <div id="listaMensagens"></div>
         </div>
       </div>
     </section>
@@ -3673,6 +3672,30 @@
           </form>
 
           <div class="lista-tarefas" id="listaTarefas"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ABA: MENSAGENS ===================== -->
+    <section id="painelMensagens" class="painel-tab oculto">
+      <p class="saudacao">Todas as mensagens recebidas, separadas por origem.</p>
+
+      <div class="ig-subabas" id="subAbasMensagens">
+        <button type="button" class="sub-aba-btn ativo" data-subaba-msg="portfolio">Mensagens Portfólio</button>
+        <button type="button" class="sub-aba-btn" data-subaba-msg="admin">Mensagens App Admin</button>
+      </div>
+
+      <div id="mensagensSubPortfolio">
+        <div class="cartao" id="cartaoMensagensRecebidas">
+          <h2>Mensagens recebidas (Portfólio)</h2>
+          <div id="listaMensagens"></div>
+        </div>
+      </div>
+
+      <div id="mensagensSubAdmin" class="oculto">
+        <div class="cartao" id="cartaoBriefingRespostas">
+          <h2>Mensagens recebidas (App Admin)</h2>
+          <div id="listaBriefing"></div>
         </div>
       </div>
     </section>
@@ -4673,6 +4696,7 @@
      ========================================================================= */
   let eventosCache = [];
   let leadsCache = [];
+  let briefingCache = [];
   let tarefasCache = [];
   let lancamentosCache = [];
   let periodoAtual = "hoje";
@@ -5153,10 +5177,11 @@
     configurarEventosDeInterface();
 
     try {
-      const { eventos, leads, tarefas, lancamentos, pagamentosCartao, pessoasPagas, gastosFixos, negocio, trabalhosUgc } = await comRetry(async () => {
-        const [eventos, leads, tarefas, lancamentos, pagamentosCartao, pessoasPagas, gastosFixos, negocio, trabalhosUgc] = await Promise.all([
+      const { eventos, leads, briefing, tarefas, lancamentos, pagamentosCartao, pessoasPagas, gastosFixos, negocio, trabalhosUgc } = await comRetry(async () => {
+        const [eventos, leads, briefing, tarefas, lancamentos, pagamentosCartao, pessoasPagas, gastosFixos, negocio, trabalhosUgc] = await Promise.all([
           buscarTudo("portfolio_events"),
           buscarTudo("portfolio_leads"),
+          buscarTudo("painel_briefing_respostas"),
           buscarTudo("painel_tarefas"),
           buscarTudo("financas_lancamentos"),
           buscarTudo("financas_cartoes_pagos"),
@@ -5165,10 +5190,11 @@
           buscarTudo("negocio_lancamentos"),
           buscarTudo("painel_ugc_trabalhos")
         ]);
-        return { eventos, leads, tarefas, lancamentos, pagamentosCartao, pessoasPagas, gastosFixos, negocio, trabalhosUgc };
+        return { eventos, leads, briefing, tarefas, lancamentos, pagamentosCartao, pessoasPagas, gastosFixos, negocio, trabalhosUgc };
       });
       eventosCache = eventos;
       leadsCache = leads;
+      briefingCache = briefing;
       tarefasCache = tarefas;
       lancamentosCache = lancamentos;
       gastosFixosCache = gastosFixos;
@@ -7042,6 +7068,11 @@
       btn.addEventListener("click", () => trocarSubAbaNegocio(btn.dataset.subaba));
     });
 
+    // ---------- Mensagens (Portfólio / App Admin) ----------
+    document.querySelectorAll("#subAbasMensagens .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => trocarSubAbaMensagens(btn.dataset.subabaMsg));
+    });
+
     // ---------- Iara ----------
     document.querySelectorAll("#subAbasIara .sub-aba-btn").forEach(btn => {
       btn.addEventListener("click", () => trocarSubAbaIara(btn.dataset.subaba));
@@ -7379,6 +7410,12 @@
     document.getElementById("negocioGeral").classList.toggle("oculto", sub !== "geral");
   }
 
+  function trocarSubAbaMensagens(sub){
+    document.querySelectorAll("#subAbasMensagens .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subabaMsg === sub));
+    document.getElementById("mensagensSubPortfolio").classList.toggle("oculto", sub !== "portfolio");
+    document.getElementById("mensagensSubAdmin").classList.toggle("oculto", sub !== "admin");
+  }
+
   function trocarSubAbaIara(sub){
     iaraSubAbaAtiva = sub;
     document.querySelectorAll("#subAbasIara .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === sub));
@@ -7445,6 +7482,7 @@
     document.getElementById("painelPrincipal").classList.toggle("oculto", aba !== "principal");
     document.getElementById("painelPortfolio").classList.toggle("oculto", aba !== "portfolio");
     document.getElementById("painelAgenda").classList.toggle("oculto", aba !== "agenda");
+    document.getElementById("painelMensagens").classList.toggle("oculto", aba !== "mensagens");
     document.getElementById("painelFinancas").classList.toggle("oculto", aba !== "financas");
     document.getElementById("painelNegocio").classList.toggle("oculto", aba !== "negocio");
     document.getElementById("painelAbordagem").classList.toggle("oculto", aba !== "abordagem");
@@ -7456,11 +7494,11 @@
     document.getElementById("painelInstagram").classList.toggle("oculto", aba !== "instagram");
     document.getElementById("painelAdministrativo").classList.toggle("oculto", aba !== "administrativo");
 
-    const titulos = { principal: "Dashboard", portfolio: "Portfólio", agenda: "Agenda", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo" };
+    const titulos = { principal: "Dashboard", portfolio: "Portfólio", agenda: "Agenda", mensagens: "Mensagens", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo" };
     document.getElementById("tituloTopo").innerHTML = titulos[aba];
 
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
-    const abasSemFiltroPeriodo = ["agenda", "financas", "negocio", "abordagem", "clientes", "iara", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo"];
+    const abasSemFiltroPeriodo = ["agenda", "mensagens", "financas", "negocio", "abordagem", "clientes", "iara", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo"];
     document.getElementById("filtroPeriodo").classList.toggle("oculto", abasSemFiltroPeriodo.includes(aba));
     document.getElementById("ultimaAtualizacaoFinancas").classList.toggle("oculto", aba !== "financas");
 
@@ -7499,6 +7537,10 @@
     const eventosPortfolio = eventos.filter(e => e.page_path && e.page_path.startsWith("/portfolio"));
     renderizarMenuPrincipal(eventosBiosite, leads);
     renderizarPortfolio(eventosPortfolio, leads);
+    // A aba Mensagens não tem filtro de período (fica sempre mostrando tudo),
+    // pra nunca sumir uma mensagem sem a pessoa entender por quê.
+    renderizarMensagens(leadsCache);
+    renderizarBriefing(briefingCache);
     renderizarAlertasContas();
   }
 
@@ -7558,6 +7600,141 @@
     `).join("");
 
     renderizarGrafico(visitas, "graficoBarras");
+  }
+
+  // Rótulos legíveis pras chaves salvas em respostas (jsonb) do formulário de
+  // briefing (edilainesantos.com/formularioadmin) — mesma lista usada no
+  // e-mail avisando a chegada de uma resposta nova (ver supabase/functions/
+  // send-briefing-email/index.ts). Se uma pergunta nova entrar no formulário
+  // sem passar a entrar aqui também, o painel só mostra a chave crua.
+  const ROTULOS_BRIEFING = {
+    organizacao_hoje: "Como organiza hoje",
+    organizacao_hoje_detalhe: "Detalhe (Outro)",
+    tentou_antes: "Já tentou resolver antes / o que não funcionou",
+    tipo_site: "Tipo de site público",
+    login_equipe: "Quem tem login",
+    tipo_leads: "Tipo de leads",
+    resposta_leads: "Resposta a leads hoje",
+    objetivo_email: "Objetivo do disparo de e-mail",
+    ferramenta_email: "Ferramenta de e-mail",
+    ferramenta_email_detalhe: "Qual ferramenta",
+    escopo_financeiro: "Escopo do financeiro",
+    emite_nf_financeiro: "Emite nota fiscal (financeiro)",
+    estilo_organizacional: "Estilo organizacional",
+    quem_usa: "Quem vai usar o painel",
+    quem_usa_detalhe: "Quantas pessoas",
+    rotina_uso: "Rotina de uso",
+    dominio: "Domínio",
+    cnpj_nf: "Tem CNPJ e emite NF",
+    quer_app: "Quer o painel como app no celular",
+    logo_status: "Logo/ícone do app",
+    logo_status_arquivo_url: "Arquivo da logo enviado",
+    quer_notificacoes: "Quer notificações no painel",
+    quer_notificacoes_detalhe: "Do que seriam as notificações",
+    visao_crescimento: "Visão de crescimento",
+    suporte_pos_entrega: "Suporte pós-entrega",
+    faixa_valor: "Já tem valor em mente",
+    faixa_valor_detalhe: "Faixa de valor",
+    urgencia: "Urgência",
+    prazo_desejado: "Prazo desejado",
+    referencia_visual: "Referência visual (painel/ferramenta que gostou)",
+    definicao_sucesso: "O que é o painel \"funcionando bem\""
+  };
+
+  function renderizarBriefing(itens){
+    const container = document.getElementById("listaBriefing");
+    if (!container) return;
+
+    if (itens.length === 0){
+      container.innerHTML = '<p class="texto-vazio">Nenhuma resposta de briefing por enquanto.</p>';
+      return;
+    }
+
+    const ordenados = [...itens].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    container.innerHTML = ordenados.map((item, i) => {
+      const data = new Date(item.created_at).toLocaleDateString("pt-BR", {
+        day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
+      });
+
+      // Vem de um formulário público (qualquer futuro cliente preenche), então
+      // é texto NÃO CONFIÁVEL — escapa antes de jogar no innerHTML, senão dá
+      // pra rodar HTML malicioso dentro do painel logado ao abrir a mensagem.
+      const nomeSeguro = igEscaparHtml(item.nome) || "Sem nome";
+      const contatoSeguro = igEscaparHtml(item.contato) || "contato não informado";
+
+      const linhasRespostas = Object.entries(item.respostas || {}).map(([chave, valor]) => {
+        const valorTexto = String(valor);
+        const valorHtml = valorTexto.startsWith("http")
+          ? `<a href="${igEscaparHtml(valorTexto)}" target="_blank" rel="noopener">Ver arquivo</a>`
+          : igEscaparHtml(valorTexto);
+        return `<p><strong>${igEscaparHtml(ROTULOS_BRIEFING[chave] || chave)}:</strong> <span class="dado-sensivel">${valorHtml}</span></p>`;
+      }).join("");
+
+      return `
+        <div class="cartao-mensagem ${item.lida ? "" : "nao-lida"}">
+          <div class="cartao-mensagem-topo" data-idx="${i}" data-id="${item.id}">
+            <span class="selo-origem">Briefing</span>
+            <span class="cartao-mensagem-principal">
+              <span class="cartao-mensagem-nome dado-sensivel">${nomeSeguro}</span>
+              <span class="cartao-mensagem-email dado-sensivel">${contatoSeguro}</span>
+            </span>
+            <span class="cartao-mensagem-data">${data}</span>
+            <button type="button" class="cartao-mensagem-excluir" data-acao="excluir-briefing" aria-label="Excluir resposta">&times;</button>
+          </div>
+          <div class="cartao-mensagem-corpo oculto" id="briefing-${i}">
+            ${linhasRespostas || "<p>Sem respostas além do contato.</p>"}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    container.querySelectorAll(".cartao-mensagem-topo").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const corpo = document.getElementById("briefing-" + btn.dataset.idx);
+        corpo.classList.toggle("oculto");
+        marcarBriefingLido(btn.dataset.id);
+      });
+    });
+
+    container.querySelectorAll("[data-acao='excluir-briefing']").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = btn.closest(".cartao-mensagem-topo").dataset.id;
+        excluirBriefing(id);
+      });
+    });
+  }
+
+  async function marcarBriefingLido(id){
+    const item = briefingCache.find(b => b.id === id);
+    if (!item || item.lida) return;
+
+    item.lida = true;
+    atualizarBadgesMensagens();
+
+    const { error } = await Auth.client
+      .from("painel_briefing_respostas")
+      .update({ lida: true })
+      .eq("id", id);
+
+    if (error){
+      item.lida = false;
+      atualizarBadgesMensagens();
+    }
+  }
+
+  async function excluirBriefing(id){
+    const { error } = await Auth.client
+      .from("painel_briefing_respostas")
+      .delete()
+      .eq("id", id);
+
+    if (!error){
+      briefingCache = briefingCache.filter(b => b.id !== id);
+      renderizarBriefing(briefingCache);
+      atualizarBadgesMensagens();
+    }
   }
 
   function renderizarGrafico(visitas, idContainer){
@@ -7622,15 +7799,8 @@
         <p class="numero-grande dado-sensivel">${cliques.length.toLocaleString("pt-BR")}</p>
         <p class="numero-rotulo">Cliques em links</p>
       </div>
-      <div class="cartao cartao-numero clicavel" id="cartaoMensagensPortfolio">
-        <p class="numero-grande dado-sensivel">${leads.length.toLocaleString("pt-BR")}</p>
-        <p class="numero-rotulo">Mensagens recebidas</p>
-      </div>
     `;
 
-    document.getElementById("cartaoMensagensPortfolio").addEventListener("click", () => {
-      document.getElementById("cartaoMensagensRecebidas")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
     atualizarBadgesMensagens();
 
     document.getElementById("cartaoContatoPortfolio").innerHTML = `
@@ -7644,7 +7814,6 @@
     renderizarVideos(videos);
     renderizarBotoes(cliques);
     renderizarCliquesContato(cliques);
-    renderizarMensagens(leads);
   }
 
   // Quem chegou ao Portfólio pelo link direto (edilainesantos.com/ugcportfolio, usado
@@ -7845,32 +8014,16 @@
     });
   }
 
-  // Bolinha vermelha com a quantidade de mensagens não lidas: aparece tanto no
-  // menu lateral (pra notar assim que entra no painel) quanto no cartão da aba
-  // Portfólio. Sempre conta o total de mensagens não lidas, sem depender do
-  // filtro de período selecionado.
+  // Bolinha vermelha com a quantidade de mensagens não lidas (Portfólio + App
+  // Admin somadas) no botão "Mensagens" do menu lateral. Sempre conta o total
+  // de mensagens não lidas, sem depender do filtro de período selecionado.
   function atualizarBadgesMensagens(){
-    const naoLidas = leadsCache.filter(l => !l.lida).length;
+    const naoLidas = leadsCache.filter(l => !l.lida).length + briefingCache.filter(b => !b.lida).length;
 
     const badgeSidebar = document.getElementById("badgeMensagensPortfolio");
     if (badgeSidebar){
       badgeSidebar.textContent = naoLidas;
       badgeSidebar.classList.toggle("oculto", naoLidas === 0);
-    }
-
-    const cartao = document.getElementById("cartaoMensagensPortfolio");
-    if (cartao){
-      let badgeCartao = cartao.querySelector(".badge-nao-lidas");
-      if (naoLidas > 0){
-        if (!badgeCartao){
-          badgeCartao = document.createElement("span");
-          badgeCartao.className = "badge-nao-lidas";
-          cartao.appendChild(badgeCartao);
-        }
-        badgeCartao.textContent = naoLidas;
-      } else if (badgeCartao){
-        badgeCartao.remove();
-      }
     }
   }
 
@@ -9877,7 +10030,8 @@
     if (grupo === "clientes") return irParaCliente(itemMaisUrgente.id);
     if (grupo === "ugc-creator") return irParaTrabalhoUgc(itemMaisUrgente.id);
     if (grupo === "portfolio"){
-      trocarAba("portfolio");
+      trocarAba("mensagens");
+      trocarSubAbaMensagens("portfolio");
       requestAnimationFrame(() => {
         document.getElementById("cartaoMensagensRecebidas")?.scrollIntoView({ behavior: "smooth", block: "start" });
       });

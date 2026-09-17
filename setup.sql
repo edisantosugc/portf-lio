@@ -1900,6 +1900,164 @@ create trigger trigger_notificar_novo_lead
   execute function public.notificar_novo_lead_portfolio();
 
 -- =====================================================================
+-- BRIEFING DO PAINEL (edilainesantos.com/formularioadmin)
+-- Respostas do formulário de diagnóstico que futuros clientes preenchem
+-- antes do orçamento do painel personalizado. "respostas" guarda todas as
+-- perguntas do questionário num jsonb só (a lista de perguntas muda com
+-- frequência, então não compensa uma coluna fixa por pergunta) — só
+-- nome/contato viram colunas de verdade, porque são o que você precisa
+-- pra identificar e responder quem preencheu.
+-- =====================================================================
+create table if not exists public.painel_briefing_respostas (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  contato text not null,
+  respostas jsonb not null default '{}'::jsonb,
+  lida boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_briefing_respostas_created_at on public.painel_briefing_respostas (created_at desc);
+
+alter table public.painel_briefing_respostas enable row level security;
+
+drop policy if exists "Usuaria autenticada le e gerencia os briefings" on public.painel_briefing_respostas;
+create policy "Usuaria autenticada le e gerencia os briefings"
+  on public.painel_briefing_respostas
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_briefing_respostas to authenticated;
+
+-- O formulário é público e sem login (qualquer futuro cliente preenche), então
+-- precisa da mesma liberação de INSERT pra "anon" que o formulário de contato
+-- do Portfólio já usa — só grava, não lê nada de volta.
+drop policy if exists "Visitantes podem enviar briefing" on public.painel_briefing_respostas;
+create policy "Visitantes podem enviar briefing"
+  on public.painel_briefing_respostas
+  for insert
+  to anon
+  with check (true);
+
+grant usage on schema public to anon;
+grant insert on public.painel_briefing_respostas to anon;
+
+-- Espaço pra guardar o arquivo de logo/ícone anexado na seção "App e
+-- identidade visual" do formulário. Bucket público (qualquer pessoa com o
+-- link consegue ver o arquivo — é só uma imagem de logo, sem dado sensível),
+-- mas só quem tem a chave do site consegue ENVIAR arquivo novo pra dentro dele.
+insert into storage.buckets (id, name, public)
+values ('briefing-anexos', 'briefing-anexos', true)
+on conflict (id) do nothing;
+
+drop policy if exists "Visitantes podem enviar anexo de briefing" on storage.objects;
+create policy "Visitantes podem enviar anexo de briefing"
+  on storage.objects
+  for insert
+  to anon
+  with check (bucket_id = 'briefing-anexos');
+
+-- Mesma trava de 1 aviso por minuto usada no gatilho do Portfólio (ver
+-- portfolio_notificacao_controle acima) — evita alguém te encher de
+-- notificação/e-mail mandando o formulário em rajada pela API.
+create table if not exists public.painel_briefing_notificacao_controle (
+  id boolean primary key default true,
+  ultimo_envio timestamptz,
+  constraint painel_briefing_notificacao_controle_linha_unica check (id)
+);
+insert into public.painel_briefing_notificacao_controle (id, ultimo_envio)
+values (true, null)
+on conflict (id) do nothing;
+
+alter table public.painel_briefing_notificacao_controle enable row level security;
+
+-- Guarda o SCHED_SECRET dentro do próprio banco, numa tabela sem NENHUMA
+-- policy (nem "authenticated" nem "anon" enxergam nada aqui pela API — só
+-- dá pra ler de dentro de uma função do próprio Postgres, tipo a de baixo).
+-- Existe só pra evitar ficar copiando/colando o segredo no meio de blocos
+-- de código gigantes toda vez que um gatilho novo precisa dele — só cola
+-- ele aqui uma vez.
+create table if not exists public.app_config (
+  nome text primary key,
+  valor text not null
+);
+alter table public.app_config enable row level security;
+
+insert into public.app_config (nome, valor)
+values ('sched_secret', 'COLE_AQUI_SEU_SCHED_SECRET')
+on conflict (nome) do update set valor = excluded.valor;
+
+-- Avisa a Edi por push E por e-mail assim que um briefing novo chega. O
+-- push funciona só com o send-push que já existe; a parte do e-mail
+-- precisa da Edge Function send-briefing-email publicada e do segredo
+-- RESEND_API_KEY configurado (ver LEIA-ME-PUSH.md).
+create or replace function public.notificar_novo_briefing()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  ultimo timestamptz;
+  segredo text;
+begin
+  select valor into segredo from public.app_config where nome = 'sched_secret';
+
+  select ultimo_envio into ultimo
+  from public.painel_briefing_notificacao_controle
+  where id = true
+  for update;
+
+  if ultimo is not null and now() - ultimo < interval '60 seconds' then
+    return new;
+  end if;
+
+  update public.painel_briefing_notificacao_controle set ultimo_envio = now() where id = true;
+
+  perform net.http_post(
+    url := 'https://dqtoxxngjqyoibdgmrjr.supabase.co/functions/v1/send-push',
+    headers := jsonb_build_object(
+      'x-sched-key', segredo,
+      'Content-Type', 'application/json',
+      'apikey', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc',
+      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc'
+    ),
+    body := jsonb_build_object(
+      'conta', 'di',
+      'titulo', 'Novo briefing de ' || coalesce(new.nome, 'alguém'),
+      'corpo', 'Contato: ' || coalesce(new.contato, '(não informado)'),
+      'url', '/painel.html'
+    )
+  );
+
+  perform net.http_post(
+    url := 'https://dqtoxxngjqyoibdgmrjr.supabase.co/functions/v1/send-briefing-email',
+    headers := jsonb_build_object(
+      'x-sched-key', segredo,
+      'Content-Type', 'application/json',
+      'apikey', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc',
+      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc'
+    ),
+    body := jsonb_build_object(
+      'nome', new.nome,
+      'contato', new.contato,
+      'respostas', new.respostas
+    )
+  );
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trigger_notificar_novo_briefing on public.painel_briefing_respostas;
+create trigger trigger_notificar_novo_briefing
+  after insert on public.painel_briefing_respostas
+  for each row
+  execute function public.notificar_novo_briefing();
+
+-- =====================================================================
 -- INSTAGRAM > ANÁLISES: histórico semanal da "Ideias de vídeo e
 -- oportunidades (por IA)". Cada clique em "Analisar com IA" salva (ou
 -- atualiza, se já existir) UMA linha por semana — semana_inicio é sempre
@@ -1956,7 +2114,8 @@ begin
     'painel_ia_mensagens', 'negocio_lancamentos',
     'painel_iara_precificacao_tipos', 'painel_iara_precificacao_desconto',
     'painel_iara_sessoes', 'painel_iara_documentos', 'painel_ig_analises_ia', 'financas_pessoas_pagas',
-    'painel_checklist_semanal', 'painel_checklist_tarefas', 'painel_checklist_progresso', 'painel_checklist_observacoes'
+    'painel_checklist_semanal', 'painel_checklist_tarefas', 'painel_checklist_progresso', 'painel_checklist_observacoes',
+    'painel_briefing_respostas'
   ]
   loop
     execute format(
