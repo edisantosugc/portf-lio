@@ -1536,9 +1536,22 @@
     .metal-best .pacote-itens li,
     .metal-prata .pacote-itens li,
     .metal-gold .pacote-itens li{ transform: none !important; }
+    /* O nome em arco (BRONZE/PRATA/GOLD) fica empilhado ACIMA da barrinha e
+       tinha um scale 1.2-1.35 calibrado só pro desktop — isso sozinho
+       empurrava o texto quase 90px pra cima do card, bem mais que a
+       barrinha. Sem esse zoom extra, mais a margem reduzida abaixo, ele
+       some dentro do respiro entre os cards. */
+    .pacote-selo{ margin-top: -24px; }
+    .selo-best-svg{ margin-top: -24px; transform: none !important; }
+    .metal-bronze .pacote-selo-nome-svg,
+    .metal-prata .pacote-selo-nome-svg,
+    .metal-gold .pacote-selo-nome-svg{ transform: translateX(-50%) !important; }
+    .metal-bronze .pacote-selo-barra-img,
+    .metal-prata .pacote-selo-barra-img{ transform: none !important; }
+    .metal-gold .pacote-selo-barra-img{ transform: rotate(-2deg) !important; }
   }
   @media (max-width: 560px){
-    .pacotes-grid{ grid-template-columns: 1fr; row-gap: 64px; }
+    .pacotes-grid{ grid-template-columns: 1fr; row-gap: 72px; }
     .faixa-orcamento{ flex-direction: column; padding: 18px 20px; }
   }
 
