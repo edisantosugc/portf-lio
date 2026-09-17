@@ -1526,11 +1526,19 @@
 
   @media (max-width: 1010px){
     .pacotes-grid{ grid-template-columns: repeat(2, 1fr); align-items: stretch; margin-top: 64px; }
-    .metal-bronze, .metal-gold, .metal-best, .metal-prata{ min-height: 0; }
+    .metal-bronze, .metal-gold, .metal-best, .metal-prata{ min-height: 0; height: auto; }
     .metal-best{ transform: none; box-shadow: var(--sombra-dura-sm); }
+    /* Os translate() dos itens acima foram calibrados pra "espalhar" a lista
+       dentro da altura fixa (desktop). Sem altura fixa aqui, essa distância
+       artificial só empurra o texto pra fora do lugar — desliga nos dois
+       breakpoints mobile. */
+    .metal-bronze .pacote-itens li,
+    .metal-best .pacote-itens li,
+    .metal-prata .pacote-itens li,
+    .metal-gold .pacote-itens li{ transform: none !important; }
   }
   @media (max-width: 560px){
-    .pacotes-grid{ grid-template-columns: 1fr; row-gap: 56px; }
+    .pacotes-grid{ grid-template-columns: 1fr; row-gap: 64px; }
     .faixa-orcamento{ flex-direction: column; padding: 18px 20px; }
   }
 
