@@ -1985,9 +1985,14 @@ create table if not exists public.app_config (
 );
 alter table public.app_config enable row level security;
 
+-- "do nothing" de propósito (não "do update"): isso é só a SEMENTE inicial,
+-- pra tabela nunca ficar sem essa linha. Se você já colocou o valor de
+-- verdade aqui uma vez, rodar este arquivo de novo no futuro (inteiro, sem
+-- querer) NUNCA MAIS apaga ou volta esse valor pro texto de exemplo — porque
+-- a linha já existe, e "do nothing" não mexe em linha que já existe.
 insert into public.app_config (nome, valor)
 values ('sched_secret', 'COLE_AQUI_SEU_SCHED_SECRET')
-on conflict (nome) do update set valor = excluded.valor;
+on conflict (nome) do nothing;
 
 -- Avisa a Edi por push E por e-mail assim que um briefing novo chega. O
 -- push funciona só com o send-push que já existe; a parte do e-mail

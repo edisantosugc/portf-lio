@@ -9946,15 +9946,16 @@
     financas: "Financeiro",
     agenda: "Agenda",
     portfolio: "Portfólio",
+    briefing: "Mensagens",
     clientes: "Clientes",
     "ugc-creator": "Trabalhos",
     negocio: "Financeiro UGC"
   };
 
-  // Id do badge de cada grupo na barra lateral. "portfolio" fica de fora de propósito:
-  // o badge de mensagens do Portfólio já é mantido por atualizarBadgesMensagens()
-  // (mesma fonte de dados, leadsCache), não precisa de uma segunda função escrevendo
-  // no mesmo elemento.
+  // Id do badge de cada grupo na barra lateral. "portfolio" e "briefing" ficam de
+  // fora de propósito: o badge da aba Mensagens já é mantido por
+  // atualizarBadgesMensagens() (soma leadsCache + briefingCache), não precisa de
+  // uma segunda função escrevendo no mesmo elemento.
   const BADGE_ID_POR_GRUPO = {
     abordagem: "badgeAlertaAbordagem",
     financas: "badgeAlertaFinancas",
@@ -9996,6 +9997,11 @@
       rotulo: (n) => n === 1 ? "mensagem no Portfólio" : "mensagens no Portfólio"
     },
     {
+      grupo: "briefing",
+      obter: obterAlertasMensagensBriefing,
+      rotulo: (n) => n === 1 ? "resposta de briefing (App Admin)" : "respostas de briefing (App Admin)"
+    },
+    {
       grupo: "clientes",
       obter: obterAlertasReengajamentoClientes,
       rotulo: (n) => n === 1 ? "cliente pra reengajar" : "clientes pra reengajar"
@@ -10034,6 +10040,14 @@
       trocarSubAbaMensagens("portfolio");
       requestAnimationFrame(() => {
         document.getElementById("cartaoMensagensRecebidas")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      return;
+    }
+    if (grupo === "briefing"){
+      trocarAba("mensagens");
+      trocarSubAbaMensagens("admin");
+      requestAnimationFrame(() => {
+        document.getElementById("cartaoBriefingRespostas")?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
       return;
     }
@@ -12222,6 +12236,12 @@
     return leadsCache
       .filter(l => !l.lida)
       .map(l => ({ ...l, diasParaVencer: 0 }));
+  }
+
+  function obterAlertasMensagensBriefing(){
+    return briefingCache
+      .filter(b => !b.lida)
+      .map(b => ({ ...b, diasParaVencer: 0 }));
   }
 
   // Pendência administrativa permanente: negociação fechada que ainda não virou

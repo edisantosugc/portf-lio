@@ -312,48 +312,53 @@ const ETAPAS = [
     campos: [
       { tipo: "radio", nome: "organizacao_hoje", pergunta: "Como você organiza isso hoje?", obrigatorio: true,
         opcoes: ["Planilha", "Papel", "Espalhado em vários aplicativos", "Outro"], outro: true },
-      { tipo: "texto_livre", nome: "tentou_antes", pergunta: "Você já tentou resolver isso antes? O que não funcionou?", opcional: true }
+      { tipo: "texto_livre", nome: "tentou_antes", pergunta: "Você já tentou resolver isso antes? O que não funcionou?", obrigatorio: true }
     ]
   },
   {
     secao: "Site (parte pública)",
+    obrigatoria: true,
     campos: [
-      { tipo: "radio", nome: "tipo_site", pergunta: "O site vai ter um mini-portfólio/perfil de cada criadora, ou é só institucional?",
+      { tipo: "radio", nome: "tipo_site", pergunta: "O site vai ter um mini-portfólio/perfil de cada criadora, ou é só institucional?", obrigatorio: true,
         opcoes: ["Mini-portfólio por pessoa", "Só institucional (apresentação da agência/negócio)", "Não preciso de site público"] },
-      { tipo: "radio", nome: "login_equipe", pergunta: "As pessoas envolvidas vão ter login pra acompanhar algo, ou o acesso logado é só pra você no admin?",
+      { tipo: "radio", nome: "login_equipe", pergunta: "As pessoas envolvidas vão ter login pra acompanhar algo, ou o acesso logado é só pra você no admin?", obrigatorio: true,
         opcoes: ["Só eu", "Também para a equipe"] }
     ]
   },
   {
     secao: "Leads",
+    obrigatoria: true,
     campos: [
-      { tipo: "radio", nome: "tipo_leads", pergunta: "Os leads que chegam são:",
+      { tipo: "radio", nome: "tipo_leads", pergunta: "Os leads que chegam são:", obrigatorio: true,
         opcoes: ["Marcas/clientes querendo contratar", "Pessoas querendo entrar pro time", "Os dois", "Não se aplica"] },
-      { tipo: "radio", nome: "resposta_leads", pergunta: "Hoje, quando chega um lead, alguém responde na mão, ou você imagina algo mais automático?",
+      { tipo: "radio", nome: "resposta_leads", pergunta: "Hoje, quando chega um lead, alguém responde na mão, ou você imagina algo mais automático?", obrigatorio: true,
         opcoes: ["Resposta manual", "Automação (sequência de e-mails)", "Não sei ainda"] }
     ]
   },
   {
     secao: "Disparo de e-mail",
+    obrigatoria: true,
     campos: [
-      { tipo: "radio", nome: "objetivo_email", pergunta: "O disparo de e-mail é mais pra:",
+      { tipo: "radio", nome: "objetivo_email", pergunta: "O disparo de e-mail é mais pra:", obrigatorio: true,
         opcoes: ["Nutrir lead (sequência automática)", "Comunicação pontual com sua rede/equipe", "Os dois"] },
-      { tipo: "radio", nome: "ferramenta_email", pergunta: "Você já usa alguma ferramenta de e-mail hoje, ou quer isso nativo dentro do painel?",
+      { tipo: "radio", nome: "ferramenta_email", pergunta: "Você já usa alguma ferramenta de e-mail hoje, ou quer isso nativo dentro do painel?", obrigatorio: true,
         opcoes: ["Já uso uma ferramenta", "Quero nativo no painel", "Não uso nada ainda"], detalheSe: "Já uso uma ferramenta", detalhePergunta: "Qual ferramenta?" }
     ]
   },
   {
     secao: "Financeiro",
+    obrigatoria: true,
     campos: [
-      { tipo: "radio", nome: "escopo_financeiro", pergunta: "Financeiro pra você é:",
+      { tipo: "radio", nome: "escopo_financeiro", pergunta: "Financeiro pra você é:", obrigatorio: true,
         opcoes: ["Controlar repasse/comissão pra terceiros", "Faturamento do seu negócio", "Tudo junto"] },
-      { tipo: "sim_nao", nome: "emite_nf_financeiro", pergunta: "Você emite nota fiscal? Isso deve entrar no financeiro do painel?" }
+      { tipo: "sim_nao", nome: "emite_nf_financeiro", pergunta: "Você emite nota fiscal? Isso deve entrar no financeiro do painel?", obrigatorio: true }
     ]
   },
   {
     secao: "Organizacional",
+    obrigatoria: true,
     campos: [
-      { tipo: "radio", nome: "estilo_organizacional", pergunta: "É mais gestão de projeto/campanha por pessoa, ou rotina interna da equipe?",
+      { tipo: "radio", nome: "estilo_organizacional", pergunta: "É mais gestão de projeto/campanha por pessoa, ou rotina interna da equipe?", obrigatorio: true,
         opcoes: ["Gestão de campanha (prazo, briefing, aprovação)", "Rotina interna (tarefas, checklist)", "Os dois"] }
     ]
   },
@@ -378,22 +383,24 @@ const ETAPAS = [
   },
   {
     secao: "App e identidade visual",
+    obrigatoria: true,
     campos: [
-      { tipo: "sim_nao", nome: "quer_app", pergunta: "Você quer que o painel funcione como um aplicativo no celular (ícone na tela inicial, abre em tela cheia, tipo um app de verdade)?" },
-      { tipo: "radio", nome: "logo_status", pergunta: "Se sim, você já tem uma logo/ícone pronto pra esse aplicativo, ou vai precisar que eu ajude a criar?",
+      { tipo: "sim_nao", nome: "quer_app", pergunta: "Você quer que o painel funcione como um aplicativo no celular (ícone na tela inicial, abre em tela cheia, tipo um app de verdade)?", obrigatorio: true },
+      { tipo: "radio", nome: "logo_status", pergunta: "Se sim, você já tem uma logo/ícone pronto pra esse aplicativo, ou vai precisar que eu ajude a criar?", obrigatorio: true,
         opcoes: ["Já tenho pronto", "Preciso de ajuda pra criar", "Ainda não pensei nisso"],
         detalheSe: "Já tenho pronto", detalhePergunta: "Anexe o arquivo da logo/ícone", detalheTipo: "arquivo",
         mostrarSe: { campo: "quer_app", valor: "Sim" } },
-      { tipo: "sim_nao", nome: "quer_notificacoes", pergunta: "Você quer notificações/alertas no painel?",
+      { tipo: "sim_nao", nome: "quer_notificacoes", pergunta: "Você quer notificações/alertas no painel?", obrigatorio: true,
         detalheSe: "Sim", detalhePergunta: "Do que seriam essas notificações? (ex: novo lead, prazo vencendo, pagamento recebido...)" }
     ]
   },
   {
     secao: "Visão de futuro",
+    obrigatoria: true,
     campos: [
-      { tipo: "radio", nome: "visao_crescimento", pergunta: "A longo prazo, você imagina o painel crescendo, ou prefere algo mais enxuto mesmo?",
+      { tipo: "radio", nome: "visao_crescimento", pergunta: "A longo prazo, você imagina o painel crescendo, ou prefere algo mais enxuto mesmo?", obrigatorio: true,
         opcoes: ["Crescer com o tempo (mais abas, mais automações)", "Enxuto e direto ao ponto"] },
-      { tipo: "radio", nome: "suporte_pos_entrega", pergunta: "Depois de entregue, você mesma fará pequenos ajustes, ou vai preferir que eu continue dando suporte?",
+      { tipo: "radio", nome: "suporte_pos_entrega", pergunta: "Depois de entregue, você mesma fará pequenos ajustes, ou vai preferir que eu continue dando suporte?", obrigatorio: true,
         opcoes: ["Eu mesma ajusto", "Prefiro suporte contínuo", "Não sei ainda"] }
     ]
   },
@@ -410,9 +417,10 @@ const ETAPAS = [
   },
   {
     secao: "Resultado esperado",
+    obrigatoria: true,
     campos: [
-      { tipo: "texto_livre", nome: "referencia_visual", pergunta: "Existe algum painel ou ferramenta que você já viu e gostou que eu possa usar como referência?", opcional: true },
-      { tipo: "texto_livre", nome: "definicao_sucesso", pergunta: "O que seria, pra você, o painel \"funcionando bem\"? O que te faria sentir que valeu o investimento?" }
+      { tipo: "texto_livre", nome: "referencia_visual", pergunta: "Existe algum painel ou ferramenta que você já viu e gostou que eu possa usar como referência?", obrigatorio: true },
+      { tipo: "texto_livre", nome: "definicao_sucesso", pergunta: "O que seria, pra você, o painel \"funcionando bem\"? O que te faria sentir que valeu o investimento?", obrigatorio: true }
     ]
   }
 ];
@@ -553,22 +561,43 @@ function irPara(idx){
 }
 irPara(0);
 
+// Uma pergunta com "mostrarSe" só pode ser exigida se estiver de fato visível
+// (a pergunta que controla ela já foi respondida com o valor que a revela).
+function campoVisivel(campo, el){
+  if (!campo.mostrarSe) return true;
+  const marcado = el.querySelector(`input[name="${campo.mostrarSe.campo}"]:checked`);
+  return !!marcado && marcado.value === campo.mostrarSe.valor;
+}
+
 function etapaValida(idx){
   const etapa = ETAPAS[idx];
   const el = wrap.querySelector(`.etapa[data-etapa="${idx}"]`);
   for (const campo of etapa.campos){
     if (!campo.obrigatorio) continue;
+    if (!campoVisivel(campo, el)) continue;
+
     if (campo.tipo === "radio" || campo.tipo === "sim_nao"){
       const marcado = el.querySelector(`input[name="${campo.nome}"]:checked`);
       if (!marcado) return false;
-      if (campo.detalheSe && marcado.value === campo.detalheSe){
-        const detalhe = el.querySelector(`[data-extra-campo="${campo.nome}_detalhe"]`);
-        if (detalhe && !detalhe.value.trim()) return false;
+
+      const detalheAtivo = (campo.outro && marcado.value === "Outro") || (campo.detalheSe && marcado.value === campo.detalheSe);
+      if (detalheAtivo){
+        if (campo.detalheTipo === "arquivo"){
+          const arquivoInput = el.querySelector(`[data-extra-arquivo="${campo.nome}_arquivo"]`);
+          if (!arquivoInput || !arquivoInput.files[0]) return false;
+        } else {
+          const detalhe = el.querySelector(`[data-extra-campo="${campo.nome}_detalhe"]`);
+          if (!detalhe || !detalhe.value.trim()) return false;
+        }
       }
     }
     if (campo.tipo === "texto_curto"){
       const input = el.querySelector(`input[name="${campo.nome}"]`);
       if (!input.value.trim()) return false;
+    }
+    if (campo.tipo === "texto_livre"){
+      const textarea = el.querySelector(`textarea[name="${campo.nome}"]`);
+      if (!textarea.value.trim()) return false;
     }
   }
   return true;
