@@ -350,7 +350,7 @@
     position: relative;
     overflow: hidden;
     background-color: var(--creme);
-    background-image: url("../portfolio/imagens/textura-hero.svg");
+    background-image: url("/portfolio/imagens/textura-hero.svg");
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
@@ -555,6 +555,290 @@
     font-size: .8rem; flex-shrink: 0; border: 2px solid var(--tinta);
   }
 
+  /* ===================== CONTEÚDOS EM DESTAQUE =====================
+     Grid de 2 colunas fixas: a coluna ESQUERDA é sempre o card de feedback
+     (nunca muda de lugar); a coluna DIREITA mostra um vídeo por vez, e as
+     setas/pontinhos alternam entre os vídeos disponíveis, sem afetar o card
+     da esquerda. EDITE OS CONTEÚDOS lá embaixo, em CONFIG.destaques
+     (campos "fixo" e "videos"). */
+  .destaques-conteudo{ background: var(--branco); overflow: hidden; }
+  .destaques-carrossel{ position: relative; margin-top: 40px; }
+  .destaques-carrossel .seta-btn{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    background: var(--branco);
+    box-shadow: var(--sombra-dura-sm);
+  }
+  .destaques-carrossel .seta-esq{ left: -8px; }
+  .destaques-carrossel .seta-dir{ right: -8px; }
+  .destaques-pista{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 24px;
+    padding: 10px 54px;
+  }
+  .card-destaque{
+    justify-self: center;
+    width: 100%;
+    max-width: 300px;
+    border: 4px solid var(--tinta);
+    border-radius: 24px;
+    background: var(--branco);
+    box-shadow: var(--sombra-dura);
+    overflow: hidden;
+    opacity: .55;
+    transform: scale(.92);
+    transition: opacity .4s ease, transform .4s ease, box-shadow .4s ease;
+    cursor: pointer;
+  }
+  .card-destaque.ativo{ opacity: 1; transform: scale(1); box-shadow: 9px 9px 0 var(--vermelho); cursor: default; }
+  .card-destaque[data-tipo="video"]{ cursor: pointer; }
+  .destaque-midia{ position: relative; aspect-ratio: 4 / 5; display: flex; align-items: center; justify-content: center; }
+  /* Placeholder do print de feedback: mesmo tracejado dourado das tags da
+     seção (".tag-secao"), pra ficar claramente "no estilo do site" mesmo
+     sem o arquivo final. */
+  .destaque-midia.midia-feedback{
+    background: var(--creme);
+    border: 3px dashed var(--rosa);
+    margin: 12px;
+    border-radius: 16px;
+  }
+  /* Quando já existe o print real, o card deixa de ter altura fixa (o print
+     é um texto vertical — cortar como se fosse foto perderia linhas do
+     depoimento). Mesmo tratamento do print inteiro, sem corte, que já é
+     usado na seção de Depoimentos (".card-depoimento img"). */
+  .destaque-midia.midia-feedback.tem-foto{ aspect-ratio: auto; display: block; }
+  .destaque-print{ display: block; width: 100%; height: auto; border-radius: 13px; }
+  .destaque-midia.midia-feedback .destaque-placeholder{ color: var(--tinta); }
+  .destaque-icone-placeholder{ width: 34px; height: 34px; margin-bottom: 10px; fill: var(--rosa); }
+  .midia-feedback .destaque-icone-placeholder{ fill: var(--vermelho); }
+  /* Placeholder do vídeo do Théo: fundo azul royal sólido (cor de destaque
+     do site) com o mesmo botão de play redondo usado nos vídeos reais do
+     Portfólio (".play-botao"), em vez de um gradiente genérico. */
+  /* Mesma proporção vertical (9:16) dos vídeos do Portfólio, pra miniatura
+     do YouTube encaixar sem sobra nem corte estranho. */
+  .destaque-midia.midia-video{ background: var(--vermelho); aspect-ratio: 9 / 16; }
+  .destaque-midia.midia-video .play-botao{ position: static; transform: none; margin-bottom: 12px; }
+  .destaque-midia.midia-video .destaque-placeholder{ color: var(--branco); }
+
+  /* ===================== "GOSTINHO" DE CARROSSEL NO CARD DE VÍDEO =====================
+     Atrás do vídeo em foco, uma fatia desfocada e escurecida do outro vídeo
+     espia dos dois lados — dá a sensação de que tem mais conteúdo pra
+     navegar, sem precisar de um carrossel de verdade (só 2 vídeos). */
+  .destaque-video-slot{
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+  }
+  .destaque-video-slot .card-destaque{ position: relative; z-index: 1; }
+  .destaque-peek{
+    position: absolute;
+    top: 6%;
+    bottom: 6%;
+    width: 42px;
+    border-radius: 16px;
+    overflow: hidden;
+    filter: blur(3px);
+    opacity: .5;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .destaque-peek::after{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(42,38,34,.4);
+  }
+  .destaque-peek .peek-img{
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+  }
+  .destaque-peek-esq{ left: 0; }
+  .destaque-peek-dir{ right: 0; }
+  @media (max-width: 900px){
+    .destaque-peek{ width: 22px; }
+  }
+  @media (max-width: 480px){
+    .destaque-peek{ display: none; }
+  }
+  .destaque-placeholder{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: .85rem;
+    letter-spacing: .03em;
+    text-align: center;
+    padding: 0 22px;
+  }
+  .destaque-legenda{ padding: 16px 18px; text-align: center; }
+  .destaque-legenda strong{
+    display: block;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--vermelho);
+  }
+  .destaque-legenda span{ display: block; font-size: .88rem; color: #4a453e; margin-top: 4px; }
+  /* Print real das métricas do vídeo (o mesmo arquivo enviado, sem recriar
+     os ícones) — só limita a largura pra não estourar o card. */
+  .destaque-metricas-img{ display: block; width: 100%; max-width: 260px; height: auto; margin: 0 auto; }
+  /* Legenda com uma mãozinha branca (estilo cursor "hand pointer") desenhando
+     um traço azul fino embaixo, do exato tamanho do texto — da esquerda pra
+     direita. Em loop: desenha indo, some o traço e volta só reposicionando,
+     pra desenhar de novo. O traço é uma barra de CSS (não SVG esticado), pra
+     nunca ficar mais larga nem mais grossa do que o texto. */
+  span.destaque-legenda-riscada{
+    position: relative;
+    display: inline-block;
+    /* padding-top afasta a frase do texto de cima; padding-bottom foi
+       reduzido na mesma medida (46px → 36px) pra compensar, então a altura
+       total da caixa não muda — e por isso o traço e a mãozinha (que usam
+       "bottom" contando a partir do fim dessa caixa) continuam exatamente
+       no mesmo lugar de antes, só a frase "sobe" o traço fica mais perto. */
+    padding-top: 10px;
+    padding-bottom: 36px;
+  }
+  .destaque-risco-traco{
+    position: absolute;
+    left: 0;
+    bottom: 30px;
+    width: 100%;
+    height: .08em;
+    min-height: 1.5px;
+    background: var(--vermelho);
+    border-radius: 2px;
+    transform-origin: left center;
+    transform: scaleX(0);
+    animation: destaque-riscar 3.2s ease-in-out infinite;
+  }
+  /* Ícone da mãozinha — posição calibrada à mão na ferramenta de arrastar
+     (você mesma arrastou até a ponta do dedo encostar no traço e me passou
+     a coordenada exata: left/bottom abaixo são literalmente esse valor,
+     sem conversão — por isso o "padding-bottom" da legenda e o "bottom" do
+     traço acima usam os mesmos números da ferramenta de teste, pra evitar
+     erro de tradução entre as duas escalas). Tamanho fixo de verdade
+     (12x14px), não um "wrapper" de largura zero — a regra global do site
+     "svg{ max-width:100% }" (lá no topo do arquivo) encolhe qualquer svg
+     dentro de um contêiner de largura zero pra zero também, e foi isso que
+     fez a mão sumir numa versão anterior. O preenchimento é sólido (sem
+     filtro de contorno): testado à mão que um filtro tipo feMorphology
+     rasteriza com pouca resolução nesse tamanho e fica esmaecido — aqui o
+     contorno preto vem de uma cópia do próprio desenho, preenchida e um
+     pouco maior, atrás da mão branca. Essa cópia maior estoura um pouco o
+     viewBox original do ícone, então o "overflow: visible" abaixo é
+     essencial — sem ele, o navegador corta a ponta do dedo e a lateral da
+     mão bem no canto do desenho. A posição "left" é deslocada pra alinhar
+     a PONTA DO DEDO indicador com o início/fim do traço (30% da largura de
+     12px = 3,6px), não o canto da caixinha do ícone. */
+  .destaque-risco-mao{
+    position: absolute;
+    bottom: 17px;
+    left: -3.6px;
+    width: 12px;
+    height: 14px;
+    overflow: visible;
+    animation: destaque-mao-mover 3.2s ease-in-out infinite;
+  }
+  @keyframes destaque-riscar{
+    0%{ transform: scaleX(0); }
+    42%{ transform: scaleX(1); }
+    52%{ transform: scaleX(1); }
+    54%{ transform: scaleX(0); }
+    100%{ transform: scaleX(0); }
+  }
+  @keyframes destaque-mao-mover{
+    0%{ left: -3.6px; }
+    42%{ left: calc(100% - 3.6px); }
+    52%{ left: calc(100% - 3.6px); }
+    100%{ left: -3.6px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .destaque-risco-traco{ animation: none; transform: scaleX(1); }
+    .destaque-risco-mao{ animation: none; left: calc(100% - 3.6px); }
+  }
+  .destaques-pontos{ display: flex; justify-content: center; gap: 10px; margin-top: 22px; }
+  .ponto-destaque{
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--tinta);
+    background: var(--branco);
+    cursor: pointer;
+    padding: 0;
+  }
+  .ponto-destaque.ativo{ background: var(--vermelho); border-color: var(--vermelho); }
+
+  /* ===================== CONTEÚDOS EM DESTAQUE NO MOBILE =====================
+     Na tela estreita não cabe o grid de 2 colunas do desktop, então essa
+     fileira separada substitui ele por completo: rolagem lateral nativa
+     (funciona com o dedo, arrastando — mesma técnica já usada em
+     ".linha-scroll" e nas outras fileiras do site), com scroll-snap pra
+     cada item "encaixar" centralizado. O item ainda não centralizado fica
+     desfocado/menor (dá o "gostinho" do próximo conteúdo) — quem controla
+     isso é a classe ".card-mobile-ativo", ligada via IntersectionObserver
+     no JS conforme a rolagem. Escondida no desktop; some ".destaques-carrossel"
+     e ".destaques-pontos" (feitos pro desktop) só aparecem a partir de 761px. */
+  .destaques-carrossel-mobile{ display: none; }
+  .destaques-pista-mobile{ display: none; }
+  @media (max-width: 760px){
+    .destaques-carrossel{ display: none; }
+    .destaques-pontos{ display: none; }
+    .destaques-carrossel-mobile{
+      position: relative;
+      display: block;
+    }
+    .destaques-carrossel-mobile .seta-btn{
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 3;
+      background: var(--branco);
+      box-shadow: var(--sombra-dura-sm);
+    }
+    .destaques-carrossel-mobile .seta-esq{ left: 2px; }
+    .destaques-carrossel-mobile .seta-dir{ right: 2px; }
+    .destaques-carrossel-mobile .seta-btn:hover:not(:disabled){
+      transform: translateY(calc(-50% - 2px));
+    }
+    .destaques-pista-mobile{
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      padding: 30px 9vw 12px;
+      margin-top: 10px;
+      scrollbar-width: none;
+    }
+    .destaques-pista-mobile::-webkit-scrollbar{ display: none; }
+    .destaques-pista-mobile .card-destaque{
+      flex: 0 0 82vw;
+      max-width: 300px;
+      scroll-snap-align: center;
+      opacity: .5;
+      transform: scale(.92);
+      filter: blur(1.5px);
+      transition: opacity .3s ease, transform .3s ease, filter .3s ease;
+      cursor: pointer;
+    }
+    .destaques-pista-mobile .card-destaque.card-mobile-ativo{
+      opacity: 1;
+      transform: scale(1);
+      filter: none;
+    }
+  }
+
   /* ===================== PORTFÓLIO ===================== */
   .portfolio{ background: var(--branco); }
   .filtro-nichos{
@@ -619,6 +903,18 @@
   }
   .seta-btn:hover:not(:disabled){ background: var(--vermelho); color: var(--branco); transform: translateY(-2px); }
   .seta-btn:disabled{ opacity: .3; cursor: default; }
+  /* Nos carrosséis (Serviços, Depoimentos, Destaques) a setinha fica
+     centralizada na vertical com "transform: translateY(-50%)". Sem a regra
+     abaixo, passar o mouse trocava esse transform pelo "translateY(-2px)"
+     do hover genérico acima, fazendo a setinha pular de lugar — e como o
+     pulo tira a setinha de baixo do cursor, o hover liga e desliga sem
+     parar (o "tremor" reportado). Aqui soma as duas: mantém centralizada e
+     ainda sobe um pouquinho. */
+  .servicos-carrossel .seta-btn:hover:not(:disabled),
+  .depoimentos-carrossel .seta-btn:hover:not(:disabled),
+  .destaques-carrossel .seta-btn:hover:not(:disabled){
+    transform: translateY(calc(-50% - 2px));
+  }
   .linha-scroll{
     display: flex;
     justify-content: safe center;
@@ -731,7 +1027,7 @@
   .fotos-ugc{
     padding: 46px 0 36px;
     background-color: var(--creme);
-    background-image: url("../portfolio/imagens/textura-hero.svg");
+    background-image: url("/portfolio/imagens/textura-hero.svg");
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
@@ -1263,6 +1559,8 @@
     .sobre .container{ grid-template-columns: minmax(0, 1fr); }
     .sobre-foto{ width: 100%; max-width: 340px; margin: 0 auto; }
     .sobre-texto{ min-width: 0; }
+    .destaques-pista{ padding: 10px 42px; gap: 16px; }
+    .card-destaque{ width: 220px; }
 
     /* A sobreposição negativa (margin-left/top) usada no título "Sobre mim"
        depende de medir com precisão a largura exata da letra "s" na fonte
@@ -1336,6 +1634,10 @@
     .hero-botoes .pill-btn{ justify-content: center; }
     .portfolio-card{ flex-basis: 165px; }
     .campo-linha{ grid-template-columns: 1fr; }
+    .destaques-pista{ padding: 8px 34px; gap: 12px; }
+    .card-destaque{ width: 78vw; max-width: 260px; }
+    .destaques-carrossel .seta-esq{ left: -4px; }
+    .destaques-carrossel .seta-dir{ right: -4px; }
   }
 </style>
 </head>
@@ -1347,7 +1649,7 @@
 <header class="cabecalho">
   <div class="barra-nav">
     <a href="#inicio" class="logo" aria-label="Edilaine Santos, ir para o início">
-      Edilaine <span>Santos<span class="decor-borboleta" aria-hidden="true"><img src="../portfolio/imagens/borboleta.png" alt=""></span></span>
+      Edilaine <span>Santos<span class="decor-borboleta" aria-hidden="true"><img src="/portfolio/imagens/borboleta.png" alt=""></span></span>
     </a>
 
     <nav class="menu-desktop" aria-label="Navegação principal">
@@ -1404,7 +1706,7 @@
 
       <div class="hero-foto-wrap">
         <!-- Foto principal recortada (fundo removido), sem moldura, igual à capa do portfólio. -->
-        <img class="hero-foto" src="../portfolio/imagens/hero-sem-fundo-v2.png" alt="Edilaine Santos, criadora de conteúdo UGC">
+        <img class="hero-foto" src="/portfolio/imagens/hero-sem-fundo-v2.png" alt="Edilaine Santos, criadora de conteúdo UGC">
 
         <span class="balao-flutuante balao-mineira" aria-hidden="true">
           <span class="balao-emoji">🌄</span>
@@ -1442,13 +1744,46 @@
         <!-- Bloco em gradiente simulando a foto da seção Sobre.
              PARA USAR SUA FOTO REAL: coloque um arquivo chamado "sobre.jpg"
              dentro da pasta "imagens". Se o arquivo não existir, o gradiente aparece no lugar. -->
-        <div class="foto-real" style="background-image:url('../portfolio/imagens/sobre.png');"></div>
+        <div class="foto-real" style="background-image:url('/portfolio/imagens/sobre.png');"></div>
       </div>
       <div class="sobre-texto reveal">
         <p class="tag-secao" id="sobreTag"></p>
         <h2 class="titulo-secao" id="sobreTitulo"></h2>
         <div id="sobreTexto"></div>
         <ul class="sobre-lista" id="sobreLista"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 4.5 CONTEÚDOS EM DESTAQUE =====================
+       Coluna esquerda fixa (feedback) + coluna direita com um vídeo por vez
+       (as setas trocam qual vídeo aparece). Para editar os itens, veja
+       CONFIG.destaques mais abaixo no arquivo. -->
+  <section class="destaques-conteudo" id="destaques">
+    <div class="container">
+      <p class="tag-secao reveal" id="destaquesTag"></p>
+      <h2 class="titulo-secao reveal" id="destaquesTitulo"></h2>
+      <p class="sub-secao reveal" id="destaquesSubtitulo"></p>
+
+      <div class="destaques-carrossel reveal">
+        <button type="button" class="seta-btn seta-esq" id="destaquesSetaEsq" aria-label="Ver conteúdo anterior">‹</button>
+        <div class="destaques-pista" id="destaquesPista"></div>
+        <button type="button" class="seta-btn seta-dir" id="destaquesSetaDir" aria-label="Ver próximo conteúdo">›</button>
+      </div>
+      <div class="destaques-pontos" id="destaquesPontos"></div>
+
+      <!-- Versão mobile: em vez do grid de 2 colunas fixas do desktop, uma
+           fileira que desliza com o dedo (rolagem nativa com "scroll-snap",
+           já usada em outras fileiras do site) — cabe só uma coluna na tela
+           estreita, então aqui os conteúdos ficam em sequência, um de cada
+           vez, começando pelo vídeo em foco. Só aparece em telas pequenas
+           (ver CSS "@media (max-width: 760px)"). As setinhas são só um
+           reforço visual de que dá pra passar pro lado (o gesto de arrastar
+           já funciona sem elas) — clicar rola um cartão inteiro. -->
+      <div class="destaques-carrossel-mobile">
+        <button type="button" class="seta-btn seta-esq" id="destaquesSetaEsqMobile" aria-label="Ver conteúdo anterior">‹</button>
+        <div class="destaques-pista-mobile" id="destaquesPistaMobile"></div>
+        <button type="button" class="seta-btn seta-dir" id="destaquesSetaDirMobile" aria-label="Ver próximo conteúdo">›</button>
       </div>
     </div>
   </section>
@@ -1594,283 +1929,16 @@
   </div>
 </footer>
 
+<script src="../portfolio/conteudo.js"></script>
 <script>
 /* =========================================================================
-   PAINEL DE CONTEÚDO EDITÁVEL
-   Todo o texto do site vem deste objeto. Para atualizar o site, edite os
-   valores abaixo. Não é necessário mexer em nenhuma outra parte do código.
+   VALORES / INVESTIMENTOS (conteúdo exclusivo desta página)
+   O restante do conteúdo do site (textos, fotos, vídeos, marcas, serviços
+   etc.) mora em ../portfolio/conteudo.js, compartilhado com o Portfólio
+   (../portfolio/) — editar um texto lá atualiza as duas páginas. Só os
+   pacotes/preços abaixo são exclusivos desta página.
    ========================================================================= */
-/* =========================================================================
-   SITE EM 2 IDIOMAS (PT/EN)
-   Existem dois painéis completos abaixo: CONFIG_PT e CONFIG_EN. Editando um
-   texto, edite também o mesmo campo no outro objeto para as duas versões do
-   site ficarem sempre sincronizadas. Campos que não são texto (videoId,
-   gradiente, imagem, logo, número) são os mesmos nos dois.
-   ========================================================================= */
-const CONFIG_PT = {
-
-  // EDITE AQUI: textos do menu e do botão de idioma
-  nav: {
-    inicio: "Início", sobre: "Sobre", portfolio: "Portfólio", servicos: "Serviços",
-    feedbacks: "Feedbacks", cta: "Fale comigo"
-  },
-
-  // EDITE AQUI: dados pessoais e de contato
-  perfil: {
-    nome: "Edilaine Santos",
-    nomeCurto: "Edilaine",
-    profissao: "UGC Creator & Manager",
-    instagramArroba: "@byedisantos",
-    instagramUrl: "https://instagram.com/byedisantos",
-    email: "edilainesantosugc@gmail.com",
-    telefoneExibicao: "(19) 99384-2684",
-    whatsappUrl: "https://wa.me/5519993842684"
-  },
-
-  // EDITE AQUI: textos principais da primeira dobra (Hero)
-  hero: {
-    tag: "UGC Creator & Manager",
-    tituloParte1: "Histórias que ",
-    tituloDestaque1: "conectam",
-    tituloParte2: ". Estratégias que ",
-    tituloDestaque2: "performam",
-    tituloParte3: ".",
-    frase: "Conteúdo que atrai, engaja e converte.",
-    estatistica: "+100 marcas trabalhadas",
-    textoCta: "Fale comigo",
-    textoCtaSecundario: "Ver portfólio",
-    baloMineira: "Mineirinha",
-    baloPet: "Mãe de pet",
-    baloSaudavel: "Rotina saudável"
-  },
-
-  faixaMarcas: { rotulo: "Marcas que já confiaram no meu trabalho" },
-
-  // EDITE AQUI: marcas que já trabalharam com você (aparecem na faixa rolante).
-  // "logo" é o nome do arquivo dentro de ../portfolio/imagens/marcas/. Se "logo" for null,
-  // aparece uma bolinha com as iniciais do nome no lugar.
-  marcas: [
-    { nome: "Alva", logo: "alva.jpg" },
-    { nome: "Blis", logo: "blis.jpg" },
-    { nome: "CleanNew Store", logo: "cleannew.jpg" },
-    { nome: "Coala", logo: "coala.png" },
-    { nome: "Condor", logo: "condor.jpg" },
-    { nome: "Darrow", logo: "darrow.png" },
-    { nome: "Dr. Lava Tudo", logo: "dr-lava-tudo.png" },
-    { nome: "Dreams Nutrition", logo: "dreams-nutrition.jpg" },
-    { nome: "FreePet", logo: "freepet.png" },
-    { nome: "Garnie", logo: "garnie.jpg" },
-    { nome: "Itambé", logo: "itambe.jpg" },
-    { nome: "Max Titanium", logo: "max-titanium.jpg" },
-    { nome: "Mega Ótica Opção", logo: "mega-otica-opcao.jpg" },
-    { nome: "Natuka", logo: "natuka.png" },
-    { nome: "Nivea", logo: "nivea.png" },
-    { nome: "Pantene", logo: "pantene.png" },
-    { nome: "Pibe", logo: "pibe.jpg" },
-    { nome: "Rainha Nativa", logo: "rainha-nativa.jpg" },
-    { nome: "Rituária", logo: "rituaria.jpg" },
-    { nome: "Saint Germain", logo: "saint-germain.jpg" },
-    { nome: "Seu Influencer", logo: "seu-influencer.jpg" },
-    { nome: "Shopee", logo: "shopee.png" },
-    { nome: "Show de Pizzaiolo", logo: "show-de-pizzaiolo.png" },
-    { nome: "Vhita", logo: "vhita.png" },
-    { nome: "Voga", logo: "voga.jpg" },
-    { nome: "Yool", logo: "yool.jpg" },
-    { nome: "Marca R", logo: "logo-r.png" }
-  ],
-
-  // EDITE AQUI: texto e destaques da seção Sobre
-  sobre: {
-    tag: "Sobre mim",
-    titulo: "Oiee, me chamo <span class=\"nome-destaque\">Edilaine Santos<span class=\"decor-borboleta\" aria-hidden=\"true\"><img src=\"../portfolio/imagens/borboleta.png\" alt=\"\"></span></span>",
-    paragrafos: [
-      "Tenho 30 anos, sou mineira, mãe de pet e UGC Creator.",
-      "Escrever sempre fez parte de mim. Desde pequena eu já transformava sentimento em palavra, criava história, achava sentido até nas coisas mais simples do dia a dia. Com o tempo, isso virou meu maior diferencial no UGC: pegar uma marca e transformar ela em conteúdo que gera identificação, confiança e aproxima.",
-      "<strong>Já trabalhei com mais de 100 marcas</strong>, produzindo <strong>centenas de conteúdos</strong>, transitando por vários estilos e formatos. Mas storytelling é o que faz a marca ser lembrada depois do vídeo, porque anúncio informa e história conecta.",
-      "Meu trabalho vai além de criar conteúdo: é entender a essência de cada marca e transformar isso em narrativa que <strong>fortalece a relação com o público e traz resultado</strong>.",
-      "Porque o que fica é sentimento. <strong>E sentimento vira confiança. E confiança vira resultado.</strong>"
-    ],
-    destaques: [
-      "+100 MARCAS TRABALHADAS",
-      "<svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"currentColor\" style=\"vertical-align:-3px;margin-right:2px\" aria-hidden=\"true\"><path d=\"M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"/></svg> HORTOLÂNDIA – SP"
-    ]
-  },
-
-  portfolioTextos: {
-    tag: "Portfólio",
-    titulo: "Trabalhos que já viraram resultado para as marcas",
-    subtitulo: "Assista aos vídeos reais que eu já produzi, organizados por nicho."
-  },
-
-  // EDITE AQUI: ordem dos nichos de portfólio (cada um vira uma fileira, estilo Netflix)
-  categoriasPortfolio: [
-    "Saúde e Bem-estar", "Casa e Decoração", "Pet", "Beleza e Autocuidado",
-    "Moda e Acessórios", "Tech & Apps", "Serviços e Experiências", "Datas Comemorativas"
-  ],
-
-  // EDITE AQUI: trabalhos do portfólio, com vídeos reais hospedados no YouTube (modo não listado).
-  // O campo "videoId" é o código que vem depois de "youtube.com/shorts/" no link do vídeo.
-  // Exemplo: no link "https://youtube.com/shorts/Zd0B7ttQZJQ" o videoId é "Zd0B7ttQZJQ".
-  // "marca" não aparece no site (é só para os relatórios do painel); a legenda mostrada no
-  // card é sempre "titulo". Para adicionar um vídeo, copie um bloco { ... } e troque os campos.
-  portfolio: [
-    // Saúde e Bem-estar
-    { marca: "Max Titanium", titulo: "Narrador – Barrinha de proteína", categoria: "Saúde e Bem-estar", gradiente: "grad-1", videoId: "Zd0B7ttQZJQ" },
-    { marca: "Shopee", titulo: "Orgânico – Conjuntinho fitness", categoria: "Saúde e Bem-estar", gradiente: "grad-2", videoId: "Y4YrncO4UZo" },
-    { marca: "Dreams Burn", titulo: "Storytelling – Cubo termogênico", categoria: "Saúde e Bem-estar", gradiente: "grad-3", videoId: "3pbXGVEFaog" },
-    { marca: "Max Titanium", titulo: "Depoimento – Whey drink", categoria: "Saúde e Bem-estar", gradiente: "grad-4", videoId: "KbJBIB5RHCI" },
-    { marca: "Rap 10", titulo: "Rotina – Receita pizza fit", categoria: "Saúde e Bem-estar", gradiente: "grad-5", videoId: "Jme4EkWP1oY" },
-
-    // Casa e Decoração
-    { marca: "Condor", titulo: "Storytelling – Mop PVA e rolo de tirar pelo", categoria: "Casa e Decoração", gradiente: "grad-6", videoId: "rjblZsgruDA" },
-    { marca: "Eletrolux", titulo: "Educativo – Refil filtro purificador de água", categoria: "Casa e Decoração", gradiente: "grad-1", videoId: "e6SAuK22QwM" },
-    { marca: "Shopee", titulo: "Marketplace – Capa de colchão impermeável", categoria: "Casa e Decoração", gradiente: "grad-2", videoId: "AbXbrKyfHcQ" },
-    { marca: "Condor", titulo: "Storytelling – Esponja limpeza extrema", categoria: "Casa e Decoração", gradiente: "grad-3", videoId: "sldWgcR84co" },
-    { marca: "Dobuê", titulo: "Orgânico – Debate entre irmãs, mesa de jantar", categoria: "Casa e Decoração", gradiente: "grad-4", videoId: "AmDppLUwvuc" },
-    { marca: "Shein", titulo: "Marketplace – Jogo de cama", categoria: "Casa e Decoração", gradiente: "grad-5", videoId: "vSGOS-KIKUE" },
-    { marca: "Coala", titulo: "Depoimento – Kit cheirinho orquídea negra", categoria: "Casa e Decoração", gradiente: "grad-6", videoId: "ogsVF7O7wMM" },
-
-    // Pet
-    { marca: "FreePet", titulo: "Storytelling – Limpa canil + neutralizador de odores", categoria: "Pet", gradiente: "grad-1", videoId: "d1fmuHk5sEU" },
-    { marca: "Natuka", titulo: "Educativo – Palitinhos enriquecimento ambiental", categoria: "Pet", gradiente: "grad-2", videoId: "C5vleYWynVM" },
-    { marca: "Petiko", titulo: "Unboxing divertido – Petiscos e brinquedos", categoria: "Pet", gradiente: "grad-3", videoId: "c6-PNqQZslE" },
-    { marca: "Nutrafases", titulo: "Depoimento – Suplemento alimentar probiótico", categoria: "Pet", gradiente: "grad-4", videoId: "t9FO_B2oydI" },
-    { marca: "New Pet", titulo: "Storytelling – Bebedouro de água inteligente", categoria: "Pet", gradiente: "grad-5", videoId: "pkf21wmwvvs" },
-
-    // Beleza e Autocuidado
-    { marca: "Condor", titulo: "Storytelling – Pincéis de maquiagem", categoria: "Beleza e Autocuidado", gradiente: "grad-6", videoId: "usONnfgOlzU" },
-    { marca: "Alva", titulo: "Narrador/Educativo – Raspador de língua", categoria: "Beleza e Autocuidado", gradiente: "grad-1", videoId: "k17j7zWKmuA" },
-    { marca: "Mayara", titulo: "Experiência – Design de sobrancelha", categoria: "Beleza e Autocuidado", gradiente: "grad-2", videoId: "8K0wrl9mf0U" },
-    { marca: "Condor", titulo: "Educativo – Escova de dente antibac", categoria: "Beleza e Autocuidado", gradiente: "grad-3", videoId: "M7HjEF0YcqU" },
-    { marca: "Pantene", titulo: "Storytelling – Tônico capilar", categoria: "Beleza e Autocuidado", gradiente: "grad-4", videoId: "38m6Q-Pr5S0" },
-    { marca: "Condor", titulo: "Dica – Kit escova de cabelo com canetinhas para colorir", categoria: "Beleza e Autocuidado", gradiente: "grad-5", videoId: "rqMTFESTsAw" },
-    { marca: "Alva", titulo: "Review – Desodorante cristal", categoria: "Beleza e Autocuidado", gradiente: "grad-6", videoId: "vOmNzVuLXJw" },
-    { marca: "Dermacyd", titulo: "Storytelling – Sabonete íntimo", categoria: "Beleza e Autocuidado", gradiente: "grad-1", videoId: "KMh3cYekKEM" },
-
-    // Moda e Acessórios
-    { marca: "Vans", titulo: "Criativo – 1 tênis, vários looks", categoria: "Moda e Acessórios", gradiente: "grad-2", videoId: "80XKBvwlWfU" },
-    { marca: "Ótica Mega Opção", titulo: "Orgânico – Óculos de grau", categoria: "Moda e Acessórios", gradiente: "grad-3", videoId: "_qhaRoUB1b0" },
-    { marca: "Shein", titulo: "Achadinho – Pijamas", categoria: "Moda e Acessórios", gradiente: "grad-4", videoId: "Ycp2cp5_ps0" },
-    { marca: "Saint Germain", titulo: "Apresentação – Relógio", categoria: "Moda e Acessórios", gradiente: "grad-5", videoId: "di5b_sg4_M8" },
-
-    // Tech & Apps
-    { marca: "Hollyland", titulo: "Comparação – Microfone", categoria: "Tech & Apps", gradiente: "grad-6", videoId: "KXBxVTr8PXA" },
-    { marca: "Konta IA", titulo: "Storytelling – Aplicativo organização financeira", categoria: "Tech & Apps", gradiente: "grad-1", videoId: "v2zf26ctp98" },
-    { marca: "Samsung", titulo: "Unboxing ASMR – Tablet", categoria: "Tech & Apps", gradiente: "grad-2", videoId: "H7vk2JF62PM" },
-    { marca: "Hollyland", titulo: "Dicas – Microfone", categoria: "Tech & Apps", gradiente: "grad-3", videoId: "uCHl56vK6Zc" },
-    { marca: "QCY", titulo: "Depoimento – Fone de ouvido", categoria: "Tech & Apps", gradiente: "grad-4", videoId: "Mb6rUOi0qAs" },
-
-    // Serviços e Experiências
-    { marca: "Dr. Lava Tudo", titulo: "Storytelling – Limpeza automotiva", categoria: "Serviços e Experiências", gradiente: "grad-5", videoId: "V2rAhr3_D7E" },
-    { marca: "Show de Pizzaiolo", titulo: "Storytelling – Rodízio de pizza em domicílio", categoria: "Serviços e Experiências", gradiente: "grad-6", videoId: "o9KozkhVU-E" },
-    { marca: "Dr. Lava Tudo", titulo: "Storytelling – Limpeza de sofá + colchão", categoria: "Serviços e Experiências", gradiente: "grad-1", videoId: "Y3b5WeKfBP0" },
-    { marca: "Show de Pizzaiolo", titulo: "Tráfego pago – Rodízio de pizza em domicílio (foco em alcançar franqueados)", categoria: "Serviços e Experiências", gradiente: "grad-2", videoId: "7n_Mol2CiSM" },
-
-    // Datas Comemorativas
-    { marca: "Yool", titulo: "Podcast junino (criativo gêmeas) – Respondendo perguntas, saia godê", categoria: "Datas Comemorativas", gradiente: "grad-3", videoId: "bzI86bSqRDQ" },
-    { marca: "Yool", titulo: "Site na parede (criativo) – Diversos produtos junino", categoria: "Datas Comemorativas", gradiente: "grad-4", videoId: "pvBmrnzCdHA" }
-  ],
-
-  fotosUgcTextos: {
-    tag: "Fotos UGC",
-    tituloHtml: "também faço <span class=\"destaque-italico\">fotos</span>."
-  },
-
-  // EDITE AQUI: fotos UGC (grade 6x2). Coloque o arquivo dentro de "imagens" e
-  // preencha "imagem"; se o arquivo não existir, o gradiente aparece no lugar.
-  // "posicao" é opcional: ajusta o enquadramento do corte (padrão "center").
-  // Use algo como "center 0%" pra puxar o corte mais pra cima da foto.
-  // "filtro" é opcional: ajusta brilho/contraste (ex: "brightness(.88) contrast(1.08) saturate(1.05)").
-  fotosUgc: [
-    { imagem: "../portfolio/imagens/foto-ugc-1.jpg", gradiente: "grad-1" },
-    { imagem: "../portfolio/imagens/foto-ugc-2.jpg", gradiente: "grad-2" },
-    { imagem: "../portfolio/imagens/foto-ugc-3.jpg", gradiente: "grad-3" },
-    { imagem: "../portfolio/imagens/foto-ugc-4.jpg", gradiente: "grad-4" },
-    { imagem: "../portfolio/imagens/foto-ugc-5.jpg", gradiente: "grad-5" },
-    { imagem: "../portfolio/imagens/foto-ugc-6.jpg", gradiente: "grad-6" },
-    { imagem: "../portfolio/imagens/foto-ugc-7.jpg", gradiente: "grad-1" },
-    { imagem: "../portfolio/imagens/foto-ugc-8.jpg", gradiente: "grad-2" },
-    { imagem: "../portfolio/imagens/foto-ugc-9.jpg", gradiente: "grad-3" },
-    { imagem: "../portfolio/imagens/foto-ugc-10.jpg", gradiente: "grad-4" },
-    { imagem: "../portfolio/imagens/foto-ugc-11.jpg", gradiente: "grad-5" },
-    { imagem: "../portfolio/imagens/foto-ugc-12.jpg", gradiente: "grad-6" }
-  ],
-
-  servicosTextos: {
-    tag: "Serviços",
-    titulo: "O que eu posso criar para a sua marca",
-    subtitulo: "Conteúdo pensado para gerar confiança, engajamento e, principalmente, vendas."
-  },
-
-  // EDITE AQUI: cards de serviços oferecidos (o campo "icone" aceita um emoji)
-  servicos: [
-    { icone: "🎬", titulo: "Vídeo UGC", descricao: "Criação de conteúdo estratégico com foco em vendas para você utilizar em seu próprio perfil e anúncios.", cta: "Quero UGC que converte" },
-    { icone: "🗂️", titulo: "UGC Manager", descricao: "Ao invés de criar, farei a gestão completa de campanhas com outras UGC's para que você fique livre, cuidarei desde a contratação até a entrega dos conteúdos.", cta: "Quero gestão de UGC's" },
-    { icone: "📱", titulo: "Reels e TikToks", descricao: "Conteúdo dinâmico, editado no ritmo das redes sociais e pronto para publicar ou usar em anúncios.", cta: "Quero conteúdo pra redes" },
-    { icone: "📸", titulo: "Fotos de Produto", descricao: "Imagens autênticas e bem iluminadas que mostram o seu produto no dia a dia real.", cta: "Quero fotos de produto" },
-    { icone: "📦", titulo: "Unboxing", descricao: "Vídeos de abertura de caixa com reação genuína, despertando desejo de compra em quem assiste.", cta: "Quero um unboxing" },
-    { icone: "⭐", titulo: "Depoimentos e Reviews", descricao: "Avaliações sinceras e persuasivas que aumentam a confiança do público na sua marca.", cta: "Quero depoimentos reais" },
-    { icone: "🚀", titulo: "Conteúdo para Anúncios", descricao: "Vídeos pensados para performar como anúncio pago, com gancho forte nos primeiros segundos.", cta: "Quero criar anúncios" },
-    { icone: "🤝", titulo: "UGC + Collab", descricao: "Divulgação para a minha própria comunidade, feito em colaboração. No meu perfil abordo autocuidado e lifestyle.", cta: "Quero fazer uma collab" }
-  ],
-
-  resultadosTextos: {
-    tag: "Resultados",
-    titulo: "Números que mostram o meu impacto",
-    subtitulo: "Dados reais de alcance e entrega que ajudam marcas a decidir com confiança."
-  },
-
-  // EDITE AQUI: números de destaque (a contagem anima sozinha ao aparecer na tela)
-  // "decimais" define quantas casas decimais aparecem no número
-  resultados: [
-    { numero: 85, sufixo: " mil+", rotulo: "Seguidores nas redes sociais", decimais: 0 },
-    { numero: 1.5, sufixo: " mi+", rotulo: "Visualizações por mês", decimais: 1 },
-    { numero: 40, sufixo: "+", rotulo: "Marcas atendidas", decimais: 0 },
-    { numero: 8.5, sufixo: "%", rotulo: "Taxa média de engajamento", decimais: 1 }
-  ],
-
-  depoimentosTextos: {
-    tag: "Depoimentos",
-    titulo: "O que as marcas dizem sobre o meu trabalho",
-    subtitulo: "Depoimentos de marcas que sentiram na prática o poder de um conteúdo estratégico."
-  },
-
-  // EDITE AQUI: depoimentos de clientes (prints reais de feedback).
-  // Cada depoimento é só a imagem do print; para adicionar mais, copie a linha e troque o nome do arquivo.
-  // OBS: os prints são reais e ficam em português nas duas versões do site (não são traduzidos).
-  depoimentos: [
-    { imagem: "../portfolio/imagens/depoimento-1.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-2.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-3.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-4.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-5.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-6.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-7.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-8.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-9.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-10.jpg" }
-  ],
-
-  contatoTextos: {
-    tag: "Contato",
-    titulo: "Vamos criar o próximo conteúdo de sucesso da sua marca?",
-    subtitulo: "Me chame agora mesmo e receba uma proposta personalizada para o seu produto.",
-    labelNome: "Nome",
-    labelEmail: "E-mail",
-    labelMarca: "Marca / Empresa",
-    labelOrcamento: "Orçamento estimado",
-    labelMensagem: "Conta sobre o projeto",
-    placeholderNome: "Seu nome",
-    placeholderEmail: "voce@marca.com",
-    placeholderMarca: "Nome da marca",
-    placeholderOrcamento: "Ex: R$ 1.000 a R$ 5.000",
-    placeholderMensagem: "Categoria, formato, prazo, objetivo da campanha...",
-    botaoEnviar: "Enviar mensagem",
-    botaoEnviando: "Enviando...",
-    mensagemSucesso: "Obrigada pelo contato! Recebi sua mensagem e vou te responder em breve.",
-    mensagemErro: "Não consegui enviar sua mensagem agora. Tente novamente ou me chame direto no WhatsApp."
-  },
-
+const VALORES_PT = {
   valoresTextos: {
     tag: "Investimentos",
     titulo: "Pacotes pra impulsionar sua marca",
@@ -1895,256 +1963,10 @@ const CONFIG_PT = {
     { tipo: "best", nome: "Best Seller", itens: ["2 vídeos", "3 fotos", "Roteiro", "Gravação", "Edição", "5 meses ADS"], preco: "R$547", economia: "R$267" },
     { tipo: "metal", metal: "prata", nome: "Prata", itens: ["3 vídeos", "3 fotos", "Roteiro", "Gravação", "Edição", "6 meses ADS"], preco: "R$797", economia: "R$514" },
     { tipo: "metal", metal: "gold", nome: "Gold", itens: ["5 vídeos", "5 fotos", "Roteiro", "Gravação", "Edição", "6 meses ADS"], preco: "R$1.250", economia: "R$935" }
-  ],
-
-  // EDITE AQUI: texto do rodapé
-  rodape: {
-    copyrightTexto: "Todos os direitos reservados."
-  }
+  ]
 };
 
-// EDIT HERE: English version. Keep this in sync with CONFIG_PT above whenever you update content.
-const CONFIG_EN = {
-
-  nav: {
-    inicio: "Home", sobre: "About", portfolio: "Portfolio", servicos: "Services",
-    feedbacks: "Feedback", cta: "Get in touch"
-  },
-
-  perfil: {
-    nome: "Edilaine Santos",
-    nomeCurto: "Edilaine",
-    profissao: "UGC Creator & Manager",
-    instagramArroba: "@byedisantos",
-    instagramUrl: "https://instagram.com/byedisantos",
-    email: "edilainesantosugc@gmail.com",
-    telefoneExibicao: "(19) 99384-2684",
-    whatsappUrl: "https://wa.me/5519993842684"
-  },
-
-  hero: {
-    tag: "UGC Creator & Manager",
-    tituloParte1: "Stories that ",
-    tituloDestaque1: "connect",
-    tituloParte2: ". Strategies that ",
-    tituloDestaque2: "perform",
-    tituloParte3: ".",
-    frase: "Content that attracts, engages, and converts.",
-    estatistica: "+100 brands worked with",
-    textoCta: "Get in touch",
-    textoCtaSecundario: "View portfolio",
-    baloMineira: "From Minas Gerais",
-    baloPet: "Pet mom",
-    baloSaudavel: "Healthy routine"
-  },
-
-  faixaMarcas: { rotulo: "Brands that have trusted my work" },
-
-  marcas: [
-    { nome: "Alva", logo: "alva.jpg" },
-    { nome: "Blis", logo: "blis.jpg" },
-    { nome: "CleanNew Store", logo: "cleannew.jpg" },
-    { nome: "Coala", logo: "coala.png" },
-    { nome: "Condor", logo: "condor.jpg" },
-    { nome: "Darrow", logo: "darrow.png" },
-    { nome: "Dr. Lava Tudo", logo: "dr-lava-tudo.png" },
-    { nome: "Dreams Nutrition", logo: "dreams-nutrition.jpg" },
-    { nome: "FreePet", logo: "freepet.png" },
-    { nome: "Garnie", logo: "garnie.jpg" },
-    { nome: "Itambé", logo: "itambe.jpg" },
-    { nome: "Max Titanium", logo: "max-titanium.jpg" },
-    { nome: "Mega Ótica Opção", logo: "mega-otica-opcao.jpg" },
-    { nome: "Natuka", logo: "natuka.png" },
-    { nome: "Nivea", logo: "nivea.png" },
-    { nome: "Pantene", logo: "pantene.png" },
-    { nome: "Pibe", logo: "pibe.jpg" },
-    { nome: "Rainha Nativa", logo: "rainha-nativa.jpg" },
-    { nome: "Rituária", logo: "rituaria.jpg" },
-    { nome: "Saint Germain", logo: "saint-germain.jpg" },
-    { nome: "Seu Influencer", logo: "seu-influencer.jpg" },
-    { nome: "Shopee", logo: "shopee.png" },
-    { nome: "Show de Pizzaiolo", logo: "show-de-pizzaiolo.png" },
-    { nome: "Vhita", logo: "vhita.png" },
-    { nome: "Voga", logo: "voga.jpg" },
-    { nome: "Yool", logo: "yool.jpg" },
-    { nome: "Marca R", logo: "logo-r.png" }
-  ],
-
-  sobre: {
-    tag: "About me",
-    titulo: "Hi, I'm <span class=\"nome-destaque\">Edilaine Santos<span class=\"decor-borboleta\" aria-hidden=\"true\"><img src=\"../portfolio/imagens/borboleta.png\" alt=\"\"></span></span>",
-    paragrafos: [
-      "I'm 30 years old, from Minas Gerais, a pet mom, and a UGC Creator.",
-      "Writing has always been part of who I am. Since I was little, I turned feelings into words, created stories, found meaning even in the simplest everyday things. Over time, that became my biggest edge in UGC: taking a brand and turning it into content that builds identification, trust, and connection.",
-      "<strong>I've worked with over 100 brands</strong>, producing <strong>hundreds of pieces of content</strong>, moving across many styles and formats. But storytelling is what makes a brand memorable after the video ends, because ads inform and stories connect.",
-      "My work goes beyond creating content: it's about understanding the essence of each brand and turning that into a narrative that <strong>strengthens the relationship with the audience and drives results</strong>.",
-      "Because what stays is feeling. <strong>And feeling becomes trust. And trust becomes results.</strong>"
-    ],
-    destaques: [
-      "+100 BRANDS WORKED WITH",
-      "<svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"currentColor\" style=\"vertical-align:-3px;margin-right:2px\" aria-hidden=\"true\"><path d=\"M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"/></svg> HORTOLÂNDIA, BRAZIL"
-    ]
-  },
-
-  portfolioTextos: {
-    tag: "Portfolio",
-    titulo: "Work that has already delivered results for brands",
-    subtitulo: "Watch real videos I've produced, organized by niche."
-  },
-
-  categoriasPortfolio: [
-    "Health & Wellness", "Home & Decor", "Pet", "Beauty & Self-Care",
-    "Fashion & Accessories", "Tech & Apps", "Services & Experiences", "Special Occasions"
-  ],
-
-  portfolio: [
-    // Health & Wellness
-    { marca: "Max Titanium", titulo: "Voiceover – Protein bar", categoria: "Health & Wellness", gradiente: "grad-1", videoId: "Zd0B7ttQZJQ" },
-    { marca: "Shopee", titulo: "Organic – Fitness set", categoria: "Health & Wellness", gradiente: "grad-2", videoId: "Y4YrncO4UZo" },
-    { marca: "Dreams Burn", titulo: "Storytelling – Thermogenic cube", categoria: "Health & Wellness", gradiente: "grad-3", videoId: "3pbXGVEFaog" },
-    { marca: "Max Titanium", titulo: "Testimonial – Whey drink", categoria: "Health & Wellness", gradiente: "grad-4", videoId: "KbJBIB5RHCI" },
-    { marca: "Rap 10", titulo: "Routine – Fit pizza recipe", categoria: "Health & Wellness", gradiente: "grad-5", videoId: "Jme4EkWP1oY" },
-
-    // Home & Decor
-    { marca: "Condor", titulo: "Storytelling – PVA mop and lint roller", categoria: "Home & Decor", gradiente: "grad-6", videoId: "rjblZsgruDA" },
-    { marca: "Eletrolux", titulo: "Educational – Water filter refill", categoria: "Home & Decor", gradiente: "grad-1", videoId: "e6SAuK22QwM" },
-    { marca: "Shopee", titulo: "Marketplace – Waterproof mattress cover", categoria: "Home & Decor", gradiente: "grad-2", videoId: "AbXbrKyfHcQ" },
-    { marca: "Condor", titulo: "Storytelling – Extreme-clean sponge", categoria: "Home & Decor", gradiente: "grad-3", videoId: "sldWgcR84co" },
-    { marca: "Dobuê", titulo: "Organic – Sisters' debate, dinner table", categoria: "Home & Decor", gradiente: "grad-4", videoId: "AmDppLUwvuc" },
-    { marca: "Shein", titulo: "Marketplace – Bedding set", categoria: "Home & Decor", gradiente: "grad-5", videoId: "vSGOS-KIKUE" },
-    { marca: "Coala", titulo: "Testimonial – Black orchid scent kit", categoria: "Home & Decor", gradiente: "grad-6", videoId: "ogsVF7O7wMM" },
-
-    // Pet
-    { marca: "FreePet", titulo: "Storytelling – Kennel cleaner + odor neutralizer", categoria: "Pet", gradiente: "grad-1", videoId: "d1fmuHk5sEU" },
-    { marca: "Natuka", titulo: "Educational – Enrichment chew sticks", categoria: "Pet", gradiente: "grad-2", videoId: "C5vleYWynVM" },
-    { marca: "Petiko", titulo: "Fun unboxing – Treats and toys", categoria: "Pet", gradiente: "grad-3", videoId: "c6-PNqQZslE" },
-    { marca: "Nutrafases", titulo: "Testimonial – Probiotic supplement", categoria: "Pet", gradiente: "grad-4", videoId: "t9FO_B2oydI" },
-    { marca: "New Pet", titulo: "Storytelling – Smart water fountain", categoria: "Pet", gradiente: "grad-5", videoId: "pkf21wmwvvs" },
-
-    // Beauty & Self-Care
-    { marca: "Condor", titulo: "Storytelling – Makeup brushes", categoria: "Beauty & Self-Care", gradiente: "grad-6", videoId: "usONnfgOlzU" },
-    { marca: "Alva", titulo: "Voiceover/Educational – Tongue scraper", categoria: "Beauty & Self-Care", gradiente: "grad-1", videoId: "k17j7zWKmuA" },
-    { marca: "Mayara", titulo: "Experience – Eyebrow design", categoria: "Beauty & Self-Care", gradiente: "grad-2", videoId: "8K0wrl9mf0U" },
-    { marca: "Condor", titulo: "Educational – Antibacterial toothbrush", categoria: "Beauty & Self-Care", gradiente: "grad-3", videoId: "M7HjEF0YcqU" },
-    { marca: "Pantene", titulo: "Storytelling – Hair tonic", categoria: "Beauty & Self-Care", gradiente: "grad-4", videoId: "38m6Q-Pr5S0" },
-    { marca: "Condor", titulo: "Tip – Hairbrush kit with coloring markers", categoria: "Beauty & Self-Care", gradiente: "grad-5", videoId: "rqMTFESTsAw" },
-    { marca: "Alva", titulo: "Review – Crystal deodorant", categoria: "Beauty & Self-Care", gradiente: "grad-6", videoId: "vOmNzVuLXJw" },
-    { marca: "Dermacyd", titulo: "Storytelling – Intimate soap", categoria: "Beauty & Self-Care", gradiente: "grad-1", videoId: "KMh3cYekKEM" },
-
-    // Fashion & Accessories
-    { marca: "Vans", titulo: "Creative – 1 sneaker, many looks", categoria: "Fashion & Accessories", gradiente: "grad-2", videoId: "80XKBvwlWfU" },
-    { marca: "Ótica Mega Opção", titulo: "Organic – Prescription glasses", categoria: "Fashion & Accessories", gradiente: "grad-3", videoId: "_qhaRoUB1b0" },
-    { marca: "Shein", titulo: "Great find – Pajamas", categoria: "Fashion & Accessories", gradiente: "grad-4", videoId: "Ycp2cp5_ps0" },
-    { marca: "Saint Germain", titulo: "Showcase – Watch", categoria: "Fashion & Accessories", gradiente: "grad-5", videoId: "di5b_sg4_M8" },
-
-    // Tech & Apps
-    { marca: "Hollyland", titulo: "Comparison – Microphone", categoria: "Tech & Apps", gradiente: "grad-6", videoId: "KXBxVTr8PXA" },
-    { marca: "Konta IA", titulo: "Storytelling – Finance organizer app", categoria: "Tech & Apps", gradiente: "grad-1", videoId: "v2zf26ctp98" },
-    { marca: "Samsung", titulo: "ASMR unboxing – Tablet", categoria: "Tech & Apps", gradiente: "grad-2", videoId: "H7vk2JF62PM" },
-    { marca: "Hollyland", titulo: "Tips – Microphone", categoria: "Tech & Apps", gradiente: "grad-3", videoId: "uCHl56vK6Zc" },
-    { marca: "QCY", titulo: "Testimonial – Headphones", categoria: "Tech & Apps", gradiente: "grad-4", videoId: "Mb6rUOi0qAs" },
-
-    // Services & Experiences
-    { marca: "Dr. Lava Tudo", titulo: "Storytelling – Car detailing", categoria: "Services & Experiences", gradiente: "grad-5", videoId: "V2rAhr3_D7E" },
-    { marca: "Show de Pizzaiolo", titulo: "Storytelling – At-home pizza buffet", categoria: "Services & Experiences", gradiente: "grad-6", videoId: "o9KozkhVU-E" },
-    { marca: "Dr. Lava Tudo", titulo: "Storytelling – Sofa + mattress cleaning", categoria: "Services & Experiences", gradiente: "grad-1", videoId: "Y3b5WeKfBP0" },
-    { marca: "Show de Pizzaiolo", titulo: "Paid traffic – At-home pizza buffet (franchisee-focused)", categoria: "Services & Experiences", gradiente: "grad-2", videoId: "7n_Mol2CiSM" },
-
-    // Special Occasions
-    { marca: "Yool", titulo: "June-festival podcast (twins creative) – Q&A, flared skirt", categoria: "Special Occasions", gradiente: "grad-3", videoId: "bzI86bSqRDQ" },
-    { marca: "Yool", titulo: "Wall-mounted display (creative) – Various June-festival products", categoria: "Special Occasions", gradiente: "grad-4", videoId: "pvBmrnzCdHA" }
-  ],
-
-  fotosUgcTextos: {
-    tag: "UGC Photos",
-    tituloHtml: "I also do <span class=\"destaque-italico\">photos</span>."
-  },
-
-  fotosUgc: [
-    { imagem: "../portfolio/imagens/foto-ugc-1.jpg", gradiente: "grad-1" },
-    { imagem: "../portfolio/imagens/foto-ugc-2.jpg", gradiente: "grad-2" },
-    { imagem: "../portfolio/imagens/foto-ugc-3.jpg", gradiente: "grad-3" },
-    { imagem: "../portfolio/imagens/foto-ugc-4.jpg", gradiente: "grad-4" },
-    { imagem: "../portfolio/imagens/foto-ugc-5.jpg", gradiente: "grad-5" },
-    { imagem: "../portfolio/imagens/foto-ugc-6.jpg", gradiente: "grad-6" },
-    { imagem: "../portfolio/imagens/foto-ugc-7.jpg", gradiente: "grad-1" },
-    { imagem: "../portfolio/imagens/foto-ugc-8.jpg", gradiente: "grad-2" },
-    { imagem: "../portfolio/imagens/foto-ugc-9.jpg", gradiente: "grad-3" },
-    { imagem: "../portfolio/imagens/foto-ugc-10.jpg", gradiente: "grad-4" },
-    { imagem: "../portfolio/imagens/foto-ugc-11.jpg", gradiente: "grad-5" },
-    { imagem: "../portfolio/imagens/foto-ugc-12.jpg", gradiente: "grad-6" }
-  ],
-
-  servicosTextos: {
-    tag: "Services",
-    titulo: "What I can create for your brand",
-    subtitulo: "Content designed to build trust, drive engagement, and above all, generate sales."
-  },
-
-  servicos: [
-    { icone: "🎬", titulo: "UGC Video", descricao: "Strategic, sales-focused content creation for you to use on your own profile and in ads.", cta: "I want UGC that converts" },
-    { icone: "🗂️", titulo: "UGC Manager", descricao: "Instead of creating, I'll fully manage campaigns with other UGC creators so you're free — handling everything from hiring to content delivery.", cta: "I want UGC management" },
-    { icone: "📱", titulo: "Reels & TikToks", descricao: "Dynamic content, edited to the rhythm of social media and ready to post or use in ads.", cta: "I want social content" },
-    { icone: "📸", titulo: "Product Photos", descricao: "Authentic, well-lit images that show your product in real everyday life.", cta: "I want product photos" },
-    { icone: "📦", titulo: "Unboxing", descricao: "Unboxing videos with genuine reactions that spark the desire to buy in anyone watching.", cta: "I want an unboxing" },
-    { icone: "⭐", titulo: "Testimonials & Reviews", descricao: "Honest, persuasive reviews that build audience trust in your brand.", cta: "I want real testimonials" },
-    { icone: "🚀", titulo: "Ad Content", descricao: "Videos built to perform as paid ads, with a strong hook in the first seconds.", cta: "I want to create ads" },
-    { icone: "🤝", titulo: "UGC + Collab", descricao: "Promotion to my own community, made in collaboration. My profile covers self-care and lifestyle.", cta: "I want to do a collab" }
-  ],
-
-  resultadosTextos: {
-    tag: "Results",
-    titulo: "Numbers that show my impact",
-    subtitulo: "Real reach and delivery data that help brands decide with confidence."
-  },
-
-  resultados: [
-    { numero: 85, sufixo: "k+", rotulo: "Social media followers", decimais: 0 },
-    { numero: 1.5, sufixo: "M+", rotulo: "Views per month", decimais: 1 },
-    { numero: 40, sufixo: "+", rotulo: "Brands served", decimais: 0 },
-    { numero: 8.5, sufixo: "%", rotulo: "Average engagement rate", decimais: 1 }
-  ],
-
-  depoimentosTextos: {
-    tag: "Feedback",
-    titulo: "What brands say about my work",
-    subtitulo: "Feedback from brands that experienced firsthand the power of strategic content."
-  },
-
-  // These are real screenshots, kept in Portuguese in both versions of the site (not translated).
-  depoimentos: [
-    { imagem: "../portfolio/imagens/depoimento-1.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-2.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-3.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-4.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-5.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-6.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-7.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-8.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-9.jpg" },
-    { imagem: "../portfolio/imagens/depoimento-10.jpg" }
-  ],
-
-  contatoTextos: {
-    tag: "Contact",
-    titulo: "Let's create your brand's next successful content?",
-    subtitulo: "Message me right now and get a personalized proposal for your product.",
-    labelNome: "Name",
-    labelEmail: "Email",
-    labelMarca: "Brand / Company",
-    labelOrcamento: "Estimated budget",
-    labelMensagem: "Tell me about the project",
-    placeholderNome: "Your name",
-    placeholderEmail: "you@brand.com",
-    placeholderMarca: "Brand name",
-    placeholderOrcamento: "E.g. $200 to $1,000",
-    placeholderMensagem: "Category, format, deadline, campaign goal...",
-    botaoEnviar: "Send message",
-    botaoEnviando: "Sending...",
-    mensagemSucesso: "Thanks for reaching out! I've received your message and will reply soon.",
-    mensagemErro: "I couldn't send your message right now. Please try again or message me directly on WhatsApp."
-  },
-
+const VALORES_EN = {
   valoresTextos: {
     tag: "Investment",
     titulo: "Packages to boost your brand",
@@ -2167,11 +1989,7 @@ const CONFIG_EN = {
     { tipo: "best", nome: "Best Seller", itens: ["2 videos", "3 photos", "Script", "Filming", "Editing", "5 months ADS"], preco: "R$547", economia: "R$267" },
     { tipo: "metal", metal: "prata", nome: "Silver", itens: ["3 videos", "3 photos", "Script", "Filming", "Editing", "6 months ADS"], preco: "R$797", economia: "R$514" },
     { tipo: "metal", metal: "gold", nome: "Gold", itens: ["5 videos", "5 photos", "Script", "Filming", "Editing", "6 months ADS"], preco: "R$1.250", economia: "R$935" }
-  ],
-
-  rodape: {
-    copyrightTexto: "All rights reserved."
-  }
+  ]
 };
 
 /* =========================================================================
@@ -2194,9 +2012,15 @@ const ICONES_SVG = {
 // mais restritos) o acesso ao localStorage lança um erro em vez de simplesmente
 // retornar vazio, o que travaria todo o restante deste script — incluindo a
 // renderização dos balõezinhos, portfólio, serviços etc.
+// Índice do conteúdo em foco no carrossel "Conteúdos em Destaque". Fica fora
+// de renderizarConteudo() de propósito, pra não voltar pro primeiro item toda
+// vez que a pessoa troca o idioma (PT/EN).
+let destaqueAtivo = 0;
+
 let idiomaAtual = "pt";
 try { idiomaAtual = localStorage.getItem("portfolio_idioma") || "pt"; } catch (e) {}
 let CONFIG = idiomaAtual === "en" ? CONFIG_EN : CONFIG_PT;
+let VALORES = idiomaAtual === "en" ? VALORES_EN : VALORES_PT;
 
 /* =========================================================================
    RASTREAMENTO (Supabase)
@@ -2286,7 +2110,7 @@ function renderizarConteudo(inicial){
   document.querySelectorAll('[data-nav="cta"]').forEach(el => el.textContent = CONFIG.nav.cta);
 
   // ---------- Logo do cabeçalho ----------
-  document.querySelector(".logo").innerHTML = `${CONFIG.perfil.nomeCurto} <span>${CONFIG.perfil.nome.split(" ").slice(1).join(" ")}<span class="decor-borboleta" aria-hidden="true"><img src="../portfolio/imagens/borboleta.png" alt=""></span></span>`;
+  document.querySelector(".logo").innerHTML = `${CONFIG.perfil.nomeCurto} <span>${CONFIG.perfil.nome.split(" ").slice(1).join(" ")}<span class="decor-borboleta" aria-hidden="true"><img src="/portfolio/imagens/borboleta.png" alt=""></span></span>`;
 
   // ---------- Hero ----------
   document.getElementById("heroTag").textContent = CONFIG.hero.tag;
@@ -2323,7 +2147,7 @@ function renderizarConteudo(inicial){
     <div class="marca-bolha" title="${m.nome}">
       <div class="logo-circulo">${
         m.logo
-          ? `<img src="../portfolio/imagens/marcas/${m.logo}?v=2" alt="${m.nome}" loading="lazy">`
+          ? `<img src="/portfolio/imagens/marcas/${m.logo}?v=2" alt="${m.nome}" loading="lazy">`
           : iniciaisMarca(m.nome)
       }</div>
       <div class="selo-verificado">${iconeCheck}</div>
@@ -2338,6 +2162,175 @@ function renderizarConteudo(inicial){
   document.getElementById("sobreTexto").innerHTML = CONFIG.sobre.paragrafos.map(p => `<p>${p}</p>`).join("");
   document.getElementById("sobreLista").innerHTML = CONFIG.sobre.destaques
     .map((item, i) => `<li class="chip-sobre${i === 0 ? " chip-azul" : ""}">${item}</li>`).join("");
+
+  // ---------- Conteúdos em Destaque ----------
+  document.getElementById("destaquesTag").textContent = CONFIG.destaquesTextos.tag;
+  document.getElementById("destaquesTitulo").textContent = CONFIG.destaquesTextos.titulo;
+  document.getElementById("destaquesSubtitulo").textContent = CONFIG.destaquesTextos.subtitulo;
+  if (destaqueAtivo >= CONFIG.destaques.videos.length) destaqueAtivo = 0;
+
+  // Ícone simples de "aspas" pra representar o print de feedback enquanto o
+  // arquivo real não chega (mesmo estilo de ícone usado no rodapé/contato).
+  const ICONE_ASPAS_SVG = '<svg class="destaque-icone-placeholder" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11H6a1 1 0 0 1-1-1V7a3 3 0 0 1 3-3h1v2H8a1 1 0 0 0-1 1v1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H9zm9 0h-3a1 1 0 0 1-1-1V7a3 3 0 0 1 3-3h1v2h-1a1 1 0 0 0-1 1v1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1z"/></svg>';
+
+  // Mãozinha branca (estilo cursor "hand pointer", com contorno escuro pra
+  // aparecer em qualquer fundo) que desliza sobre o traço azul embaixo da
+  // legenda em destaque (ex.: "12 vendas em curto prazo").
+  // Ícone real "hand-pointer" (o clássico cursor que aparece ao passar o
+  // mouse sobre um link — dorso da mão, dedo indicador em riste). O contorno
+  // preto é feito com um filtro (dilata uma cópia preta atrás, cobre com a
+  // mão branca na frente) — testado visualmente antes de aplicar, porque um
+  // "stroke" comum quebra esse tipo de ícone em pedaços soltos.
+  const SVG_MAO_DESTAQUE = '<svg class="destaque-risco-mao" viewBox="0 0 448 512" aria-hidden="true"><g transform="translate(224,256) scale(1.22) translate(-224,-256)"><path fill="var(--tinta)" d="M128 40c0-22.1 17.9-40 40-40s40 17.9 40 40v148.2c8.5-7.6 19.7-12.2 32-12.2c20.6 0 38.2 13 45 31.2c8.8-9.3 21.2-15.2 35-15.2c25.3 0 46 19.5 47.9 44.3c8.5-7.7 19.8-12.3 32.1-12.3c26.5 0 48 21.5 48 48v112c0 70.7-57.3 128-128 128h-85.3c-5 0-9.9-.3-14.7-1c-55.3-5.6-106.2-34-140-79L8 336c-13.3-17.7-9.7-42.7 8-56s42.7-9.7 56 8l56 74.7zm112 264c0-8.8-7.2-16-16-16s-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16zm48-16c-8.8 0-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16v-96c0-8.8-7.2-16-16-16m80 16c0-8.8-7.2-16-16-16s-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16z"/></g><path fill="var(--branco)" d="M128 40c0-22.1 17.9-40 40-40s40 17.9 40 40v148.2c8.5-7.6 19.7-12.2 32-12.2c20.6 0 38.2 13 45 31.2c8.8-9.3 21.2-15.2 35-15.2c25.3 0 46 19.5 47.9 44.3c8.5-7.7 19.8-12.3 32.1-12.3c26.5 0 48 21.5 48 48v112c0 70.7-57.3 128-128 128h-85.3c-5 0-9.9-.3-14.7-1c-55.3-5.6-106.2-34-140-79L8 336c-13.3-17.7-9.7-42.7 8-56s42.7-9.7 56 8l56 74.7zm112 264c0-8.8-7.2-16-16-16s-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16zm48-16c-8.8 0-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16v-96c0-8.8-7.2-16-16-16m80 16c0-8.8-7.2-16-16-16s-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16z"/></svg>';
+
+  // Monta o HTML de um card (usado tanto pro card fixo do feedback quanto
+  // pro card de vídeo atual). Os dois ficam sempre "ativo" (cheios, nítidos)
+  // porque agora só um card de cada tipo aparece por vez em cada coluna.
+  function construirCardDestaque(d, ehVideo){
+    let conteudoMidia;
+    let legendaHtml;
+    if (ehVideo) {
+      // Miniatura real do vídeo, igual ao esquema usado nos cards do
+      // Portfólio (puxa direto da própria miniatura do YouTube).
+      conteudoMidia = d.videoId
+        ? `<div class="foto-real" style="background-image:url('https://i.ytimg.com/vi/${d.videoId}/hqdefault.jpg');"></div><span class="play-botao" aria-hidden="true"></span>`
+        : `<span class="destaque-placeholder"><span class="play-botao" aria-hidden="true"></span>${d.legenda}</span>`;
+      if (d.metricasImagem) {
+        // Print real das métricas (o mesmo arquivo do documento, sem
+        // recriar os ícones — pediu pra não alterar nada nele).
+        legendaHtml = `<img class="destaque-metricas-img" src="${d.metricasImagem}" alt="Métricas do vídeo: ${d.legenda}" loading="lazy">`;
+      } else if (d.estatistica) {
+        legendaHtml = `<strong>${d.estatistica}</strong><span>${d.legenda}</span>`;
+      } else {
+        legendaHtml = `<span>${d.legenda}</span>`;
+      }
+    } else {
+      // Print de texto: mostra a imagem inteira, sem cortar (mesmo
+      // tratamento da seção de Depoimentos), diferente do vídeo que usa
+      // um recorte fixo.
+      conteudoMidia = d.imagem
+        ? `<img class="destaque-print" src="${d.imagem}" alt="${d.legenda}" loading="lazy">`
+        : `<span class="destaque-placeholder">${ICONE_ASPAS_SVG}${d.legenda}</span>`;
+      // Legenda com o traço + mãozinha desenhando embaixo, pra chamar
+      // atenção (liga/desliga com "legendaDestacada" no CONFIG.destaques.fixo).
+      const legendaSpan = d.legendaDestacada
+        ? `<span class="destaque-legenda-riscada">${d.legenda}<span class="destaque-risco-traco" aria-hidden="true"></span>${SVG_MAO_DESTAQUE}</span>`
+        : `<span>${d.legenda}</span>`;
+      legendaHtml = `<strong>${d.estatistica || ""}</strong>${legendaSpan}`;
+    }
+    return `
+      <button type="button" class="card-destaque ativo" data-tipo="${ehVideo ? "video" : "imagem"}" data-video-id="${d.videoId || ""}" aria-label="${d.legenda}">
+        <div class="destaque-midia ${ehVideo ? "midia-video" : "midia-feedback"}${!ehVideo && d.imagem ? " tem-foto" : ""}">
+          ${conteudoMidia}
+        </div>
+        <div class="destaque-legenda">
+          ${legendaHtml}
+        </div>
+      </button>
+    `;
+  }
+
+  // "Gostinho" desfocado do outro vídeo, espiando atrás do card em foco —
+  // só decorativo (não recebe clique), pra dar a sensação de carrossel com
+  // mais conteúdo, tipo a referência que a Edi mandou.
+  function construirPeek(v){
+    if (!v || !v.videoId) return "";
+    return `<div class="peek-img" style="background-image:url('https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg');"></div>`;
+  }
+
+  function renderizarDestaques(){
+    const pista = document.getElementById("destaquesPista");
+    const videos = CONFIG.destaques.videos;
+    const videoAtivo = videos[destaqueAtivo];
+    const videoAnterior = videos.length > 1 ? videos[(destaqueAtivo - 1 + videos.length) % videos.length] : null;
+    const videoProximo = videos.length > 1 ? videos[(destaqueAtivo + 1) % videos.length] : null;
+    // Coluna esquerda: sempre o card fixo (feedback), nunca muda.
+    // Coluna direita: o vídeo atual (índice "destaqueAtivo") num "slot" com
+    // as bordas desfocadas do vídeo anterior/próximo espiando de cada lado
+    // (com só 2 vídeos, os dois lados mostram o mesmo; com 3 ou mais, cada
+    // lado mostra um vizinho diferente) — as setas/pontinhos trocam só esse
+    // card, sem mexer no da esquerda.
+    const peekHtml = videoAnterior ? `
+      <div class="destaque-peek destaque-peek-esq" aria-hidden="true">${construirPeek(videoAnterior)}</div>
+      <div class="destaque-peek destaque-peek-dir" aria-hidden="true">${construirPeek(videoProximo)}</div>
+    ` : "";
+    pista.innerHTML = construirCardDestaque(CONFIG.destaques.fixo, false)
+      + `<div class="destaque-video-slot">${peekHtml}${construirCardDestaque(videoAtivo, true)}</div>`;
+
+    document.getElementById("destaquesPontos").innerHTML = videos.map((v, i) => `
+      <button type="button" class="ponto-destaque${i === destaqueAtivo ? " ativo" : ""}" data-indice="${i}" aria-label="Ver vídeo ${i + 1} de ${videos.length}"></button>
+    `).join("");
+
+    // Clicar no card de vídeo abre o mesmo modal usado no Portfólio. O card
+    // do feedback é só imagem, não faz nada ao clicar.
+    pista.onclick = (e) => {
+      const card = e.target.closest(".card-destaque");
+      if (!card || card.dataset.tipo !== "video" || !card.dataset.videoId) return;
+      abrirModalVideo(card.dataset.videoId, card);
+    };
+    document.getElementById("destaquesPontos").onclick = (e) => {
+      const ponto = e.target.closest(".ponto-destaque");
+      if (!ponto) return;
+      destaqueAtivo = Number(ponto.dataset.indice);
+      renderizarDestaques();
+    };
+
+    renderizarDestaquesMobile(videoAtivo, videos);
+  }
+
+  // Fileira separada só pro mobile: vídeo em foco primeiro, depois o
+  // depoimento, depois os demais vídeos — uma coluna só, deslizando com o
+  // dedo (ver CSS "@media (max-width: 760px)"). Usa os mesmos cards
+  // (construirCardDestaque) do desktop, só numa ordem e visual diferentes.
+  function renderizarDestaquesMobile(videoAtivo, videos){
+    const pistaMobile = document.getElementById("destaquesPistaMobile");
+    if (!pistaMobile) return;
+    const outrosVideos = videos.filter(v => v !== videoAtivo);
+    const itens = [
+      { dado: videoAtivo, ehVideo: true },
+      { dado: CONFIG.destaques.fixo, ehVideo: false },
+      ...outrosVideos.map(v => ({ dado: v, ehVideo: true }))
+    ];
+    pistaMobile.innerHTML = itens.map(it => construirCardDestaque(it.dado, it.ehVideo)).join("");
+
+    pistaMobile.onclick = (e) => {
+      const card = e.target.closest(".card-destaque");
+      if (!card || card.dataset.tipo !== "video" || !card.dataset.videoId) return;
+      abrirModalVideo(card.dataset.videoId, card);
+    };
+
+    // Marca como "em foco" (nítido, tamanho normal) o card mais visível no
+    // meio da tela conforme a pessoa arrasta o dedo pros lados.
+    if (window._observadorDestaquesMobile) window._observadorDestaquesMobile.disconnect();
+    const observador = new IntersectionObserver((entradas) => {
+      entradas.forEach((entrada) => {
+        entrada.target.classList.toggle("card-mobile-ativo", entrada.intersectionRatio > 0.6);
+      });
+    }, { root: pistaMobile, threshold: [0, 0.6, 1] });
+    pistaMobile.querySelectorAll(".card-destaque").forEach((card) => observador.observe(card));
+    window._observadorDestaquesMobile = observador;
+
+    // Setinhas do mobile: só reforçam visualmente que dá pra passar pro
+    // lado — clicar rola um cartão inteiro (o arrastar com o dedo já
+    // funciona sozinho, por causa do scroll-snap nativo acima).
+    const setaEsqMobile = document.getElementById("destaquesSetaEsqMobile");
+    const setaDirMobile = document.getElementById("destaquesSetaDirMobile");
+    if (setaEsqMobile && setaDirMobile) {
+      setaEsqMobile.onclick = () => pistaMobile.scrollBy({ left: -pistaMobile.clientWidth * 0.85, behavior: "smooth" });
+      setaDirMobile.onclick = () => pistaMobile.scrollBy({ left: pistaMobile.clientWidth * 0.85, behavior: "smooth" });
+    }
+  }
+  renderizarDestaques();
+
+  document.getElementById("destaquesSetaEsq").onclick = () => {
+    const total = CONFIG.destaques.videos.length;
+    destaqueAtivo = (destaqueAtivo - 1 + total) % total;
+    renderizarDestaques();
+  };
+  document.getElementById("destaquesSetaDir").onclick = () => {
+    destaqueAtivo = (destaqueAtivo + 1) % CONFIG.destaques.videos.length;
+    renderizarDestaques();
+  };
 
   // ---------- Portfólio: uma fileira por nicho, com setas estilo Netflix ----------
   document.getElementById("portfolioTag").textContent = CONFIG.portfolioTextos.tag;
@@ -2561,14 +2554,14 @@ function renderizarConteudo(inicial){
   })();
 
   // ---------- Valores / Investimentos ----------
-  document.getElementById("valoresTag").textContent = CONFIG.valoresTextos.tag;
-  document.getElementById("valoresTitulo").textContent = CONFIG.valoresTextos.titulo;
-  document.getElementById("valoresSubtitulo").textContent = CONFIG.valoresTextos.subtitulo;
-  document.getElementById("faixaOrcamentoTexto").textContent = CONFIG.valoresTextos.faixaOrcamento;
-  document.getElementById("addonsLinha").innerHTML = CONFIG.addons.map(a => `
+  document.getElementById("valoresTag").textContent = VALORES.valoresTextos.tag;
+  document.getElementById("valoresTitulo").textContent = VALORES.valoresTextos.titulo;
+  document.getElementById("valoresSubtitulo").textContent = VALORES.valoresTextos.subtitulo;
+  document.getElementById("faixaOrcamentoTexto").textContent = VALORES.valoresTextos.faixaOrcamento;
+  document.getElementById("addonsLinha").innerHTML = VALORES.addons.map(a => `
     <span class="addon-pill">${a.nome} <strong>${a.preco}</strong></span>
   `).join("");
-  document.getElementById("pacotesGrid").innerHTML = CONFIG.pacotes.map(p => `
+  document.getElementById("pacotesGrid").innerHTML = VALORES.pacotes.map(p => `
     <article class="pacote-card ${p.tipo === "best" ? "metal-best" : "metal-" + p.metal} reveal">
       ${p.tipo === "best"
         ? `<div class="selo-best" aria-hidden="true"><span>Best</span><span>Seller</span></div>`
@@ -2576,7 +2569,7 @@ function renderizarConteudo(inicial){
       }
       <ul class="pacote-itens">${p.itens.map(i => `<li>${i}</li>`).join("")}</ul>
       <div class="pacote-preco">${p.preco}</div>
-      <p class="pacote-economia">${CONFIG.valoresTextos.economizeLabel} ${p.economia}</p>
+      <p class="pacote-economia">${VALORES.valoresTextos.economizeLabel} ${p.economia}</p>
     </article>
   `).join("");
 
@@ -2691,6 +2684,7 @@ function atualizarBotoesIdioma(){
 function definirIdioma(idioma){
   idiomaAtual = idioma;
   CONFIG = idioma === "en" ? CONFIG_EN : CONFIG_PT;
+  VALORES = idioma === "en" ? VALORES_EN : VALORES_PT;
   try { localStorage.setItem("portfolio_idioma", idioma); } catch (e) {}
   document.documentElement.lang = idioma === "en" ? "en" : "pt-BR";
   atualizarBotoesIdioma();
@@ -2698,21 +2692,20 @@ function definirIdioma(idioma){
 }
 
 // Origem de quem chegou ao Portfólio: "direto" é usado no link
-// edilainesantos.com/ugcportfolio (abordagens e cadastros de plataforma); "bio" é
-// marcado pelo próprio biosite ao clicar em "Meu portfólio 🦋". Sem nenhuma das duas
-// marcações (busca, link salvo, compartilhamento externo, etc.), fica como "outro".
+// edilainesantos.com/ugcportfolio (abordagem direta a marcas); "plataforma" é usado no
+// link edilainesantos.com/plataforma (cadastros em plataformas de creator/UGC). Sem
+// nenhuma das duas marcações (busca, link salvo, compartilhamento externo, etc.), fica
+// como "outro".
 function obterOrigemPortfolio(){
-  // "direto" pode vir marcado na sessão (link /ugcportfolio, sem aparecer na URL) ou,
-  // se alguém compartilhar um link com "?origem=direto" na mão, por aí também.
-  // "bio" vem sempre pela URL: o link do biosite abre em nova aba (target="_blank"
-  // rel="noopener"), e rel="noopener" impede a nova aba de herdar o sessionStorage
-  // da aba de origem — por isso não dá pra confiar em sessionStorage para essa marcação.
+  // Ambas podem vir marcadas na sessão (links /ugcportfolio e /plataforma, sem aparecer
+  // na URL) ou, se alguém compartilhar um link com "?origem=direto"/"?origem=plataforma"
+  // na mão, por aí também.
   const paramsUrl = new URLSearchParams(window.location.search);
   const origemUrl = paramsUrl.get("origem");
-  if (origemUrl === "direto" || origemUrl === "bio") return origemUrl;
+  if (origemUrl === "direto" || origemUrl === "plataforma") return origemUrl;
   try {
     const origemSalva = sessionStorage.getItem("origem_portfolio");
-    if (origemSalva === "direto" || origemSalva === "bio") return origemSalva;
+    if (origemSalva === "direto" || origemSalva === "plataforma") return origemSalva;
   } catch (erro) {}
   return "outro";
 }
