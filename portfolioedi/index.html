@@ -1525,7 +1525,7 @@
   .metal-best:hover{ transform: translateY(-26px); }
 
   @media (max-width: 1010px){
-    .pacotes-grid{ grid-template-columns: repeat(2, 1fr); align-items: stretch; margin-top: 64px; }
+    .pacotes-grid{ grid-template-columns: repeat(2, 1fr); align-items: stretch; margin-top: 94px; }
     .metal-bronze, .metal-gold, .metal-best, .metal-prata{ min-height: 0; height: auto; }
     .metal-best{ transform: none; box-shadow: var(--sombra-dura-sm); }
     /* Os translate() dos itens acima foram calibrados pra "espalhar" a lista
@@ -1542,7 +1542,11 @@
        barrinha. Sem esse zoom extra, mais a margem reduzida abaixo, ele
        some dentro do respiro entre os cards. */
     .pacote-selo{ margin-top: -24px; }
-    .selo-best-svg{ margin-top: -24px; transform: none !important; }
+    /* O selo do Best Seller não empilha um nome em arco por cima (é um
+       badge só) — pra subir a mesma altura visual que Bronze/Prata/Gold
+       (que têm nome + barrinha empilhados), a margem dele precisa ser bem
+       mais negativa que a dos metais. */
+    .selo-best-svg{ margin-top: -64px; transform: none !important; }
     .metal-bronze .pacote-selo-nome-svg,
     .metal-prata .pacote-selo-nome-svg,
     .metal-gold .pacote-selo-nome-svg{ transform: translateX(-50%) !important; }
