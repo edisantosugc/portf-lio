@@ -1570,8 +1570,13 @@
   }
   @media (max-width: 560px){
     .pacotes-grid{ grid-template-columns: 1fr; row-gap: 72px; }
-    /* Ícone ao lado do texto (não mais embaixo) — deixa o card mais baixo. */
-    .faixa-orcamento{ flex-direction: row; padding: 18px 20px; }
+    /* Texto quebra em duas linhas nesse card — pra bolinha do WhatsApp ficar
+       colada bem depois de "ORÇAMENTO" (fim do texto) e não isolada no
+       canto do card, ela precisa fluir junto do texto como uma palavra
+       (inline), em vez de ser um item de flex-row separado e centralizado
+       em relação ao bloco inteiro. */
+    .faixa-orcamento{ display: block; text-align: center; padding: 18px 20px; }
+    .faixa-orcamento-icone{ display: inline-flex; vertical-align: middle; margin-left: 8px; }
   }
 
   /* ===================== RODAPÉ ===================== */
@@ -1706,7 +1711,11 @@
     .valores{ padding-top: 36px; }
     .valores-label{ display: block; }
     .valores-label-avulsos{ margin-top: 4px; }
-    .valores-label-pacotes{ margin-top: 10px; }
+    /* Centralizado no espaço entre o card azul e o Bronze: o respiro
+       depois do rótulo (até o Bronze) já é de ~29px (margem de segurança
+       calculada pra caber o nome em arco do Bronze sem sobrepor) — aqui só
+       igualamos o respiro ANTES do rótulo a esse mesmo valor. */
+    .valores-label-pacotes{ margin-top: 29px; }
   }
 
   @media (max-width: 480px){
