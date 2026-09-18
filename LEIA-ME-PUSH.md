@@ -43,11 +43,14 @@ peça — eu gero de novo do mesmo jeito.
 1. Abra o SQL Editor do seu projeto Supabase.
 2. Copie do `setup.sql` a partir do comentário `-- NOTIFICAÇÕES PUSH` até o
    fim do arquivo.
-3. **Antes de rodar**, troque `SEU_SCHED_SECRET` (no bloco `cron.schedule`
-   no final) pelo mesmo valor que já está configurado no secret
-   `SCHED_SECRET` das suas Edge Functions (o mesmo que o `ig-scheduler` já
-   usa — não precisa criar um novo).
-4. Clique em **Run**.
+3. Clique em **Run**. O `x-sched-key` (a "senha" que autentica esses
+   agendamentos) não precisa mais ser editado à mão: todo mundo busca ele
+   sozinho na tabela `app_config` — cole o valor lá **uma única vez** (mesmo
+   valor do secret `SCHED_SECRET` das Edge Functions):
+   ```sql
+   update public.app_config set valor = 'SEU_SCHED_SECRET' where nome = 'sched_secret';
+   ```
+   Rodar esse UPDATE de novo no futuro (pra trocar o valor) é sempre seguro.
 
 ## 3. Configurar os segredos da função `send-push`
 

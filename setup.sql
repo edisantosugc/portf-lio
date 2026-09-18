@@ -1266,8 +1266,11 @@ grant execute on function public.record_send_result(text, boolean, boolean) to s
 --
 -- EDITE AQUI antes de rodar: troque SEU_PROJETO pela referência do seu
 -- projeto Supabase (aparece na URL do painel do projeto, ex:
--- dqtoxxngjqyoibdgmrjr) e SEU_SCHED_SECRET pelo mesmo valor que você
--- configurar no segredo SCHED_SECRET das Edge Functions (ver LEIA-ME).
+-- dqtoxxngjqyoibdgmrjr). O segredo (x-sched-key) NÃO precisa ser editado à
+-- mão: o comando busca ele sozinho na tabela app_config (ver seção BRIEFING
+-- DO PAINEL mais abaixo) — cole o valor lá uma vez, e todo agendamento
+-- (esse, o do briefing, o do send-push) usa o mesmo, sem precisar achar e
+-- trocar texto espalhado pelo arquivo toda vez que rodar de novo.
 -- Rode este bloco por último, depois de publicar as duas funções.
 -- =====================================================================
 create extension if not exists pg_cron;
@@ -1279,7 +1282,7 @@ select cron.schedule(
   $$
   select net.http_post(
     url := 'https://SEU_PROJETO.supabase.co/functions/v1/ig-scheduler',
-    headers := jsonb_build_object('x-sched-key', 'SEU_SCHED_SECRET', 'Content-Type', 'application/json'),
+    headers := jsonb_build_object('x-sched-key', (select valor from public.app_config where nome = 'sched_secret'), 'Content-Type', 'application/json'),
     body := '{}'::jsonb
   );
   $$
@@ -1291,7 +1294,7 @@ select cron.schedule(
   $$
   select net.http_post(
     url := 'https://SEU_PROJETO.supabase.co/functions/v1/ig-token-refresh',
-    headers := jsonb_build_object('x-sched-key', 'SEU_SCHED_SECRET', 'Content-Type', 'application/json'),
+    headers := jsonb_build_object('x-sched-key', (select valor from public.app_config where nome = 'sched_secret'), 'Content-Type', 'application/json'),
     body := '{}'::jsonb
   );
   $$
@@ -1818,7 +1821,7 @@ select cron.schedule(
   select net.http_post(
     url := 'https://dqtoxxngjqyoibdgmrjr.supabase.co/functions/v1/send-push',
     headers := jsonb_build_object(
-      'x-sched-key', 'SEU_SCHED_SECRET',
+      'x-sched-key', (select valor from public.app_config where nome = 'sched_secret'),
       'Content-Type', 'application/json',
       'apikey', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc',
       'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc'
@@ -1852,8 +1855,8 @@ alter table public.portfolio_notificacao_controle enable row level security;
 
 -- Notifica a Edi na hora que chega uma mensagem nova no Portfólio (formulário
 -- de contato do site) — não espera o aviso diário, responder rápido é
--- prioridade. Mesmo segredo de cima: troque SEU_SCHED_SECRET pelo mesmo
--- valor usado no cron.schedule acima antes de rodar.
+-- prioridade. O segredo vem de app_config (ver seção BRIEFING DO PAINEL mais
+-- abaixo) — nada pra editar à mão aqui.
 create or replace function public.notificar_novo_lead_portfolio()
 returns trigger
 language plpgsql
@@ -1862,7 +1865,10 @@ set search_path = public
 as $$
 declare
   ultimo timestamptz;
+  segredo text;
 begin
+  select valor into segredo from public.app_config where nome = 'sched_secret';
+
   select ultimo_envio into ultimo
   from public.portfolio_notificacao_controle
   where id = true
@@ -1877,7 +1883,7 @@ begin
   perform net.http_post(
     url := 'https://dqtoxxngjqyoibdgmrjr.supabase.co/functions/v1/send-push',
     headers := jsonb_build_object(
-      'x-sched-key', 'SEU_SCHED_SECRET',
+      'x-sched-key', segredo,
       'Content-Type', 'application/json',
       'apikey', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc',
       'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc'
