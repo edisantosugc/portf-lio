@@ -2826,15 +2826,12 @@ function definirIdioma(idioma){
   renderizarConteudo(false);
 }
 
-// Origem de quem chegou ao Portfólio: "direto" é usado no link
-// edilainesantos.com/ugcportfolio (abordagem direta a marcas); "plataforma" é usado no
-// link edilainesantos.com/plataforma (cadastros em plataformas de creator/UGC). Sem
-// nenhuma das duas marcações (busca, link salvo, compartilhamento externo, etc.), fica
-// como "outro".
+// Origem de quem chegou nesse Portfólio (o "com valor", usado em abordagem direta a
+// marcas): "plataforma" é usado só quando vem do link edilainesantos.com/plataforma
+// (cadastros em plataformas de creator/UGC). Qualquer outro jeito de chegar aqui —
+// digitando edilainesantos.com/portfolioedi direto, ou sem nenhuma marcação — conta
+// como "direto", já que é exatamente pra isso que essa página (com preços) existe.
 function obterOrigemPortfolio(){
-  // Ambas podem vir marcadas na sessão (links /ugcportfolio e /plataforma, sem aparecer
-  // na URL) ou, se alguém compartilhar um link com "?origem=direto"/"?origem=plataforma"
-  // na mão, por aí também.
   const paramsUrl = new URLSearchParams(window.location.search);
   const origemUrl = paramsUrl.get("origem");
   if (origemUrl === "direto" || origemUrl === "plataforma") return origemUrl;
@@ -2842,7 +2839,7 @@ function obterOrigemPortfolio(){
     const origemSalva = sessionStorage.getItem("origem_portfolio");
     if (origemSalva === "direto" || origemSalva === "plataforma") return origemSalva;
   } catch (erro) {}
-  return "outro";
+  return "direto";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
