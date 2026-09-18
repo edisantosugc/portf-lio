@@ -2176,20 +2176,19 @@
     display: inline-flex; align-items: center; gap: 5px;
   }
   .subfiltro-btn:hover{ color: var(--grafite); }
-  .subfiltro-btn.ativo.ugc{ background: var(--coral); color: var(--branco); }
-  .subfiltro-btn.ativo.organico{ background: var(--verde); color: var(--branco); }
-  .subfiltro-btn.ativo.sem{ background: var(--texto-suave); color: var(--branco); }
+  .subfiltro-btn.ativo[data-categoria="ugc"]{ background: var(--coral); color: var(--branco); }
+  .subfiltro-btn.ativo[data-categoria="organico"]{ background: var(--verde); color: var(--branco); }
+  .subfiltro-btn.ativo[data-categoria="sem"]{ background: var(--texto-suave); color: var(--branco); }
   .subfiltro-btn .contagem-subaba{ background: rgba(0,0,0,.08); }
   .subfiltro-btn.ativo .contagem-subaba{ background: rgba(255,255,255,.28); }
 
   .nota-categoria-chip{
     font-size: .64rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
     padding: 3px 9px; border-radius: 50px; display: inline-flex; align-items: center; gap: 3px;
-    position: absolute; top: 14px; right: 14px;
+    align-self: flex-start; margin-top: 4px;
   }
   .nota-categoria-chip.ugc{ background: rgba(0,0,128,.12); color: var(--coral); }
   .nota-categoria-chip.organico{ background: rgba(45,122,79,.14); color: var(--verde); }
-  .nota-cartao.com-categoria .nota-fechada-texto{ margin-top: 22px; }
 
   .nota-categoria-seletor{ display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .nota-categoria-seletor .rotulo{ font-size: .68rem; color: var(--texto-suave); font-weight: 600; }
@@ -12398,11 +12397,11 @@
         : "";
 
     return `
-      <div class="nota-cartao nota-fechada cor-${nota.cor} ${nota.categoria ? "com-categoria" : ""}" data-id="${nota.id}" data-acao="nota-reabrir" draggable="true" role="button" tabindex="0" aria-label="Reabrir nota pra editar">
+      <div class="nota-cartao nota-fechada cor-${nota.cor}" data-id="${nota.id}" data-acao="nota-reabrir" draggable="true" role="button" tabindex="0" aria-label="Reabrir nota pra editar">
         <span class="nota-clipe" title="Nota salva">📎</span>
-        ${chipCategoria}
         <p class="nota-fechada-texto">${previa}</p>
         ${linkHtml}
+        ${chipCategoria}
       </div>
     `;
   }
