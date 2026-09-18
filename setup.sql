@@ -584,6 +584,10 @@ alter table public.painel_notas add column if not exists link text;
 alter table public.painel_notas add column if not exists fechada boolean not null default false;
 alter table public.painel_notas add column if not exists utilizada boolean not null default false;
 
+-- Separa as ideias em UGC / Orgânico (aba "Ideias", dentro de Ideias Criativas). Null =
+-- "Outros" (ainda não categorizada) — nunca preenchido à força, só quando a pessoa escolhe.
+alter table public.painel_notas add column if not exists categoria text check (categoria in ('ugc', 'organico'));
+
 alter table public.painel_notas enable row level security;
 
 drop policy if exists "Usuaria autenticada gerencia suas notas" on public.painel_notas;

@@ -2164,12 +2164,49 @@
   .notas-grade{ display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 20px; }
 
   .notas-abas{ margin-top: 18px; margin-bottom: 0; }
+
+  /* ===== Filtro UGC / Orgânico / Outros (só dentro da sub-aba "Ideias") ===== */
+  .notas-subfiltro{
+    display: flex; gap: 6px; margin: 12px 0 0; background: var(--creme); border: 1px solid var(--borda);
+    border-radius: 10px; padding: 3px; width: fit-content;
+  }
+  .subfiltro-btn{
+    padding: 6px 14px; border-radius: 7px; border: none; background: transparent; color: var(--texto-suave);
+    font-family: 'Outfit', sans-serif; font-weight: 600; font-size: .78rem; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .subfiltro-btn:hover{ color: var(--grafite); }
+  .subfiltro-btn.ativo.ugc{ background: var(--coral); color: var(--branco); }
+  .subfiltro-btn.ativo.organico{ background: var(--verde); color: var(--branco); }
+  .subfiltro-btn.ativo.sem{ background: var(--texto-suave); color: var(--branco); }
+  .subfiltro-btn .contagem-subaba{ background: rgba(0,0,0,.08); }
+  .subfiltro-btn.ativo .contagem-subaba{ background: rgba(255,255,255,.28); }
+
+  .nota-categoria-chip{
+    font-size: .64rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 50px; display: inline-flex; align-items: center; gap: 3px;
+    position: absolute; top: 14px; right: 14px;
+  }
+  .nota-categoria-chip.ugc{ background: rgba(0,0,128,.12); color: var(--coral); }
+  .nota-categoria-chip.organico{ background: rgba(45,122,79,.14); color: var(--verde); }
+  .nota-cartao.com-categoria .nota-fechada-texto{ margin-top: 22px; }
+
+  .nota-categoria-seletor{ display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .nota-categoria-seletor .rotulo{ font-size: .68rem; color: var(--texto-suave); font-weight: 600; }
+  .categoria-opcao{
+    font-size: .72rem; font-weight: 700; padding: 5px 11px; border-radius: 50px; cursor: pointer;
+    border: 1.5px solid transparent; background: rgba(0,0,0,.05); color: var(--texto-suave);
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .categoria-opcao.selecionada.ugc{ background: rgba(0,0,128,.12); color: var(--coral); border-color: var(--coral); }
+  .categoria-opcao.selecionada.organico{ background: rgba(45,122,79,.14); color: var(--verde); border-color: var(--verde); }
   .sub-aba-btn.arrastando-sobre{ outline: 2px dashed var(--coral); outline-offset: 2px; }
   .nota-cartao.nota-fechada[draggable="true"]{ cursor: grab; }
   .nota-cartao.nota-fechada.arrastando{ opacity: .45; }
   .nota-cartao{
     border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px;
     box-shadow: 0 4px 14px rgba(26,24,22,.06); border: 1px solid rgba(0,0,0,.05); min-height: 160px;
+    position: relative;
   }
   .nota-cartao.cor-amarelo{ background: rgba(242,201,76,.24); }
   .nota-cartao.cor-rosa{ background: rgba(242,120,159,.2); }
@@ -4490,6 +4527,12 @@
           <button type="button" class="sub-aba-btn" data-notasaba="mantras">✨ Mantras <span class="contagem-subaba" id="mantrasContagem">0</span></button>
         </div>
 
+        <div class="notas-subfiltro" id="notasFiltroCategoria">
+          <button type="button" class="subfiltro-btn ativo ugc" data-categoria="ugc">🎥 UGC <span class="contagem-subaba" id="notasContagemUgc">0</span></button>
+          <button type="button" class="subfiltro-btn" data-categoria="organico">🦋 Orgânico <span class="contagem-subaba" id="notasContagemOrganico">0</span></button>
+          <button type="button" class="subfiltro-btn" data-categoria="sem">💫 Outros <span class="contagem-subaba" id="notasContagemSemCategoria">0</span></button>
+        </div>
+
         <div class="notas-filtros">
           <div class="notas-busca">
             <span class="notas-busca-icone">🔍</span>
@@ -4827,6 +4870,7 @@
   let notasCache = [];
   let notaFiltroCor = null; // null = mostra notas de todas as cores
   let notasAbaAtiva = "ideias"; // "ideias" (padrão), "utilizadas" ou "mantras" — qual lista aparece na tela
+  let notaFiltroCategoria = "ugc"; // "ugc" | "organico" | "sem" — só usado dentro da sub-aba "Ideias"
 
   // Estado da sub-aba "Mantras" (dentro de Ideias Criativas): frases soltas que alimentam
   // o "Mantra do dia" do Menu Principal, em rotação — ver renderMantraDoDia()
@@ -7271,6 +7315,12 @@
     });
     document.querySelectorAll("#notasAbas .sub-aba-btn").forEach(btn => {
       btn.addEventListener("click", () => trocarAbaNotas(btn.dataset.notasaba));
+    });
+    document.querySelectorAll("#notasFiltroCategoria .subfiltro-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        notaFiltroCategoria = btn.dataset.categoria;
+        renderNotas();
+      });
     });
     ligarDropzonesAbasNotas();
     document.getElementById("botaoFecharModalNotaNova").addEventListener("click", fecharModalNotaNova);
@@ -12341,10 +12391,16 @@
     const linkHtml = nota.link
       ? `<a href="${nota.link}" target="_blank" rel="noopener" class="nota-fechada-link" data-acao="nota-fechada-link">🔗 ${nota.link}</a>`
       : "";
+    const chipCategoria = nota.categoria === "ugc"
+      ? `<span class="nota-categoria-chip ugc">🎥 UGC</span>`
+      : nota.categoria === "organico"
+        ? `<span class="nota-categoria-chip organico">🦋 Orgânico</span>`
+        : "";
 
     return `
-      <div class="nota-cartao nota-fechada cor-${nota.cor}" data-id="${nota.id}" data-acao="nota-reabrir" draggable="true" role="button" tabindex="0" aria-label="Reabrir nota pra editar">
+      <div class="nota-cartao nota-fechada cor-${nota.cor} ${nota.categoria ? "com-categoria" : ""}" data-id="${nota.id}" data-acao="nota-reabrir" draggable="true" role="button" tabindex="0" aria-label="Reabrir nota pra editar">
         <span class="nota-clipe" title="Nota salva">📎</span>
+        ${chipCategoria}
         <p class="nota-fechada-texto">${previa}</p>
         ${linkHtml}
       </div>
@@ -12361,6 +12417,11 @@
       <div class="nota-cartao cor-${nota.cor}" data-id="${nota.id}">
         <textarea data-nota-conteudo="${nota.id}" placeholder="Escreva aqui...">${nota.conteudo || ""}</textarea>
         <div class="nota-link">${linkHtml}</div>
+        <div class="nota-categoria-seletor">
+          <span class="rotulo">Categoria:</span>
+          <span class="categoria-opcao ugc ${nota.categoria === "ugc" ? "selecionada" : ""}" data-acao="nota-categoria" data-id="${nota.id}" data-categoria="ugc">🎥 UGC</span>
+          <span class="categoria-opcao organico ${nota.categoria === "organico" ? "selecionada" : ""}" data-acao="nota-categoria" data-id="${nota.id}" data-categoria="organico">🦋 Orgânico</span>
+        </div>
         <div class="nota-rodape">
           <div class="nota-cores-mini">
             ${NOTA_CORES.map(c => `<span class="nota-cor-mini cor-${c.chave} ${nota.cor === c.chave ? "ativo" : ""}" data-acao="nota-cor" data-id="${nota.id}" data-cor="${c.chave}" title="${c.nome}"></span>`).join("")}
@@ -12384,6 +12445,9 @@
     });
     container.querySelectorAll("[data-acao='nota-cor']").forEach(dot => {
       dot.addEventListener("click", () => alterarCorNota(dot.dataset.id, dot.dataset.cor));
+    });
+    container.querySelectorAll("[data-acao='nota-categoria']").forEach(opcao => {
+      opcao.addEventListener("click", () => alterarCategoriaNota(opcao.dataset.id, opcao.dataset.categoria));
     });
     container.querySelectorAll("[data-acao='nota-excluir']").forEach(btn => {
       btn.addEventListener("click", () => excluirNota(btn.dataset.id));
@@ -12447,6 +12511,10 @@
     });
     const botaoNovo = document.getElementById("notaBotaoNova");
     if (botaoNovo) botaoNovo.textContent = aba === "mantras" ? "+ Novo Mantra" : "+ Nova Nota";
+    // O filtro UGC/Orgânico/Outros só faz sentido dentro de "Ideias" — nas outras
+    // sub-abas (Reflexão, Mantras) ele some, mas o valor escolhido fica guardado.
+    const filtroCategoria = document.getElementById("notasFiltroCategoria");
+    if (filtroCategoria) filtroCategoria.classList.toggle("oculto", aba !== "ideias");
     renderNotas();
   }
 
@@ -12476,6 +12544,19 @@
       return;
     }
 
+    // Contagens do filtro UGC/Orgânico/Outros — sempre calculadas em cima das ideias
+    // (não utilizadas), independente da sub-aba aberta no momento.
+    const ideiasNaoUtilizadas = notasCache.filter(n => !n.utilizada);
+    const contagemUgcEl = document.getElementById("notasContagemUgc");
+    const contagemOrganicoEl = document.getElementById("notasContagemOrganico");
+    const contagemSemEl = document.getElementById("notasContagemSemCategoria");
+    if (contagemUgcEl) contagemUgcEl.textContent = ideiasNaoUtilizadas.filter(n => n.categoria === "ugc").length;
+    if (contagemOrganicoEl) contagemOrganicoEl.textContent = ideiasNaoUtilizadas.filter(n => n.categoria === "organico").length;
+    if (contagemSemEl) contagemSemEl.textContent = ideiasNaoUtilizadas.filter(n => !n.categoria).length;
+    document.querySelectorAll("#notasFiltroCategoria .subfiltro-btn").forEach(btn => {
+      btn.classList.toggle("ativo", btn.dataset.categoria === notaFiltroCategoria);
+    });
+
     if (notasCache.length === 0){
       corpo.innerHTML = `
         <div class="notas-vazio">
@@ -12492,8 +12573,10 @@
     const campoBusca = document.getElementById("notaBusca");
     const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
     const naAbaUtilizadas = notasAbaAtiva === "utilizadas";
+    const naAbaIdeias = notasAbaAtiva === "ideias";
     const filtradas = notasCache
       .filter(n => !!n.utilizada === naAbaUtilizadas)
+      .filter(n => !naAbaIdeias || (notaFiltroCategoria === "sem" ? !n.categoria : n.categoria === notaFiltroCategoria))
       .filter(n => (!notaFiltroCor || n.cor === notaFiltroCor) && (!termo || (n.conteudo || "").toLowerCase().includes(termo)))
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // mais recente primeiro
 
@@ -12712,9 +12795,12 @@
   // nasce verde — senão some da vista assim que criada, escondida pelo próprio filtro)
   async function criarNota(){
     const corInicial = notaFiltroCor || "azul";
+    // Nasce já na categoria que estava sendo filtrada (se for "ideias" e não "Outros") —
+    // evita ela cair fora do filtro assim que é criada.
+    const categoriaInicial = (notasAbaAtiva === "ideias" && notaFiltroCategoria !== "sem") ? notaFiltroCategoria : null;
     const { data: inserido, error } = await Auth.client
       .from("painel_notas")
-      .insert({ conteudo: "", cor: corInicial, fechada: false })
+      .insert({ conteudo: "", cor: corInicial, fechada: false, categoria: categoriaInicial })
       .select();
 
     if (!error && inserido){
@@ -12737,6 +12823,12 @@
       dot.addEventListener("click", () => {
         alterarCorNota(dot.dataset.id, dot.dataset.cor);
         area.querySelectorAll(".nota-cor-mini").forEach(d => d.classList.toggle("ativo", d.dataset.cor === dot.dataset.cor));
+      });
+    });
+    area.querySelectorAll("[data-acao='nota-categoria']").forEach(opcao => {
+      opcao.addEventListener("click", () => {
+        alterarCategoriaNota(opcao.dataset.id, opcao.dataset.categoria);
+        area.querySelectorAll(".categoria-opcao").forEach(o => o.classList.toggle("selecionada", o.dataset.categoria === opcao.dataset.categoria));
       });
     });
     area.querySelectorAll("[data-acao='nota-link-remover']").forEach(btn => {
@@ -12788,6 +12880,10 @@
 
   async function alterarCorNota(id, cor){
     await atualizarNota(id, { cor });
+  }
+
+  async function alterarCategoriaNota(id, categoria){
+    await atualizarNota(id, { categoria });
   }
 
   // Clicar em "Salvar": grava o link (se tiver algo digitado) e fecha a nota em formato de post-it,
