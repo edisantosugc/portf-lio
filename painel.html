@@ -13728,7 +13728,12 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
   function parseCsvMarcas(texto){
     const semBom = texto.charCodeAt(0) === 0xFEFF ? texto.slice(1) : texto;
-    const linhas = semBom.split(/\r\n|\n|\r/).filter(l => l.trim() !== "");
+    let linhas = semBom.split(/\r\n|\n|\r/).filter(l => l.trim() !== "");
+    // Se o arquivo foi salvo direto de uma resposta de IA, às vezes vem com a marcação
+    // de bloco de código (``` ou ```csv) na primeira e/ou última linha — remove isso
+    // em vez de tratar como parte dos dados.
+    if (linhas.length && /^```/.test(linhas[0])) linhas = linhas.slice(1);
+    if (linhas.length && /^```/.test(linhas[linhas.length - 1])) linhas = linhas.slice(0, -1);
     if (linhas.length < 2) return [];
 
     const delimitador = detectarDelimitadorCsv(linhas[0]);
@@ -13790,7 +13795,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       alert(`${paraInserir.length} marca(s) importada(s) com sucesso.${ignoradas ? ` ${ignoradas} linha(s) ignorada(s) por não ter nome.` : ""}`);
     } catch (erro) {
       console.error("Erro ao importar CSV de marcas:", erro);
-      alert("Não deu pra importar o arquivo. Confira se ele é mesmo um CSV e tenta de novo.");
+      alert(`Não deu pra importar o arquivo.\n\nMotivo: ${erro?.message || erro}\n\nConfira o arquivo e tenta de novo.`);
     }
   }
 
