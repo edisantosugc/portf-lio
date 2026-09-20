@@ -1677,6 +1677,33 @@ create policy "Gustavo nao exclui gastos fixos"
   using ( not public.eh_conta_gustavo() );
 
 -- =====================================================================
+-- CONTAS FIXAS OCULTAS (aba Finanças > Contas a pagar)
+-- As 10 contas fixas "de sempre" (Aluguel, Água, Luz, Vivo Celular, etc.)
+-- são fixas no código do painel E da Edge Function send-push — não dá pra
+-- apagá-las de vez da lista, só marcar como ocultas. Antes isso ficava só
+-- no localStorage do aparelho (não sincronizava entre celular e computador,
+-- e o aviso diário nunca sabia que a conta tinha sido "excluída", então
+-- continuava notificando pra sempre). Agora fica aqui: sincroniza em
+-- qualquer aparelho, e o send-push consulta essa tabela antes de avisar.
+-- =====================================================================
+create table if not exists public.financas_contas_fixas_ocultas (
+  nome text primary key,
+  created_at timestamptz not null default now()
+);
+
+alter table public.financas_contas_fixas_ocultas enable row level security;
+
+drop policy if exists "Autenticados gerenciam contas fixas ocultas" on public.financas_contas_fixas_ocultas;
+create policy "Autenticados gerenciam contas fixas ocultas"
+  on public.financas_contas_fixas_ocultas
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.financas_contas_fixas_ocultas to authenticated;
+
+-- =====================================================================
 -- CORREÇÃO: quando uma conta fixa (ex: Fies) deixa de ser DI/GU e vira só
 -- DI, a policy restrictive acima corretamente esconde essa mudança do
 -- Gustavo — mas isso também escondia o "aviso" de que ela mudou de dono,

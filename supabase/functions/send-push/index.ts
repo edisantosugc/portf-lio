@@ -197,14 +197,41 @@ async function enviarAvisosDiarios() {
   }
 
   // ---------- Pra ela: contas fixas vencendo em 3, 1 ou 0 dias, ainda não pagas ----------
-  const { data: gastosFixosMes } = await supabase
+  // Busca TODAS as linhas (sem filtrar mês) porque precisa de duas coisas diferentes:
+  // (1) quem já está paga NESTE mês, e (2) o vencimento de contas fixas CUSTOM (fora das
+  // 10 do código), que usa o valor mais recente salvo pra ela — igual a lógica do painel
+  // (ver obterVencimentoGastoFixo em painel.html).
+  const { data: todosGastosFixos } = await supabase
     .from("financas_gastos_fixos")
-    .select("*")
-    .eq("ano", ano)
-    .eq("mes", mes0);
-  const gastosFixosPagosSet = new Set((gastosFixosMes ?? []).filter((g: any) => g.pago).map((g: any) => g.nome));
+    .select("nome, ano, mes, vencimento, pago");
 
+  const gastosFixosPagosSet = new Set(
+    (todosGastosFixos ?? []).filter((g: any) => g.ano === ano && g.mes === mes0 && g.pago).map((g: any) => g.nome)
+  );
+
+  // Contas fixas "de sempre" ocultadas pela Edi (excluídas no painel) não devem mais
+  // notificar — sincronizado em financas_contas_fixas_ocultas, ver painel.html/excluirContaFixa.
+  const { data: contasOcultas } = await supabase.from("financas_contas_fixas_ocultas").select("nome");
+  const nomesOcultosSet = new Set((contasOcultas ?? []).map((c: any) => c.nome));
+
+  const vencimentosPorConta: Record<string, number> = {};
   for (const [nome, vencimento] of Object.entries(VENCIMENTO_GASTOS_FIXOS)) {
+    if (!nomesOcultosSet.has(nome)) vencimentosPorConta[nome] = vencimento;
+  }
+
+  // Contas fixas custom (cadastradas na hora, fora da lista fixa): pega o vencimento mais
+  // recente salvo pra cada uma, pra notificar automaticamente sem precisar tocar neste código.
+  const custosMaisRecentes = new Map<string, { chave: number; vencimento: number }>();
+  for (const g of todosGastosFixos ?? []) {
+    if (Object.prototype.hasOwnProperty.call(VENCIMENTO_GASTOS_FIXOS, g.nome)) continue;
+    if (g.vencimento === null || g.vencimento === undefined) continue;
+    const chave = g.ano * 12 + g.mes;
+    const atual = custosMaisRecentes.get(g.nome);
+    if (!atual || chave > atual.chave) custosMaisRecentes.set(g.nome, { chave, vencimento: g.vencimento });
+  }
+  for (const [nome, info] of custosMaisRecentes) vencimentosPorConta[nome] = info.vencimento;
+
+  for (const [nome, vencimento] of Object.entries(vencimentosPorConta)) {
     if (gastosFixosPagosSet.has(nome)) continue;
     const diasParaVencer = vencimento - dia;
     if ([3, 1, 0].includes(diasParaVencer)) {

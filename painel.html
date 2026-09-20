@@ -2990,6 +2990,14 @@
   .marcas-topo-legenda{ font-size:.82rem; color:var(--texto-suave); max-width:520px; }
   .marcas-acoes-topo{ display:flex; gap:10px; flex-wrap:wrap; }
 
+  #marcasAjudaCsv{ margin-bottom:16px; }
+  .marcas-ajuda-texto{ font-size:.82rem; color:var(--texto-suave); line-height:1.5; margin-top:10px; }
+  .marcas-ajuda-texto code{ background:var(--creme); border:1px solid var(--borda); border-radius:5px; padding:1px 5px; font-size:.78rem; }
+  .marcas-ajuda-prompt{
+    width:100%; margin-top:10px; padding:10px 12px; border:1px solid var(--borda); border-radius:9px;
+    font-family:'Outfit',sans-serif; font-size:.78rem; color:var(--texto-suave); background:var(--creme); resize:vertical;
+  }
+
   .marcas-contadores{ display:grid; grid-template-columns: repeat(7,1fr); gap:12px; margin-bottom:16px; }
   .marcas-contador-card{ background:var(--branco); border:1px solid var(--borda); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:6px; }
   .marcas-contador-card .rotulo{ font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--texto-suave); display:flex; align-items:center; gap:6px; }
@@ -4165,6 +4173,14 @@
           </div>
         </div>
 
+        <details class="cartao cartao-colapsavel" id="marcasAjudaCsv">
+          <summary class="resumo-colapsavel"><h2>❓ Como pedir a planilha pronta pra importar</h2><span class="seta-colapsavel">▾</span></summary>
+          <p class="marcas-ajuda-texto">Toda vez que for pesquisar marcas (numa IA, com alguém da equipe, ou você mesma numa planilha), use estas colunas na primeira linha, exatamente com este nome: <code>nome, site, instagram, seguidores, email, whatsapp, contato, nicho, origem, status, observacao, data</code>. Só o <code>nome</code> é obrigatório. Salve como CSV e importe direto aqui.</p>
+          <p class="marcas-ajuda-texto">Ou copie o prompt abaixo e cole numa IA (ChatGPT, Claude, Gemini) pedindo a pesquisa — ele já pede o formato certo:</p>
+          <textarea class="marcas-ajuda-prompt" id="marcasAjudaPromptTexto" readonly rows="8"></textarea>
+          <button type="button" class="btn-fantasma" id="marcasBotaoCopiarPrompt">📋 Copiar prompt</button>
+        </details>
+
         <div class="marcas-contadores" id="marcasContadores">
           <div class="marcas-contador-card total"><span class="rotulo">Total</span><span class="valor dado-sensivel" id="marcasContadorTotal">0</span></div>
           <div class="marcas-contador-card"><span class="rotulo"><span class="bolinha" style="background:var(--texto-suave)"></span>A enviar</span><span class="valor dado-sensivel" id="marcasContador-a_enviar">0</span></div>
@@ -5096,6 +5112,24 @@
     return status ? status.nome : chave;
   }
 
+  // Prompt pronto pra colar numa IA (ChatGPT/Claude/Gemini) na hora de pesquisar marcas —
+  // já pede o formato exato de coluna que o importador de CSV desta aba entende.
+  const MARCAS_PROMPT_PESQUISA = `Preciso de uma lista de marcas em formato de tabela (CSV), pronta pra eu importar direto no meu sistema.
+
+Pesquise [DESCREVA AQUI O TIPO DE MARCA, EX: "marcas de skincare que fazem parceria com criadoras de conteúdo no Instagram"] e monte uma planilha com exatamente estas colunas, nesta ordem, com o nome exato de cada uma na primeira linha:
+
+nome, site, instagram, seguidores, email, whatsapp, contato, nicho, origem, status, observacao, data
+
+Regras:
+- nome: obrigatório, nunca deixe em branco.
+- seguidores: só número, sem "mil" ou "k" (ex: 45000, e não "45k").
+- status: deixe sempre como "a_enviar" (eu troco manualmente depois).
+- origem: de onde veio essa marca (ex: "Instagram", "Google", "indicação").
+- data: formato AAAA-MM-DD. Se não souber, deixe em branco.
+- Preencha site, instagram, email, whatsapp, contato, nicho e observacao com o que encontrar de verdade — deixe em branco o que não achar, nunca invente dado.
+
+Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
+
   // Estado da aba Ideias Criativas: notas do bloco de notas e o filtro de cor selecionado
   let notasCache = [];
   let notaFiltroCor = null; // null = mostra notas de todas as cores
@@ -5354,12 +5388,10 @@
 
   // As 10 contas fixas de sempre são fixas no código (VENCIMENTO_GASTOS_FIXOS), então
   // "excluir" uma delas não pode removê-la de verdade da lista — só dá pra escondê-la
-  // até a pessoa recadastrar. Isso fica salvo neste aparelho (não sincroniza entre
-  // celular e computador), mas os valores em si continuam apagados de vez no banco.
-  let contasFixasOcultas = new Set(JSON.parse(localStorage.getItem("painelContasFixasOcultas") || "[]"));
-  function salvarContasFixasOcultas(){
-    localStorage.setItem("painelContasFixasOcultas", JSON.stringify([...contasFixasOcultas]));
-  }
+  // até a pessoa recadastrar. Isso fica salvo em financas_contas_fixas_ocultas (Supabase),
+  // então sincroniza em qualquer aparelho — e a Edge Function do aviso diário consulta
+  // essa mesma tabela antes de notificar, então excluir aqui também para a notificação.
+  let contasFixasOcultas = new Set();
 
   // Formata uma data como AAAA-MM-DD (mesmo formato usado na coluna "data" do Supabase)
   function formatarDataISO(data){
@@ -5603,6 +5635,18 @@
         renderizarMarcas();
       } catch (erroMarcas) {
         console.error("Erro ao carregar/renderizar Marcas:", erroMarcas);
+      }
+      try {
+        // Isolado do carregamento principal: a tabela financas_contas_fixas_ocultas só
+        // existe depois que o SQL for rodado no Supabase. Recarrega Finanças depois de
+        // preencher o Set porque o primeiro renderizarFinancas() (acima) já rodou sem saber
+        // quais contas estão ocultas.
+        const ocultas = await comRetry(() => buscarTudo("financas_contas_fixas_ocultas"));
+        contasFixasOcultas = new Set(ocultas.map(o => o.nome));
+        renderizarFinancas();
+        renderizarAlertasContas();
+      } catch (erroContasOcultas) {
+        console.error("Erro ao carregar contas fixas ocultas:", erroContasOcultas);
       }
       try {
         // Isolado do carregamento principal: a tabela painel_notas só existe depois que
@@ -7569,6 +7613,23 @@
       e.target.value = "";
     });
     document.addEventListener("click", fecharMenusStatusMarcas);
+
+    document.getElementById("marcasAjudaPromptTexto").value = MARCAS_PROMPT_PESQUISA;
+    document.getElementById("marcasBotaoCopiarPrompt").addEventListener("click", async (e) => {
+      const botao = e.currentTarget;
+      try {
+        await navigator.clipboard.writeText(MARCAS_PROMPT_PESQUISA);
+      } catch (erro) {
+        // Sem permissão de clipboard (ex: navegador mais antigo): seleciona o texto pra
+        // copiar manualmente com Ctrl+C, em vez de simplesmente falhar sem avisar nada.
+        const campo = document.getElementById("marcasAjudaPromptTexto");
+        campo.focus();
+        campo.select();
+      }
+      const textoOriginal = botao.textContent;
+      botao.textContent = "✓ Copiado!";
+      setTimeout(() => { botao.textContent = textoOriginal; }, 2000);
+    });
 
     // ---------- Bloco de Notas ----------
     document.getElementById("notaBotaoNova").addEventListener("click", criarItemDaAbaAtual);
@@ -10538,7 +10599,8 @@
     gastosFixosCache = gastosFixosCache.concat(data);
     if (contasFixasOcultas.has(nome)){
       contasFixasOcultas.delete(nome);
-      salvarContasFixasOcultas();
+      const { error: erroReexibir } = await Auth.client.from("financas_contas_fixas_ocultas").delete().eq("nome", nome);
+      if (erroReexibir) console.error("Erro ao tirar conta fixa de ocultas:", erroReexibir);
     }
     document.getElementById("formNovaContaFixa").reset();
     renderizarFinancas();
@@ -10592,7 +10654,10 @@
       gastosFixosCache = gastosFixosCache.filter(g => g.nome !== nome);
       if (ehFixaDoCodigo){
         contasFixasOcultas.add(nome);
-        salvarContasFixasOcultas();
+        // Sincronizado no Supabase (não só neste aparelho) pra sumir em qualquer
+        // dispositivo e pro aviso diário parar de notificar sobre ela também.
+        const { error: erroOcultar } = await Auth.client.from("financas_contas_fixas_ocultas").upsert({ nome });
+        if (erroOcultar) console.error("Erro ao sincronizar conta fixa oculta:", erroOcultar);
       }
       renderizarFinancas();
       renderizarAlertasContas();
