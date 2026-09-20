@@ -34,11 +34,9 @@ const EMAIL_PERMITIDO = "edilainesantosugc@gmail.com";
 // Pra onde a marca cai quando responde o e-mail (não é o endereço técnico de envio).
 const EMAIL_RESPOSTA = "edilainesantosugc@gmail.com";
 
-// EDITE AQUI depois que você verificar seu domínio no Resend — troca só a parte
-// depois do @ pelo seu domínio (ex: "Edilaine Santos <contato@edilainesantos.com>").
-// Enquanto não tiver domínio verificado, o Resend só entrega e-mail pra você mesma,
-// mesmo com este remetente de teste.
-const REMETENTE = "Edilaine Santos <onboarding@resend.dev>";
+// Domínio edilainesantos.com verificado no Resend em 20/09/2026 — pode mandar pra
+// qualquer marca, não só pra ela mesma.
+const REMETENTE = "Edilaine Santos <contato@edilainesantos.com>";
 
 const MAX_DESTINATARIOS_POR_CHAMADA = 250;
 const ESPERA_ENTRE_ENVIOS_MS = 200; // ~5 por segundo, ritmo seguro do Resend
