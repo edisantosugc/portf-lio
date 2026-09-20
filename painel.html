@@ -3010,10 +3010,10 @@
 
   .marcas-filtros-grade{ display:grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap:12px; }
 
-  .marcas-grade-lista{ display:grid; grid-template-columns: minmax(0,1.4fr) 100px 150px 170px 150px 70px; align-items:center; gap:12px; }
+  .marcas-grade-lista{ display:grid; grid-template-columns: minmax(0,1.2fr) 90px 120px 120px 150px 150px 70px; align-items:center; gap:12px; }
 
   .marcas-lista-cartao{ padding:0; overflow:hidden; }
-  .marcas-linha{ display:grid; grid-template-columns: minmax(0,1.4fr) 100px 150px 170px 150px 70px; align-items:center; gap:12px; padding:13px 20px; border-bottom:1px solid var(--borda); font-size:.85rem; }
+  .marcas-linha{ display:grid; grid-template-columns: minmax(0,1.2fr) 90px 120px 120px 150px 150px 70px; align-items:center; gap:12px; padding:13px 20px; border-bottom:1px solid var(--borda); font-size:.85rem; }
   .marcas-linha:last-child{ border-bottom:none; }
   .marcas-linha:hover{ background: rgba(0,0,128,.03); }
 
@@ -3021,6 +3021,7 @@
   .marcas-col-marca .nome{ font-weight:600; }
   .marcas-col-marca .sub{ font-size:.74rem; color:var(--texto-suave); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .marcas-col-seguidores{ font-variant-numeric:tabular-nums; color:var(--texto-suave); font-size:.82rem; }
+  .marcas-col-nicho, .marcas-col-origem{ font-size:.82rem; color:var(--grafite); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .marcas-col-contato{ font-size:.78rem; color:var(--texto-suave); display:flex; flex-direction:column; gap:1px; min-width:0; }
   .marcas-col-contato span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
@@ -3064,6 +3065,7 @@
     .marcas-contadores{ grid-template-columns: repeat(2,1fr); }
     .marcas-grade-lista{ display:none; }
     .marcas-linha{ grid-template-columns: 1fr; gap:8px; }
+    .marcas-col-nicho, .marcas-col-origem{ white-space:normal; }
     .marcas-col-contato{ order:3; }
     .marcas-pill-status{ width:auto; justify-self:flex-start; }
     .marcas-col-acoes{ justify-content:flex-start; }
@@ -4299,7 +4301,7 @@
 
         <div class="cartao ugc-lista-cartao marcas-lista-cartao">
           <div class="ugc-cabecalho-lista marcas-grade-lista">
-            <span>Marca</span><span>Seguidores</span><span>Nicho / Origem</span><span>Contato</span><span>Status</span><span></span>
+            <span>Marca</span><span>Seguidores</span><span>Nicho</span><span>Origem</span><span>Contato</span><span>Status</span><span></span>
           </div>
           <div id="marcasListaCorpo"></div>
         </div>
@@ -13443,10 +13445,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
           <span class="sub">${escaparHtmlMarcas(item.instagram || item.site || "")}</span>
         </div>
         <div class="marcas-col-seguidores">${item.seguidores ? Number(item.seguidores).toLocaleString("pt-BR") : "—"}</div>
-        <div class="marcas-col-contato">
-          <span>${escaparHtmlMarcas(item.nicho || "—")}</span>
-          <span>${escaparHtmlMarcas(item.origem || "—")}</span>
-        </div>
+        <div class="marcas-col-nicho">${escaparHtmlMarcas(item.nicho || "—")}</div>
+        <div class="marcas-col-origem">${escaparHtmlMarcas(item.origem || "—")}</div>
         <div class="marcas-col-contato">
           <span>${escaparHtmlMarcas(item.contato || "—")}</span>
           <span>${escaparHtmlMarcas(item.email || item.whatsapp || "—")}</span>
