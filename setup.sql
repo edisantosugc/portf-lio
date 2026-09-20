@@ -587,6 +587,9 @@ create table if not exists public.painel_marcas (
 create index if not exists idx_painel_marcas_status on public.painel_marcas (status);
 create index if not exists idx_painel_marcas_nicho on public.painel_marcas (nicho);
 
+-- Estrela de prioridade (lista de Marcas): marcas marcadas ficam sempre no topo da lista.
+alter table public.painel_marcas add column if not exists prioridade boolean not null default false;
+
 alter table public.painel_marcas enable row level security;
 
 drop policy if exists "Usuaria autenticada gerencia suas marcas" on public.painel_marcas;

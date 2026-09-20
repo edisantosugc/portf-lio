@@ -3008,12 +3008,30 @@
 
   .marcas-status-toggle{ flex-wrap:wrap; }
 
-  .marcas-filtros-grade{ display:grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap:12px; }
-
-  .marcas-grade-lista{ display:grid; grid-template-columns: minmax(0,1.2fr) 90px 120px 120px 150px 150px 70px; align-items:center; gap:12px; }
+  .marcas-grade-lista{ display:grid; grid-template-columns: 24px minmax(0,1.1fr) 85px 105px 105px 135px 140px 60px; align-items:center; gap:12px; }
 
   .marcas-lista-cartao{ padding:0; overflow:hidden; }
-  .marcas-linha{ display:grid; grid-template-columns: minmax(0,1.2fr) 90px 120px 120px 150px 150px 70px; align-items:center; gap:12px; padding:13px 20px; border-bottom:1px solid var(--borda); font-size:.85rem; }
+  .marcas-linha{ display:grid; grid-template-columns: 24px minmax(0,1.1fr) 85px 105px 105px 135px 140px 60px; align-items:center; gap:12px; padding:13px 20px; border-bottom:1px solid var(--borda); font-size:.85rem; }
+
+  .marcas-estrela{ background:none; border:none; cursor:pointer; font-size:1.05rem; color:var(--borda); line-height:1; padding:0; }
+  .marcas-estrela.ativa{ color:var(--dourado); }
+
+  .marcas-th{ display:inline-flex; align-items:center; gap:4px; }
+  .marcas-filtro-btn{
+    border:none; background:none; cursor:pointer; color:var(--texto-suave); font-size:.65rem; padding:0; line-height:1;
+  }
+  .marcas-filtro-btn.ativo{ color:var(--coral); font-weight:700; }
+  .marcas-filtro-dropdown{
+    position:absolute; z-index:40; background:var(--branco); border:1px solid var(--borda); border-radius:10px;
+    box-shadow:0 12px 30px rgba(26,24,22,.15); padding:10px; width:220px;
+  }
+  .marcas-filtro-dropdown input[type="text"]{
+    width:100%; padding:6px 8px; border:1px solid var(--borda); border-radius:8px;
+    font-family:'Outfit',sans-serif; font-size:.8rem; margin-bottom:8px; background:var(--creme); color:var(--grafite);
+  }
+  .marcas-filtro-item{ display:flex; align-items:center; gap:6px; font-size:.78rem; padding:4px 2px; cursor:pointer; }
+  .marcas-filtro-todos{ border-bottom:1px solid var(--borda); margin-bottom:4px; padding-bottom:6px; }
+  .marcas-filtro-lista{ max-height:180px; overflow-y:auto; }
   .marcas-linha:last-child{ border-bottom:none; }
   .marcas-linha:hover{ background: rgba(0,0,128,.03); }
 
@@ -3059,12 +3077,12 @@
   @media (max-width: 900px){
     .marcas-contadores{ grid-template-columns: repeat(4,1fr); }
     .marcas-contador-card.total{ grid-column: 1 / -1; }
-    .marcas-filtros-grade{ grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 640px){
     .marcas-contadores{ grid-template-columns: repeat(2,1fr); }
     .marcas-grade-lista{ display:none; }
     .marcas-linha{ grid-template-columns: 1fr; gap:8px; }
+    .marcas-estrela{ justify-self:flex-start; font-size:1.3rem; }
     .marcas-col-nicho, .marcas-col-origem{ white-space:normal; }
     .marcas-col-contato{ order:3; }
     .marcas-pill-status{ width:auto; justify-self:flex-start; }
@@ -4272,36 +4290,28 @@
           </div>
         </div>
 
-        <div class="cartao marcas-filtros-grade">
-          <div class="ugc-campo">
+        <div class="cartao">
+          <div class="ugc-campo largo">
             <label>Buscar por nome</label>
             <input type="text" id="marcasBusca" placeholder="Digite o nome da marca">
           </div>
-          <div class="ugc-campo">
-            <label>Nicho</label>
-            <select id="marcasFiltroNicho"><option value="">Todos</option></select>
-          </div>
-          <div class="ugc-campo">
-            <label>Origem</label>
-            <select id="marcasFiltroOrigem"><option value="">Todas</option></select>
-          </div>
-          <div class="ugc-campo">
-            <label>Status</label>
-            <select id="marcasFiltroStatus">
-              <option value="">Todos</option>
-              <option value="a_enviar">A enviar</option>
-              <option value="enviado">Enviado</option>
-              <option value="respondeu">Respondeu</option>
-              <option value="proposta">Proposta</option>
-              <option value="fechado">Fechado</option>
-              <option value="sem_interesse">Sem interesse</option>
-            </select>
-          </div>
         </div>
 
-        <div class="cartao ugc-lista-cartao marcas-lista-cartao">
+        <div class="cartao ugc-lista-cartao marcas-lista-cartao" id="marcasListaContainer" style="position:relative;">
           <div class="ugc-cabecalho-lista marcas-grade-lista">
-            <span>Marca</span><span>Seguidores</span><span>Nicho</span><span>Origem</span><span>Contato</span><span>Status</span><span></span>
+            <span></span>
+            <span class="marcas-th">Marca<button type="button" class="marcas-filtro-btn" data-campo="nome" aria-label="Filtrar por marca">▾</button></span>
+            <span class="marcas-th">Seguidores<button type="button" class="marcas-filtro-btn" data-campo="seguidores" aria-label="Filtrar por seguidores">▾</button></span>
+            <span class="marcas-th">Nicho<button type="button" class="marcas-filtro-btn" data-campo="nicho" aria-label="Filtrar por nicho">▾</button></span>
+            <span class="marcas-th">Origem<button type="button" class="marcas-filtro-btn" data-campo="origem" aria-label="Filtrar por origem">▾</button></span>
+            <span class="marcas-th">Contato<button type="button" class="marcas-filtro-btn" data-campo="contato" aria-label="Filtrar por contato">▾</button></span>
+            <span class="marcas-th">Status<button type="button" class="marcas-filtro-btn" data-campo="status" aria-label="Filtrar por status">▾</button></span>
+            <span></span>
+          </div>
+          <div class="marcas-filtro-dropdown oculto" id="marcasFiltroDropdown">
+            <input type="text" id="marcasFiltroBusca" placeholder="Buscar valor...">
+            <label class="marcas-filtro-item marcas-filtro-todos"><input type="checkbox" id="marcasFiltroTodos"> <strong>(Selecionar tudo)</strong></label>
+            <div class="marcas-filtro-lista dado-sensivel" id="marcasFiltroLista"></div>
           </div>
           <div id="marcasListaCorpo"></div>
         </div>
@@ -7603,9 +7613,48 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       });
     });
     document.getElementById("marcasBusca").addEventListener("input", renderListaMarcas);
-    document.getElementById("marcasFiltroNicho").addEventListener("change", renderListaMarcas);
-    document.getElementById("marcasFiltroOrigem").addEventListener("change", renderListaMarcas);
-    document.getElementById("marcasFiltroStatus").addEventListener("change", renderListaMarcas);
+
+    document.querySelectorAll(".marcas-filtro-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const campo = btn.dataset.campo;
+        if (marcasFiltroColunaAberta === campo) fecharFiltroColunaMarcas();
+        else abrirFiltroColunaMarcas(campo, btn);
+      });
+    });
+
+    document.getElementById("marcasFiltroDropdown").addEventListener("click", (e) => e.stopPropagation());
+
+    document.getElementById("marcasFiltroBusca").addEventListener("input", (e) => {
+      renderizarListaFiltroMarcas(e.target.value);
+    });
+
+    document.getElementById("marcasFiltroTodos").addEventListener("change", (e) => {
+      const campo = marcasFiltroColunaAberta;
+      if (!campo) return;
+      marcasFiltrosColuna[campo] = e.target.checked ? null : new Set();
+      renderizarListaFiltroMarcas(document.getElementById("marcasFiltroBusca").value);
+      renderListaMarcas();
+      atualizarIndicadoresFiltroMarcas();
+    });
+
+    document.getElementById("marcasFiltroLista").addEventListener("change", (e) => {
+      if (e.target.type !== "checkbox") return;
+      const campo = marcasFiltroColunaAberta;
+      if (!campo) return;
+      const todosValores = obterValoresColunaMarcas(campo);
+      const atual = marcasFiltrosColuna[campo] ? new Set(marcasFiltrosColuna[campo]) : new Set(todosValores.map(v => v.chave));
+      if (e.target.checked) atual.add(e.target.value); else atual.delete(e.target.value);
+      marcasFiltrosColuna[campo] = atual.size === todosValores.length ? null : atual;
+      document.getElementById("marcasFiltroTodos").checked = !marcasFiltrosColuna[campo];
+      renderListaMarcas();
+      atualizarIndicadoresFiltroMarcas();
+    });
+
+    document.addEventListener("click", () => {
+      if (marcasFiltroColunaAberta) fecharFiltroColunaMarcas();
+    });
+
     document.getElementById("marcasBotaoImportar").addEventListener("click", () => {
       document.getElementById("marcasImportarInput").click();
     });
@@ -13416,30 +13465,94 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     return div.innerHTML;
   }
 
-  function obterValoresDistintosMarcas(campo){
-    const vistos = new Set();
-    marcasCache.forEach(item => { if (item[campo]) vistos.add(item[campo]); });
-    return Array.from(vistos).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  /* ---------- Filtros estilo Excel na lista de Marcas (Marca/Seguidores/Nicho/Origem/Contato/Status) ---------- */
+  let marcasFiltrosColuna = { nome: null, seguidores: null, nicho: null, origem: null, contato: null, status: null };
+  let marcasFiltroColunaAberta = null; // qual coluna tem o dropdown de filtro aberto agora
+
+  function chaveColunaMarcas(item, campo){
+    if (campo === "seguidores") return item.seguidores == null ? "" : String(item.seguidores);
+    if (campo === "contato") return item.contato || item.email || item.whatsapp || "";
+    return item[campo] || "";
   }
 
-  // Recria as opções dos selects de Nicho/Origem a partir do que já existe nas marcas
-  // cadastradas, preservando o valor escolhido (se ele ainda existir na lista nova)
-  function preencherFiltrosMarcas(){
-    const selectNicho = document.getElementById("marcasFiltroNicho");
-    const selectOrigem = document.getElementById("marcasFiltroOrigem");
-    const nichoAtual = selectNicho.value;
-    const origemAtual = selectOrigem.value;
-    selectNicho.innerHTML = `<option value="">Todos</option>` +
-      obterValoresDistintosMarcas("nicho").map(v => `<option value="${escaparHtmlMarcas(v)}">${escaparHtmlMarcas(v)}</option>`).join("");
-    selectOrigem.innerHTML = `<option value="">Todas</option>` +
-      obterValoresDistintosMarcas("origem").map(v => `<option value="${escaparHtmlMarcas(v)}">${escaparHtmlMarcas(v)}</option>`).join("");
-    selectNicho.value = nichoAtual;
-    selectOrigem.value = origemAtual;
+  function rotuloColunaMarcas(item, campo){
+    if (campo === "seguidores") return item.seguidores != null ? Number(item.seguidores).toLocaleString("pt-BR") : "Sem seguidores";
+    if (campo === "status") return nomeStatusMarca(item.status);
+    if (campo === "contato") return item.contato || item.email || item.whatsapp || "Sem contato";
+    if (campo === "nome") return item.nome || "Sem nome";
+    if (campo === "nicho") return item.nicho || "Sem nicho";
+    if (campo === "origem") return item.origem || "Sem origem";
+    return item[campo] || "";
+  }
+
+  function obterValoresColunaMarcas(campo){
+    const vistos = new Map(); // chave -> rótulo
+    marcasCache.forEach(item => {
+      vistos.set(chaveColunaMarcas(item, campo), rotuloColunaMarcas(item, campo));
+    });
+    return Array.from(vistos.entries())
+      .map(([chave, rotulo]) => ({ chave, rotulo }))
+      .sort((a, b) => campo === "seguidores" ? (Number(a.chave) || 0) - (Number(b.chave) || 0) : a.rotulo.localeCompare(b.rotulo, "pt-BR"));
+  }
+
+  function passaFiltrosColunaMarcas(item){
+    return Object.keys(marcasFiltrosColuna).every(campo => {
+      const filtro = marcasFiltrosColuna[campo];
+      return !filtro || filtro.has(chaveColunaMarcas(item, campo));
+    });
+  }
+
+  function atualizarIndicadoresFiltroMarcas(){
+    document.querySelectorAll(".marcas-filtro-btn").forEach(btn => {
+      btn.classList.toggle("ativo", !!marcasFiltrosColuna[btn.dataset.campo]);
+    });
+  }
+
+  function renderizarListaFiltroMarcas(termo){
+    const campo = marcasFiltroColunaAberta;
+    if (!campo) return;
+    const valores = obterValoresColunaMarcas(campo);
+    const filtroAtual = marcasFiltrosColuna[campo];
+    const termoLower = (termo || "").trim().toLowerCase();
+
+    document.getElementById("marcasFiltroTodos").checked = !filtroAtual || filtroAtual.size === valores.length;
+
+    const visiveis = valores.filter(v => !termoLower || v.rotulo.toLowerCase().includes(termoLower));
+    document.getElementById("marcasFiltroLista").innerHTML = visiveis.length
+      ? visiveis.map(v => `
+          <label class="marcas-filtro-item">
+            <input type="checkbox" value="${escaparHtmlMarcas(v.chave)}" ${(!filtroAtual || filtroAtual.has(v.chave)) ? "checked" : ""}>
+            ${escaparHtmlMarcas(v.rotulo)}
+          </label>
+        `).join("")
+      : `<p class="ugc-vazio" style="padding:6px 2px;">Nada encontrado.</p>`;
+  }
+
+  function abrirFiltroColunaMarcas(campo, botaoEl){
+    marcasFiltroColunaAberta = campo;
+    const painel = document.getElementById("marcasFiltroDropdown");
+    const container = document.getElementById("marcasListaContainer");
+    document.getElementById("marcasFiltroBusca").value = "";
+    renderizarListaFiltroMarcas("");
+    painel.classList.remove("oculto");
+
+    const rectBotao = botaoEl.getBoundingClientRect();
+    const rectContainer = container.getBoundingClientRect();
+    const larguraPainel = painel.offsetWidth || 220;
+    painel.style.top = (rectBotao.bottom - rectContainer.top + 4) + "px";
+    // Alinha a borda direita do painel com a borda direita do botão, pra não estourar pra fora do card
+    painel.style.left = Math.max(0, rectBotao.right - rectContainer.left - larguraPainel) + "px";
+  }
+
+  function fecharFiltroColunaMarcas(){
+    document.getElementById("marcasFiltroDropdown").classList.add("oculto");
+    marcasFiltroColunaAberta = null;
   }
 
   function renderLinhaMarcaHtml(item){
     return `
       <div class="marcas-linha marcas-grade-lista" data-id="${item.id}">
+        <button type="button" class="marcas-estrela ${item.prioridade ? "ativa" : ""}" data-acao="marcas-toggle-prioridade" data-id="${item.id}" title="${item.prioridade ? "Tirar prioridade" : "Marcar como prioridade"}">${item.prioridade ? "★" : "☆"}</button>
         <div class="marcas-col-marca">
           <span class="nome">${escaparHtmlMarcas(item.nome)}</span>
           <span class="sub">${escaparHtmlMarcas(item.instagram || item.site || "")}</span>
@@ -13470,6 +13583,12 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   }
 
   function reatarEventosLinhasMarcas(container){
+    container.querySelectorAll("[data-acao='marcas-toggle-prioridade']").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        alternarPrioridadeMarca(btn.dataset.id);
+      });
+    });
     container.querySelectorAll("[data-acao='marcas-toggle-menu']").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -13498,25 +13617,44 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     if (!corpo) return;
 
     const termo = (document.getElementById("marcasBusca").value || "").trim().toLowerCase();
-    const filtroNicho = document.getElementById("marcasFiltroNicho").value;
-    const filtroOrigem = document.getElementById("marcasFiltroOrigem").value;
-    const filtroStatus = document.getElementById("marcasFiltroStatus").value;
-    const semFiltroAtivo = !termo && !filtroNicho && !filtroOrigem && !filtroStatus;
+    const semFiltroAtivo = !termo && Object.values(marcasFiltrosColuna).every(f => !f);
 
     const filtradas = marcasCache
       .filter(item =>
         (!termo || (item.nome || "").toLowerCase().includes(termo)) &&
-        (!filtroNicho || item.nicho === filtroNicho) &&
-        (!filtroOrigem || item.origem === filtroOrigem) &&
-        (!filtroStatus || item.status === filtroStatus)
+        passaFiltrosColunaMarcas(item)
       )
-      .sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+      // Marcas com estrela (prioridade) sempre no topo; dentro de cada grupo, mais recente primeiro.
+      .sort((a, b) => {
+        const diferencaPrioridade = (b.prioridade ? 1 : 0) - (a.prioridade ? 1 : 0);
+        if (diferencaPrioridade !== 0) return diferencaPrioridade;
+        return (b.created_at || "").localeCompare(a.created_at || "");
+      });
 
     corpo.innerHTML = filtradas.length
       ? filtradas.map(renderLinhaMarcaHtml).join("")
       : `<p class="ugc-vazio">${semFiltroAtivo ? "Nenhuma marca cadastrada ainda." : "Nenhuma marca encontrada com esses filtros."}</p>`;
 
     reatarEventosLinhasMarcas(corpo);
+  }
+
+  async function alternarPrioridadeMarca(id){
+    const item = marcasCache.find(m => m.id === id);
+    if (!item) return;
+
+    const novaPrioridade = !item.prioridade;
+    item.prioridade = novaPrioridade; // otimista
+    renderListaMarcas();
+
+    try {
+      const { error } = await Auth.client.from("painel_marcas").update({ prioridade: novaPrioridade }).eq("id", id);
+      if (error) throw error;
+    } catch (erro) {
+      console.error("Erro ao marcar prioridade da marca:", erro);
+      item.prioridade = !novaPrioridade;
+      renderListaMarcas();
+      alert("Não deu pra salvar a prioridade. Tenta de novo.");
+    }
   }
 
   function calcularContadoresMarcas(){
@@ -13530,9 +13668,9 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   }
 
   function renderizarMarcas(){
-    preencherFiltrosMarcas();
     renderListaMarcas();
     calcularContadoresMarcas();
+    atualizarIndicadoresFiltroMarcas();
   }
 
   const MARCAS_NICHO_PADRAO = ["Moda", "Beleza", "Pet", "Tech", "Alimentação", "Saúde", "Casa e Decoração"];
