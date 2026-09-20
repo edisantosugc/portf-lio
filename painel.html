@@ -2984,6 +2984,82 @@
     .chk-painel{ width: calc(100vw - 24px); right: 12px; bottom: 12px; }
     .chk-flutuante{ right: 12px; bottom: 12px; }
   }
+
+  /* ===================== ABA MARCAS (base de prospecção, dentro de Abordagens) ===================== */
+  .marcas-topo-aba{ display:flex; align-items:flex-end; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+  .marcas-topo-legenda{ font-size:.82rem; color:var(--texto-suave); max-width:520px; }
+  .marcas-acoes-topo{ display:flex; gap:10px; flex-wrap:wrap; }
+
+  .marcas-contadores{ display:grid; grid-template-columns: repeat(7,1fr); gap:12px; margin-bottom:16px; }
+  .marcas-contador-card{ background:var(--branco); border:1px solid var(--borda); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:6px; }
+  .marcas-contador-card .rotulo{ font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--texto-suave); display:flex; align-items:center; gap:6px; }
+  .marcas-contador-card .bolinha{ width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+  .marcas-contador-card .valor{ font-family:'Fraunces',serif; font-size:1.7rem; font-variant-numeric:tabular-nums; line-height:1; }
+  .marcas-contador-card.total{ background:var(--coral); }
+  .marcas-contador-card.total .rotulo, .marcas-contador-card.total .valor{ color:var(--branco); }
+
+  .marcas-status-toggle{ flex-wrap:wrap; }
+
+  .marcas-filtros-grade{ display:grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap:12px; }
+
+  .marcas-grade-lista{ display:grid; grid-template-columns: minmax(0,1.4fr) 100px 150px 170px 150px 70px; align-items:center; gap:12px; }
+
+  .marcas-lista-cartao{ padding:0; overflow:hidden; }
+  .marcas-linha{ display:grid; grid-template-columns: minmax(0,1.4fr) 100px 150px 170px 150px 70px; align-items:center; gap:12px; padding:13px 20px; border-bottom:1px solid var(--borda); font-size:.85rem; }
+  .marcas-linha:last-child{ border-bottom:none; }
+  .marcas-linha:hover{ background: rgba(0,0,128,.03); }
+
+  .marcas-col-marca{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .marcas-col-marca .nome{ font-weight:600; }
+  .marcas-col-marca .sub{ font-size:.74rem; color:var(--texto-suave); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .marcas-col-seguidores{ font-variant-numeric:tabular-nums; color:var(--texto-suave); font-size:.82rem; }
+  .marcas-col-contato{ font-size:.78rem; color:var(--texto-suave); display:flex; flex-direction:column; gap:1px; min-width:0; }
+  .marcas-col-contato span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  .marcas-pill-status{
+    position:relative; border:1px solid var(--borda); border-radius:999px; padding:6px 12px; font-size:.72rem; font-weight:700;
+    cursor:pointer; display:inline-flex; align-items:center; gap:5px; background:var(--branco); width:100%; justify-content:center;
+    font-family:'Outfit',sans-serif;
+  }
+  .marcas-pill-status::after{ content:"▾"; font-size:.6rem; opacity:.7; }
+  .marcas-pill-status.a_enviar{ background:rgba(107,100,92,.1); border-color:var(--texto-suave); color:var(--texto-suave); }
+  .marcas-pill-status.enviado{ background:rgba(0,0,128,.08); border-color:var(--coral); color:var(--coral); }
+  .marcas-pill-status.respondeu{ background:rgba(201,166,107,.18); border-color:var(--dourado); color:#8a6d34; }
+  .marcas-pill-status.proposta{ background:rgba(201,166,107,.3); border-color:var(--dourado); color:#6b5326; }
+  .marcas-pill-status.fechado{ background:rgba(45,122,79,.12); border-color:var(--verde); color:var(--verde); }
+  .marcas-pill-status.sem_interesse{ background:rgba(196,69,60,.1); border-color:var(--vermelho); color:var(--vermelho); }
+
+  .marcas-menu-status{
+    position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:5; background:var(--branco); border:1px solid var(--borda);
+    border-radius:10px; box-shadow:0 10px 24px rgba(0,0,0,.12); overflow:hidden; display:none;
+  }
+  .marcas-menu-status.aberto{ display:block; }
+  .marcas-menu-status button{
+    display:block; width:100%; text-align:left; padding:8px 12px; font-size:.78rem; font-weight:600; background:none; border:none;
+    cursor:pointer; color:var(--grafite); font-family:'Outfit',sans-serif;
+  }
+  .marcas-menu-status button:hover{ background:var(--creme); }
+
+  .marcas-col-acoes{ display:flex; gap:6px; justify-content:flex-end; }
+  .marcas-botao-icone{
+    width:30px; height:30px; border-radius:8px; border:1px solid var(--borda); background:var(--branco); cursor:pointer;
+    font-size:.85rem; display:flex; align-items:center; justify-content:center; color:var(--texto-suave);
+  }
+  .marcas-botao-icone:hover{ border-color:var(--coral); color:var(--coral); }
+
+  @media (max-width: 900px){
+    .marcas-contadores{ grid-template-columns: repeat(4,1fr); }
+    .marcas-contador-card.total{ grid-column: 1 / -1; }
+    .marcas-filtros-grade{ grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px){
+    .marcas-contadores{ grid-template-columns: repeat(2,1fr); }
+    .marcas-grade-lista{ display:none; }
+    .marcas-linha{ grid-template-columns: 1fr; gap:8px; }
+    .marcas-col-contato{ order:3; }
+    .marcas-pill-status{ width:auto; justify-self:flex-start; }
+    .marcas-col-acoes{ justify-content:flex-start; }
+  }
 </style>
 </head>
 <body>
@@ -3939,6 +4015,7 @@
         <button type="button" class="sub-aba-btn ativo" data-subaba="ativas">Abordagens</button>
         <button type="button" class="sub-aba-btn" data-subaba="rascunhos">Rascunhos</button>
         <button type="button" class="sub-aba-btn" data-subaba="arquivados">Arquivados</button>
+        <button type="button" class="sub-aba-btn" data-subaba="marcas">Marcas</button>
       </div>
 
       <!-- ---------- Sub-aba: Abordagens ativas ---------- -->
@@ -4075,6 +4152,141 @@
           </div>
         </div>
         <div id="abordagemArquivoCorpo"></div>
+      </div>
+
+      <!-- ---------- Sub-aba: Marcas (base de prospecção) ---------- -->
+      <div id="abordagemMarcas" class="oculto">
+        <div class="marcas-topo-aba">
+          <p class="marcas-topo-legenda">Sua base de prospecção — marcas que você quer abordar, mesmo antes de virar uma abordagem de verdade.</p>
+          <div class="marcas-acoes-topo">
+            <input type="file" id="marcasImportarInput" accept=".csv,text/csv" class="oculto">
+            <button type="button" class="btn-fantasma" id="marcasBotaoImportar">⬆ Importar CSV</button>
+            <button type="button" class="botao-add-tarefa" id="marcasBotaoNovo">+ Nova marca</button>
+          </div>
+        </div>
+
+        <div class="marcas-contadores" id="marcasContadores">
+          <div class="marcas-contador-card total"><span class="rotulo">Total</span><span class="valor dado-sensivel" id="marcasContadorTotal">0</span></div>
+          <div class="marcas-contador-card"><span class="rotulo"><span class="bolinha" style="background:var(--texto-suave)"></span>A enviar</span><span class="valor dado-sensivel" id="marcasContador-a_enviar">0</span></div>
+          <div class="marcas-contador-card"><span class="rotulo"><span class="bolinha" style="background:var(--coral)"></span>Enviado</span><span class="valor dado-sensivel" id="marcasContador-enviado">0</span></div>
+          <div class="marcas-contador-card"><span class="rotulo"><span class="bolinha" style="background:var(--dourado)"></span>Respondeu</span><span class="valor dado-sensivel" id="marcasContador-respondeu">0</span></div>
+          <div class="marcas-contador-card"><span class="rotulo"><span class="bolinha" style="background:#8a6d34"></span>Proposta</span><span class="valor dado-sensivel" id="marcasContador-proposta">0</span></div>
+          <div class="marcas-contador-card"><span class="rotulo"><span class="bolinha" style="background:var(--verde)"></span>Fechado</span><span class="valor dado-sensivel" id="marcasContador-fechado">0</span></div>
+          <div class="marcas-contador-card"><span class="rotulo"><span class="bolinha" style="background:var(--vermelho)"></span>Sem interesse</span><span class="valor dado-sensivel" id="marcasContador-sem_interesse">0</span></div>
+        </div>
+
+        <div class="cartao ugc-form-novo oculto" id="marcasFormNovo">
+          <h2 id="marcasFormTitulo">Nova marca</h2>
+          <div class="ugc-form-grade">
+            <div class="ugc-campo largo">
+              <label>Nome da marca</label>
+              <input type="text" id="marcasCampoNome" placeholder="Ex: Marca Girassol">
+            </div>
+            <div class="ugc-campo">
+              <label>Site</label>
+              <input type="text" id="marcasCampoSite" placeholder="site.com.br">
+            </div>
+            <div class="ugc-campo">
+              <label>Instagram</label>
+              <input type="text" id="marcasCampoInstagram" placeholder="@perfil">
+            </div>
+            <div class="ugc-campo">
+              <label>Seguidores</label>
+              <input type="number" id="marcasCampoSeguidores" placeholder="Ex: 12000" min="0">
+            </div>
+            <div class="ugc-campo">
+              <label>E-mail</label>
+              <input type="text" id="marcasCampoEmail" placeholder="contato@marca.com">
+            </div>
+            <div class="ugc-campo">
+              <label>WhatsApp</label>
+              <input type="text" id="marcasCampoWhatsapp" placeholder="(00) 00000-0000">
+            </div>
+            <div class="ugc-campo">
+              <label>Pessoa de contato</label>
+              <input type="text" id="marcasCampoContato" placeholder="Nome de quem você fala com a marca">
+            </div>
+            <div class="ugc-campo">
+              <label>Nicho</label>
+              <select id="marcasCampoNicho">
+                <option value="">Selecione o nicho</option>
+                <option value="Moda">Moda</option>
+                <option value="Beleza">Beleza</option>
+                <option value="Pet">Pet</option>
+                <option value="Tech">Tech</option>
+                <option value="Alimentação">Alimentação</option>
+                <option value="Saúde">Saúde</option>
+                <option value="Casa e Decoração">Casa e Decoração</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+            <div class="ugc-campo largo oculto" id="marcasCampoNichoOutroWrap">
+              <label>Qual é o nicho?</label>
+              <input type="text" id="marcasCampoNichoOutro" placeholder="Descreva o nicho da marca">
+            </div>
+            <div class="ugc-campo">
+              <label>Origem (onde você encontrou)</label>
+              <input type="text" id="marcasCampoOrigem" placeholder="Ex: Instagram, indicação, Google...">
+            </div>
+            <div class="ugc-campo">
+              <label>Data</label>
+              <input type="date" id="marcasCampoData">
+            </div>
+            <div class="ugc-campo largo">
+              <label>Status</label>
+              <div class="ugc-origem-toggle marcas-status-toggle" id="marcasStatusToggle">
+                <span class="ativo" data-status="a_enviar">A enviar</span>
+                <span data-status="enviado">Enviado</span>
+                <span data-status="respondeu">Respondeu</span>
+                <span data-status="proposta">Proposta</span>
+                <span data-status="fechado">Fechado</span>
+                <span data-status="sem_interesse">Sem interesse</span>
+              </div>
+            </div>
+            <div class="ugc-campo largo">
+              <label>Observação</label>
+              <textarea id="marcasCampoObs" rows="2" placeholder="Notas adicionais"></textarea>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; gap:10px; margin-top:14px;">
+            <button type="button" class="botao-add-tarefa" id="marcasBotaoAdicionar">Adicionar</button>
+            <button type="button" class="botao-add-tarefa" id="marcasBotaoCancelarNovo">Cancelar</button>
+          </div>
+        </div>
+
+        <div class="cartao marcas-filtros-grade">
+          <div class="ugc-campo">
+            <label>Buscar por nome</label>
+            <input type="text" id="marcasBusca" placeholder="Digite o nome da marca">
+          </div>
+          <div class="ugc-campo">
+            <label>Nicho</label>
+            <select id="marcasFiltroNicho"><option value="">Todos</option></select>
+          </div>
+          <div class="ugc-campo">
+            <label>Origem</label>
+            <select id="marcasFiltroOrigem"><option value="">Todas</option></select>
+          </div>
+          <div class="ugc-campo">
+            <label>Status</label>
+            <select id="marcasFiltroStatus">
+              <option value="">Todos</option>
+              <option value="a_enviar">A enviar</option>
+              <option value="enviado">Enviado</option>
+              <option value="respondeu">Respondeu</option>
+              <option value="proposta">Proposta</option>
+              <option value="fechado">Fechado</option>
+              <option value="sem_interesse">Sem interesse</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="cartao ugc-lista-cartao marcas-lista-cartao">
+          <div class="ugc-cabecalho-lista marcas-grade-lista">
+            <span>Marca</span><span>Seguidores</span><span>Nicho / Origem</span><span>Contato</span><span>Status</span><span></span>
+          </div>
+          <div id="marcasListaCorpo"></div>
+        </div>
       </div>
     </section>
 
@@ -4866,6 +5078,24 @@
   // EDITE AQUI se quiser mudar depois de quantos dias o follow up é sugerido
   const DIAS_FOLLOWUP_ABORDAGEM = 7;
 
+  // Estado da aba Marcas (base de prospecção, dentro de Abordagens): lista de marcas,
+  // id em edição (null = criando uma nova) e qual pill de status está com o menu aberto
+  let marcasCache = [];
+  let marcasEditandoId = null;
+  let marcasStatusSelecionado = "a_enviar";
+  const MARCAS_STATUS = [
+    { chave: "a_enviar", nome: "A enviar" },
+    { chave: "enviado", nome: "Enviado" },
+    { chave: "respondeu", nome: "Respondeu" },
+    { chave: "proposta", nome: "Proposta" },
+    { chave: "fechado", nome: "Fechado" },
+    { chave: "sem_interesse", nome: "Sem interesse" }
+  ];
+  function nomeStatusMarca(chave){
+    const status = MARCAS_STATUS.find(s => s.chave === chave);
+    return status ? status.nome : chave;
+  }
+
   // Estado da aba Ideias Criativas: notas do bloco de notas e o filtro de cor selecionado
   let notasCache = [];
   let notaFiltroCor = null; // null = mostra notas de todas as cores
@@ -5365,6 +5595,14 @@
         renderizarNotificacoesPopup();
       } catch (erroAbordagem) {
         console.error("Erro ao carregar/renderizar Abordagem:", erroAbordagem);
+      }
+      try {
+        // Isolado do carregamento principal: a tabela painel_marcas só existe depois
+        // que o SQL da aba Marcas for rodado no Supabase, então essa busca pode falhar sem travar o resto do painel.
+        marcasCache = await comRetry(() => buscarTudo("painel_marcas"));
+        renderizarMarcas();
+      } catch (erroMarcas) {
+        console.error("Erro ao carregar/renderizar Marcas:", erroMarcas);
       }
       try {
         // Isolado do carregamento principal: a tabela painel_notas só existe depois que
@@ -7304,6 +7542,34 @@
       if (abordagemFiltroColunaAberta) fecharFiltroColunaAbordagem();
     });
 
+    // ---------- Marcas (base de prospecção, dentro de Abordagens) ----------
+    document.getElementById("marcasBotaoNovo").addEventListener("click", abrirFormNovaMarca);
+    document.getElementById("marcasBotaoCancelarNovo").addEventListener("click", fecharFormMarca);
+    document.getElementById("marcasBotaoAdicionar").addEventListener("click", salvarMarca);
+    document.getElementById("marcasCampoNicho").addEventListener("change", (e) => {
+      document.getElementById("marcasCampoNichoOutroWrap").classList.toggle("oculto", e.target.value !== "Outro");
+    });
+    document.getElementById("marcasStatusToggle").querySelectorAll("span").forEach(span => {
+      span.addEventListener("click", () => {
+        document.getElementById("marcasStatusToggle").querySelectorAll("span").forEach(s => s.classList.remove("ativo"));
+        span.classList.add("ativo");
+        marcasStatusSelecionado = span.dataset.status;
+      });
+    });
+    document.getElementById("marcasBusca").addEventListener("input", renderListaMarcas);
+    document.getElementById("marcasFiltroNicho").addEventListener("change", renderListaMarcas);
+    document.getElementById("marcasFiltroOrigem").addEventListener("change", renderListaMarcas);
+    document.getElementById("marcasFiltroStatus").addEventListener("change", renderListaMarcas);
+    document.getElementById("marcasBotaoImportar").addEventListener("click", () => {
+      document.getElementById("marcasImportarInput").click();
+    });
+    document.getElementById("marcasImportarInput").addEventListener("change", (e) => {
+      const arquivo = e.target.files[0];
+      if (arquivo) importarCsvMarcas(arquivo);
+      e.target.value = "";
+    });
+    document.addEventListener("click", fecharMenusStatusMarcas);
+
     // ---------- Bloco de Notas ----------
     document.getElementById("notaBotaoNova").addEventListener("click", criarItemDaAbaAtual);
     document.getElementById("notaBusca").addEventListener("input", renderNotas);
@@ -7484,6 +7750,7 @@
     document.getElementById("abordagemAtivas").classList.toggle("oculto", sub !== "ativas");
     document.getElementById("abordagemRascunhos").classList.toggle("oculto", sub !== "rascunhos");
     document.getElementById("abordagemArquivados").classList.toggle("oculto", sub !== "arquivados");
+    document.getElementById("abordagemMarcas").classList.toggle("oculto", sub !== "marcas");
   }
 
   // Mostra quanto fica cada parcela (valor total ÷ número de parcelas) enquanto a pessoa digita
@@ -13072,6 +13339,394 @@
     clienteOrdemRecente = !clienteOrdemRecente;
     document.getElementById("clienteOrdemTexto").textContent = clienteOrdemRecente ? "Recentes" : "Antigos";
     renderTabelaClientes();
+  }
+
+  // ===================== ABA MARCAS (base de prospecção, dentro de Abordagens) =====================
+  // Escapa antes de jogar texto vindo do banco (ou de um CSV importado) dentro de innerHTML
+  function escaparHtmlMarcas(texto){
+    const div = document.createElement("div");
+    div.textContent = texto == null ? "" : String(texto);
+    return div.innerHTML;
+  }
+
+  function obterValoresDistintosMarcas(campo){
+    const vistos = new Set();
+    marcasCache.forEach(item => { if (item[campo]) vistos.add(item[campo]); });
+    return Array.from(vistos).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }
+
+  // Recria as opções dos selects de Nicho/Origem a partir do que já existe nas marcas
+  // cadastradas, preservando o valor escolhido (se ele ainda existir na lista nova)
+  function preencherFiltrosMarcas(){
+    const selectNicho = document.getElementById("marcasFiltroNicho");
+    const selectOrigem = document.getElementById("marcasFiltroOrigem");
+    const nichoAtual = selectNicho.value;
+    const origemAtual = selectOrigem.value;
+    selectNicho.innerHTML = `<option value="">Todos</option>` +
+      obterValoresDistintosMarcas("nicho").map(v => `<option value="${escaparHtmlMarcas(v)}">${escaparHtmlMarcas(v)}</option>`).join("");
+    selectOrigem.innerHTML = `<option value="">Todas</option>` +
+      obterValoresDistintosMarcas("origem").map(v => `<option value="${escaparHtmlMarcas(v)}">${escaparHtmlMarcas(v)}</option>`).join("");
+    selectNicho.value = nichoAtual;
+    selectOrigem.value = origemAtual;
+  }
+
+  function renderLinhaMarcaHtml(item){
+    return `
+      <div class="marcas-linha marcas-grade-lista" data-id="${item.id}">
+        <div class="marcas-col-marca">
+          <span class="nome">${escaparHtmlMarcas(item.nome)}</span>
+          <span class="sub">${escaparHtmlMarcas(item.instagram || item.site || "")}</span>
+        </div>
+        <div class="marcas-col-seguidores">${item.seguidores ? Number(item.seguidores).toLocaleString("pt-BR") : "—"}</div>
+        <div class="marcas-col-contato">
+          <span>${escaparHtmlMarcas(item.nicho || "—")}</span>
+          <span>${escaparHtmlMarcas(item.origem || "—")}</span>
+        </div>
+        <div class="marcas-col-contato">
+          <span>${escaparHtmlMarcas(item.contato || "—")}</span>
+          <span>${escaparHtmlMarcas(item.email || item.whatsapp || "—")}</span>
+        </div>
+        <div style="position:relative;">
+          <button type="button" class="marcas-pill-status ${item.status}" data-acao="marcas-toggle-menu" data-id="${item.id}">${nomeStatusMarca(item.status)}</button>
+          <div class="marcas-menu-status">
+            ${MARCAS_STATUS.map(s => `<button type="button" data-acao="marcas-mudar-status" data-id="${item.id}" data-status="${s.chave}">${s.nome}</button>`).join("")}
+          </div>
+        </div>
+        <div class="marcas-col-acoes">
+          <button type="button" class="marcas-botao-icone" data-acao="marcas-editar" data-id="${item.id}" title="Editar">✎</button>
+          <button type="button" class="marcas-botao-icone" data-acao="marcas-remover" data-id="${item.id}" title="Excluir">✕</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function fecharMenusStatusMarcas(){
+    document.querySelectorAll(".marcas-menu-status.aberto").forEach(m => m.classList.remove("aberto"));
+  }
+
+  function reatarEventosLinhasMarcas(container){
+    container.querySelectorAll("[data-acao='marcas-toggle-menu']").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const menu = btn.nextElementSibling;
+        const jaAberto = menu.classList.contains("aberto");
+        fecharMenusStatusMarcas();
+        if (!jaAberto) menu.classList.add("aberto");
+      });
+    });
+    container.querySelectorAll("[data-acao='marcas-mudar-status']").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        mudarStatusMarca(btn.dataset.id, btn.dataset.status);
+      });
+    });
+    container.querySelectorAll("[data-acao='marcas-editar']").forEach(btn => {
+      btn.addEventListener("click", () => iniciarEdicaoMarca(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='marcas-remover']").forEach(btn => {
+      btn.addEventListener("click", () => removerMarca(btn.dataset.id));
+    });
+  }
+
+  function renderListaMarcas(){
+    const corpo = document.getElementById("marcasListaCorpo");
+    if (!corpo) return;
+
+    const termo = (document.getElementById("marcasBusca").value || "").trim().toLowerCase();
+    const filtroNicho = document.getElementById("marcasFiltroNicho").value;
+    const filtroOrigem = document.getElementById("marcasFiltroOrigem").value;
+    const filtroStatus = document.getElementById("marcasFiltroStatus").value;
+    const semFiltroAtivo = !termo && !filtroNicho && !filtroOrigem && !filtroStatus;
+
+    const filtradas = marcasCache
+      .filter(item =>
+        (!termo || (item.nome || "").toLowerCase().includes(termo)) &&
+        (!filtroNicho || item.nicho === filtroNicho) &&
+        (!filtroOrigem || item.origem === filtroOrigem) &&
+        (!filtroStatus || item.status === filtroStatus)
+      )
+      .sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+
+    corpo.innerHTML = filtradas.length
+      ? filtradas.map(renderLinhaMarcaHtml).join("")
+      : `<p class="ugc-vazio">${semFiltroAtivo ? "Nenhuma marca cadastrada ainda." : "Nenhuma marca encontrada com esses filtros."}</p>`;
+
+    reatarEventosLinhasMarcas(corpo);
+  }
+
+  function calcularContadoresMarcas(){
+    const elTotal = document.getElementById("marcasContadorTotal");
+    if (!elTotal) return;
+    elTotal.textContent = marcasCache.length;
+    MARCAS_STATUS.forEach(s => {
+      const el = document.getElementById(`marcasContador-${s.chave}`);
+      if (el) el.textContent = marcasCache.filter(m => m.status === s.chave).length;
+    });
+  }
+
+  function renderizarMarcas(){
+    preencherFiltrosMarcas();
+    renderListaMarcas();
+    calcularContadoresMarcas();
+  }
+
+  const MARCAS_NICHO_PADRAO = ["Moda", "Beleza", "Pet", "Tech", "Alimentação", "Saúde", "Casa e Decoração"];
+
+  function abrirFormNovaMarca(){
+    marcasEditandoId = null;
+    document.getElementById("marcasFormTitulo").textContent = "Nova marca";
+    ["marcasCampoNome", "marcasCampoSite", "marcasCampoInstagram", "marcasCampoSeguidores", "marcasCampoEmail", "marcasCampoWhatsapp", "marcasCampoContato", "marcasCampoNichoOutro", "marcasCampoOrigem", "marcasCampoObs"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
+    document.getElementById("marcasCampoNicho").value = "";
+    document.getElementById("marcasCampoNichoOutroWrap").classList.add("oculto");
+    document.getElementById("marcasCampoData").value = new Date().toISOString().slice(0, 10);
+    marcasStatusSelecionado = "a_enviar";
+    document.getElementById("marcasStatusToggle").querySelectorAll("span").forEach(s => s.classList.toggle("ativo", s.dataset.status === "a_enviar"));
+    document.getElementById("marcasFormNovo").classList.remove("oculto");
+  }
+
+  function fecharFormMarca(){
+    document.getElementById("marcasFormNovo").classList.add("oculto");
+    marcasEditandoId = null;
+  }
+
+  function iniciarEdicaoMarca(id){
+    const item = marcasCache.find(m => m.id === id);
+    if (!item) return;
+
+    marcasEditandoId = id;
+    document.getElementById("marcasFormTitulo").textContent = "Editar marca";
+    document.getElementById("marcasCampoNome").value = item.nome || "";
+    document.getElementById("marcasCampoSite").value = item.site || "";
+    document.getElementById("marcasCampoInstagram").value = item.instagram || "";
+    document.getElementById("marcasCampoSeguidores").value = item.seguidores || "";
+    document.getElementById("marcasCampoEmail").value = item.email || "";
+    document.getElementById("marcasCampoWhatsapp").value = item.whatsapp || "";
+    document.getElementById("marcasCampoContato").value = item.contato || "";
+    document.getElementById("marcasCampoOrigem").value = item.origem || "";
+    document.getElementById("marcasCampoData").value = item.data || new Date().toISOString().slice(0, 10);
+    document.getElementById("marcasCampoObs").value = item.observacao || "";
+
+    const selectNicho = document.getElementById("marcasCampoNicho");
+    if (item.nicho && !MARCAS_NICHO_PADRAO.includes(item.nicho)){
+      selectNicho.value = "Outro";
+      document.getElementById("marcasCampoNichoOutroWrap").classList.remove("oculto");
+      document.getElementById("marcasCampoNichoOutro").value = item.nicho;
+    } else {
+      selectNicho.value = item.nicho || "";
+      document.getElementById("marcasCampoNichoOutroWrap").classList.add("oculto");
+    }
+
+    marcasStatusSelecionado = item.status || "a_enviar";
+    document.getElementById("marcasStatusToggle").querySelectorAll("span").forEach(s => s.classList.toggle("ativo", s.dataset.status === marcasStatusSelecionado));
+
+    document.getElementById("marcasFormNovo").classList.remove("oculto");
+    document.getElementById("marcasFormNovo").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function salvarMarca(){
+    const nome = document.getElementById("marcasCampoNome").value.trim();
+    if (!nome){ alert("Digite o nome da marca."); return; }
+
+    const nichoSelect = document.getElementById("marcasCampoNicho").value;
+    const nicho = nichoSelect === "Outro" ? document.getElementById("marcasCampoNichoOutro").value.trim() : nichoSelect;
+    const seguidoresBruto = document.getElementById("marcasCampoSeguidores").value;
+
+    const payload = {
+      nome,
+      site: document.getElementById("marcasCampoSite").value.trim() || null,
+      instagram: document.getElementById("marcasCampoInstagram").value.trim() || null,
+      seguidores: seguidoresBruto ? parseInt(seguidoresBruto, 10) : null,
+      email: document.getElementById("marcasCampoEmail").value.trim() || null,
+      whatsapp: document.getElementById("marcasCampoWhatsapp").value.trim() || null,
+      contato: document.getElementById("marcasCampoContato").value.trim() || null,
+      nicho: nicho || null,
+      origem: document.getElementById("marcasCampoOrigem").value.trim() || null,
+      status: marcasStatusSelecionado,
+      observacao: document.getElementById("marcasCampoObs").value.trim() || null,
+      data: document.getElementById("marcasCampoData").value || new Date().toISOString().slice(0, 10)
+    };
+
+    try {
+      if (marcasEditandoId){
+        const { data, error } = await Auth.client.from("painel_marcas").update(payload).eq("id", marcasEditandoId).select();
+        if (error) throw error;
+        const idx = marcasCache.findIndex(m => m.id === marcasEditandoId);
+        if (idx !== -1) marcasCache[idx] = data[0];
+      } else {
+        const { data, error } = await Auth.client.from("painel_marcas").insert(payload).select();
+        if (error) throw error;
+        marcasCache = marcasCache.concat(data);
+      }
+      fecharFormMarca();
+      renderizarMarcas();
+    } catch (erro) {
+      console.error("Erro ao salvar marca:", erro);
+      alert("Não deu pra salvar a marca. Tenta de novo.");
+    }
+  }
+
+  async function removerMarca(id){
+    const item = marcasCache.find(m => m.id === id);
+    if (!item) return;
+    if (!confirm(`Excluir "${item.nome}" da sua base de prospecção?`)) return;
+
+    try {
+      const { error } = await Auth.client.from("painel_marcas").delete().eq("id", id);
+      if (error) throw error;
+      marcasCache = marcasCache.filter(m => m.id !== id);
+      renderizarMarcas();
+    } catch (erro) {
+      console.error("Erro ao excluir marca:", erro);
+      alert("Não deu pra excluir. Tenta de novo.");
+    }
+  }
+
+  // Troca de status em 1 clique, direto na lista — otimista na tela (muda antes de
+  // confirmar com o banco) e desfaz sozinho se o Supabase recusar a gravação
+  async function mudarStatusMarca(id, status){
+    fecharMenusStatusMarcas();
+    const item = marcasCache.find(m => m.id === id);
+    if (!item || item.status === status) return;
+
+    const statusAntes = item.status;
+    item.status = status;
+    renderizarMarcas();
+
+    try {
+      const { error } = await Auth.client.from("painel_marcas").update({ status }).eq("id", id);
+      if (error) throw error;
+    } catch (erro) {
+      console.error("Erro ao mudar status da marca:", erro);
+      item.status = statusAntes;
+      renderizarMarcas();
+      alert("Não deu pra salvar o novo status. Tenta de novo.");
+    }
+  }
+
+  // ---------- Importar CSV ----------
+  // Cabeçalhos aceitos (sem acento, minúsculo) e pra qual campo da tabela cada um mapeia.
+  // Assim ela pode exportar de qualquer planilha (Excel, Google Sheets, Notion) sem
+  // precisar renomear as colunas do jeito exato do banco.
+  const MARCAS_CSV_MAPA = {
+    "nome": "nome", "marca": "nome", "nome da marca": "nome",
+    "site": "site", "website": "site",
+    "instagram": "instagram", "insta": "instagram",
+    "seguidores": "seguidores", "followers": "seguidores",
+    "email": "email", "e-mail": "email",
+    "whatsapp": "whatsapp", "telefone": "whatsapp", "fone": "whatsapp", "celular": "whatsapp",
+    "contato": "contato", "pessoa de contato": "contato", "pessoa": "contato",
+    "nicho": "nicho",
+    "origem": "origem", "onde encontrei": "origem", "onde eu encontrei": "origem",
+    "status": "status",
+    "observacao": "observacao", "observação": "observacao", "obs": "observacao", "notas": "observacao",
+    "data": "data"
+  };
+
+  function normalizarChaveCsv(texto){
+    return String(texto || "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
+  }
+
+  function detectarDelimitadorCsv(primeiraLinha){
+    const virgulas = (primeiraLinha.match(/,/g) || []).length;
+    const pontoVirgulas = (primeiraLinha.match(/;/g) || []).length;
+    return pontoVirgulas > virgulas ? ";" : ",";
+  }
+
+  // Parser simples de CSV: respeita campos entre aspas (inclusive com o delimitador
+  // dentro deles) mas não cobre quebra de linha dentro de um campo — suficiente pra
+  // exportação padrão de Excel/Sheets, que é o caso de uso real aqui.
+  function dividirLinhaCsv(linha, delimitador){
+    const campos = [];
+    let atual = "";
+    let dentroAspas = false;
+    for (let i = 0; i < linha.length; i++){
+      const c = linha[i];
+      if (dentroAspas){
+        if (c === '"'){
+          if (linha[i + 1] === '"'){ atual += '"'; i++; }
+          else dentroAspas = false;
+        } else atual += c;
+      } else if (c === '"'){
+        dentroAspas = true;
+      } else if (c === delimitador){
+        campos.push(atual.trim());
+        atual = "";
+      } else {
+        atual += c;
+      }
+    }
+    campos.push(atual.trim());
+    return campos;
+  }
+
+  function parseCsvMarcas(texto){
+    const semBom = texto.charCodeAt(0) === 0xFEFF ? texto.slice(1) : texto;
+    const linhas = semBom.split(/\r\n|\n|\r/).filter(l => l.trim() !== "");
+    if (linhas.length < 2) return [];
+
+    const delimitador = detectarDelimitadorCsv(linhas[0]);
+    const cabecalho = dividirLinhaCsv(linhas[0], delimitador).map(normalizarChaveCsv);
+
+    return linhas.slice(1).map(linha => {
+      const campos = dividirLinhaCsv(linha, delimitador);
+      const registro = {};
+      cabecalho.forEach((chaveCsv, idx) => {
+        const chaveDestino = MARCAS_CSV_MAPA[chaveCsv];
+        if (chaveDestino && campos[idx]) registro[chaveDestino] = campos[idx];
+      });
+      return registro;
+    });
+  }
+
+  async function importarCsvMarcas(arquivo){
+    const texto = await arquivo.text();
+    const brutos = parseCsvMarcas(texto);
+
+    let ignoradas = 0;
+    const paraInserir = [];
+    brutos.forEach(r => {
+      if (!r.nome){ ignoradas++; return; }
+      const statusBruto = normalizarChaveCsv(r.status);
+      const statusValido = MARCAS_STATUS.find(s => s.chave === statusBruto || normalizarChaveCsv(s.nome) === statusBruto);
+      const seguidoresNum = r.seguidores ? parseInt(String(r.seguidores).replace(/[^\d]/g, ""), 10) : NaN;
+
+      paraInserir.push({
+        nome: r.nome,
+        site: r.site || null,
+        instagram: r.instagram || null,
+        seguidores: Number.isFinite(seguidoresNum) ? seguidoresNum : null,
+        email: r.email || null,
+        whatsapp: r.whatsapp || null,
+        contato: r.contato || null,
+        nicho: r.nicho || null,
+        origem: r.origem || null,
+        status: statusValido ? statusValido.chave : "a_enviar",
+        observacao: r.observacao || null,
+        data: r.data && /^\d{4}-\d{2}-\d{2}$/.test(r.data) ? r.data : new Date().toISOString().slice(0, 10)
+      });
+    });
+
+    if (!paraInserir.length){
+      alert('Nenhuma marca válida encontrada no arquivo. Confira se tem uma coluna "nome" (ou "marca") preenchida.');
+      return;
+    }
+
+    try {
+      const TAMANHO_BLOCO = 500; // evita mandar um arquivo gigante numa chamada só
+      for (let i = 0; i < paraInserir.length; i += TAMANHO_BLOCO){
+        const bloco = paraInserir.slice(i, i + TAMANHO_BLOCO);
+        const { data, error } = await Auth.client.from("painel_marcas").insert(bloco).select();
+        if (error) throw error;
+        marcasCache = marcasCache.concat(data);
+      }
+      renderizarMarcas();
+      alert(`${paraInserir.length} marca(s) importada(s) com sucesso.${ignoradas ? ` ${ignoradas} linha(s) ignorada(s) por não ter nome.` : ""}`);
+    } catch (erro) {
+      console.error("Erro ao importar CSV de marcas:", erro);
+      alert("Não deu pra importar o arquivo. Confira se ele é mesmo um CSV e tenta de novo.");
+    }
   }
 
   function renderizarClientes(){

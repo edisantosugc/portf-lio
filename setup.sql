@@ -563,6 +563,43 @@ create policy "Usuaria autenticada gerencia suas abordagens"
 grant select, insert, update, delete on public.painel_abordagens to authenticated;
 
 -- =====================================================================
+-- BASE DE PROSPECÇÃO (aba "Marcas", dentro de Abordagens)
+-- Marcas que ainda não viraram abordagem de verdade — lista de prospecção livre,
+-- com status próprio (a_enviar → enviado → respondeu → proposta → fechado / sem_interesse).
+-- =====================================================================
+create table if not exists public.painel_marcas (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  site text,
+  instagram text,
+  seguidores integer,
+  email text,
+  whatsapp text,
+  contato text,                         -- pessoa de contato
+  nicho text,
+  origem text,                          -- onde a marca foi encontrada
+  status text not null default 'a_enviar' check (status in ('a_enviar', 'enviado', 'respondeu', 'proposta', 'fechado', 'sem_interesse')),
+  observacao text,
+  data date not null default current_date,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_marcas_status on public.painel_marcas (status);
+create index if not exists idx_painel_marcas_nicho on public.painel_marcas (nicho);
+
+alter table public.painel_marcas enable row level security;
+
+drop policy if exists "Usuaria autenticada gerencia suas marcas" on public.painel_marcas;
+create policy "Usuaria autenticada gerencia suas marcas"
+  on public.painel_marcas
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_marcas to authenticated;
+
+-- =====================================================================
 -- BLOCO DE NOTAS (aba "Ideias Criativas" do painel)
 -- Notas soltas coloridas, tipo post-it, pra anotar ideias/rascunhos/brainstorms rápido.
 -- =====================================================================
