@@ -66,6 +66,21 @@ create policy "Usuaria autenticada gerencia email_optout"
 
 grant select, insert, update, delete on public.email_optout to authenticated;
 
--- Atualiza o cache do Supabase pra reconhecer as tabelas novas na hora
+-- ---------------------------------------------------------------------
+-- 4) Liga Prospecção com Abordagens: todo e-mail enviado de verdade cria
+--    (ou atualiza) sozinho uma linha na aba Abordagens, sem cadastro manual.
+--    marca_origem_id é o que faz a ligação — sem ele, o painel teria que
+--    adivinhar por nome, o que quebra se duas marcas tiverem nomes parecidos.
+-- ---------------------------------------------------------------------
+alter table public.painel_abordagens add column if not exists marca_origem_id uuid references public.painel_marcas(id) on delete set null;
+create index if not exists idx_painel_abordagens_marca_origem on public.painel_abordagens (marca_origem_id);
+
+-- Novo status "follow_up": usado quando a Prospecção manda um segundo e-mail (ou mais)
+-- pra uma marca que já tinha sido abordada — atualiza a mesma linha em vez de duplicar.
+alter table public.painel_abordagens drop constraint if exists painel_abordagens_status_check;
+alter table public.painel_abordagens add constraint painel_abordagens_status_check
+  check (status in ('rascunho', 'realizada', 'follow_up', 'andamento', 'fechada', 'sem_retorno'));
+
+-- Atualiza o cache do Supabase pra reconhecer as tabelas/colunas novas na hora
 -- (sem isso, às vezes ele demora e o painel mostra "tabela não encontrada").
 NOTIFY pgrst, 'reload schema';

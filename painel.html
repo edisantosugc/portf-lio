@@ -4217,6 +4217,7 @@
               <div class="ugc-origem-toggle" id="abordagemStatusToggle">
                 <span class="ativo" data-status="rascunho">Rascunho</span>
                 <span data-status="realizada">Abordagem realizada</span>
+                <span data-status="follow_up">Follow up enviado</span>
                 <span data-status="andamento">Negociação em andamento</span>
                 <span data-status="fechada">Negociação fechada</span>
                 <span data-status="sem_retorno">Sem retorno</span>
@@ -5444,6 +5445,7 @@
   const ABORDAGEM_STATUS = [
     { chave: "rascunho", nome: "Rascunho" },
     { chave: "realizada", nome: "Abordagem realizada" },
+    { chave: "follow_up", nome: "Follow up enviado" },
     { chave: "andamento", nome: "Negociação em andamento" },
     { chave: "fechada", nome: "Negociação fechada" },
     { chave: "sem_retorno", nome: "Sem retorno" }
@@ -12391,10 +12393,10 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     return "andamento";
   }
 
-  // Follow up faz sentido enquanto ainda não teve resposta ("realizada") ou enquanto a
-  // negociação está rolando ("andamento") — não depois de fechada ou sem retorno.
+  // Follow up faz sentido enquanto ainda não teve resposta ("realizada"/"follow_up") ou
+  // enquanto a negociação está rolando ("andamento") — não depois de fechada ou sem retorno.
   function precisaFollowupAbordagem(status){
-    return status === "realizada" || status === "andamento";
+    return status === "realizada" || status === "follow_up" || status === "andamento";
   }
 
   // Enquanto o status é "Rascunho" ainda não existe abordagem de verdade, então mostra
@@ -14743,6 +14745,56 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     }
   }
 
+  // Conecta a Prospecção com a aba Abordagens: todo e-mail enviado de verdade também vira
+  // (ou atualiza) uma linha lá, sem precisar cadastrar na mão. Primeiro e-mail pra uma marca
+  // cria a abordagem ("Abordagem realizada", canal E-mail); um e-mail seguinte pra mesma
+  // marca (follow up) atualiza a MESMA linha pra "Follow up enviado" com a data de novo —
+  // nunca cria uma segunda linha. A ligação é pelo marca_origem_id, não pelo nome.
+  async function sincronizarAbordagemDaMarca(marcaId, assuntoPersonalizado){
+    const marca = marcasCache.find(m => m.id === marcaId);
+    if (!marca) return;
+
+    const hoje = new Date().toISOString().slice(0, 10);
+    const existente = abordagensCache.find(a => a.marca_origem_id === marcaId);
+
+    if (existente){
+      const dados = {
+        status: "follow_up",
+        data_abordagem: hoje,
+        data_followup: somarDias(hoje, DIAS_FOLLOWUP_ABORDAGEM),
+        followup_feito: false,
+        observacao: `Follow up por e-mail: ${assuntoPersonalizado}`
+      };
+      const { error } = await Auth.client.from("painel_abordagens").update(dados).eq("id", existente.id);
+      if (error){ console.error("Erro ao atualizar abordagem a partir da Prospecção:", error); return; }
+      Object.assign(existente, dados);
+    } else {
+      const dados = {
+        marca: marca.nome,
+        nicho: marca.nicho || null,
+        canal: "email",
+        canal_detalhe: marca.email || null,
+        status: "realizada",
+        data_abordagem: hoje,
+        data_followup: somarDias(hoje, DIAS_FOLLOWUP_ABORDAGEM),
+        followup_feito: false,
+        observacao: `E-mail de prospecção: ${assuntoPersonalizado}`,
+        marca_origem_id: marcaId
+      };
+      const { data, error } = await Auth.client.from("painel_abordagens").insert(dados).select();
+      if (error){ console.error("Erro ao criar abordagem a partir da Prospecção:", error); return; }
+      abordagensCache = abordagensCache.concat(data);
+    }
+    renderizarAbordagens();
+  }
+
+  async function sincronizarAbordagensProspeccao(destinatariosEnviados, assuntoTemplate){
+    for (const d of destinatariosEnviados){
+      if (!d.marcaId) continue;
+      await sincronizarAbordagemDaMarca(d.marcaId, trocarVariaveisProspeccao(assuntoTemplate, d.nome, d.marca));
+    }
+  }
+
   // Depois de um disparo (Resend ou a última marca do rascunho), marca como "enviado" +
   // data de hoje só quem ainda estava em "a_enviar" — nunca rebaixa quem já tinha avançado
   // (respondeu/proposta/fechado), pra não bagunçar o funil por ter reenviado uma campanha.
@@ -14827,7 +14879,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("prospeccaoBotaoTeste").disabled = true;
 
     let totalEnviados = 0, totalFalhas = 0, totalPulados = 0, cotaEsgotada = false;
-    const idsEnviadosComSucesso = [];
+    const destinatariosComSucesso = [];
 
     for (let i = 0; i < destinatarios.length; i += TAMANHO_LOTE){
       const lote = destinatarios.slice(i, i + TAMANHO_LOTE);
@@ -14845,7 +14897,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         // Só marca como enviada quem a função confirmou que recebeu de verdade — nunca o
         // lote inteiro, porque algumas dessas chamadas podem ter falhas/pulados misturados.
         const emailsConfirmados = new Set(data?.enviadosEmails || []);
-        lote.forEach(d => { if (emailsConfirmados.has(d.email)) idsEnviadosComSucesso.push(d.marcaId); });
+        lote.forEach(d => { if (emailsConfirmados.has(d.email)) destinatariosComSucesso.push(d); });
         if (data?.cotaEsgotada){ cotaEsgotada = true; break; }
       } catch (erroLote) {
         console.error("Erro num lote do disparo de prospecção:", erroLote);
@@ -14858,7 +14910,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("prospeccaoBotaoDisparar").disabled = false;
     document.getElementById("prospeccaoBotaoTeste").disabled = false;
 
-    await marcarMarcasComoEnviadasProspeccao(idsEnviadosComSucesso);
+    await marcarMarcasComoEnviadasProspeccao(destinatariosComSucesso.map(d => d.marcaId));
+    await sincronizarAbordagensProspeccao(destinatariosComSucesso, assunto);
     await recarregarEmailEnviosProspeccao();
     renderizarProspeccao();
 
@@ -14914,6 +14967,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     await marcarMarcasComoEnviadasProspeccao([destinatario.marcaId]);
 
     const assunto = trocarVariaveisProspeccao(document.getElementById("prospeccaoAssunto").value, destinatario.nome, destinatario.marca);
+    await sincronizarAbordagemDaMarca(destinatario.marcaId, assunto);
     const { error } = await Auth.client.from("email_envios").insert({ email: destinatario.email, assunto, status: "ok" });
     if (error) console.error("Erro ao registrar envio manual no histórico:", error);
     await recarregarEmailEnviosProspeccao();
