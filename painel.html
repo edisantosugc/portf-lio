@@ -5490,6 +5490,9 @@
     { chave: "fechado", nome: "Fechado" },
     { chave: "sem_interesse", nome: "Sem interesse" }
   ];
+  // EDITE AQUI se quiser mudar depois de quantos dias sem resposta uma marca "Enviado"
+  // entra no alerta de Follow Up (aba Marcas e opção de destinatário na Prospecção).
+  const DIAS_FOLLOWUP_MARCA = 7;
   function nomeStatusMarca(chave){
     const status = MARCAS_STATUS.find(s => s.chave === chave);
     return status ? status.nome : chave;
@@ -10830,7 +10833,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     briefing: "Mensagens",
     clientes: "Clientes",
     "ugc-creator": "Trabalhos",
-    negocio: "Financeiro UGC"
+    negocio: "Financeiro UGC",
+    "marcas-followup": "Marcas"
   };
 
   // Id do badge de cada grupo na barra lateral. "portfolio" e "briefing" ficam de
@@ -10888,6 +10892,11 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       rotulo: (n) => n === 1 ? "cliente pra reengajar" : "clientes pra reengajar"
     },
     {
+      grupo: "marcas-followup",
+      obter: obterAlertasFollowUpMarcas,
+      rotulo: (n) => n === 1 ? "marca esperando follow up" : "marcas esperando follow up"
+    },
+    {
       grupo: "ugc-creator",
       obter: obterAlertasTrafegoPago,
       rotulo: (n) => n === 1 ? "tráfego pago vencendo" : "tráfegos pagos vencendo"
@@ -10915,6 +10924,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   function navegarParaGrupoLembrete(grupo, itemMaisUrgente){
     if (grupo === "abordagem") return irParaAbordagem(itemMaisUrgente.id);
     if (grupo === "clientes") return irParaCliente(itemMaisUrgente.id);
+    if (grupo === "marcas-followup") return irParaMarcaFollowUp(itemMaisUrgente.id);
     if (grupo === "ugc-creator") return irParaTrabalhoUgc(itemMaisUrgente.id);
     if (grupo === "portfolio"){
       trocarAba("mensagens");
@@ -13178,6 +13188,35 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     return alertas;
   }
 
+  // Marcas em "Enviado" (já mandei, ainda sem resposta) há DIAS_FOLLOWUP_MARCA dias ou
+  // mais, contando a partir da data em que o e-mail foi marcado como enviado. Some sozinho
+  // do alerta assim que o status muda (respondeu, virou proposta, fechou ou perdeu interesse).
+  function obterAlertasFollowUpMarcas(){
+    const alertas = [];
+    marcasCache.forEach(marca => {
+      if (marca.status !== "enviado" || !marca.email || !marca.data) return;
+      const dias = diasDesde(marca.data);
+      if (dias >= DIAS_FOLLOWUP_MARCA){
+        alertas.push({ ...marca, diasSemRetorno: dias, diasParaVencer: -dias });
+      }
+    });
+    alertas.sort((a, b) => b.diasSemRetorno - a.diasSemRetorno);
+    return alertas;
+  }
+
+  function irParaMarcaFollowUp(id){
+    trocarAba("abordagem");
+    trocarSubAbaAbordagem("marcas");
+    requestAnimationFrame(() => {
+      const el = document.querySelector(`#marcasListaCorpo [data-id="${id}"]`);
+      if (el){
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ugc-linha-flash-atrasado");
+        setTimeout(() => el.classList.remove("ugc-linha-flash-atrasado"), 2200);
+      }
+    });
+  }
+
   function mensagemAlertaReengajamento(item){
     const meses = Math.floor(item.diasSemTrabalho / 30);
     return `Já fazem ${meses}+ meses sem novo trabalho fechado com ${item.nome_marca}. Bom momento pra reengajar.`;
@@ -14569,6 +14608,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     const modo = document.getElementById("prospeccaoSelectDestino").value;
     if (modo === "selecionadas") return marcasCache.filter(m => m.selecionada);
     if (modo === "todas") return marcasCache.slice();
+    if (modo === "followup") return obterAlertasFollowUpMarcas();
     if (modo && modo.startsWith("status:")) return marcasCache.filter(m => m.status === modo.slice(7));
     return [];
   }
@@ -14621,12 +14661,18 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
     const comEmail = marcasCache.filter(m => m.email);
     const selecionadasComEmail = comEmail.filter(m => m.selecionada).length;
-    const statusPresentes = MARCAS_STATUS.filter(s => comEmail.some(m => m.status === s.chave));
+    const followUpComEmail = obterAlertasFollowUpMarcas().filter(m => m.email).length;
+    // a_enviar e fechado sempre aparecem (mesmo com 0), com nome mais natural — os outros
+    // status só entram na lista quando já existir pelo menos uma marca com e-mail neles.
+    const statusPresentes = MARCAS_STATUS.filter(s => s.chave !== "a_enviar" && s.chave !== "fechado" && comEmail.some(m => m.status === s.chave));
 
     const opcoes = [
       { valor: "selecionadas", rotulo: `⭐ Só as marcas selecionadas (${selecionadasComEmail})` },
       { valor: "teste", rotulo: "🧪 Só pra mim (teste)" },
       { valor: "todas", rotulo: `Todas as marcas com e-mail (${comEmail.length})` },
+      { valor: "status:a_enviar", rotulo: `Marcas novas, nunca abordadas (${comEmail.filter(m => m.status === "a_enviar").length})` },
+      { valor: "followup", rotulo: `🔔 Follow up, sem retorno há ${DIAS_FOLLOWUP_MARCA}+ dias (${followUpComEmail})` },
+      { valor: "status:fechado", rotulo: `Marcas já trabalhadas, negócio fechado (${comEmail.filter(m => m.status === "fechado").length})` },
       ...statusPresentes.map(s => ({
         valor: `status:${s.chave}`,
         rotulo: `Só "${s.nome}" (${comEmail.filter(m => m.status === s.chave).length})`
