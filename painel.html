@@ -3008,10 +3008,15 @@
 
   .marcas-status-toggle{ flex-wrap:wrap; }
 
-  .marcas-grade-lista{ display:grid; grid-template-columns: 24px minmax(0,1.1fr) 85px 105px 105px 135px 140px 60px; align-items:center; gap:12px; }
+  .marcas-selecao-resumo{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:.84rem; font-weight:600; color:var(--grafite); }
+  .marcas-selecao-acoes{ display:flex; gap:10px; flex-wrap:wrap; }
+
+  .marcas-grade-lista{ display:grid; grid-template-columns: 20px 24px minmax(0,1.1fr) 85px 105px 105px 135px 140px 60px; align-items:center; gap:12px; }
 
   .marcas-lista-cartao{ padding:0; overflow:hidden; }
-  .marcas-linha{ display:grid; grid-template-columns: 24px minmax(0,1.1fr) 85px 105px 105px 135px 140px 60px; align-items:center; gap:12px; padding:13px 20px; border-bottom:1px solid var(--borda); font-size:.85rem; }
+  .marcas-linha{ display:grid; grid-template-columns: 20px 24px minmax(0,1.1fr) 85px 105px 105px 135px 140px 60px; align-items:center; gap:12px; padding:13px 20px; border-bottom:1px solid var(--borda); font-size:.85rem; }
+  .marcas-checkbox{ width:16px; height:16px; cursor:pointer; }
+  .marcas-checkbox:disabled{ cursor:not-allowed; opacity:.35; }
 
   .marcas-estrela{ background:none; border:none; cursor:pointer; font-size:1.05rem; color:var(--borda); line-height:1; padding:0; }
   .marcas-estrela.ativa{ color:var(--dourado); }
@@ -3083,10 +3088,117 @@
     .marcas-grade-lista{ display:none; }
     .marcas-linha{ grid-template-columns: 1fr; gap:8px; }
     .marcas-estrela{ justify-self:flex-start; font-size:1.3rem; }
+    .marcas-checkbox{ justify-self:flex-start; width:20px; height:20px; }
     .marcas-col-nicho, .marcas-col-origem{ white-space:normal; }
     .marcas-col-contato{ order:3; }
     .marcas-pill-status{ width:auto; justify-self:flex-start; }
     .marcas-col-acoes{ justify-content:flex-start; }
+  }
+
+  /* ===================== ABA PROSPECÇÃO (disparo de e-mails em massa) ===================== */
+  :root{ --azul-prospeccao: #2B5FA8; }
+
+  .prospeccao-vazio{ text-align:center; padding:40px 24px; }
+  .prospeccao-vazio h2{ margin-bottom:10px; }
+  .prospeccao-vazio p{ color:var(--texto-suave); max-width:420px; margin:0 auto 18px; line-height:1.6; }
+
+  .prospeccao-capa{
+    position:relative; overflow:hidden; border-radius:22px; padding:28px 30px;
+    background:linear-gradient(135deg, var(--coral), var(--coral-escuro)); color:var(--branco); margin-bottom:20px;
+  }
+  .prospeccao-capa::after{
+    content:""; position:absolute; right:-60px; top:-60px; width:220px; height:220px; border-radius:50%; background:rgba(255,255,255,.06);
+  }
+  .prospeccao-capa-topo{ display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap; position:relative; z-index:1; }
+  .prospeccao-capa-esquerda{ display:flex; gap:16px; align-items:flex-start; max-width:520px; }
+  .prospeccao-capa-icone{ width:46px; height:46px; border-radius:14px; background:rgba(255,255,255,.16); display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex-shrink:0; }
+  .prospeccao-capa-titulo h2{ font-size:1.45rem; color:var(--branco); }
+  .prospeccao-capa-titulo p{ font-size:.84rem; color:rgba(255,255,255,.82); margin-top:6px; line-height:1.5; }
+  .prospeccao-capa-numero{ text-align:right; flex-shrink:0; }
+  .prospeccao-capa-numero .valor{ font-family:'Fraunces',serif; font-size:2.4rem; line-height:1; font-variant-numeric:tabular-nums; }
+  .prospeccao-capa-numero .legenda{ font-size:.72rem; color:rgba(255,255,255,.78); margin-top:4px; }
+  .prospeccao-capa-tags{ display:flex; gap:8px; flex-wrap:wrap; margin-top:20px; position:relative; z-index:1; }
+  .prospeccao-capa-tag{ font-size:.7rem; font-weight:600; padding:6px 12px; border-radius:999px; background:rgba(255,255,255,.14); color:rgba(255,255,255,.92); border:1px solid rgba(255,255,255,.2); }
+
+  .prospeccao-cartoes{ display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:14px; margin-bottom:22px; }
+  .prospeccao-cartao-metrica{ background:var(--branco); border:1px solid var(--borda); border-radius:14px; padding:15px 17px 15px 19px; position:relative; overflow:hidden; }
+  .prospeccao-cartao-metrica::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--cor-cartao,var(--coral)); }
+  .prospeccao-cartao-metrica .valor{ font-family:'Fraunces',serif; font-size:1.8rem; color:var(--cor-cartao,var(--coral)); font-variant-numeric:tabular-nums; line-height:1; }
+  .prospeccao-cartao-metrica .rotulo{ font-size:.78rem; font-weight:600; color:var(--grafite); margin-top:6px; }
+  .prospeccao-cartao-metrica .contexto{ font-size:.7rem; color:var(--texto-suave); margin-top:3px; min-height:1em; }
+
+  .prospeccao-bloco-principal{ display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; }
+
+  .prospeccao-aviso-fonte{ font-size:.78rem; color:var(--texto-suave); background:var(--creme); border:1px solid var(--borda); border-radius:10px; padding:9px 12px; margin-bottom:16px; }
+  .prospeccao-aviso-fonte strong{ color:var(--coral); }
+
+  .prospeccao-contagem{ display:flex; gap:16px; flex-wrap:wrap; font-size:.8rem; color:var(--grafite); background:var(--creme); border-radius:10px; padding:10px 12px; margin-bottom:14px; }
+  .prospeccao-contagem b{ font-family:'Fraunces',serif; font-size:1rem; }
+  .prospeccao-contagem .fora{ color:var(--vermelho); }
+
+  .prospeccao-checkbox-linha{ display:flex; align-items:center; gap:8px; font-size:.8rem; color:var(--grafite); margin-bottom:16px; cursor:pointer; }
+
+  .prospeccao-toggle-envio{ display:flex; gap:6px; margin-bottom:16px; }
+  .prospeccao-toggle-envio button{ flex:1; padding:9px; border:1px solid var(--borda); border-radius:9px; background:var(--branco); font-family:'Outfit',sans-serif; font-weight:600; font-size:.78rem; color:var(--grafite); cursor:pointer; }
+  .prospeccao-toggle-envio button.ativo{ border-color:var(--coral); background:rgba(0,0,128,.06); color:var(--coral); }
+
+  .prospeccao-toggle-modos{ display:flex; gap:6px; margin-bottom:14px; background:var(--creme); padding:4px; border-radius:11px; }
+  .prospeccao-toggle-modos button{ flex:1; padding:8px; border:none; border-radius:8px; background:none; font-family:'Outfit',sans-serif; font-weight:600; font-size:.8rem; color:var(--texto-suave); cursor:pointer; }
+  .prospeccao-toggle-modos button.ativo{ background:var(--branco); color:var(--coral); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+
+  .prospeccao-campo-nota{ font-size:.72rem; color:var(--texto-suave); margin-top:5px; line-height:1.5; }
+  .prospeccao-campo-nota code{ background:var(--creme); border:1px solid var(--borda); border-radius:5px; padding:1px 5px; font-size:.7rem; }
+  .prospeccao-textarea-codigo{ font-family:'Courier New',monospace !important; font-size:.78rem !important; }
+  .prospeccao-link-modelo{ font-size:.76rem; color:var(--coral); font-weight:600; cursor:pointer; background:none; border:none; padding:0; margin-bottom:8px; display:inline-block; }
+
+  .prospeccao-botoes-envio{ display:flex; gap:10px; flex-wrap:wrap; margin-top:4px; }
+
+  .prospeccao-progresso{ margin-top:16px; }
+  .prospeccao-progresso-barra{ height:8px; border-radius:999px; background:var(--creme); overflow:hidden; }
+  .prospeccao-progresso-preenchido{ height:100%; background:var(--coral); width:0%; transition:width .2s ease; }
+  .prospeccao-progresso p{ font-size:.76rem; color:var(--texto-suave); margin-top:6px; }
+
+  .prospeccao-resultado{ margin-top:16px; background:var(--creme); border-radius:10px; padding:12px 14px; font-size:.84rem; line-height:1.7; }
+
+  .prospeccao-fila-rascunho{ margin-top:16px; border:1px solid var(--borda); border-radius:12px; padding:16px; }
+  .prospeccao-fila-topo{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:.8rem; color:var(--texto-suave); font-weight:600; }
+  .prospeccao-fila-assunto{ font-weight:700; font-size:.92rem; margin-bottom:8px; }
+  .prospeccao-fila-corpo{ white-space:pre-wrap; font-size:.84rem; line-height:1.6; color:var(--grafite); background:var(--creme); border-radius:9px; padding:12px 14px; max-height:220px; overflow-y:auto; margin-bottom:12px; }
+  .prospeccao-fila-botoes{ display:flex; gap:10px; flex-wrap:wrap; }
+
+  .prospeccao-previa-wrap{ position:sticky; top:16px; }
+  .prospeccao-previa-topo{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .prospeccao-previa-topo h3{ font-size:1.02rem; }
+  .prospeccao-palco{ background:#E4DED6; border-radius:18px; padding:26px 20px; display:flex; justify-content:center; }
+  .prospeccao-janela-email{ background:var(--branco); border-radius:14px; box-shadow:0 18px 40px rgba(30,26,20,.18); width:100%; max-width:440px; overflow:hidden; }
+  .prospeccao-janela-cabecalho{ padding:18px 20px 14px; border-bottom:1px solid var(--borda); display:flex; gap:12px; align-items:flex-start; }
+  .prospeccao-avatar{ width:38px; height:38px; border-radius:50%; background:var(--coral); color:var(--branco); display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:600; flex-shrink:0; }
+  .prospeccao-janela-assunto{ font-weight:700; font-size:.96rem; line-height:1.3; }
+  .prospeccao-janela-remetente{ font-size:.74rem; color:var(--texto-suave); margin-top:4px; }
+  .prospeccao-janela-corpo{ font-size:.85rem; line-height:1.7; color:var(--grafite); word-break:break-word; }
+  .prospeccao-janela-corpo a{ color:var(--coral); }
+  .prospeccao-janela-corpo .prospeccao-botao-email{ display:inline-block; margin-top:14px; background:var(--coral); color:var(--branco) !important; text-decoration:none; padding:10px 20px; border-radius:8px; font-weight:600; font-size:.82rem; }
+  .prospeccao-janela-rodape{ padding:12px 20px 18px; font-size:.66rem; color:var(--texto-suave); border-top:1px solid var(--borda); }
+  .prospeccao-nota-teste{ font-size:.74rem; color:var(--texto-suave); text-align:center; margin-top:12px; }
+
+  .prospeccao-modal-janela{ position:relative; max-width:560px; width:100%; max-height:88vh; overflow-y:auto; }
+  .prospeccao-modal-fechar{ position:absolute; top:-16px; right:-16px; background:var(--branco); color:var(--grafite); border:none; width:34px; height:34px; border-radius:50%; font-size:1rem; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.2); }
+
+  .prospeccao-tabela-historico{ width:100%; border-collapse:collapse; font-size:.82rem; }
+  .prospeccao-tabela-historico th{ text-align:left; font-size:.64rem; text-transform:uppercase; letter-spacing:.04em; color:var(--texto-suave); padding:8px 10px; border-bottom:1px solid var(--borda); }
+  .prospeccao-tabela-historico td{ padding:10px; border-bottom:1px solid var(--borda); }
+  .prospeccao-selo-ok{ color:var(--verde); font-weight:700; font-size:.76rem; }
+  .prospeccao-selo-erro{ color:var(--vermelho); font-weight:700; font-size:.76rem; }
+
+  @media (max-width: 900px){
+    .prospeccao-bloco-principal{ grid-template-columns:1fr; }
+    .prospeccao-previa-wrap{ position:static; }
+  }
+  @media (max-width: 640px){
+    .prospeccao-capa{ padding:22px 18px; }
+    .prospeccao-capa-topo{ flex-direction:column; }
+    .prospeccao-capa-numero{ text-align:left; }
+    .prospeccao-capa-numero .valor{ font-size:2rem; }
   }
 </style>
 </head>
@@ -3431,6 +3543,10 @@
         <svg viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
         Clientes
         <span class="badge-alerta-sidebar oculto" id="badgeAlertaClientes"></span>
+      </button>
+      <button class="menu-item" data-tab="prospeccao">
+        <svg viewBox="0 0 16 16"><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z"/></svg>
+        Prospecção
       </button>
       <button class="menu-item" data-tab="iara">
         <svg viewBox="0 0 16 16"><path d="M8 15c4.418 0 8-3.134 8-7s-3.582-7-8-7-8 3.134-8 7c0 1.76.743 3.37 1.97 4.6-.097 1.016-.417 2.13-.771 2.966-.079.186.074.394.273.362 2.256-.37 3.597-.938 4.18-1.234A9.06 9.06 0 0 0 8 15z"/></svg>
@@ -4297,8 +4413,17 @@
           </div>
         </div>
 
+        <div class="cartao marcas-selecao-resumo">
+          <span id="marcasSelecaoTexto">0 marcas selecionadas</span>
+          <div class="marcas-selecao-acoes">
+            <button type="button" class="btn-fantasma" id="marcasBotaoSelecionarFiltradas">Selecionar todas da lista</button>
+            <button type="button" class="btn-fantasma" id="marcasBotaoLimparSelecao">Limpar seleção</button>
+          </div>
+        </div>
+
         <div class="cartao ugc-lista-cartao marcas-lista-cartao" id="marcasListaContainer" style="position:relative;">
           <div class="ugc-cabecalho-lista marcas-grade-lista">
+            <span></span>
             <span></span>
             <span class="marcas-th">Marca<button type="button" class="marcas-filtro-btn" data-campo="nome" aria-label="Filtrar por marca">▾</button></span>
             <span class="marcas-th">Seguidores<button type="button" class="marcas-filtro-btn" data-campo="seguidores" aria-label="Filtrar por seguidores">▾</button></span>
@@ -4469,6 +4594,252 @@
         </div>
       </div>
     </section>
+
+    <!-- ===================== ABA: PROSPECÇÃO (disparo de e-mails em massa pras marcas) =====================
+         Os destinatários vêm sempre de painel_marcas (nunca um cadastro à parte). Dois jeitos
+         de mandar: pela Edge Function "enviar-emails" (via Resend, precisa da chave configurada
+         no Supabase) ou "Modo rascunho" (sem Resend nenhum — monta o e-mail e abre no Gmail,
+         um de cada vez). Ver prospeccaoModoEnvio/dispararProspeccao/enviarRascunhoAtual no <script>.
+         ===================== -->
+    <section id="painelProspeccao" class="painel-tab oculto">
+
+      <!-- Estado vazio: nenhuma marca com e-mail cadastrado ainda -->
+      <div class="cartao prospeccao-vazio oculto" id="prospeccaoSemEmail">
+        <h2>Sua base ainda não tem e-mail</h2>
+        <p>Pra mandar e-mails de prospecção, primeiro você precisa ter marcas com e-mail preenchido na aba Marcas — cadastre à mão ou importe a planilha.</p>
+        <button type="button" class="botao-add-tarefa" id="prospeccaoBotaoIrMarcas">Ir para Marcas</button>
+      </div>
+
+      <div id="prospeccaoConteudo">
+        <!-- ---------- CAPA ---------- -->
+        <div class="prospeccao-capa">
+          <div class="prospeccao-capa-topo">
+            <div class="prospeccao-capa-esquerda">
+              <div class="prospeccao-capa-icone">✉️</div>
+              <div class="prospeccao-capa-titulo">
+                <h2>Prospecção</h2>
+                <p>Manda seu e-mail de apresentação pra várias marcas da sua base de uma vez, cada uma recebendo com o nome dela.</p>
+              </div>
+            </div>
+            <div class="prospeccao-capa-numero">
+              <div class="valor dado-sensivel" id="prospeccaoTotalEnviados">—</div>
+              <div class="legenda">enviados até agora</div>
+            </div>
+          </div>
+          <div class="prospeccao-capa-tags">
+            <span class="prospeccao-capa-tag">teste antes sempre</span>
+            <span class="prospeccao-capa-tag">a chave vive no Supabase</span>
+            <span class="prospeccao-capa-tag">quem responde SAIR sai da lista</span>
+          </div>
+        </div>
+
+        <!-- ---------- CARTÕES ---------- -->
+        <div class="prospeccao-cartoes">
+          <div class="prospeccao-cartao-metrica" style="--cor-cartao:var(--coral)">
+            <div class="valor dado-sensivel" id="prospeccaoCardComEmail">—</div>
+            <div class="rotulo">Marcas com e-mail</div>
+            <div class="contexto" id="prospeccaoCardComEmailContexto"></div>
+          </div>
+          <div class="prospeccao-cartao-metrica" style="--cor-cartao:var(--azul-prospeccao)">
+            <div class="valor dado-sensivel" id="prospeccaoCardAEnviar">—</div>
+            <div class="rotulo">A enviar</div>
+            <div class="contexto">ainda não receberam nada</div>
+          </div>
+          <div class="prospeccao-cartao-metrica" style="--cor-cartao:var(--verde)">
+            <div class="valor dado-sensivel" id="prospeccaoCardRecebido">—</div>
+            <div class="rotulo">Já receberam</div>
+            <div class="contexto">e-mails entregues com sucesso</div>
+          </div>
+          <div class="prospeccao-cartao-metrica" style="--cor-cartao:var(--vermelho)">
+            <div class="valor dado-sensivel" id="prospeccaoCardFalhas">—</div>
+            <div class="rotulo">Falhas</div>
+            <div class="contexto">e-mail inválido ou recusado</div>
+          </div>
+          <div class="prospeccao-cartao-metrica" style="--cor-cartao:var(--dourado)">
+            <div class="valor dado-sensivel" id="prospeccaoCardDescadastrados">—</div>
+            <div class="rotulo">Descadastrados</div>
+            <div class="contexto">pediram pra não receber mais</div>
+          </div>
+        </div>
+
+        <!-- ---------- BLOCO PRINCIPAL: formulário + prévia ---------- -->
+        <div class="prospeccao-bloco-principal">
+          <div class="cartao">
+            <h3 style="margin-bottom:14px;">Escolher pra quem vai</h3>
+            <p class="prospeccao-aviso-fonte">📇 Os e-mails vêm da sua aba <strong>Marcas</strong>. Nenhum contato novo é cadastrado aqui.</p>
+
+            <div class="ugc-campo" style="margin-bottom:14px;">
+              <label>Destinatários</label>
+              <select id="prospeccaoSelectDestino"></select>
+            </div>
+
+            <div class="prospeccao-contagem" id="prospeccaoContagem"></div>
+
+            <label class="prospeccao-checkbox-linha">
+              <input type="checkbox" id="prospeccaoPularEnviados" checked>
+              Pular quem já recebeu este mesmo assunto
+            </label>
+
+            <div class="prospeccao-toggle-envio" id="prospeccaoToggleEnvio">
+              <button type="button" class="ativo" data-modo-envio="resend">📤 Enviar pelo Resend</button>
+              <button type="button" data-modo-envio="rascunho">✏️ Modo rascunho (sem Resend)</button>
+            </div>
+
+            <div class="prospeccao-toggle-modos" id="prospeccaoToggleCompositor">
+              <button type="button" class="ativo" data-modo-compositor="facil">Texto fácil</button>
+              <button type="button" data-modo-compositor="html">HTML</button>
+            </div>
+
+            <div class="ugc-campo" style="margin-bottom:14px;">
+              <label>Assunto</label>
+              <input type="text" id="prospeccaoAssunto" placeholder="Ex: {{nome}}, quero mostrar um trabalho pra {{marca}}">
+            </div>
+
+            <div class="ugc-campo" id="prospeccaoCampoFacil" style="margin-bottom:14px;">
+              <label>Texto do e-mail</label>
+              <textarea id="prospeccaoCorpoFacil" rows="9" placeholder="Oi {{nome}}, tudo bem? Uso {{nome}} e {{marca}} onde eu quiser que entre o nome."></textarea>
+              <p class="prospeccao-campo-nota">Use <code>{{nome}}</code> (primeiro nome do contato) e <code>{{marca}}</code> (nome da marca). Links que você escrever viram clicáveis sozinhos.</p>
+            </div>
+
+            <div class="ugc-campo oculto" id="prospeccaoCampoHtml" style="margin-bottom:14px;">
+              <button type="button" class="prospeccao-link-modelo" id="prospeccaoBotaoModelo">🎨 Começar do modelo pronto</button>
+              <label>HTML do e-mail</label>
+              <textarea id="prospeccaoCorpoHtml" rows="9" class="prospeccao-textarea-codigo" placeholder="Cole aqui o HTML pronto do seu e-mail"></textarea>
+              <p class="prospeccao-campo-nota">O que você colar aqui é exatamente o que sai. Se apagar o aviso de "SAIR", a gente avisa antes de disparar.</p>
+            </div>
+
+            <div class="ugc-form-grade" style="margin-bottom:14px;">
+              <div class="ugc-campo">
+                <label>Texto do botão (opcional)</label>
+                <input type="text" id="prospeccaoBotaoTexto" placeholder="Ex: Ver meu portfólio">
+              </div>
+              <div class="ugc-campo">
+                <label>Link do botão</label>
+                <input type="text" id="prospeccaoBotaoLink" placeholder="https://...">
+              </div>
+            </div>
+
+            <div class="prospeccao-botoes-envio">
+              <button type="button" class="btn-fantasma" id="prospeccaoBotaoTeste">🧪 Enviar teste pra mim</button>
+              <button type="button" class="botao-add-tarefa" id="prospeccaoBotaoDisparar">📨 Disparar</button>
+            </div>
+            <p class="prospeccao-campo-nota">Antes de disparar de verdade, uma janela confirma quantas marcas vão receber.</p>
+
+            <div class="prospeccao-progresso oculto" id="prospeccaoProgressoWrap">
+              <div class="prospeccao-progresso-barra"><div class="prospeccao-progresso-preenchido" id="prospeccaoProgressoPreenchido"></div></div>
+              <p id="prospeccaoProgressoTexto"></p>
+            </div>
+
+            <div class="prospeccao-resultado oculto" id="prospeccaoResultado"></div>
+
+            <!-- Fila do modo rascunho: uma marca por vez -->
+            <div class="prospeccao-fila-rascunho oculto" id="prospeccaoFilaRascunho"></div>
+          </div>
+
+          <!-- ---------- PRÉVIA ---------- -->
+          <div class="prospeccao-previa-wrap">
+            <div class="prospeccao-previa-topo">
+              <h3>Como vai chegar</h3>
+              <button type="button" class="btn-fantasma" id="prospeccaoBotaoTelaCheia">⤢ Ver em tela cheia</button>
+            </div>
+            <div class="prospeccao-palco">
+              <div class="prospeccao-janela-email">
+                <div class="prospeccao-janela-cabecalho">
+                  <div class="prospeccao-avatar">E</div>
+                  <div>
+                    <div class="prospeccao-janela-assunto" id="prospeccaoPreviaAssunto"></div>
+                    <div class="prospeccao-janela-remetente">Edilaine Santos · edilainesantosugc@gmail.com · para você</div>
+                  </div>
+                </div>
+                <div class="prospeccao-janela-corpo" id="prospeccaoPreviaCorpo"></div>
+                <div class="prospeccao-janela-rodape">Não quer mais receber estes e-mails? Responda com <strong>SAIR</strong>.</div>
+              </div>
+            </div>
+            <p class="prospeccao-nota-teste">Lembrete: manda o teste pra você mesma e abre no celular antes de disparar pra todo mundo.</p>
+          </div>
+        </div>
+
+        <!-- ---------- HISTÓRICO ---------- -->
+        <div class="cartao" style="margin-top:20px;">
+          <h3 style="margin-bottom:12px;">Histórico de envios</h3>
+          <div class="ugc-campo" style="max-width:280px; margin-bottom:14px;">
+            <input type="text" id="prospeccaoHistoricoBusca" placeholder="Buscar por e-mail...">
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="prospeccao-tabela-historico">
+              <thead><tr><th>E-mail</th><th>Assunto</th><th>Quando</th><th>Status</th></tr></thead>
+              <tbody id="prospeccaoHistoricoCorpo"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal: confirmar disparo -->
+    <div class="ugc-modal-overlay oculto" id="prospeccaoModalConfirmar" role="dialog" aria-modal="true" aria-labelledby="prospeccaoModalConfirmarTitulo">
+      <div class="cliente-modal-cartao" style="max-width:420px;">
+        <div class="cliente-modal-topo">
+          <h2 id="prospeccaoModalConfirmarTitulo">Confirmar disparo</h2>
+          <button type="button" class="cliente-modal-fechar" id="prospeccaoModalCancelar" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="cliente-modal-corpo">
+          <p id="prospeccaoModalConfirmarTexto"></p>
+          <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" class="btn-fantasma" id="prospeccaoModalCancelarBotao">Cancelar</button>
+            <button type="button" class="botao-add-tarefa" id="prospeccaoModalConfirmarBotao">Sim, disparar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: prévia em tela cheia -->
+    <div class="ugc-modal-overlay oculto" id="prospeccaoModalTelaCheia">
+      <div class="prospeccao-modal-janela">
+        <button type="button" class="prospeccao-modal-fechar" id="prospeccaoModalTelaCheiaFechar" aria-label="Fechar">✕</button>
+        <div class="prospeccao-janela-email">
+          <div class="prospeccao-janela-cabecalho">
+            <div class="prospeccao-avatar">E</div>
+            <div>
+              <div class="prospeccao-janela-assunto" id="prospeccaoPreviaAssuntoModal"></div>
+              <div class="prospeccao-janela-remetente">Edilaine Santos · edilainesantosugc@gmail.com · para você</div>
+            </div>
+          </div>
+          <div class="prospeccao-janela-corpo" id="prospeccaoPreviaCorpoModal"></div>
+          <div class="prospeccao-janela-rodape">Não quer mais receber estes e-mails? Responda com <strong>SAIR</strong>.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: aviso de rodapé SAIR removido do HTML -->
+    <div class="ugc-modal-overlay oculto" id="prospeccaoModalAvisoSair" role="dialog" aria-modal="true" aria-labelledby="prospeccaoModalAvisoSairTitulo">
+      <div class="cliente-modal-cartao" style="max-width:420px;">
+        <div class="cliente-modal-topo">
+          <h2 id="prospeccaoModalAvisoSairTitulo">Falta o aviso de descadastro</h2>
+        </div>
+        <div class="cliente-modal-corpo">
+          <p>O HTML que você colou não tem o aviso de "responda SAIR pra não receber mais". Todo e-mail de prospecção precisa desse aviso. Volta e adiciona antes de disparar.</p>
+          <div style="display:flex; justify-content:flex-end;">
+            <button type="button" class="botao-add-tarefa" id="prospeccaoModalAvisoSairFechar">Entendi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: perguntar se limpa a seleção depois do disparo -->
+    <div class="ugc-modal-overlay oculto" id="prospeccaoModalLimparSelecao" role="dialog" aria-modal="true" aria-labelledby="prospeccaoModalLimparSelecaoTitulo">
+      <div class="cliente-modal-cartao" style="max-width:420px;">
+        <div class="cliente-modal-topo">
+          <h2 id="prospeccaoModalLimparSelecaoTitulo">Limpar a seleção?</h2>
+        </div>
+        <div class="cliente-modal-corpo">
+          <p>O disparo terminou. Quer limpar as marcas selecionadas na aba Marcas, ou deixar marcadas pra mandar de novo depois?</p>
+          <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" class="btn-fantasma" id="prospeccaoManterSelecao">Manter selecionadas</button>
+            <button type="button" class="botao-add-tarefa" id="prospeccaoLimparSelecaoBotao">Limpar seleção</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ===================== ABA: IARA (assistente de IA) =====================
          5 sub-abas: Estudo de Marca, Abordagens, Roteiros UGC's, Roteiros
@@ -5142,6 +5513,15 @@ Regras:
 
 Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
+  // Estado da aba Prospecção: e-mails já enviados (email_envios) e quem pediu pra sair
+  // (email_optout), qual modo de envio (Resend ou rascunho/Gmail) e qual modo de escrever
+  // (texto fácil ou HTML) estão ativos, e a fila do modo rascunho (uma marca de cada vez).
+  let emailEnviosCache = [];
+  let emailOptoutCache = [];
+  let prospeccaoModoEnvio = "resend"; // "resend" | "rascunho"
+  let prospeccaoModoCompositor = "facil"; // "facil" | "html"
+  let prospeccaoFilaRascunhoAtual = [];
+
   // Estado da aba Ideias Criativas: notas do bloco de notas e o filtro de cor selecionado
   let notasCache = [];
   let notaFiltroCor = null; // null = mostra notas de todas as cores
@@ -5647,6 +6027,16 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         renderizarMarcas();
       } catch (erroMarcas) {
         console.error("Erro ao carregar/renderizar Marcas:", erroMarcas);
+      }
+      try {
+        // Isolado do carregamento principal: email_envios e email_optout só existem depois
+        // que disparo.sql for rodado no Supabase, então essa busca pode falhar sem travar o
+        // resto do painel — a aba Prospecção mostra o que der com o que já carregou.
+        emailEnviosCache = await comRetry(() => buscarTudo("email_envios"));
+        emailOptoutCache = await comRetry(() => buscarTudo("email_optout"));
+        renderizarProspeccao();
+      } catch (erroProspeccao) {
+        console.error("Erro ao carregar/renderizar Prospecção:", erroProspeccao);
       }
       try {
         // Isolado do carregamento principal: a tabela financas_contas_fixas_ocultas só
@@ -7655,6 +8045,9 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       if (marcasFiltroColunaAberta) fecharFiltroColunaMarcas();
     });
 
+    document.getElementById("marcasBotaoSelecionarFiltradas").addEventListener("click", selecionarTodasFiltradasMarcas);
+    document.getElementById("marcasBotaoLimparSelecao").addEventListener("click", limparSelecaoMarcas);
+
     document.getElementById("marcasBotaoImportar").addEventListener("click", () => {
       document.getElementById("marcasImportarInput").click();
     });
@@ -7681,6 +8074,60 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       botao.textContent = "✓ Copiado!";
       setTimeout(() => { botao.textContent = textoOriginal; }, 2000);
     });
+
+    // ---------- Prospecção (disparo de e-mails em massa pras marcas) ----------
+    document.getElementById("prospeccaoBotaoIrMarcas").addEventListener("click", () => {
+      trocarAba("abordagem");
+      trocarSubAbaAbordagem("marcas");
+    });
+
+    document.querySelectorAll("#prospeccaoToggleEnvio button").forEach(btn => {
+      btn.addEventListener("click", () => trocarModoEnvioProspeccao(btn.dataset.modoEnvio));
+    });
+    document.querySelectorAll("#prospeccaoToggleCompositor button").forEach(btn => {
+      btn.addEventListener("click", () => trocarModoCompositorProspeccao(btn.dataset.modoCompositor));
+    });
+
+    document.getElementById("prospeccaoSelectDestino").addEventListener("change", atualizarContagemProspeccao);
+    document.getElementById("prospeccaoPularEnviados").addEventListener("change", atualizarContagemProspeccao);
+    document.getElementById("prospeccaoAssunto").addEventListener("input", () => { atualizarContagemProspeccao(); atualizarPreviaProspeccao(); });
+    document.getElementById("prospeccaoCorpoFacil").addEventListener("input", atualizarPreviaProspeccao);
+    document.getElementById("prospeccaoCorpoHtml").addEventListener("input", atualizarPreviaProspeccao);
+    document.getElementById("prospeccaoBotaoTexto").addEventListener("input", atualizarPreviaProspeccao);
+    document.getElementById("prospeccaoBotaoLink").addEventListener("input", atualizarPreviaProspeccao);
+
+    document.getElementById("prospeccaoBotaoModelo").addEventListener("click", () => {
+      document.getElementById("prospeccaoCorpoHtml").value = construirHtmlEmailPadrao(
+        document.getElementById("prospeccaoCorpoFacil").value,
+        document.getElementById("prospeccaoBotaoTexto").value.trim(),
+        document.getElementById("prospeccaoBotaoLink").value.trim()
+      );
+      atualizarPreviaProspeccao();
+    });
+
+    document.getElementById("prospeccaoBotaoTeste").addEventListener("click", enviarTesteProspeccao);
+    document.getElementById("prospeccaoBotaoDisparar").addEventListener("click", abrirModalConfirmarProspeccao);
+
+    document.getElementById("prospeccaoModalCancelar").addEventListener("click", () => document.getElementById("prospeccaoModalConfirmar").classList.add("oculto"));
+    document.getElementById("prospeccaoModalCancelarBotao").addEventListener("click", () => document.getElementById("prospeccaoModalConfirmar").classList.add("oculto"));
+    document.getElementById("prospeccaoModalConfirmarBotao").addEventListener("click", () => {
+      document.getElementById("prospeccaoModalConfirmar").classList.add("oculto");
+      if (prospeccaoModoEnvio === "rascunho") iniciarFilaRascunhoProspeccao();
+      else dispararProspeccao();
+    });
+
+    document.getElementById("prospeccaoBotaoTelaCheia").addEventListener("click", () => document.getElementById("prospeccaoModalTelaCheia").classList.remove("oculto"));
+    document.getElementById("prospeccaoModalTelaCheiaFechar").addEventListener("click", () => document.getElementById("prospeccaoModalTelaCheia").classList.add("oculto"));
+
+    document.getElementById("prospeccaoModalAvisoSairFechar").addEventListener("click", () => document.getElementById("prospeccaoModalAvisoSair").classList.add("oculto"));
+
+    document.getElementById("prospeccaoManterSelecao").addEventListener("click", () => document.getElementById("prospeccaoModalLimparSelecao").classList.add("oculto"));
+    document.getElementById("prospeccaoLimparSelecaoBotao").addEventListener("click", async () => {
+      document.getElementById("prospeccaoModalLimparSelecao").classList.add("oculto");
+      await executarLimpezaSelecaoMarcas();
+    });
+
+    document.getElementById("prospeccaoHistoricoBusca").addEventListener("input", renderizarHistoricoProspeccao);
 
     // ---------- Bloco de Notas ----------
     document.getElementById("notaBotaoNova").addEventListener("click", criarItemDaAbaAtual);
@@ -7916,6 +8363,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("painelNegocio").classList.toggle("oculto", aba !== "negocio");
     document.getElementById("painelAbordagem").classList.toggle("oculto", aba !== "abordagem");
     document.getElementById("painelClientes").classList.toggle("oculto", aba !== "clientes");
+    document.getElementById("painelProspeccao").classList.toggle("oculto", aba !== "prospeccao");
     document.getElementById("painelIara").classList.toggle("oculto", aba !== "iara");
     document.getElementById("painelUgcCreator").classList.toggle("oculto", aba !== "ugc-creator");
     document.getElementById("painelProjetos").classList.toggle("oculto", aba !== "projetos");
@@ -7923,13 +8371,17 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("painelInstagram").classList.toggle("oculto", aba !== "instagram");
     document.getElementById("painelAdministrativo").classList.toggle("oculto", aba !== "administrativo");
 
-    const titulos = { principal: "Dashboard", portfolio: "Portfólio", agenda: "Agenda", mensagens: "Mensagens", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo" };
+    const titulos = { principal: "Dashboard", portfolio: "Portfólio", agenda: "Agenda", mensagens: "Mensagens", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", prospeccao: "Prospecção", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo" };
     document.getElementById("tituloTopo").innerHTML = titulos[aba];
 
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
-    const abasSemFiltroPeriodo = ["agenda", "mensagens", "financas", "negocio", "abordagem", "clientes", "iara", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo"];
+    const abasSemFiltroPeriodo = ["agenda", "mensagens", "financas", "negocio", "abordagem", "clientes", "prospeccao", "iara", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo"];
     document.getElementById("filtroPeriodo").classList.toggle("oculto", abasSemFiltroPeriodo.includes(aba));
     document.getElementById("ultimaAtualizacaoFinancas").classList.toggle("oculto", aba !== "financas");
+
+    // Sempre que entra na Prospecção, atualiza os números (a seleção pode ter mudado na
+    // aba Marcas desde a última vez que essa aba foi vista).
+    if (aba === "prospeccao") renderizarProspeccao();
 
     // Lembra a aba atual pra continuar nela se a página for atualizada (F5)
     localStorage.setItem("painelAbaAtiva", aba);
@@ -13552,6 +14004,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   function renderLinhaMarcaHtml(item){
     return `
       <div class="marcas-linha marcas-grade-lista" data-id="${item.id}">
+        <input type="checkbox" class="marcas-checkbox" data-acao="marcas-toggle-selecao" data-id="${item.id}" ${item.selecionada ? "checked" : ""} ${item.email ? "" : "disabled"} title="${item.email ? "Selecionar pra prospecção" : "Sem e-mail cadastrado"}">
         <button type="button" class="marcas-estrela ${item.prioridade ? "ativa" : ""}" data-acao="marcas-toggle-prioridade" data-id="${item.id}" title="${item.prioridade ? "Tirar prioridade" : "Marcar como prioridade"}">${item.prioridade ? "★" : "☆"}</button>
         <div class="marcas-col-marca">
           <span class="nome">${escaparHtmlMarcas(item.nome)}</span>
@@ -13583,6 +14036,10 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   }
 
   function reatarEventosLinhasMarcas(container){
+    container.querySelectorAll("[data-acao='marcas-toggle-selecao']").forEach(chk => {
+      chk.addEventListener("click", (e) => e.stopPropagation());
+      chk.addEventListener("change", () => alternarSelecaoMarca(chk.dataset.id, chk.checked));
+    });
     container.querySelectorAll("[data-acao='marcas-toggle-prioridade']").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -13612,14 +14069,11 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     });
   }
 
-  function renderListaMarcas(){
-    const corpo = document.getElementById("marcasListaCorpo");
-    if (!corpo) return;
-
+  // Reaproveitada pela lista (renderListaMarcas) e pelo atalho "Selecionar todas da lista"
+  // (selecionarTodasFiltradasMarcas), pra nunca os dois lados divergirem sobre o que "está na tela".
+  function obterMarcasFiltradas(){
     const termo = (document.getElementById("marcasBusca").value || "").trim().toLowerCase();
-    const semFiltroAtivo = !termo && Object.values(marcasFiltrosColuna).every(f => !f);
-
-    const filtradas = marcasCache
+    return marcasCache
       .filter(item =>
         (!termo || (item.nome || "").toLowerCase().includes(termo)) &&
         passaFiltrosColunaMarcas(item)
@@ -13630,6 +14084,15 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         if (diferencaPrioridade !== 0) return diferencaPrioridade;
         return (b.created_at || "").localeCompare(a.created_at || "");
       });
+  }
+
+  function renderListaMarcas(){
+    const corpo = document.getElementById("marcasListaCorpo");
+    if (!corpo) return;
+
+    const termo = (document.getElementById("marcasBusca").value || "").trim().toLowerCase();
+    const semFiltroAtivo = !termo && Object.values(marcasFiltrosColuna).every(f => !f);
+    const filtradas = obterMarcasFiltradas();
 
     corpo.innerHTML = filtradas.length
       ? filtradas.map(renderLinhaMarcaHtml).join("")
@@ -13657,6 +14120,77 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     }
   }
 
+  // Marca/desmarca uma marca pra prospecção. Otimista na tela, com um pequeno debounce por
+  // marca (300ms): clicar em várias caixinhas rápido não dispara uma chamada por clique.
+  const marcasSelecaoTimers = {};
+  async function alternarSelecaoMarca(id, selecionada){
+    const item = marcasCache.find(m => m.id === id);
+    if (!item) return;
+
+    item.selecionada = selecionada;
+    renderResumoSelecaoMarcas();
+
+    clearTimeout(marcasSelecaoTimers[id]);
+    marcasSelecaoTimers[id] = setTimeout(async () => {
+      const { error } = await Auth.client.from("painel_marcas").update({ selecionada }).eq("id", id);
+      if (error){
+        console.error("Erro ao salvar seleção da marca:", error);
+        item.selecionada = !selecionada;
+        renderListaMarcas();
+        renderResumoSelecaoMarcas();
+        alert("Não deu pra salvar a seleção. Tenta de novo.");
+      }
+    }, 300);
+  }
+
+  // Seleciona (em lote) todas as marcas com e-mail que estão visíveis com os filtros/busca
+  // atuais — não mexe nas que já estavam selecionadas fora do filtro do momento.
+  async function selecionarTodasFiltradasMarcas(){
+    const alvos = obterMarcasFiltradas().filter(m => m.email && !m.selecionada);
+    if (!alvos.length) return;
+
+    alvos.forEach(m => { m.selecionada = true; });
+    renderListaMarcas();
+    renderResumoSelecaoMarcas();
+
+    const { error } = await Auth.client.from("painel_marcas").update({ selecionada: true }).in("id", alvos.map(m => m.id));
+    if (error){
+      console.error("Erro ao selecionar marcas da lista:", error);
+      alert("Não deu pra salvar a seleção. Tenta de novo.");
+    }
+  }
+
+  // Usada pelo botão "Limpar seleção" (pede confirmação) e por executarLimpezaSelecaoMarcas
+  // (usada depois de um disparo, onde o modal de "limpar seleção?" já É a confirmação).
+  async function executarLimpezaSelecaoMarcas(){
+    const selecionadas = marcasCache.filter(m => m.selecionada);
+    if (!selecionadas.length) return;
+
+    selecionadas.forEach(m => { m.selecionada = false; });
+    renderListaMarcas();
+    renderResumoSelecaoMarcas();
+
+    const { error } = await Auth.client.from("painel_marcas").update({ selecionada: false }).in("id", selecionadas.map(m => m.id));
+    if (error){
+      console.error("Erro ao limpar seleção de marcas:", error);
+      alert("Não deu pra limpar a seleção. Tenta de novo.");
+    }
+  }
+
+  async function limparSelecaoMarcas(){
+    const selecionadas = marcasCache.filter(m => m.selecionada);
+    if (!selecionadas.length) return;
+    if (!confirm(`Limpar a seleção de ${selecionadas.length} marca(s)?`)) return;
+    await executarLimpezaSelecaoMarcas();
+  }
+
+  function renderResumoSelecaoMarcas(){
+    const el = document.getElementById("marcasSelecaoTexto");
+    if (!el) return;
+    const total = marcasCache.filter(m => m.selecionada).length;
+    el.textContent = total === 1 ? "1 marca selecionada" : `${total} marcas selecionadas`;
+  }
+
   function calcularContadoresMarcas(){
     const elTotal = document.getElementById("marcasContadorTotal");
     if (!elTotal) return;
@@ -13671,6 +14205,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     renderListaMarcas();
     calcularContadoresMarcas();
     atualizarIndicadoresFiltroMarcas();
+    renderResumoSelecaoMarcas();
   }
 
   const MARCAS_NICHO_PADRAO = ["Moda", "Beleza", "Pet", "Tech", "Alimentação", "Saúde", "Casa e Decoração"];
@@ -13934,6 +14469,414 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     } catch (erro) {
       console.error("Erro ao importar CSV de marcas:", erro);
       alert(`Não deu pra importar o arquivo.\n\nMotivo: ${erro?.message || erro}\n\nConfira o arquivo e tenta de novo.`);
+    }
+  }
+
+  // ===================== ABA PROSPECÇÃO (disparo de e-mails em massa pras marcas) =====================
+  const PROSPECCAO_EMAIL_TESTE = "edilainesantosugc@gmail.com";
+
+  function trocarVariaveisProspeccao(texto, nome, marca){
+    return (texto || "").replaceAll("{{nome}}", nome || "").replaceAll("{{marca}}", marca || "");
+  }
+
+  // "{{nome}}" é o primeiro nome de quem responde pela marca (campo "contato"); se não tiver
+  // ninguém cadastrado, cai pro primeiro nome/palavra do nome da marca mesmo, pra nunca
+  // mandar um "Oi , tudo bem?" com o nome em branco.
+  function primeiroNomeProspeccao(marca){
+    const fonte = (marca.contato || marca.nome || "").trim();
+    return fonte ? fonte.split(/\s+/)[0] : "";
+  }
+
+  // Vira link clicável sozinho qualquer endereço "http(s)://..." solto no texto — roda
+  // DEPOIS de escapar o HTML, então funciona em cima do texto já seguro.
+  function autoLinkifyProspeccao(textoEscapado){
+    return textoEscapado.replace(/(https?:\/\/[^\s<]+)/g, url => {
+      const limpo = url.replace(/[.,;:!?)]+$/, "");
+      const sobra = url.slice(limpo.length);
+      return `<a href="${limpo}">${limpo}</a>${sobra}`;
+    });
+  }
+
+  // Monta o HTML final do modo "Texto fácil": fundo branco, letra escura, largura máxima de
+  // 560px, botão opcional e o rodapé de descadastro — o mesmo modelo que "Começar do modelo
+  // pronto" cola no modo HTML, pra ela partir daqui em vez do zero.
+  function construirHtmlEmailPadrao(corpoTexto, botaoTexto, botaoLink){
+    const corpoHtml = autoLinkifyProspeccao(escaparHtmlMarcas(corpoTexto || "")).replace(/\n/g, "<br>");
+    const botaoHtml = (botaoTexto && botaoLink)
+      ? `<p style="margin:24px 0 0;"><a href="${escaparHtmlMarcas(botaoLink)}" style="display:inline-block;background:#000080;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">${escaparHtmlMarcas(botaoTexto)}</a></p>`
+      : "";
+    return `<div style="max-width:560px;margin:0 auto;padding:24px;background:#ffffff;color:#2A2622;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;">
+<p style="margin:0 0 16px;">${corpoHtml}</p>${botaoHtml}
+<p style="margin:32px 0 0;font-size:12px;color:#6B645C;border-top:1px solid #CCC2BC;padding-top:14px;">Não quer mais receber estes e-mails? Responda com SAIR.</p>
+</div>`;
+  }
+
+  function obterHtmlFinalProspeccao(){
+    if (prospeccaoModoCompositor === "html") return document.getElementById("prospeccaoCorpoHtml").value;
+    return construirHtmlEmailPadrao(
+      document.getElementById("prospeccaoCorpoFacil").value,
+      document.getElementById("prospeccaoBotaoTexto").value.trim(),
+      document.getElementById("prospeccaoBotaoLink").value.trim()
+    );
+  }
+
+  // No modo HTML, o que ela colou vai exatamente do jeito que está — por isso confere se o
+  // aviso de descadastro não foi apagado sem querer antes de deixar disparar.
+  function validarAvisoSairProspeccao(html){
+    if (prospeccaoModoCompositor === "html" && !/sair/i.test(html)){
+      document.getElementById("prospeccaoModalAvisoSair").classList.remove("oculto");
+      return false;
+    }
+    return true;
+  }
+
+  function atualizarPreviaProspeccao(){
+    const nomeExemplo = "Camila";
+    const marcaExemplo = "Kora Natural";
+    const assuntoPreview = trocarVariaveisProspeccao(document.getElementById("prospeccaoAssunto").value, nomeExemplo, marcaExemplo);
+    const corpoTrocado = prospeccaoModoCompositor === "html"
+      ? trocarVariaveisProspeccao(document.getElementById("prospeccaoCorpoHtml").value, nomeExemplo, marcaExemplo)
+      : construirHtmlEmailPadrao(
+          trocarVariaveisProspeccao(document.getElementById("prospeccaoCorpoFacil").value, nomeExemplo, marcaExemplo),
+          document.getElementById("prospeccaoBotaoTexto").value.trim(),
+          document.getElementById("prospeccaoBotaoLink").value.trim()
+        );
+
+    document.getElementById("prospeccaoPreviaAssunto").textContent = assuntoPreview || "(sem assunto ainda)";
+    document.getElementById("prospeccaoPreviaAssuntoModal").textContent = assuntoPreview || "(sem assunto ainda)";
+    document.getElementById("prospeccaoPreviaCorpo").innerHTML = corpoTrocado;
+    document.getElementById("prospeccaoPreviaCorpoModal").innerHTML = corpoTrocado;
+  }
+
+  function trocarModoCompositorProspeccao(modo){
+    prospeccaoModoCompositor = modo;
+    document.querySelectorAll("#prospeccaoToggleCompositor button").forEach(b => b.classList.toggle("ativo", b.dataset.modoCompositor === modo));
+    document.getElementById("prospeccaoCampoFacil").classList.toggle("oculto", modo !== "facil");
+    document.getElementById("prospeccaoCampoHtml").classList.toggle("oculto", modo !== "html");
+    atualizarPreviaProspeccao();
+  }
+
+  function trocarModoEnvioProspeccao(modo){
+    prospeccaoModoEnvio = modo;
+    document.querySelectorAll("#prospeccaoToggleEnvio button").forEach(b => b.classList.toggle("ativo", b.dataset.modoEnvio === modo));
+    document.getElementById("prospeccaoBotaoTeste").classList.toggle("oculto", modo === "rascunho");
+    document.getElementById("prospeccaoBotaoDisparar").textContent = modo === "rascunho" ? "📝 Montar fila de rascunhos" : "📨 Disparar";
+  }
+
+  // O "universo" antes de exigir e-mail (usado só pra saber quantas ficaram de fora por
+  // não ter e-mail) — obterDestinatariosProspeccao() já filtra por e-mail de verdade.
+  function obterMarcasBaseProspeccao(){
+    const modo = document.getElementById("prospeccaoSelectDestino").value;
+    if (modo === "selecionadas") return marcasCache.filter(m => m.selecionada);
+    if (modo === "todas") return marcasCache.slice();
+    if (modo && modo.startsWith("status:")) return marcasCache.filter(m => m.status === modo.slice(7));
+    return [];
+  }
+
+  // Lista final de quem recebe: com e-mail, sem duplicar e-mail repetido (agência que
+  // atende mais de uma marca), sem quem pediu SAIR e (se marcado) sem quem já recebeu
+  // este mesmo assunto.
+  function obterDestinatariosProspeccao(){
+    const modo = document.getElementById("prospeccaoSelectDestino").value;
+    if (modo === "teste") return [{ email: PROSPECCAO_EMAIL_TESTE, nome: "Edilaine", marca: "Teste", marcaId: null }];
+
+    const universo = obterMarcasBaseProspeccao().filter(m => m.email);
+    const assuntoAtual = document.getElementById("prospeccaoAssunto").value.trim();
+    const pularEnviados = document.getElementById("prospeccaoPularEnviados").checked;
+    const emailsJaEnviados = pularEnviados && assuntoAtual
+      ? new Set(emailEnviosCache.filter(e => e.status === "ok" && e.assunto === assuntoAtual).map(e => (e.email || "").toLowerCase()))
+      : new Set();
+    const emailsOptout = new Set(emailOptoutCache.map(o => (o.email || "").toLowerCase()));
+
+    const vistos = new Set();
+    const destinatarios = [];
+    universo.forEach(m => {
+      const email = (m.email || "").trim().toLowerCase();
+      if (!email || vistos.has(email) || emailsOptout.has(email) || emailsJaEnviados.has(email)) return;
+      vistos.add(email);
+      destinatarios.push({ email, nome: primeiroNomeProspeccao(m), marca: m.nome, marcaId: m.id });
+    });
+    return destinatarios;
+  }
+
+  function atualizarContagemProspeccao(){
+    const el = document.getElementById("prospeccaoContagem");
+    if (!el) return;
+    const modo = document.getElementById("prospeccaoSelectDestino").value;
+    if (modo === "teste"){
+      el.innerHTML = `<span>📬 <b>1</b> vai receber (você mesma)</span>`;
+      return;
+    }
+    const universo = obterMarcasBaseProspeccao();
+    const semEmail = universo.filter(m => !m.email).length;
+    const destinatarios = obterDestinatariosProspeccao();
+    el.innerHTML = `<span>📬 <b>${destinatarios.length}</b> vão receber</span>` +
+      (semEmail ? `<span class="fora">⚠ <b>${semEmail}</b> ficaram de fora (sem e-mail)</span>` : "");
+  }
+
+  function atualizarSelectDestinoProspeccao(){
+    const select = document.getElementById("prospeccaoSelectDestino");
+    if (!select) return;
+    const valorAtual = select.value;
+
+    const comEmail = marcasCache.filter(m => m.email);
+    const selecionadasComEmail = comEmail.filter(m => m.selecionada).length;
+    const statusPresentes = MARCAS_STATUS.filter(s => comEmail.some(m => m.status === s.chave));
+
+    const opcoes = [
+      { valor: "selecionadas", rotulo: `⭐ Só as marcas selecionadas (${selecionadasComEmail})` },
+      { valor: "teste", rotulo: "🧪 Só pra mim (teste)" },
+      { valor: "todas", rotulo: `Todas as marcas com e-mail (${comEmail.length})` },
+      ...statusPresentes.map(s => ({
+        valor: `status:${s.chave}`,
+        rotulo: `Só "${s.nome}" (${comEmail.filter(m => m.status === s.chave).length})`
+      }))
+    ];
+
+    select.innerHTML = opcoes.map(o => `<option value="${o.valor}">${escaparHtmlMarcas(o.rotulo)}</option>`).join("");
+    select.value = opcoes.some(o => o.valor === valorAtual) ? valorAtual : opcoes[0].valor;
+    atualizarContagemProspeccao();
+  }
+
+  function formatarDataHoraCurtaProspeccao(iso){
+    if (!iso) return "—";
+    const d = new Date(iso);
+    return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function renderizarHistoricoProspeccao(){
+    const corpo = document.getElementById("prospeccaoHistoricoCorpo");
+    if (!corpo) return;
+    const campoBusca = document.getElementById("prospeccaoHistoricoBusca");
+    const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
+    const linhas = emailEnviosCache.filter(e => !termo || (e.email || "").toLowerCase().includes(termo)).slice(0, 200);
+
+    corpo.innerHTML = linhas.length
+      ? linhas.map(e => `
+          <tr>
+            <td>${escaparHtmlMarcas(e.email)}</td>
+            <td>${escaparHtmlMarcas(e.assunto)}</td>
+            <td>${formatarDataHoraCurtaProspeccao(e.created_at)}</td>
+            <td>${e.status === "ok" ? '<span class="prospeccao-selo-ok">✓ Enviado</span>' : `<span class="prospeccao-selo-erro" title="${escaparHtmlMarcas(e.erro || "")}">✕ Erro</span>`}</td>
+          </tr>
+        `).join("")
+      : `<tr><td colspan="4" class="ugc-vazio">Nenhum envio registrado ainda.</td></tr>`;
+  }
+
+  function renderizarProspeccao(){
+    const semEmailEl = document.getElementById("prospeccaoSemEmail");
+    const conteudoEl = document.getElementById("prospeccaoConteudo");
+    if (!semEmailEl || !conteudoEl) return;
+
+    const temEmail = marcasCache.some(m => m.email);
+    semEmailEl.classList.toggle("oculto", temEmail);
+    conteudoEl.classList.toggle("oculto", !temEmail);
+    if (!temEmail) return;
+
+    const enviosOk = emailEnviosCache.filter(e => e.status === "ok");
+    document.getElementById("prospeccaoTotalEnviados").textContent = emailEnviosCache.length ? enviosOk.length : "—";
+
+    const comEmail = marcasCache.filter(m => m.email);
+    document.getElementById("prospeccaoCardComEmail").textContent = comEmail.length;
+    document.getElementById("prospeccaoCardComEmailContexto").textContent = `de ${marcasCache.length} marcas na base`;
+    document.getElementById("prospeccaoCardAEnviar").textContent = comEmail.filter(m => m.status === "a_enviar").length;
+    document.getElementById("prospeccaoCardRecebido").textContent = new Set(enviosOk.map(e => (e.email || "").toLowerCase())).size;
+    document.getElementById("prospeccaoCardFalhas").textContent = emailEnviosCache.filter(e => e.status === "erro").length;
+    document.getElementById("prospeccaoCardDescadastrados").textContent = emailOptoutCache.length;
+
+    atualizarSelectDestinoProspeccao();
+    atualizarPreviaProspeccao();
+    renderizarHistoricoProspeccao();
+  }
+
+  async function recarregarEmailEnviosProspeccao(){
+    try {
+      emailEnviosCache = await comRetry(() => buscarTudo("email_envios"));
+    } catch (erro) {
+      console.error("Erro ao recarregar histórico de e-mails:", erro);
+    }
+  }
+
+  // Depois de um disparo (Resend ou a última marca do rascunho), marca como "enviado" +
+  // data de hoje só quem ainda estava em "a_enviar" — nunca rebaixa quem já tinha avançado
+  // (respondeu/proposta/fechado), pra não bagunçar o funil por ter reenviado uma campanha.
+  async function marcarMarcasComoEnviadasProspeccao(idsMarcas){
+    const idsValidos = [...new Set(idsMarcas.filter(Boolean))];
+    if (!idsValidos.length) return;
+
+    const hoje = new Date().toISOString().slice(0, 10);
+    const { error } = await Auth.client.from("painel_marcas").update({ status: "enviado", data: hoje }).in("id", idsValidos).eq("status", "a_enviar");
+    if (error){ console.error("Erro ao marcar marcas como enviadas:", error); return; }
+
+    idsValidos.forEach(id => {
+      const m = marcasCache.find(x => x.id === id);
+      if (m && m.status === "a_enviar"){ m.status = "enviado"; m.data = hoje; }
+    });
+    renderizarMarcas();
+  }
+
+  async function enviarTesteProspeccao(){
+    const assunto = document.getElementById("prospeccaoAssunto").value.trim();
+    if (!assunto){ alert("Escreve o assunto antes de testar."); return; }
+    const html = obterHtmlFinalProspeccao();
+    if (!validarAvisoSairProspeccao(html)) return;
+
+    const botao = document.getElementById("prospeccaoBotaoTeste");
+    botao.disabled = true;
+    const textoOriginal = botao.textContent;
+    botao.textContent = "Enviando...";
+
+    try {
+      const { data, error } = await Auth.client.functions.invoke("enviar-emails", {
+        body: { destinatarios: [{ email: PROSPECCAO_EMAIL_TESTE, nome: "Edilaine", marca: "Teste" }], assunto, html }
+      });
+      if (error) throw error;
+      if (data?.cotaEsgotada) alert("A cota diária do Resend acabou. Tenta de novo amanhã.");
+      else if (data?.enviados > 0) alert("Teste enviado! Confere sua caixa de entrada (e abre no celular também).");
+      else alert(`Não deu pra enviar o teste.${data?.falhas ? " Confira o histórico embaixo pra ver o motivo." : ""}`);
+      await recarregarEmailEnviosProspeccao();
+      renderizarHistoricoProspeccao();
+    } catch (erro) {
+      console.error("Erro ao enviar teste de prospecção:", erro);
+      alert("Não deu pra enviar o teste. Confira se a função enviar-emails já foi publicada e tenta de novo.");
+    } finally {
+      botao.disabled = false;
+      botao.textContent = textoOriginal;
+    }
+  }
+
+  function abrirModalConfirmarProspeccao(){
+    const assunto = document.getElementById("prospeccaoAssunto").value.trim();
+    if (!assunto){ alert("Escreve o assunto antes de disparar."); return; }
+    const html = obterHtmlFinalProspeccao();
+    if (!validarAvisoSairProspeccao(html)) return;
+
+    const destinatarios = obterDestinatariosProspeccao();
+    if (!destinatarios.length){
+      alert("Não tem nenhuma marca pra mandar com essa seleção e esses filtros.");
+      return;
+    }
+
+    const selectDestino = document.getElementById("prospeccaoSelectDestino");
+    const nomeLista = selectDestino.options[selectDestino.selectedIndex].textContent;
+    document.getElementById("prospeccaoModalConfirmarTexto").textContent = prospeccaoModoEnvio === "rascunho"
+      ? `Vai montar uma fila de rascunho com ${destinatarios.length} marca(s), da lista "${nomeLista}". Você confirma o envio de cada uma no Gmail, uma de cada vez.`
+      : `Vai enviar pra ${destinatarios.length} marca(s), da lista "${nomeLista}", e não dá pra desfazer.`;
+    document.getElementById("prospeccaoModalConfirmar").classList.remove("oculto");
+  }
+
+  async function dispararProspeccao(){
+    const assunto = document.getElementById("prospeccaoAssunto").value.trim();
+    const html = obterHtmlFinalProspeccao();
+    const destinatarios = obterDestinatariosProspeccao();
+    const TAMANHO_LOTE = 100;
+
+    const progressoWrap = document.getElementById("prospeccaoProgressoWrap");
+    const progressoPreenchido = document.getElementById("prospeccaoProgressoPreenchido");
+    const progressoTexto = document.getElementById("prospeccaoProgressoTexto");
+    const resultadoEl = document.getElementById("prospeccaoResultado");
+    resultadoEl.classList.add("oculto");
+    progressoWrap.classList.remove("oculto");
+    document.getElementById("prospeccaoBotaoDisparar").disabled = true;
+    document.getElementById("prospeccaoBotaoTeste").disabled = true;
+
+    let totalEnviados = 0, totalFalhas = 0, totalPulados = 0, cotaEsgotada = false;
+    const idsEnviadosComSucesso = [];
+
+    for (let i = 0; i < destinatarios.length; i += TAMANHO_LOTE){
+      const lote = destinatarios.slice(i, i + TAMANHO_LOTE);
+      progressoTexto.textContent = `Enviando ${Math.min(i + TAMANHO_LOTE, destinatarios.length)} de ${destinatarios.length}...`;
+      progressoPreenchido.style.width = `${Math.round((i / destinatarios.length) * 100)}%`;
+
+      try {
+        const { data, error } = await Auth.client.functions.invoke("enviar-emails", {
+          body: { destinatarios: lote.map(d => ({ email: d.email, nome: d.nome, marca: d.marca })), assunto, html }
+        });
+        if (error) throw error;
+        totalEnviados += data?.enviados || 0;
+        totalFalhas += data?.falhas || 0;
+        totalPulados += data?.pulados || 0;
+        // Só marca como enviada quem a função confirmou que recebeu de verdade — nunca o
+        // lote inteiro, porque algumas dessas chamadas podem ter falhas/pulados misturados.
+        const emailsConfirmados = new Set(data?.enviadosEmails || []);
+        lote.forEach(d => { if (emailsConfirmados.has(d.email)) idsEnviadosComSucesso.push(d.marcaId); });
+        if (data?.cotaEsgotada){ cotaEsgotada = true; break; }
+      } catch (erroLote) {
+        console.error("Erro num lote do disparo de prospecção:", erroLote);
+        totalFalhas += lote.length;
+      }
+    }
+
+    progressoPreenchido.style.width = "100%";
+    progressoWrap.classList.add("oculto");
+    document.getElementById("prospeccaoBotaoDisparar").disabled = false;
+    document.getElementById("prospeccaoBotaoTeste").disabled = false;
+
+    await marcarMarcasComoEnviadasProspeccao(idsEnviadosComSucesso);
+    await recarregarEmailEnviosProspeccao();
+    renderizarProspeccao();
+
+    resultadoEl.classList.remove("oculto");
+    resultadoEl.innerHTML = `✅ <b>${totalEnviados}</b> enviados · ❌ <b>${totalFalhas}</b> falharam · ⏭ <b>${totalPulados}</b> pulados` +
+      (cotaEsgotada
+        ? `<br><br>⚠️ A cota diária do Resend acabou no meio do disparo. Volta amanhã, cola o mesmo assunto e o mesmo texto, deixa marcada a caixinha de "pular quem já recebeu" e ele manda só pros que faltaram.`
+        : "");
+
+    if (document.getElementById("prospeccaoSelectDestino").value === "selecionadas" && marcasCache.some(m => m.selecionada)){
+      document.getElementById("prospeccaoModalLimparSelecao").classList.remove("oculto");
+    }
+  }
+
+  // ---------- Modo rascunho: fila de destinatários, um por vez, com "Copiar" e "Abrir no Gmail" ----------
+  function iniciarFilaRascunhoProspeccao(){
+    prospeccaoFilaRascunhoAtual = obterDestinatariosProspeccao();
+    document.getElementById("prospeccaoFilaRascunho").classList.remove("oculto");
+    renderizarProximoRascunhoProspeccao();
+  }
+
+  function renderizarProximoRascunhoProspeccao(){
+    const container = document.getElementById("prospeccaoFilaRascunho");
+    if (!prospeccaoFilaRascunhoAtual.length){
+      container.innerHTML = `<p class="ugc-vazio">Fila terminada — todas foram marcadas como enviadas.</p>`;
+      return;
+    }
+    const atual = prospeccaoFilaRascunhoAtual[0];
+    const assunto = trocarVariaveisProspeccao(document.getElementById("prospeccaoAssunto").value, atual.nome, atual.marca);
+    const corpoFinal = trocarVariaveisProspeccao(document.getElementById("prospeccaoCorpoFacil").value, atual.nome, atual.marca);
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(atual.email)}&su=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpoFinal)}`;
+
+    container.innerHTML = `
+      <div class="prospeccao-fila-topo"><span>Faltam ${prospeccaoFilaRascunhoAtual.length}</span><span>${escaparHtmlMarcas(atual.marca)}</span></div>
+      <div class="prospeccao-fila-assunto">${escaparHtmlMarcas(assunto)}</div>
+      <div class="prospeccao-fila-corpo">${escaparHtmlMarcas(corpoFinal)}</div>
+      <div class="prospeccao-fila-botoes">
+        <button type="button" class="btn-fantasma" id="prospeccaoRascunhoCopiar">📋 Copiar texto</button>
+        <a href="${gmailUrl}" target="_blank" rel="noopener" class="botao-add-tarefa" style="text-decoration:none; display:inline-flex; align-items:center;">✉️ Abrir no Gmail</a>
+        <button type="button" class="botao-add-tarefa" id="prospeccaoRascunhoMarcarEnviada">✓ Marcar como enviada</button>
+      </div>
+    `;
+
+    document.getElementById("prospeccaoRascunhoCopiar").addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(corpoFinal); } catch (erro) { console.error("Erro ao copiar texto do rascunho:", erro); }
+    });
+    document.getElementById("prospeccaoRascunhoMarcarEnviada").addEventListener("click", () => marcarRascunhoComoEnviadoProspeccao(atual));
+  }
+
+  async function marcarRascunhoComoEnviadoProspeccao(destinatario){
+    prospeccaoFilaRascunhoAtual = prospeccaoFilaRascunhoAtual.filter(d => d !== destinatario);
+
+    await marcarMarcasComoEnviadasProspeccao([destinatario.marcaId]);
+
+    const assunto = trocarVariaveisProspeccao(document.getElementById("prospeccaoAssunto").value, destinatario.nome, destinatario.marca);
+    const { error } = await Auth.client.from("email_envios").insert({ email: destinatario.email, assunto, status: "ok" });
+    if (error) console.error("Erro ao registrar envio manual no histórico:", error);
+    await recarregarEmailEnviosProspeccao();
+
+    renderizarProximoRascunhoProspeccao();
+    renderizarProspeccao();
+
+    if (!prospeccaoFilaRascunhoAtual.length && document.getElementById("prospeccaoSelectDestino").value === "selecionadas" && marcasCache.some(m => m.selecionada)){
+      document.getElementById("prospeccaoModalLimparSelecao").classList.remove("oculto");
     }
   }
 
