@@ -5167,7 +5167,7 @@
           <span class="marcas-th">Nome<button type="button" class="marcas-filtro-btn" data-campo="nome" aria-label="Filtrar por nome">▾</button></span>
           <span class="marcas-th">Descrição<button type="button" class="marcas-filtro-btn" data-campo="descricao" aria-label="Filtrar por descrição">▾</button></span>
           <span class="marcas-th">Categoria<button type="button" class="marcas-filtro-btn" data-campo="categoria" aria-label="Filtrar por categoria">▾</button></span>
-          <span class="marcas-th">URL<button type="button" class="marcas-filtro-btn" data-campo="url" aria-label="Filtrar por URL">▾</button></span>
+          <span class="marcas-th">URL</span>
           <span></span>
         </div>
         <div class="marcas-filtro-dropdown oculto" id="linksFiltroDropdown">
@@ -9615,7 +9615,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   }
 
   /* ---------- Filtros estilo Excel na lista de Links (Nome/Descrição/Categoria/URL) ---------- */
-  let linksFiltrosColuna = { nome: null, descricao: null, categoria: null, url: null };
+  let linksFiltrosColuna = { nome: null, descricao: null, categoria: null };
   let linksFiltroColunaAberta = null;
 
   function chaveColunaLinks(item, campo){
