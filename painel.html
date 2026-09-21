@@ -6052,6 +6052,10 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         contasFixasOcultas = new Set(ocultas.map(o => o.nome));
         renderizarFinancas();
         renderizarAlertasContas();
+        // Sem isso, o avisinho flutuante e o número no menu (que já rodaram antes desta
+        // busca terminar) ficavam presos calculados sem saber quais contas estão ocultas —
+        // a tabela de Contas a Pagar corrigia sozinha, mas o aviso/badge nunca recalculava.
+        renderizarNotificacoesPopup();
       } catch (erroContasOcultas) {
         console.error("Erro ao carregar contas fixas ocultas:", erroContasOcultas);
       }
