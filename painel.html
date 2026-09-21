@@ -15123,12 +15123,28 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   // 560px, botão opcional e o rodapé de descadastro — o mesmo modelo que "Começar do modelo
   // pronto" cola no modo HTML, pra ela partir daqui em vez do zero.
   function construirHtmlEmailPadrao(corpoTexto, botaoTexto, botaoLink){
-    const corpoHtml = autoLinkifyProspeccao(escaparHtmlMarcas(corpoTexto || "")).replace(/\n/g, "<br>");
     const botaoHtml = (botaoTexto && botaoLink)
-      ? `<p style="margin:24px 0 0;"><a href="${escaparHtmlMarcas(botaoLink)}" style="display:inline-block;background:#000080;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">${escaparHtmlMarcas(botaoTexto)}</a></p>`
+      ? `<p style="margin:20px 0;"><a href="${escaparHtmlMarcas(botaoLink)}" style="display:inline-block;background:#000080;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">${escaparHtmlMarcas(botaoTexto)}</a></p>`
       : "";
+
+    // O botão precisa ficar acima da assinatura (logo depois do CTA), não no fim de tudo —
+    // acha a linha que começa com "Att" (a assinatura) e encaixa o botão bem antes dela.
+    // Se não achar esse padrão, cai no comportamento antigo (botão no final do texto).
+    const linhas = (corpoTexto || "").split("\n");
+    const indiceAssinatura = linhas.findIndex(l => /^\s*att[,.:]?\s/i.test(l) || /^\s*atenciosamente/i.test(l));
+
+    let corpoHtml;
+    if (botaoHtml && indiceAssinatura !== -1){
+      const antesHtml = autoLinkifyProspeccao(escaparHtmlMarcas(linhas.slice(0, indiceAssinatura).join("\n"))).replace(/\n/g, "<br>");
+      const depoisHtml = autoLinkifyProspeccao(escaparHtmlMarcas(linhas.slice(indiceAssinatura).join("\n"))).replace(/\n/g, "<br>");
+      corpoHtml = `<p style="margin:0 0 16px;">${antesHtml}</p>${botaoHtml}<p style="margin:0 0 16px;">${depoisHtml}</p>`;
+    } else {
+      const textoCompleto = autoLinkifyProspeccao(escaparHtmlMarcas(corpoTexto || "")).replace(/\n/g, "<br>");
+      corpoHtml = `<p style="margin:0 0 16px;">${textoCompleto}</p>${botaoHtml}`;
+    }
+
     return `<div style="max-width:560px;margin:0 auto;padding:24px;background:#ffffff;color:#2A2622;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;">
-<p style="margin:0 0 16px;">${corpoHtml}</p>${botaoHtml}
+${corpoHtml}
 <p style="margin:32px 0 0;font-size:12px;color:#6B645C;border-top:1px solid #CCC2BC;padding-top:14px;">Não quer mais receber estes e-mails? Responda com SAIR.</p>
 </div>`;
   }
