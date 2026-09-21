@@ -9275,7 +9275,10 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
           </div>
           <div class="cartao-mensagem-corpo oculto" id="resposta-roteiro-${i}">
             <p>${aprovado ? "A marca aprovou o roteiro — pode seguir pra gravação." : "A marca pediu ajuste nas condições solicitadas."}</p>
-            ${roteiroAinda ? `<button type="button" class="btn-fantasma" data-acao="ver-roteiro" data-id="${item.roteiro_id}" style="margin-top:8px;">Ver roteiro</button>` : ""}
+            ${roteiroAinda ? `
+              <button type="button" class="btn-fantasma" data-acao="ver-roteiro" data-id="${item.roteiro_id}" style="margin-top:8px;">Ver roteiro</button>
+              <button type="button" class="btn-fantasma" data-acao="baixar-roteiro" data-id="${item.roteiro_id}" style="margin-top:8px; margin-left:8px;">⬇ Baixar roteiro (Word)</button>
+            ` : ""}
           </div>
         </div>
       `;
@@ -9302,6 +9305,14 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         e.stopPropagation();
         trocarAba("roteiros");
         iniciarEdicaoRoteiro(btn.dataset.id);
+      });
+    });
+
+    container.querySelectorAll("[data-acao='baixar-roteiro']").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const item = roteirosCache.find(r => r.id === btn.dataset.id);
+        if (item) gerarDocxRoteiro(item);
       });
     });
   }
@@ -16233,6 +16244,83 @@ ${corpoHtml}
     } finally {
       botao.textContent = textoOriginal;
     }
+  }
+
+  function escaparXmlDocx(texto){
+    return String(texto ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;");
+  }
+
+  // Gera um .docx de verdade (zip com XML dentro — mesmo formato que lerTabelaWordRoteiro
+  // sabe ler de volta) a partir do roteiro salvo, pra baixar e reenviar/guardar.
+  async function gerarDocxRoteiro(item){
+    const cenas = Array.isArray(item.cenas) ? item.cenas : [];
+    const tituloDoc = [item.produto, item.marca].filter(Boolean).join(" — ") || item.marca;
+
+    let corpo;
+    if (cenas.length){
+      const bordas = ["top", "left", "bottom", "right", "insideH", "insideV"]
+        .map(lado => `<w:${lado} w:val="single" w:sz="4" w:space="0" w:color="auto"/>`).join("");
+      const linhaCabecalho = "<w:tr>" + ["Cena / Ação", "Narração", "Observações"].map(t =>
+        `<w:tc><w:tcPr><w:shd w:val="clear" w:fill="DDDDDD"/></w:tcPr><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>${escaparXmlDocx(t)}</w:t></w:r></w:p></w:tc>`
+      ).join("") + "</w:tr>";
+      const linhasCenas = cenas.map(c => "<w:tr>" +
+        [c.descricao_cena, c.narracao, c.observacao].map(v =>
+          `<w:tc><w:p><w:r><w:t xml:space="preserve">${escaparXmlDocx(v || "")}</w:t></w:r></w:p></w:tc>`
+        ).join("") + "</w:tr>"
+      ).join("");
+      corpo = `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblBorders>${bordas}</w:tblBorders></w:tblPr>${linhaCabecalho}${linhasCenas}</w:tbl>`;
+    } else {
+      const linhas = (item.roteiro_html || "").replace(/<[^>]+>/g, "\n").split("\n").map(l => l.trim()).filter(Boolean);
+      corpo = linhas.length
+        ? linhas.map(l => `<w:p><w:r><w:t xml:space="preserve">${escaparXmlDocx(l)}</w:t></w:r></w:p>`).join("")
+        : `<w:p><w:r><w:t>Sem conteúdo.</w:t></w:r></w:p>`;
+    }
+
+    const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:body>
+<w:p><w:r><w:rPr><w:b/><w:sz w:val="32"/></w:rPr><w:t>${escaparXmlDocx(tituloDoc)}</w:t></w:r></w:p>
+<w:p/>
+${corpo}
+</w:body>
+</w:document>`;
+
+    const contentTypesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`;
+
+    const relsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`;
+
+    const docRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>`;
+
+    const zip = new JSZip();
+    zip.file("[Content_Types].xml", contentTypesXml);
+    zip.file("_rels/.rels", relsXml);
+    zip.file("word/document.xml", documentXml);
+    zip.file("word/_rels/document.xml.rels", docRelsXml);
+
+    const blob = await zip.generateAsync({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+    const nomeArquivo = `Roteiro - ${item.marca}.docx`.replace(/[\\/:*?"<>|]+/g, "_");
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nomeArquivo;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   // ---------- Paleta de cor identificada a partir de uma imagem ----------
