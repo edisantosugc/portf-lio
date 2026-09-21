@@ -1868,7 +1868,8 @@
   }
   .abordagem-filtro-btn.ativo{ color: var(--coral); font-weight: 700; }
   .abordagem-filtro-dropdown{
-    position: absolute; z-index: 40; background: var(--branco);
+    /* fixed + vira filho do <body> ao abrir — mesmo motivo do .marcas-filtro-dropdown */
+    position: fixed; z-index: 200; background: var(--branco);
     border: 1px solid var(--borda); border-radius: 10px;
     box-shadow: 0 12px 30px rgba(26,24,22,.15); padding: 10px; width: 220px;
   }
@@ -3114,7 +3115,9 @@
   .marcas-pill-status.sem_interesse{ background:rgba(196,69,60,.1); border-color:var(--vermelho); color:var(--vermelho); }
 
   .marcas-menu-status{
-    position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:5; background:var(--branco); border:1px solid var(--borda);
+    /* fixed + único elemento compartilhado (vira filho do <body> ao abrir) — mesmo
+       motivo do .marcas-filtro-dropdown, pra nunca ser cortado pelo card da lista */
+    position:fixed; width:160px; z-index:200; background:var(--branco); border:1px solid var(--borda);
     border-radius:10px; box-shadow:0 10px 24px rgba(0,0,0,.12); overflow:hidden; display:none;
   }
   .marcas-menu-status.aberto{ display:block; }
@@ -4668,6 +4671,7 @@
             <label class="marcas-filtro-item marcas-filtro-todos"><input type="checkbox" id="marcasFiltroTodos"> <strong>(Selecionar tudo)</strong></label>
             <div class="marcas-filtro-lista dado-sensivel" id="marcasFiltroLista"></div>
           </div>
+          <div class="marcas-menu-status" id="marcasMenuStatusCompartilhado"></div>
           <div id="marcasListaCorpo"></div>
         </div>
       </div>
@@ -8650,7 +8654,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     });
     document.getElementById("marcasBusca").addEventListener("input", renderListaMarcas);
 
-    document.querySelectorAll(".marcas-filtro-btn").forEach(btn => {
+    document.querySelectorAll("#marcasListaContainer .marcas-filtro-btn").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const campo = btn.dataset.campo;
@@ -8696,6 +8700,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     window.addEventListener("scroll", () => {
       if (marcasFiltroColunaAberta) fecharFiltroColunaMarcas();
       if (linksFiltroColunaAberta) fecharFiltroColunaLinks();
+      if (abordagemFiltroColunaAberta) fecharFiltroColunaAbordagem();
+      fecharMenusStatusMarcas();
     }, true);
 
     document.getElementById("marcasBotaoSelecionarFiltradas").addEventListener("click", selecionarTodasFiltradasMarcas);
@@ -13437,18 +13443,13 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   function abrirFiltroColunaAbordagem(campo, botaoEl){
     abordagemFiltroColunaAberta = campo;
     const painel = document.getElementById("abordagemFiltroDropdown");
-    const container = document.getElementById("abordagemListaContainer");
     document.getElementById("abordagemFiltroBusca").value = "";
     renderizarListaFiltroAbordagem("");
     painel.classList.remove("oculto");
-
-    const rectBotao = botaoEl.getBoundingClientRect();
-    const rectContainer = container.getBoundingClientRect();
-    const larguraPainel = painel.offsetWidth || 220;
-    painel.style.top = (rectBotao.bottom - rectContainer.top + 4) + "px";
-    // Alinha a borda direita do painel com a borda direita do botão, pra não estourar
-    // pra fora do card em colunas que ficam perto da direita (ex: Status).
-    painel.style.left = Math.max(0, rectBotao.right - rectContainer.left - larguraPainel) + "px";
+    // Vira filho direto do <body> (fixed) pra não ser cortado pelo overflow:hidden do
+    // card da lista — ver comentário em .marcas-filtro-dropdown no CSS.
+    document.body.appendChild(painel);
+    posicionarDropdownFiltro(painel, botaoEl);
   }
 
   function fecharFiltroColunaAbordagem(){
@@ -15073,7 +15074,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   }
 
   function atualizarIndicadoresFiltroMarcas(){
-    document.querySelectorAll(".marcas-filtro-btn").forEach(btn => {
+    document.querySelectorAll("#marcasListaContainer .marcas-filtro-btn").forEach(btn => {
       btn.classList.toggle("ativo", !!marcasFiltrosColuna[btn.dataset.campo]);
     });
   }
@@ -15131,11 +15132,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
           <span>${escaparHtmlMarcas(item.contato || "—")}</span>
           <span>${escaparHtmlMarcas(item.email || item.whatsapp || "—")}</span>
         </div>
-        <div style="position:relative;">
+        <div>
           <button type="button" class="marcas-pill-status ${item.status}" data-acao="marcas-toggle-menu" data-id="${item.id}">${nomeStatusMarca(item.status)}</button>
-          <div class="marcas-menu-status">
-            ${MARCAS_STATUS.map(s => `<button type="button" data-acao="marcas-mudar-status" data-id="${item.id}" data-status="${s.chave}">${s.nome}</button>`).join("")}
-          </div>
         </div>
         <div class="marcas-col-acoes">
           <button type="button" class="marcas-botao-icone" data-acao="marcas-editar" data-id="${item.id}" title="Editar">✎</button>
@@ -15145,8 +15143,32 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     `;
   }
 
+  // Um ÚNICO menu de status compartilhado por todas as linhas (em vez de um por linha) —
+  // ele vira filho do <body> (fixed) toda vez que abre, pra nunca ser cortado pelo
+  // overflow:hidden do card da lista, não importa qual linha ou o quanto rolou a página.
   function fecharMenusStatusMarcas(){
-    document.querySelectorAll(".marcas-menu-status.aberto").forEach(m => m.classList.remove("aberto"));
+    document.getElementById("marcasMenuStatusCompartilhado")?.classList.remove("aberto");
+  }
+
+  function abrirMenuStatusMarca(id, botaoEl){
+    const menu = document.getElementById("marcasMenuStatusCompartilhado");
+    const jaAbertoNesseId = menu.classList.contains("aberto") && menu.dataset.marcaId === id;
+    fecharMenusStatusMarcas();
+    if (jaAbertoNesseId) return;
+
+    menu.dataset.marcaId = id;
+    menu.innerHTML = MARCAS_STATUS.map(s => `<button type="button" data-status="${s.chave}">${s.nome}</button>`).join("");
+    menu.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        fecharMenusStatusMarcas();
+        mudarStatusMarca(id, btn.dataset.status);
+      });
+    });
+
+    document.body.appendChild(menu);
+    menu.classList.add("aberto");
+    posicionarDropdownFiltro(menu, botaoEl);
   }
 
   function reatarEventosLinhasMarcas(container){
@@ -15163,16 +15185,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     container.querySelectorAll("[data-acao='marcas-toggle-menu']").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const menu = btn.nextElementSibling;
-        const jaAberto = menu.classList.contains("aberto");
-        fecharMenusStatusMarcas();
-        if (!jaAberto) menu.classList.add("aberto");
-      });
-    });
-    container.querySelectorAll("[data-acao='marcas-mudar-status']").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        mudarStatusMarca(btn.dataset.id, btn.dataset.status);
+        abrirMenuStatusMarca(btn.dataset.id, btn);
       });
     });
     container.querySelectorAll("[data-acao='marcas-editar']").forEach(btn => {
