@@ -3713,7 +3713,7 @@
           </button>
           <button class="menu-item menu-subitem" data-tab="abordagem">
             <svg viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.259.408a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg>
-            Abordagem
+            Marcas
             <span class="badge-alerta-sidebar oculto" id="badgeAlertaAbordagem"></span>
           </button>
           <button class="menu-item menu-subitem" data-tab="prospeccao">
@@ -4064,7 +4064,7 @@
         <div class="ig-estado-vazio">
           <span class="ig-estado-vazio-icone">🤝</span>
           <p class="ig-estado-vazio-titulo">Propostas chega na próxima fase</p>
-          <p class="ig-estado-vazio-texto">Vai organizar marcas que entraram em contato, retornaram ou passaram contato pra fechar, alimentando sua aba Abordagem automaticamente.</p>
+          <p class="ig-estado-vazio-texto">Vai organizar marcas que entraram em contato, retornaram ou passaram contato pra fechar, alimentando sua aba Marcas automaticamente.</p>
         </div>
       </div>
 
@@ -4340,14 +4340,14 @@
       </div>
 
       <div class="sub-abas-negocio" id="subAbasAbordagem">
-        <button type="button" class="sub-aba-btn ativo" data-subaba="ativas">Abordagens</button>
+        <button type="button" class="sub-aba-btn ativo" data-subaba="marcas">Marcas</button>
+        <button type="button" class="sub-aba-btn" data-subaba="ativas">Abordagens</button>
         <button type="button" class="sub-aba-btn" data-subaba="rascunhos">Rascunhos</button>
-        <button type="button" class="sub-aba-btn" data-subaba="arquivados">Arquivados</button>
-        <button type="button" class="sub-aba-btn" data-subaba="marcas">Marcas</button>
+        <button type="button" class="sub-aba-btn" data-subaba="arquivados">Arquivadas</button>
       </div>
 
       <!-- ---------- Sub-aba: Abordagens ativas ---------- -->
-      <div id="abordagemAtivas">
+      <div id="abordagemAtivas" class="oculto">
         <button type="button" class="ugc-linha-add" id="abordagemBotaoNovo">+ nova abordagem</button>
 
         <div class="cartao ugc-form-novo oculto" id="abordagemFormNovo">
@@ -4484,7 +4484,7 @@
       </div>
 
       <!-- ---------- Sub-aba: Marcas (base de prospecção) ---------- -->
-      <div id="abordagemMarcas" class="oculto">
+      <div id="abordagemMarcas">
         <div class="marcas-topo-aba">
           <p class="marcas-topo-legenda">Sua base de prospecção — marcas que você quer abordar, mesmo antes de virar uma abordagem de verdade.</p>
           <div class="marcas-acoes-topo">
@@ -8867,7 +8867,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("painelAdministrativo").classList.toggle("oculto", aba !== "administrativo");
     document.getElementById("painelRoteiros").classList.toggle("oculto", aba !== "roteiros");
 
-    const titulos = { principal: "Dashboard", portfolio: "Portfólio", agenda: "Agenda", mensagens: "Mensagens", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", prospeccao: "Disparo de E-mails", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo", roteiros: "Roteiros" };
+    const titulos = { principal: "Dashboard", portfolio: "Portfólio", agenda: "Agenda", mensagens: "Mensagens", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Marcas", clientes: "Clientes", prospeccao: "Disparo de E-mails", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo", roteiros: "Roteiros" };
     document.getElementById("tituloTopo").innerHTML = titulos[aba];
 
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
@@ -11341,7 +11341,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   // Rótulo do botão "Ver X" e do badge de cada grupo de lembrete, igual ao texto do
   // menu lateral.
   const LABEL_ABA_LEMBRETE = {
-    abordagem: "Abordagem",
+    abordagem: "Marcas",
     financas: "Financeiro",
     agenda: "Agenda",
     portfolio: "Portfólio",
