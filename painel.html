@@ -10752,6 +10752,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     });
 
     alertas.sort((a, b) => a.diasParaVencer - b.diasParaVencer);
+    // TEMPORÁRIO: só pra descobrir a causa de um aviso "fantasma" — tirar depois.
+    if (alertas.length) console.log("[debug contas a pagar]", alertas.map(a => ({ nome: a.nome, tipo: a.tipo, vencimento: a.vencimento, diasParaVencer: a.diasParaVencer, pago: a.pago, valor: a.valor })));
     return { alertas, anoAtual, mesAtual };
   }
 
