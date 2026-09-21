@@ -92,7 +92,7 @@ begin
     body := jsonb_build_object(
       'conta', 'di',
       'titulo', case when aprovado then new.marca || ' aprovou o roteiro' else new.marca || ' pediu ajuste no roteiro' end,
-      'corpo', case when aprovado then 'Pode seguir pra gravação.' else 'Confira as condições solicitadas no painel.' end,
+      'corpo', case when aprovado then 'Pode seguir pra gravar.' else 'Confira o que a marca pediu no painel.' end,
       'url', '/painel.html'
     )
   );

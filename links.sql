@@ -48,7 +48,7 @@ grant select, insert, update, delete on public.painel_links to authenticated;
 -- Categorias de exemplo pra já nascer com algo no dropdown — "do nothing" de propósito,
 -- pra rodar esse arquivo de novo no futuro nunca apagar categorias que você já criou.
 insert into public.painel_links_categorias (nome) values
-  ('Estudo'), ('Plataforma'), ('Aplicativo/App Admin'), ('Domínio')
+  ('Estudo'), ('Plataforma'), ('Meu App/Admin'), ('Dominio')
 on conflict (nome) do nothing;
 
 NOTIFY pgrst, 'reload schema';
