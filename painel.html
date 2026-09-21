@@ -2990,6 +2990,20 @@
   .marcas-topo-legenda{ font-size:.82rem; color:var(--texto-suave); max-width:520px; }
   .marcas-acoes-topo{ display:flex; gap:10px; flex-wrap:wrap; }
 
+  .marcas-revisao-resumo{ font-size:.86rem; color:var(--grafite); }
+  .marcas-revisao-acoes{ display:flex; gap:10px; flex-wrap:wrap; }
+  .marcas-revisao-lista{ max-height:min(420px, 55vh); overflow-y:auto; border:1px solid var(--borda); border-radius:12px; }
+  .marcas-revisao-linha{
+    display:flex; align-items:flex-start; gap:12px; padding:12px 14px; border-bottom:1px solid var(--borda);
+  }
+  .marcas-revisao-linha:last-child{ border-bottom:none; }
+  .marcas-revisao-linha.excluida{ opacity:.45; }
+  .marcas-revisao-linha input[type="checkbox"]{ width:17px; height:17px; margin-top:2px; cursor:pointer; flex-shrink:0; }
+  .marcas-revisao-info{ min-width:0; flex:1; }
+  .marcas-revisao-info .nome{ font-weight:600; font-size:.86rem; }
+  .marcas-revisao-info .detalhe{ font-size:.76rem; color:var(--texto-suave); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .marcas-revisao-botoes{ display:flex; justify-content:flex-end; gap:10px; }
+
   #marcasAjudaCsv{ margin-bottom:16px; }
   .marcas-ajuda-texto{ font-size:.82rem; color:var(--texto-suave); line-height:1.5; margin-top:10px; }
   .marcas-ajuda-texto code{ background:var(--creme); border:1px solid var(--borda); border-radius:5px; padding:1px 5px; font-size:.78rem; }
@@ -4775,6 +4789,28 @@
         </div>
       </div>
     </section>
+
+    <!-- Modal: revisar marcas antes de importar o CSV -->
+    <div class="ugc-modal-overlay oculto" id="marcasModalRevisaoImportacao" role="dialog" aria-modal="true" aria-labelledby="marcasModalRevisaoImportacaoTitulo">
+      <div class="cliente-modal-cartao largo">
+        <div class="cliente-modal-topo">
+          <h2 id="marcasModalRevisaoImportacaoTitulo">Revisar antes de importar</h2>
+          <button type="button" class="cliente-modal-fechar" id="marcasRevisaoFechar" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="cliente-modal-corpo">
+          <p class="marcas-revisao-resumo" id="marcasRevisaoResumo"></p>
+          <div class="marcas-revisao-acoes">
+            <button type="button" class="btn-fantasma" id="marcasRevisaoSelecionarTodas">Selecionar todas</button>
+            <button type="button" class="btn-fantasma" id="marcasRevisaoLimparTodas">Desmarcar todas</button>
+          </div>
+          <div class="marcas-revisao-lista" id="marcasRevisaoLista"></div>
+          <div class="marcas-revisao-botoes">
+            <button type="button" class="btn-fantasma" id="marcasRevisaoCancelar">Cancelar</button>
+            <button type="button" class="botao-add-tarefa" id="marcasRevisaoConfirmar">Importar selecionadas</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Modal: confirmar disparo -->
     <div class="ugc-modal-overlay oculto" id="prospeccaoModalConfirmar" role="dialog" aria-modal="true" aria-labelledby="prospeccaoModalConfirmarTitulo">
@@ -8062,8 +8098,18 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     });
     document.getElementById("marcasImportarInput").addEventListener("change", (e) => {
       const arquivo = e.target.files[0];
-      if (arquivo) importarCsvMarcas(arquivo);
-      e.target.value = "";
+      if (arquivo) prepararImportacaoCsvMarcas(arquivo);
+    });
+    document.getElementById("marcasRevisaoFechar").addEventListener("click", fecharRevisaoImportacaoMarcas);
+    document.getElementById("marcasRevisaoCancelar").addEventListener("click", fecharRevisaoImportacaoMarcas);
+    document.getElementById("marcasRevisaoConfirmar").addEventListener("click", confirmarImportacaoCsvMarcas);
+    document.getElementById("marcasRevisaoSelecionarTodas").addEventListener("click", () => {
+      marcasImportacaoCandidatos.forEach(c => { c.incluir = true; });
+      renderizarRevisaoImportacaoMarcas();
+    });
+    document.getElementById("marcasRevisaoLimparTodas").addEventListener("click", () => {
+      marcasImportacaoCandidatos.forEach(c => { c.incluir = false; });
+      renderizarRevisaoImportacaoMarcas();
     });
     document.addEventListener("click", fecharMenusStatusMarcas);
 
@@ -14468,38 +14514,102 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     });
   }
 
-  async function importarCsvMarcas(arquivo){
+  // Fila de marcas lidas do CSV, aguardando revisão antes de importar de verdade —
+  // cada item tem os dados prontos pra inserir + "incluir" (o que a caixinha controla).
+  let marcasImportacaoCandidatos = [];
+
+  // Lê e valida o CSV, mas NÃO importa nada ainda — abre a revisão primeiro, pra ela
+  // poder tirar alguma marca antes de confirmar.
+  async function prepararImportacaoCsvMarcas(arquivo){
     const texto = await arquivo.text();
     const brutos = parseCsvMarcas(texto);
 
     let ignoradas = 0;
-    const paraInserir = [];
+    const candidatos = [];
     brutos.forEach(r => {
       if (!r.nome){ ignoradas++; return; }
       const statusBruto = normalizarChaveCsv(r.status);
       const statusValido = MARCAS_STATUS.find(s => s.chave === statusBruto || normalizarChaveCsv(s.nome) === statusBruto);
       const seguidoresNum = r.seguidores ? parseInt(String(r.seguidores).replace(/[^\d]/g, ""), 10) : NaN;
 
-      paraInserir.push({
-        nome: r.nome,
-        site: r.site || null,
-        instagram: r.instagram || null,
-        seguidores: Number.isFinite(seguidoresNum) ? seguidoresNum : null,
-        email: r.email || null,
-        whatsapp: r.whatsapp || null,
-        contato: r.contato || null,
-        nicho: r.nicho || null,
-        origem: r.origem || null,
-        status: statusValido ? statusValido.chave : "a_enviar",
-        observacao: r.observacao || null,
-        data: r.data && /^\d{4}-\d{2}-\d{2}$/.test(r.data) ? r.data : new Date().toISOString().slice(0, 10)
+      candidatos.push({
+        incluir: true,
+        dados: {
+          nome: r.nome,
+          site: r.site || null,
+          instagram: r.instagram || null,
+          seguidores: Number.isFinite(seguidoresNum) ? seguidoresNum : null,
+          email: r.email || null,
+          whatsapp: r.whatsapp || null,
+          contato: r.contato || null,
+          nicho: r.nicho || null,
+          origem: r.origem || null,
+          status: statusValido ? statusValido.chave : "a_enviar",
+          observacao: r.observacao || null,
+          data: r.data && /^\d{4}-\d{2}-\d{2}$/.test(r.data) ? r.data : new Date().toISOString().slice(0, 10)
+        }
       });
     });
 
-    if (!paraInserir.length){
+    if (!candidatos.length){
       alert('Nenhuma marca válida encontrada no arquivo. Confira se tem uma coluna "nome" (ou "marca") preenchida.');
+      document.getElementById("marcasImportarInput").value = "";
       return;
     }
+
+    marcasImportacaoCandidatos = candidatos;
+    if (ignoradas) marcasImportacaoCandidatos.ignoradas = ignoradas;
+    abrirRevisaoImportacaoMarcas();
+  }
+
+  function abrirRevisaoImportacaoMarcas(){
+    renderizarRevisaoImportacaoMarcas();
+    document.getElementById("marcasModalRevisaoImportacao").classList.remove("oculto");
+  }
+
+  function fecharRevisaoImportacaoMarcas(){
+    document.getElementById("marcasModalRevisaoImportacao").classList.add("oculto");
+    marcasImportacaoCandidatos = [];
+    document.getElementById("marcasImportarInput").value = "";
+  }
+
+  function renderizarRevisaoImportacaoMarcas(){
+    const selecionadas = marcasImportacaoCandidatos.filter(c => c.incluir).length;
+    const ignoradas = marcasImportacaoCandidatos.ignoradas || 0;
+    document.getElementById("marcasRevisaoResumo").textContent =
+      `${selecionadas} de ${marcasImportacaoCandidatos.length} marca(s) serão importadas.` +
+      (ignoradas ? ` ${ignoradas} linha(s) do arquivo foram ignoradas por não ter nome.` : "");
+
+    document.getElementById("marcasRevisaoLista").innerHTML = marcasImportacaoCandidatos.map((c, indice) => {
+      const detalhe = [c.dados.nicho, c.dados.origem, c.dados.email].filter(Boolean).join(" · ");
+      return `
+        <label class="marcas-revisao-linha ${c.incluir ? "" : "excluida"}">
+          <input type="checkbox" data-indice="${indice}" ${c.incluir ? "checked" : ""}>
+          <div class="marcas-revisao-info">
+            <div class="nome">${escaparHtmlMarcas(c.dados.nome)}</div>
+            <div class="detalhe">${escaparHtmlMarcas(detalhe || "—")}</div>
+          </div>
+        </label>
+      `;
+    }).join("");
+
+    document.getElementById("marcasRevisaoLista").querySelectorAll("input[type='checkbox']").forEach(chk => {
+      chk.addEventListener("change", () => {
+        marcasImportacaoCandidatos[Number(chk.dataset.indice)].incluir = chk.checked;
+        renderizarRevisaoImportacaoMarcas();
+      });
+    });
+
+    document.getElementById("marcasRevisaoConfirmar").disabled = selecionadas === 0;
+  }
+
+  async function confirmarImportacaoCsvMarcas(){
+    const paraInserir = marcasImportacaoCandidatos.filter(c => c.incluir).map(c => c.dados);
+    if (!paraInserir.length) return;
+
+    const botao = document.getElementById("marcasRevisaoConfirmar");
+    botao.disabled = true;
+    botao.textContent = "Importando...";
 
     try {
       const TAMANHO_BLOCO = 500; // evita mandar um arquivo gigante numa chamada só
@@ -14510,10 +14620,14 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         marcasCache = marcasCache.concat(data);
       }
       renderizarMarcas();
-      alert(`${paraInserir.length} marca(s) importada(s) com sucesso.${ignoradas ? ` ${ignoradas} linha(s) ignorada(s) por não ter nome.` : ""}`);
+      fecharRevisaoImportacaoMarcas();
+      alert(`${paraInserir.length} marca(s) importada(s) com sucesso.`);
     } catch (erro) {
       console.error("Erro ao importar CSV de marcas:", erro);
       alert(`Não deu pra importar o arquivo.\n\nMotivo: ${erro?.message || erro}\n\nConfira o arquivo e tenta de novo.`);
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Importar selecionadas";
     }
   }
 
