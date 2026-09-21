@@ -2397,7 +2397,13 @@
     box-shadow: 0 30px 70px rgba(26,24,22,.3); text-align: left;
   }
   .cliente-modal-cartao.largo{ max-width: 620px; }
-  .cliente-modal-topo{ display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--borda); }
+  .cliente-modal-topo{
+    display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--borda);
+    /* Sticky: a rolagem acontece no cartão inteiro (não só no corpo), então sem isso o
+       cabeçalho — com o X de fechar — sumia de vista em listas compridas (ex: card de
+       "Marcas com e-mail" na Prospecção), sem jeito óbvio de fechar o modal. */
+    position: sticky; top: 0; background: var(--branco); border-radius: 18px 18px 0 0; z-index: 2;
+  }
   .cliente-modal-topo h2{ font-size: 1.05rem; margin: 0; }
   .cliente-modal-fechar{ background: none; border: none; font-size: 1.2rem; color: var(--texto-suave); cursor: pointer; padding: 4px 8px; border-radius: 6px; }
   .cliente-modal-fechar:hover{ background: var(--creme); }
@@ -3182,8 +3188,20 @@
   .prospeccao-capa-botao-externo:hover{ background:rgba(255,255,255,.88); }
 
   .prospeccao-cartoes{ display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:14px; margin-bottom:22px; }
-  .prospeccao-cartao-metrica{ background:var(--branco); border:1px solid var(--borda); border-radius:14px; padding:15px 17px 15px 19px; position:relative; overflow:hidden; }
+  .prospeccao-cartao-metrica{
+    background:var(--branco); border:1px solid var(--borda); border-radius:14px; padding:15px 17px 15px 19px;
+    position:relative; overflow:hidden; text-align:left; width:100%; font-family:'Outfit',sans-serif;
+  }
   .prospeccao-cartao-metrica::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--cor-cartao,var(--coral)); }
+  .prospeccao-cartao-metrica.clicavel{ cursor:pointer; transition:box-shadow .15s ease, transform .15s ease; }
+  .prospeccao-cartao-metrica.clicavel:hover{ box-shadow:0 6px 16px rgba(0,0,0,.08); transform:translateY(-1px); }
+
+  .prospeccao-card-linha{ display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 4px; border-bottom:1px solid var(--borda); font-size:.85rem; }
+  .prospeccao-card-linha:last-child{ border-bottom:none; }
+  .prospeccao-card-linha .principal{ min-width:0; }
+  .prospeccao-card-linha .nome{ font-weight:600; }
+  .prospeccao-card-linha .sub{ font-size:.76rem; color:var(--texto-suave); margin-top:2px; }
+  .prospeccao-card-linha .motivo{ font-size:.76rem; color:var(--vermelho); text-align:right; flex-shrink:0; max-width:45%; }
   .prospeccao-cartao-metrica .valor{ font-family:'Fraunces',serif; font-size:1.8rem; color:var(--cor-cartao,var(--coral)); font-variant-numeric:tabular-nums; line-height:1; }
   .prospeccao-cartao-metrica .rotulo{ font-size:.78rem; font-weight:600; color:var(--grafite); margin-top:6px; }
   .prospeccao-cartao-metrica .contexto{ font-size:.7rem; color:var(--texto-suave); margin-top:3px; min-height:1em; }
@@ -4880,31 +4898,31 @@
 
         <!-- ---------- CARTÕES ---------- -->
         <div class="prospeccao-cartoes">
-          <div class="prospeccao-cartao-metrica" style="--cor-cartao:var(--coral)">
+          <button type="button" class="prospeccao-cartao-metrica clicavel" style="--cor-cartao:var(--coral)" data-acao="prospeccao-ver-card" data-card="com-email">
             <div class="valor dado-sensivel" id="prospeccaoCardComEmail">—</div>
             <div class="rotulo">Marcas com e-mail</div>
             <div class="contexto" id="prospeccaoCardComEmailContexto"></div>
-          </div>
-          <div class="prospeccao-cartao-metrica" style="--cor-cartao:var(--azul-prospeccao)">
+          </button>
+          <button type="button" class="prospeccao-cartao-metrica clicavel" style="--cor-cartao:var(--azul-prospeccao)" data-acao="prospeccao-ver-card" data-card="a-enviar">
             <div class="valor dado-sensivel" id="prospeccaoCardAEnviar">—</div>
             <div class="rotulo">A enviar</div>
             <div class="contexto">ainda não receberam nada</div>
-          </div>
-          <div class="prospeccao-cartao-metrica" style="--cor-cartao:var(--verde)">
+          </button>
+          <button type="button" class="prospeccao-cartao-metrica clicavel" style="--cor-cartao:var(--verde)" data-acao="prospeccao-ver-card" data-card="recebido">
             <div class="valor dado-sensivel" id="prospeccaoCardRecebido">—</div>
             <div class="rotulo">Já receberam</div>
             <div class="contexto">e-mails entregues com sucesso</div>
-          </div>
-          <div class="prospeccao-cartao-metrica" style="--cor-cartao:var(--vermelho)">
+          </button>
+          <button type="button" class="prospeccao-cartao-metrica clicavel" style="--cor-cartao:var(--vermelho)" data-acao="prospeccao-ver-card" data-card="falhas">
             <div class="valor dado-sensivel" id="prospeccaoCardFalhas">—</div>
             <div class="rotulo">Falhas</div>
             <div class="contexto">e-mail inválido ou recusado</div>
-          </div>
-          <div class="prospeccao-cartao-metrica" style="--cor-cartao:var(--dourado)">
+          </button>
+          <button type="button" class="prospeccao-cartao-metrica clicavel" style="--cor-cartao:var(--dourado)" data-acao="prospeccao-ver-card" data-card="descadastrados">
             <div class="valor dado-sensivel" id="prospeccaoCardDescadastrados">—</div>
             <div class="rotulo">Descadastrados</div>
             <div class="contexto">pediram pra não receber mais</div>
-          </div>
+          </button>
         </div>
 
         <!-- ---------- BLOCO PRINCIPAL: formulário + prévia ---------- -->
@@ -5263,6 +5281,19 @@
           <div style="display:flex; justify-content:flex-end;">
             <button type="button" class="botao-add-tarefa" id="prospeccaoModalAvisoSairFechar">Entendi</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: detalhe de um card de estatística (Marcas com e-mail / A enviar / Já receberam / Falhas / Descadastrados) -->
+    <div class="ugc-modal-overlay oculto" id="prospeccaoModalCard" role="dialog" aria-modal="true" aria-labelledby="prospeccaoModalCardTitulo">
+      <div class="cliente-modal-cartao largo">
+        <div class="cliente-modal-topo">
+          <h2 id="prospeccaoModalCardTitulo">Marcas</h2>
+          <button type="button" class="cliente-modal-fechar" id="prospeccaoModalCardFechar" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="cliente-modal-corpo">
+          <div id="prospeccaoModalCardLista"></div>
         </div>
       </div>
     </div>
@@ -8800,6 +8831,11 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("prospeccaoModalTelaCheiaFechar").addEventListener("click", () => document.getElementById("prospeccaoModalTelaCheia").classList.add("oculto"));
 
     document.getElementById("prospeccaoModalAvisoSairFechar").addEventListener("click", () => document.getElementById("prospeccaoModalAvisoSair").classList.add("oculto"));
+
+    document.querySelectorAll("[data-acao='prospeccao-ver-card']").forEach(btn => {
+      btn.addEventListener("click", () => abrirModalCardProspeccao(btn.dataset.card));
+    });
+    document.getElementById("prospeccaoModalCardFechar").addEventListener("click", () => document.getElementById("prospeccaoModalCard").classList.add("oculto"));
 
     document.getElementById("prospeccaoManterSelecao").addEventListener("click", () => document.getElementById("prospeccaoModalLimparSelecao").classList.add("oculto"));
     document.getElementById("prospeccaoLimparSelecaoBotao").addEventListener("click", async () => {
@@ -15118,7 +15154,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
   function renderLinhaMarcaHtml(item){
     return `
-      <div class="marcas-linha marcas-grade-lista" data-id="${item.id}">
+      <div class="marcas-linha" data-id="${item.id}">
         <input type="checkbox" class="marcas-checkbox" data-acao="marcas-toggle-selecao" data-id="${item.id}" ${item.selecionada ? "checked" : ""} ${item.email ? "" : "disabled"} title="${item.email ? "Selecionar pra prospecção" : "Sem e-mail cadastrado"}">
         <button type="button" class="marcas-estrela ${item.prioridade ? "ativa" : ""}" data-acao="marcas-toggle-prioridade" data-id="${item.id}" title="${item.prioridade ? "Tirar prioridade" : "Marcar como prioridade"}">${item.prioridade ? "★" : "☆"}</button>
         <div class="marcas-col-marca">
@@ -15898,27 +15934,79 @@ ${corpoHtml}
     const comEmail = marcasCache.filter(m => m.email);
     const selecionadasComEmail = comEmail.filter(m => m.selecionada).length;
     const followUpComEmail = obterAlertasFollowUpMarcas().filter(m => m.email).length;
-    // a_enviar e fechado sempre aparecem (mesmo com 0), com nome mais natural — os outros
-    // status só entram na lista quando já existir pelo menos uma marca com e-mail neles.
-    const statusPresentes = MARCAS_STATUS.filter(s => s.chave !== "a_enviar" && s.chave !== "fechado" && comEmail.some(m => m.status === s.chave));
 
     const opcoes = [
       { valor: "selecionadas", rotulo: `⭐ Só as marcas selecionadas (${selecionadasComEmail})` },
       { valor: "busca-unica", rotulo: "🔍 Buscar uma marca específica" },
       { valor: "teste", rotulo: "🧪 Só pra mim (teste)" },
-      { valor: "todas", rotulo: `Todas as marcas com e-mail (${comEmail.length})` },
-      { valor: "status:a_enviar", rotulo: `Marcas novas, nunca abordadas (${comEmail.filter(m => m.status === "a_enviar").length})` },
       { valor: "followup", rotulo: `🔔 Follow up, sem retorno há ${DIAS_FOLLOWUP_MARCA}+ dias (${followUpComEmail})` },
-      { valor: "status:fechado", rotulo: `Marcas já trabalhadas, negócio fechado (${comEmail.filter(m => m.status === "fechado").length})` },
-      ...statusPresentes.map(s => ({
-        valor: `status:${s.chave}`,
-        rotulo: `Só "${s.nome}" (${comEmail.filter(m => m.status === s.chave).length})`
-      }))
+      { valor: "status:fechado", rotulo: `💼 Marcas já trabalhadas (${comEmail.filter(m => m.status === "fechado").length})` }
     ];
 
     select.innerHTML = opcoes.map(o => `<option value="${o.valor}">${escaparHtmlMarcas(o.rotulo)}</option>`).join("");
     select.value = opcoes.some(o => o.valor === valorAtual) ? valorAtual : opcoes[0].valor;
     atualizarContagemProspeccao();
+  }
+
+  // Detalhe por trás de cada card de estatística do topo da Prospecção — clicar no card
+  // mostra exatamente quais marcas/e-mails compõem aquele número.
+  function abrirModalCardProspeccao(card){
+    const comEmail = marcasCache.filter(m => m.email);
+    const enviosOk = emailEnviosCache.filter(e => e.status === "ok");
+    const titulo = document.getElementById("prospeccaoModalCardTitulo");
+    const lista = document.getElementById("prospeccaoModalCardLista");
+    let linhas = [];
+
+    if (card === "com-email"){
+      titulo.textContent = `Marcas com e-mail (${comEmail.length})`;
+      linhas = comEmail.map(m => `
+        <div class="prospeccao-card-linha">
+          <div class="principal"><div class="nome">${escaparHtmlMarcas(m.nome)}</div><div class="sub">${escaparHtmlMarcas(m.email)}</div></div>
+        </div>
+      `);
+    } else if (card === "a-enviar"){
+      const itens = comEmail.filter(m => m.status === "a_enviar");
+      titulo.textContent = `A enviar (${itens.length})`;
+      linhas = itens.map(m => `
+        <div class="prospeccao-card-linha">
+          <div class="principal"><div class="nome">${escaparHtmlMarcas(m.nome)}</div><div class="sub">${escaparHtmlMarcas(m.email)}</div></div>
+        </div>
+      `);
+    } else if (card === "recebido"){
+      const emails = [...new Set(enviosOk.map(e => (e.email || "").toLowerCase()))];
+      titulo.textContent = `Já receberam (${emails.length})`;
+      linhas = emails.map(email => {
+        const marca = marcasCache.find(m => (m.email || "").toLowerCase() === email);
+        const ultimoEnvio = enviosOk.filter(e => (e.email || "").toLowerCase() === email)
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+        return `
+          <div class="prospeccao-card-linha">
+            <div class="principal"><div class="nome">${escaparHtmlMarcas(marca ? marca.nome : email)}</div><div class="sub">${escaparHtmlMarcas(email)}</div></div>
+            <div class="sub">${ultimoEnvio ? formatarDataHoraCurtaProspeccao(ultimoEnvio.created_at) : ""}</div>
+          </div>
+        `;
+      });
+    } else if (card === "falhas"){
+      const itens = emailEnviosCache.filter(e => e.status === "erro");
+      titulo.textContent = `Falhas (${itens.length})`;
+      linhas = itens.map(e => `
+        <div class="prospeccao-card-linha">
+          <div class="principal"><div class="nome">${escaparHtmlMarcas(e.email)}</div><div class="sub">${formatarDataHoraCurtaProspeccao(e.created_at)}</div></div>
+          <div class="motivo">${escaparHtmlMarcas(e.erro || "Motivo não informado")}</div>
+        </div>
+      `);
+    } else if (card === "descadastrados"){
+      titulo.textContent = `Descadastrados (${emailOptoutCache.length})`;
+      linhas = emailOptoutCache.map(o => `
+        <div class="prospeccao-card-linha">
+          <div class="principal"><div class="nome">${escaparHtmlMarcas(o.email)}</div></div>
+          <div class="sub">${o.created_at ? formatarDataHoraCurtaProspeccao(o.created_at) : ""}</div>
+        </div>
+      `);
+    }
+
+    lista.innerHTML = linhas.length ? linhas.join("") : `<p class="ugc-vazio">Nenhum registro por aqui ainda.</p>`;
+    document.getElementById("prospeccaoModalCard").classList.remove("oculto");
   }
 
   function formatarDataHoraCurtaProspeccao(iso){
@@ -16003,7 +16091,11 @@ ${corpoHtml}
         observacao: origem === "manual" ? "Marcada como enviada de novo, na mão, na aba Marcas." : `Follow up por e-mail: ${contexto}`
       };
       const { error } = await Auth.client.from("painel_abordagens").update(dados).eq("id", existente.id);
-      if (error){ console.error("Erro ao atualizar abordagem a partir de Marcas:", error); return; }
+      if (error){
+        console.error("Erro ao atualizar abordagem a partir de Marcas:", error);
+        alert(`Não deu pra atualizar a abordagem dessa marca.\n\nMotivo: ${error.message}`);
+        return;
+      }
       Object.assign(existente, dados);
     } else {
       const dados = {
@@ -16019,7 +16111,11 @@ ${corpoHtml}
         marca_origem_id: marcaId
       };
       const { data, error } = await Auth.client.from("painel_abordagens").insert(dados).select();
-      if (error){ console.error("Erro ao criar abordagem a partir de Marcas:", error); return; }
+      if (error){
+        console.error("Erro ao criar abordagem a partir de Marcas:", error);
+        alert(`Não deu pra criar a abordagem dessa marca.\n\nMotivo: ${error.message}`);
+        return;
+      }
       abordagensCache = abordagensCache.concat(data);
     }
     renderizarAbordagens();
@@ -18420,6 +18516,11 @@ ${corpo}
   let chkObservacoesCache = {};    // chave "AAAA-MM-DD" -> texto
   let chkSemanalCache = {};        // chave "SEGUNDA".."DOMINGO" -> texto
   let chkDataVisivel = formatarDataISO(new Date());
+  // true enquanto ela não navegou manualmente pra outro dia — só nesse caso o checklist
+  // avança sozinho pro dia novo quando a data realmente virar (aba aberta há dias sem
+  // recarregar, ex: domingo virando segunda). Se ela foi olhar um dia específico no
+  // histórico, não empurra a tela dela pro dia de hoje no meio da consulta.
+  let chkSeguindoHoje = true;
   let chkModoEdicaoDia = false;
   let chkRascunhoTarefas = [];     // usado só durante o modo de edição do dia
   let chkModoEdicaoSemanal = false;
@@ -18680,6 +18781,19 @@ ${corpo}
     document.getElementById("chkBotaoFlutuante").classList.remove("oculto");
   }
 
+  // Cada caixinha já é salva por data exata (não por "segunda/terça"), então um dia novo
+  // já nasce zerado sozinho — MAS só se a tela estiver mostrando a data certa. Numa aba
+  // deixada aberta por dias sem recarregar, chkDataVisivel ficava travado no dia em que a
+  // página abriu; essa checagem avança ele sozinho assim que o dia realmente vira,
+  // enquanto ela não tiver navegado manualmente pra outro dia do histórico.
+  function verificarViradaDeDiaChecklist(){
+    const hojeReal = formatarDataISO(new Date());
+    if (chkSeguindoHoje && chkDataVisivel !== hojeReal){
+      chkDataVisivel = hojeReal;
+      if (!chkModoEdicaoDia) renderizarChecklistDia();
+    }
+  }
+
   function configurarEventosChecklistDiario(){
     document.getElementById("chkBotaoFlutuante").addEventListener("click", () => {
       document.getElementById("chkPainel").classList.remove("oculto");
@@ -18690,11 +18804,13 @@ ${corpo}
     document.getElementById("chkDiaAnterior").addEventListener("click", () => {
       chkModoEdicaoDia = false;
       chkDataVisivel = somarDias(chkDataVisivel, -1);
+      chkSeguindoHoje = chkDataVisivel === formatarDataISO(new Date());
       renderizarChecklistDia();
     });
     document.getElementById("chkDiaProximo").addEventListener("click", () => {
       chkModoEdicaoDia = false;
       chkDataVisivel = somarDias(chkDataVisivel, 1);
+      chkSeguindoHoje = chkDataVisivel === formatarDataISO(new Date());
       renderizarChecklistDia();
     });
     document.getElementById("chkBotaoEditarDia").addEventListener("click", () => {
@@ -18715,6 +18831,15 @@ ${corpo}
       document.getElementById("chkCorpoSemanal").classList.remove("oculto");
       document.querySelector("#chkBotaoSetaSemanal .chk-seta").classList.add("aberta");
     });
+
+    // Detecta a virada do dia mesmo com a aba aberta há dias sem recarregar: confere de
+    // novo sempre que ela volta pra essa aba, e também a cada 5 minutos como reforço
+    // pra quem deixa o painel em foco na tela o dia inteiro.
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") verificarViradaDeDiaChecklist();
+    });
+    window.addEventListener("focus", verificarViradaDeDiaChecklist);
+    setInterval(verificarViradaDeDiaChecklist, 5 * 60 * 1000);
   }
 
   configurarEventosChecklistDiario();
