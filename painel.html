@@ -8728,7 +8728,10 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     // O dropdown é "fixed" (pra nunca ser cortado pelo card), então não acompanha a
     // rolagem sozinho — fecha ele assim que a página rolar, senão fica flutuando
     // desgrudado do botão que abriu ele.
-    window.addEventListener("scroll", () => {
+    window.addEventListener("scroll", (e) => {
+      // Rolar a listinha de valores DENTRO do próprio dropdown (ou o menu de status) não
+      // pode fechar ele — só fecha quando quem rolou foi a página por trás.
+      if (e.target?.closest?.(".marcas-filtro-dropdown, .marcas-menu-status")) return;
       if (marcasFiltroColunaAberta) fecharFiltroColunaMarcas();
       if (linksFiltroColunaAberta) fecharFiltroColunaLinks();
       if (abordagemFiltroColunaAberta) fecharFiltroColunaAbordagem();
