@@ -3229,6 +3229,62 @@
     .prospeccao-capa-numero{ text-align:left; }
     .prospeccao-capa-numero .valor{ font-size:2rem; }
   }
+
+  /* ===================== ABA ROTEIROS ===================== */
+  .roteiro-checkbox-linha{ display:flex; align-items:center; gap:8px; font-size:.85rem; font-weight:600; color:var(--grafite); margin-bottom:10px; cursor:pointer; }
+  .roteiro-opcoes-cor{ display:flex; gap:16px; flex-wrap:wrap; background:var(--creme); border-radius:10px; padding:14px; margin-bottom:14px; }
+  .roteiro-opcao-cor{ flex:1; min-width:220px; }
+  .roteiro-opcao-cor h4{ font-size:.78rem; font-weight:700; margin-bottom:8px; }
+  .roteiro-opcao-cor input[type="color"]{ width:60px; height:34px; padding:2px; border:1px solid var(--borda); border-radius:8px; cursor:pointer; background:var(--branco); }
+  .roteiro-visualizacao{ font-size:.85rem; color:var(--texto-suave); padding-top:9px; }
+  .roteiro-campo-nota{ font-size:.72rem; color:var(--texto-suave); margin-top:6px; line-height:1.5; }
+
+  .zona-upload-roteiro{
+    border:1.5px dashed var(--borda); border-radius:10px; padding:14px; text-align:center; font-size:.8rem;
+    color:var(--texto-suave); cursor:pointer; background:var(--branco);
+  }
+  .zona-upload-roteiro:hover{ border-color:var(--coral); color:var(--coral); }
+
+  .roteiro-toolbar{ display:flex; gap:4px; padding:8px; background:var(--creme); border:1px solid var(--borda); border-bottom:none; border-radius:9px 9px 0 0; flex-wrap:wrap; align-items:center; }
+  .roteiro-toolbar button{
+    min-width:28px; height:28px; padding:0 8px; border:1px solid var(--borda); background:var(--branco); border-radius:6px;
+    font-size:.76rem; font-weight:700; cursor:pointer; color:var(--grafite); white-space:nowrap; flex-shrink:0; font-family:'Outfit',sans-serif;
+  }
+  .roteiro-toolbar button:hover{ border-color:var(--coral); color:var(--coral); }
+  .roteiro-toolbar input[type="color"]{ width:28px; height:28px; padding:1px; border:1px solid var(--borda); border-radius:6px; cursor:pointer; flex-shrink:0; }
+  .roteiro-editor{
+    min-height:130px; border:1px solid var(--borda); border-radius:0 0 9px 9px; padding:12px; font-size:.85rem;
+    color:var(--grafite); line-height:1.6;
+  }
+  .roteiro-editor:focus{ outline:none; border-color:var(--coral); }
+  .roteiro-editor:empty::before{ content:attr(data-placeholder); color:var(--texto-suave); }
+  .roteiro-divisor-ou{ text-align:center; font-size:.7rem; color:var(--texto-suave); font-weight:700; text-transform:uppercase; margin:12px 0; }
+
+  .roteiro-moodboard-area{ min-height:120px; border:1.5px dashed var(--borda); border-radius:10px; padding:14px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-start; background:var(--creme); }
+  .roteiro-moodboard-foto{ position:relative; width:90px; height:90px; border-radius:8px; overflow:hidden; box-shadow:0 6px 16px rgba(0,0,0,.15); border:1px solid var(--borda); }
+  .roteiro-moodboard-foto img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .roteiro-moodboard-remover{
+    position:absolute; top:3px; right:3px; width:18px; height:18px; border-radius:50%; border:none; background:rgba(0,0,0,.55);
+    color:var(--branco); font-size:.7rem; cursor:pointer; line-height:1;
+  }
+
+  .roteiro-linha{ display:flex; align-items:center; gap:14px; padding:14px 20px; border-bottom:1px solid var(--borda); flex-wrap:wrap; }
+  .roteiro-linha:last-child{ border-bottom:none; }
+  .roteiro-linha-info{ flex:1; min-width:180px; }
+  .roteiro-linha-info .nome{ font-weight:600; font-size:.9rem; }
+  .roteiro-linha-info .sub{ font-size:.78rem; color:var(--texto-suave); margin-top:2px; }
+  .roteiro-pill-status{ font-size:.7rem; font-weight:700; padding:5px 12px; border-radius:999px; border:1px solid var(--borda); flex-shrink:0; }
+  .roteiro-pill-status.rascunho{ background:rgba(107,100,92,.1); border-color:var(--texto-suave); color:var(--texto-suave); }
+  .roteiro-pill-status.enviado{ background:rgba(0,0,128,.08); border-color:var(--coral); color:var(--coral); }
+  .roteiro-pill-status.aguardando_ajustes{ background:rgba(201,166,107,.18); border-color:var(--dourado); color:#8a6d34; }
+  .roteiro-pill-status.aprovado{ background:rgba(45,122,79,.12); border-color:var(--verde); color:var(--verde); }
+  .roteiro-linha-acoes{ display:flex; gap:6px; flex-shrink:0; }
+
+  @media (max-width: 640px){
+    .roteiro-opcoes-cor{ flex-direction:column; }
+    .roteiro-linha{ flex-direction:column; align-items:flex-start; }
+    .roteiro-linha-acoes{ align-self:flex-end; }
+  }
 </style>
 </head>
 <body>
@@ -4843,9 +4899,88 @@
          aba já funcionam. O conteúdo de verdade fica pra depois.
          ===================== -->
     <section id="painelRoteiros" class="painel-tab oculto">
-      <div class="cartao" style="text-align:center; padding:40px 24px;">
-        <h2 style="margin-bottom:10px;">Roteiros</h2>
-        <p style="color:var(--texto-suave); max-width:420px; margin:0 auto; line-height:1.6;">Essa aba ainda está vazia — a gente vai montar o conteúdo dela em breve.</p>
+      <button type="button" class="ugc-linha-add" id="roteiroBotaoNovo">+ novo roteiro</button>
+
+      <div class="cartao ugc-form-novo oculto" id="roteiroFormNovo">
+        <h2 id="roteiroFormTitulo">Novo roteiro</h2>
+
+        <div class="ugc-form-grade">
+          <div class="ugc-campo largo"><label>Marca</label><input type="text" id="roteiroCampoMarca" placeholder="Ex: Kora Natural"></div>
+          <div class="ugc-campo">
+            <label>Status</label>
+            <select id="roteiroCampoStatus">
+              <option value="rascunho">Rascunho</option>
+              <option value="enviado">Enviado pra aprovação</option>
+              <option value="aguardando_ajustes">Aguardando ajustes</option>
+              <option value="aprovado">Aprovado</option>
+            </select>
+          </div>
+          <div class="ugc-campo oculto" id="roteiroCampoVisualizacaoWrap">
+            <label>Visualização</label>
+            <p class="roteiro-visualizacao" id="roteiroCampoVisualizacaoTexto"></p>
+          </div>
+        </div>
+
+        <label class="roteiro-checkbox-linha">
+          <input type="checkbox" id="roteiroCampoPersonalizar">
+          Personalizar cor da marca (padrão usa a sua paleta do site)
+        </label>
+        <div class="roteiro-opcoes-cor oculto" id="roteiroOpcoesCor">
+          <div class="roteiro-opcao-cor">
+            <h4>🎨 Escolher a cor</h4>
+            <input type="color" id="roteiroCampoCorManual" value="#000080">
+          </div>
+          <div class="roteiro-opcao-cor">
+            <h4>🖼️ Ou identificar de uma imagem</h4>
+            <div class="zona-upload-roteiro" id="roteiroBotaoImagemCor">Clique ou escolha uma imagem da marca</div>
+            <input type="file" id="roteiroInputImagemCor" accept="image/*" class="oculto">
+            <p class="roteiro-campo-nota" id="roteiroImagemCorNota">A identificação automática da paleta chega numa próxima etapa — por enquanto a imagem só fica salva de referência.</p>
+          </div>
+        </div>
+
+        <div class="ugc-form-grade" style="margin-top:14px;">
+          <div class="ugc-campo"><label>Produto</label><input type="text" id="roteiroCampoProduto" placeholder="Ex: Kit skincare facial"></div>
+          <div class="ugc-campo">
+            <label>Trabalho vinculado</label>
+            <select id="roteiroCampoTrabalho"><option value="">Nenhum</option></select>
+          </div>
+          <div class="ugc-campo"><label>Duração prevista</label><input type="text" id="roteiroCampoDuracao" placeholder="Ex: 30s"></div>
+        </div>
+        <div class="ugc-campo largo" style="margin-bottom:14px;"><label>Categoria</label><input type="text" id="roteiroCampoCategoria" placeholder="Ex: Conteúdo pro perfil"></div>
+
+        <div class="ugc-campo largo" style="margin-bottom:6px;"><label>Roteiro</label></div>
+        <div class="roteiro-toolbar" id="roteiroToolbar">
+          <button type="button" data-comando="bold"><b>B</b></button>
+          <button type="button" data-comando="italic"><i>I</i></button>
+          <button type="button" data-comando="underline"><u>S</u></button>
+          <button type="button" data-comando="insertUnorderedList">• Lista</button>
+          <button type="button" data-comando="insertOrderedList">1. Lista</button>
+          <input type="color" id="roteiroCorFonte" title="Cor da letra" value="#2A2622">
+          <input type="color" id="roteiroCorMarcador" title="Marca-texto" value="#FFF176">
+        </div>
+        <div class="roteiro-editor" id="roteiroEditor" contenteditable="true" data-placeholder="Escreva seu roteiro aqui... gancho, desenvolvimento, CTA"></div>
+        <p class="roteiro-divisor-ou">— ou —</p>
+        <div class="zona-upload-roteiro" id="roteiroBotaoExcel">📎 Anexar planilha em Word (.docx) com a tabela "Cena / Ação", "Narração" e "Observações"</div>
+        <p class="roteiro-campo-nota">A leitura automática do Excel chega na próxima etapa — por enquanto, escreve direto no campo acima.</p>
+
+        <div class="ugc-campo largo" style="margin:16px 0 6px;"><label>Moodboard geral</label></div>
+        <div class="roteiro-moodboard-area" id="roteiroMoodboardArea">
+          <p class="ugc-vazio" id="roteiroMoodboardVazio">Nenhuma foto ainda.</p>
+        </div>
+        <button type="button" class="btn-fantasma" id="roteiroBotaoMoodboard" style="margin-top:8px;">+ Anexar foto</button>
+        <input type="file" id="roteiroInputMoodboard" accept="image/*" multiple class="oculto">
+
+        <div style="display:flex; justify-content:space-between; gap:10px; margin-top:18px;">
+          <button type="button" class="btn-fantasma" id="roteiroBotaoCopiar">Copiar roteiro completo</button>
+          <div style="display:flex; gap:10px;">
+            <button type="button" class="botao-add-tarefa" id="roteiroBotaoCancelar" style="background:var(--branco); color:var(--coral); border:1px solid var(--coral);">Cancelar</button>
+            <button type="button" class="botao-add-tarefa" id="roteiroBotaoSalvar">Salvar roteiro</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cartao ugc-lista-cartao" id="roteirosListaContainer">
+        <div id="roteirosListaCorpo"></div>
       </div>
     </section>
 
@@ -5622,6 +5757,24 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   let prospeccaoModoCompositor = "facil"; // "facil" | "html"
   let prospeccaoFilaRascunhoAtual = [];
 
+  // Estado da aba Roteiros: lista de roteiros, id em edição (null = criando um novo) e as
+  // fotos do moodboard/imagem de cor escolhidas no formulário aberto no momento (só viram
+  // linha de verdade no banco quando o roteiro é salvo).
+  let roteirosCache = [];
+  let roteiroEditandoId = null;
+  let roteiroMoodboardAtual = [];
+  let roteiroImagemCorUrlAtual = null;
+  const ROTEIRO_STATUS = [
+    { chave: "rascunho", nome: "Rascunho" },
+    { chave: "enviado", nome: "Enviado pra aprovação" },
+    { chave: "aguardando_ajustes", nome: "Aguardando ajustes" },
+    { chave: "aprovado", nome: "Aprovado" }
+  ];
+  function nomeStatusRoteiro(chave){
+    const status = ROTEIRO_STATUS.find(s => s.chave === chave);
+    return status ? status.nome : chave;
+  }
+
   // Estado da aba Ideias Criativas: notas do bloco de notas e o filtro de cor selecionado
   let notasCache = [];
   let notaFiltroCor = null; // null = mostra notas de todas as cores
@@ -6145,6 +6298,15 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         renderizarProspeccao();
       } catch (erroProspeccao) {
         console.error("Erro ao carregar/renderizar Prospecção:", erroProspeccao);
+      }
+      try {
+        // Isolado do carregamento principal: a tabela painel_roteiros só existe depois que
+        // roteiros.sql for rodado no Supabase, então essa busca pode falhar sem travar o
+        // resto do painel.
+        roteirosCache = await comRetry(() => buscarTudo("painel_roteiros"));
+        renderizarRoteiros();
+      } catch (erroRoteiros) {
+        console.error("Erro ao carregar/renderizar Roteiros:", erroRoteiros);
       }
       try {
         // Isolado do carregamento principal: a tabela financas_contas_fixas_ocultas só
@@ -7814,6 +7976,56 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     });
 
     document.getElementById("botaoToggleGavetaClientes").addEventListener("click", () => alternarGavetaClientes());
+
+    // ---------- Roteiros ----------
+    document.getElementById("roteiroBotaoNovo").addEventListener("click", abrirFormNovoRoteiro);
+    document.getElementById("roteiroBotaoCancelar").addEventListener("click", fecharFormRoteiro);
+    document.getElementById("roteiroBotaoSalvar").addEventListener("click", salvarRoteiro);
+    document.getElementById("roteiroBotaoCopiar").addEventListener("click", copiarRoteiroCompleto);
+
+    document.getElementById("roteiroCampoPersonalizar").addEventListener("change", (e) => {
+      document.getElementById("roteiroOpcoesCor").classList.toggle("oculto", !e.target.checked);
+    });
+
+    document.getElementById("roteiroBotaoImagemCor").addEventListener("click", () => {
+      document.getElementById("roteiroInputImagemCor").click();
+    });
+    document.getElementById("roteiroInputImagemCor").addEventListener("change", (e) => {
+      const arquivo = e.target.files[0];
+      if (arquivo) selecionarImagemCorRoteiro(arquivo);
+      e.target.value = "";
+    });
+
+    document.getElementById("roteiroBotaoMoodboard").addEventListener("click", () => {
+      document.getElementById("roteiroInputMoodboard").click();
+    });
+    document.getElementById("roteiroInputMoodboard").addEventListener("change", (e) => {
+      const arquivos = Array.from(e.target.files || []);
+      if (arquivos.length) selecionarFotosMoodboardRoteiro(arquivos);
+      e.target.value = "";
+    });
+
+    document.getElementById("roteiroBotaoExcel").addEventListener("click", () => {
+      alert('A leitura automática do Word ainda não está pronta (é a próxima etapa). Por enquanto, escreve direto no campo "Roteiro" acima.');
+    });
+
+    // Barra de formatação do roteiro: document.execCommand ainda funciona em todos os
+    // navegadores pra isso (negrito/itálico/sublinhado/lista/cor), e evita carregar uma
+    // biblioteca de editor de texto só pra essa caixinha.
+    document.querySelectorAll("#roteiroToolbar [data-comando]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.getElementById("roteiroEditor").focus();
+        document.execCommand(btn.dataset.comando, false, null);
+      });
+    });
+    document.getElementById("roteiroCorFonte").addEventListener("input", (e) => {
+      document.getElementById("roteiroEditor").focus();
+      document.execCommand("foreColor", false, e.target.value);
+    });
+    document.getElementById("roteiroCorMarcador").addEventListener("input", (e) => {
+      document.getElementById("roteiroEditor").focus();
+      document.execCommand("hiliteColor", false, e.target.value);
+    });
 
     document.querySelectorAll(".periodo-btn").forEach(btn => {
       btn.addEventListener("click", () => trocarPeriodo(btn.dataset.periodo));
@@ -15208,6 +15420,243 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     if (!prospeccaoFilaRascunhoAtual.length && document.getElementById("prospeccaoSelectDestino").value === "selecionadas" && marcasCache.some(m => m.selecionada)){
       document.getElementById("prospeccaoModalLimparSelecao").classList.remove("oculto");
     }
+  }
+
+  // ===================== ABA ROTEIROS =====================
+  function nomeTrabalhoRoteiro(trabalho){
+    return trabalho.tipo_trabalho ? `${trabalho.marca} — ${trabalho.tipo_trabalho}` : trabalho.marca;
+  }
+
+  // As 10 contas fixas não têm equivalente aqui — mas assim como lá, o dropdown de
+  // "Trabalho vinculado" só mostra trabalhos que ainda fazem sentido escolher (não os já
+  // arquivados), pra não poluir a lista com histórico antigo.
+  function preencherSelectTrabalhoRoteiro(valorAtual){
+    const select = document.getElementById("roteiroCampoTrabalho");
+    if (!select) return;
+    const disponiveis = ugcCache.filter(t => t.etapa !== "arquivado");
+    select.innerHTML = `<option value="">Nenhum</option>` +
+      disponiveis.map(t => `<option value="${t.id}">${escaparHtmlMarcas(nomeTrabalhoRoteiro(t))}</option>`).join("");
+    select.value = valorAtual || "";
+  }
+
+  function renderizarMoodboardFormRoteiro(){
+    const area = document.getElementById("roteiroMoodboardArea");
+    if (!area) return;
+    if (!roteiroMoodboardAtual.length){
+      area.innerHTML = `<p class="ugc-vazio">Nenhuma foto ainda.</p>`;
+      return;
+    }
+    area.innerHTML = roteiroMoodboardAtual.map((foto, indice) => `
+      <div class="roteiro-moodboard-foto">
+        <img src="${foto.url}" alt="Foto do moodboard">
+        <button type="button" class="roteiro-moodboard-remover" data-indice="${indice}" aria-label="Remover foto">✕</button>
+      </div>
+    `).join("");
+    area.querySelectorAll(".roteiro-moodboard-remover").forEach(btn => {
+      btn.addEventListener("click", () => {
+        roteiroMoodboardAtual.splice(Number(btn.dataset.indice), 1);
+        renderizarMoodboardFormRoteiro();
+      });
+    });
+  }
+
+  function abrirFormNovoRoteiro(){
+    roteiroEditandoId = null;
+    roteiroMoodboardAtual = [];
+    roteiroImagemCorUrlAtual = null;
+
+    document.getElementById("roteiroFormTitulo").textContent = "Novo roteiro";
+    ["roteiroCampoMarca", "roteiroCampoProduto", "roteiroCampoDuracao", "roteiroCampoCategoria"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
+    document.getElementById("roteiroCampoStatus").value = "rascunho";
+    document.getElementById("roteiroCampoPersonalizar").checked = false;
+    document.getElementById("roteiroOpcoesCor").classList.add("oculto");
+    document.getElementById("roteiroCampoCorManual").value = "#000080";
+    document.getElementById("roteiroImagemCorNota").textContent = "A identificação automática da paleta chega numa próxima etapa — por enquanto a imagem só fica salva de referência.";
+    document.getElementById("roteiroCampoVisualizacaoWrap").classList.add("oculto");
+    document.getElementById("roteiroEditor").innerHTML = "";
+    preencherSelectTrabalhoRoteiro("");
+    renderizarMoodboardFormRoteiro();
+
+    document.getElementById("roteiroFormNovo").classList.remove("oculto");
+    document.getElementById("roteiroFormNovo").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function fecharFormRoteiro(){
+    document.getElementById("roteiroFormNovo").classList.add("oculto");
+    roteiroEditandoId = null;
+  }
+
+  function iniciarEdicaoRoteiro(id){
+    const item = roteirosCache.find(r => r.id === id);
+    if (!item) return;
+
+    roteiroEditandoId = id;
+    roteiroMoodboardAtual = Array.isArray(item.moodboard) ? item.moodboard.slice() : [];
+    roteiroImagemCorUrlAtual = item.imagem_referencia_url || null;
+
+    document.getElementById("roteiroFormTitulo").textContent = "Editar roteiro";
+    document.getElementById("roteiroCampoMarca").value = item.marca || "";
+    document.getElementById("roteiroCampoStatus").value = item.status || "rascunho";
+    document.getElementById("roteiroCampoProduto").value = item.produto || "";
+    document.getElementById("roteiroCampoDuracao").value = item.duracao_prevista || "";
+    document.getElementById("roteiroCampoCategoria").value = item.categoria || "";
+    document.getElementById("roteiroCampoPersonalizar").checked = !!item.personalizar_cor;
+    document.getElementById("roteiroOpcoesCor").classList.toggle("oculto", !item.personalizar_cor);
+    document.getElementById("roteiroCampoCorManual").value = item.cor_marca || "#000080";
+    document.getElementById("roteiroImagemCorNota").textContent = item.imagem_referencia_url
+      ? "Já tem uma imagem salva. A identificação automática da paleta chega numa próxima etapa."
+      : "A identificação automática da paleta chega numa próxima etapa — por enquanto a imagem só fica salva de referência.";
+    document.getElementById("roteiroEditor").innerHTML = item.roteiro_html || "";
+    preencherSelectTrabalhoRoteiro(item.trabalho_id || "");
+
+    const corVisto = item.visualizado_em ? "var(--verde)" : "var(--texto-suave)";
+    const textoVisto = item.visualizado_em
+      ? `Visualizado em ${new Date(item.visualizado_em).toLocaleDateString("pt-BR")}`
+      : "Ainda não visualizado pela marca";
+    document.getElementById("roteiroCampoVisualizacaoWrap").classList.remove("oculto");
+    document.getElementById("roteiroCampoVisualizacaoTexto").innerHTML =
+      `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${corVisto};margin-right:6px;"></span>${textoVisto}`;
+
+    renderizarMoodboardFormRoteiro();
+    document.getElementById("roteiroFormNovo").classList.remove("oculto");
+    document.getElementById("roteiroFormNovo").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Envia pro bucket público "roteiros-midia" (imagem de referência de cor ou foto do
+  // moodboard) e devolve a URL pública — diferente do bucket jurídico (privado), aqui não
+  // precisa de link assinado porque não é documento sensível, é só imagem de referência.
+  async function enviarArquivoRoteiro(file, pasta){
+    const caminho = `${pasta}/${Date.now()}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
+    const { error } = await Auth.client.storage.from("roteiros-midia").upload(caminho, file, { upsert: false });
+    if (error){
+      alert("Não foi possível enviar a imagem agora: " + error.message);
+      return null;
+    }
+    const { data } = Auth.client.storage.from("roteiros-midia").getPublicUrl(caminho);
+    return data.publicUrl;
+  }
+
+  async function selecionarImagemCorRoteiro(file){
+    const url = await enviarArquivoRoteiro(file, "cor-marca");
+    if (!url) return;
+    roteiroImagemCorUrlAtual = url;
+    document.getElementById("roteiroImagemCorNota").textContent = "Imagem salva. A identificação automática da paleta chega numa próxima etapa.";
+  }
+
+  async function selecionarFotosMoodboardRoteiro(arquivos){
+    for (const file of arquivos){
+      const url = await enviarArquivoRoteiro(file, "moodboard");
+      if (url) roteiroMoodboardAtual.push({ url, x: null, y: null, rotacao: 0 });
+    }
+    renderizarMoodboardFormRoteiro();
+  }
+
+  async function salvarRoteiro(){
+    const marca = document.getElementById("roteiroCampoMarca").value.trim();
+    if (!marca){ alert("Digite o nome da marca."); return; }
+
+    const personalizar = document.getElementById("roteiroCampoPersonalizar").checked;
+    const payload = {
+      marca,
+      status: document.getElementById("roteiroCampoStatus").value,
+      personalizar_cor: personalizar,
+      cor_marca: personalizar ? document.getElementById("roteiroCampoCorManual").value : null,
+      imagem_referencia_url: personalizar ? roteiroImagemCorUrlAtual : null,
+      produto: document.getElementById("roteiroCampoProduto").value.trim() || null,
+      trabalho_id: document.getElementById("roteiroCampoTrabalho").value || null,
+      duracao_prevista: document.getElementById("roteiroCampoDuracao").value.trim() || null,
+      categoria: document.getElementById("roteiroCampoCategoria").value.trim() || null,
+      roteiro_html: document.getElementById("roteiroEditor").innerHTML.trim() || null,
+      moodboard: roteiroMoodboardAtual
+    };
+
+    const botao = document.getElementById("roteiroBotaoSalvar");
+    botao.disabled = true;
+    botao.textContent = "Salvando...";
+
+    try {
+      if (roteiroEditandoId){
+        const { data, error } = await Auth.client.from("painel_roteiros").update(payload).eq("id", roteiroEditandoId).select();
+        if (error) throw error;
+        const idx = roteirosCache.findIndex(r => r.id === roteiroEditandoId);
+        if (idx !== -1) roteirosCache[idx] = data[0];
+      } else {
+        const { data, error } = await Auth.client.from("painel_roteiros").insert(payload).select();
+        if (error) throw error;
+        roteirosCache = roteirosCache.concat(data);
+      }
+      fecharFormRoteiro();
+      renderizarRoteiros();
+    } catch (erro) {
+      console.error("Erro ao salvar roteiro:", erro);
+      alert(`Não deu pra salvar o roteiro.\n\nMotivo: ${erro?.message || erro}`);
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Salvar roteiro";
+    }
+  }
+
+  async function removerRoteiro(id){
+    const item = roteirosCache.find(r => r.id === id);
+    if (!item) return;
+    if (!confirm(`Excluir o roteiro de "${item.marca}"? Essa ação não pode ser desfeita.`)) return;
+
+    try {
+      const { error } = await Auth.client.from("painel_roteiros").delete().eq("id", id);
+      if (error) throw error;
+      roteirosCache = roteirosCache.filter(r => r.id !== id);
+      renderizarRoteiros();
+    } catch (erro) {
+      console.error("Erro ao excluir roteiro:", erro);
+      alert("Não deu pra excluir. Tenta de novo.");
+    }
+  }
+
+  function copiarRoteiroCompleto(){
+    const texto = document.getElementById("roteiroEditor").innerText.trim();
+    if (!texto){ alert("O campo de roteiro ainda está vazio."); return; }
+    navigator.clipboard.writeText(texto)
+      .then(() => alert("Roteiro copiado!"))
+      .catch(() => alert("Não deu pra copiar automaticamente. Selecione o texto do campo manualmente."));
+  }
+
+  function renderLinhaRoteiroHtml(item){
+    const dataTexto = item.created_at ? new Date(item.created_at).toLocaleDateString("pt-BR") : "";
+    const subInfo = [item.produto, item.categoria, dataTexto].filter(Boolean).join(" · ");
+    return `
+      <div class="roteiro-linha" data-id="${item.id}">
+        <div class="roteiro-linha-info">
+          <div class="nome">${escaparHtmlMarcas(item.marca)}</div>
+          <div class="sub">${escaparHtmlMarcas(subInfo || "—")}</div>
+        </div>
+        <span class="roteiro-pill-status ${item.status}">${nomeStatusRoteiro(item.status)}</span>
+        <div class="roteiro-linha-acoes">
+          <button type="button" class="marcas-botao-icone" data-acao="roteiro-editar" data-id="${item.id}" title="Editar">✎</button>
+          <button type="button" class="marcas-botao-icone" data-acao="roteiro-remover" data-id="${item.id}" title="Excluir">✕</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function reatarEventosLinhasRoteiro(container){
+    container.querySelectorAll("[data-acao='roteiro-editar']").forEach(btn => {
+      btn.addEventListener("click", () => iniciarEdicaoRoteiro(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='roteiro-remover']").forEach(btn => {
+      btn.addEventListener("click", () => removerRoteiro(btn.dataset.id));
+    });
+  }
+
+  function renderizarRoteiros(){
+    const corpo = document.getElementById("roteirosListaCorpo");
+    if (!corpo) return;
+    const ordenados = roteirosCache.slice().sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+    corpo.innerHTML = ordenados.length
+      ? ordenados.map(renderLinhaRoteiroHtml).join("")
+      : `<p class="ugc-vazio">Nenhum roteiro cadastrado ainda.</p>`;
+    reatarEventosLinhasRoteiro(corpo);
   }
 
   function renderizarClientes(){
