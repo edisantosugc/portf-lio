@@ -4676,11 +4676,11 @@
           <div class="ugc-cabecalho-lista marcas-grade-lista">
             <span></span>
             <span></span>
-            <span class="marcas-th">Marca<button type="button" class="marcas-filtro-btn" data-campo="nome" aria-label="Filtrar por marca">▾</button></span>
-            <span class="marcas-th">Seguidores<button type="button" class="marcas-filtro-btn" data-campo="seguidores" aria-label="Filtrar por seguidores">▾</button></span>
+            <span class="marcas-th">Marca</span>
+            <span class="marcas-th">Seguidores</span>
             <span class="marcas-th">Nicho<button type="button" class="marcas-filtro-btn" data-campo="nicho" aria-label="Filtrar por nicho">▾</button></span>
-            <span class="marcas-th">Origem<button type="button" class="marcas-filtro-btn" data-campo="origem" aria-label="Filtrar por origem">▾</button></span>
-            <span class="marcas-th">Contato<button type="button" class="marcas-filtro-btn" data-campo="contato" aria-label="Filtrar por contato">▾</button></span>
+            <span class="marcas-th">Origem</span>
+            <span class="marcas-th">Contato</span>
             <span class="marcas-th">Status<button type="button" class="marcas-filtro-btn" data-campo="status" aria-label="Filtrar por status">▾</button></span>
             <span></span>
           </div>
@@ -15073,7 +15073,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   }
 
   /* ---------- Filtros estilo Excel na lista de Marcas (Marca/Seguidores/Nicho/Origem/Contato/Status) ---------- */
-  let marcasFiltrosColuna = { nome: null, seguidores: null, nicho: null, origem: null, contato: null, status: null };
+  let marcasFiltrosColuna = { nicho: null, status: null };
   let marcasFiltroColunaAberta = null; // qual coluna tem o dropdown de filtro aberto agora
 
   function chaveColunaMarcas(item, campo){
