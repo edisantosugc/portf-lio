@@ -3362,9 +3362,20 @@
   .roteiro-pill-status.aprovado{ background:rgba(45,122,79,.12); border-color:var(--verde); color:var(--verde); }
   .roteiro-linha-acoes{ display:flex; gap:6px; flex-shrink:0; }
 
+  /* ===================== ABA LINKS ===================== */
+  .links-linha{ display:flex; align-items:center; gap:14px; padding:14px 20px; border-bottom:1px solid var(--borda); flex-wrap:wrap; }
+  .links-linha:last-child{ border-bottom:none; }
+  .links-linha-info{ flex:1; min-width:200px; }
+  .links-linha-info a.nome{ font-weight:600; font-size:.9rem; color:var(--coral); text-decoration:none; }
+  .links-linha-info a.nome:hover{ text-decoration:underline; }
+  .links-linha-info .sub{ font-size:.78rem; color:var(--texto-suave); margin-top:2px; }
+  .links-pill-categoria{ font-size:.7rem; font-weight:700; padding:5px 12px; border-radius:999px; border:1px solid var(--coral); color:var(--coral); background:rgba(0,0,128,.06); flex-shrink:0; white-space:nowrap; }
+  .links-linha-acoes{ display:flex; gap:6px; flex-shrink:0; }
+
   @media (max-width: 640px){
     .roteiro-opcoes-cor{ flex-direction:column; }
     .roteiro-linha{ flex-direction:column; align-items:flex-start; }
+    .links-linha{ flex-direction:column; align-items:flex-start; }
     .roteiro-linha-acoes{ align-self:flex-end; }
   }
 </style>
@@ -3773,6 +3784,10 @@
         Financeiro
         <span class="badge-alerta-sidebar oculto" id="badgeAlertaFinancas"></span>
       </button>
+      <button class="menu-item" data-tab="links">
+        <svg viewBox="0 0 16 16"><path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.001 1.001 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/><path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243L6.586 4.672z"/></svg>
+        Links
+      </button>
     </nav>
 
     <div class="sidebar-rodape">
@@ -4130,6 +4145,7 @@
       <div class="ig-subabas" id="subAbasMensagens">
         <button type="button" class="sub-aba-btn ativo" data-subaba-msg="portfolio">Mensagens Portfólio</button>
         <button type="button" class="sub-aba-btn" data-subaba-msg="admin">Mensagens App Admin</button>
+        <button type="button" class="sub-aba-btn" data-subaba-msg="roteiros">Aprovação de Roteiro</button>
       </div>
 
       <div id="mensagensSubPortfolio">
@@ -4143,6 +4159,13 @@
         <div class="cartao" id="cartaoBriefingRespostas">
           <h2>Mensagens recebidas (App Admin)</h2>
           <div id="listaBriefing"></div>
+        </div>
+      </div>
+
+      <div id="mensagensSubRoteiros" class="oculto">
+        <div class="cartao" id="cartaoRespostasRoteiros">
+          <h2>Respostas da marca nos roteiros</h2>
+          <div id="listaRespostasRoteiros"></div>
         </div>
       </div>
     </section>
@@ -5097,6 +5120,45 @@
       </div>
     </section>
 
+    <!-- ===================== ABA: LINKS ===================== -->
+    <section id="painelLinks" class="painel-tab oculto">
+      <button type="button" class="ugc-linha-add" id="linksBotaoNovo">+ Adicionar link</button>
+
+      <div class="cartao ugc-lista-cartao" id="linksListaContainer">
+        <div id="linksListaCorpo"></div>
+      </div>
+    </section>
+
+    <!-- Modal: novo/editar link -->
+    <div class="ugc-modal-overlay oculto" id="linksModal" role="dialog" aria-modal="true" aria-labelledby="linksModalTitulo">
+      <div class="cliente-modal-cartao">
+        <div class="cliente-modal-topo">
+          <h2 id="linksModalTitulo">Novo link</h2>
+          <button type="button" class="cliente-modal-fechar" id="linksModalFechar" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="cliente-modal-corpo">
+          <div class="ugc-campo largo"><label>Nome do link</label><input type="text" id="linksCampoNome" placeholder="Ex: Domínio Hostinger"></div>
+          <div class="ugc-campo largo"><label>Descrição</label><textarea id="linksCampoDescricao" rows="3" placeholder="Pra que serve / por que salvei esse link"></textarea></div>
+          <div class="ugc-campo largo"><label>URL do link</label><input type="text" id="linksCampoUrl" placeholder="https://..."></div>
+          <div class="ugc-campo largo">
+            <label>Categoria</label>
+            <select id="linksCampoCategoria"></select>
+          </div>
+          <div class="ugc-campo largo oculto" id="linksNovaCategoriaWrap">
+            <label>Nome da nova categoria</label>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="linksCampoNovaCategoria" placeholder="Ex: Estudo" style="flex:1;">
+              <button type="button" class="btn-fantasma" id="linksBotaoAddCategoria">Adicionar categoria</button>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+            <button type="button" class="btn-fantasma" id="linksModalCancelar">Cancelar</button>
+            <button type="button" class="botao-add-tarefa" id="linksModalSalvar">Salvar link</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal: revisar marcas antes de importar o CSV -->
     <div class="ugc-modal-overlay oculto" id="marcasModalRevisaoImportacao" role="dialog" aria-modal="true" aria-labelledby="marcasModalRevisaoImportacaoTitulo">
       <div class="cliente-modal-cartao largo">
@@ -5699,6 +5761,13 @@
   let eventosCache = [];
   let leadsCache = [];
   let briefingCache = [];
+  let roteirosRespostasCache = []; // respostas de Aprovar/Ajustar da marca no link público do roteiro
+
+  // Estado da aba Links: lista de links salvos, categorias disponíveis no dropdown (fixas,
+  // numa tabela própria — não só o que já foi usado) e o id em edição (null = criando um novo)
+  let linksCache = [];
+  let linksCategoriasCache = [];
+  let linkEditandoId = null;
   let tarefasCache = [];
   let lancamentosCache = [];
   let periodoAtual = "hoje";
@@ -6437,6 +6506,28 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         renderizarRoteiros();
       } catch (erroRoteiros) {
         console.error("Erro ao carregar/renderizar Roteiros:", erroRoteiros);
+      }
+      try {
+        // Isolado do carregamento principal: a tabela painel_roteiros_respostas só existe
+        // depois que roteiros_etapa4_aprovacao.sql for rodado no Supabase.
+        roteirosRespostasCache = await comRetry(() => buscarTudo("painel_roteiros_respostas"));
+        renderizarRespostasRoteiros();
+        atualizarBadgesMensagens();
+      } catch (erroRespostasRoteiros) {
+        console.error("Erro ao carregar/renderizar respostas de Roteiros:", erroRespostasRoteiros);
+      }
+      try {
+        // Isolado do carregamento principal: as tabelas painel_links/painel_links_categorias
+        // só existem depois que links.sql for rodado no Supabase.
+        const [links, categorias] = await Promise.all([
+          comRetry(() => buscarTudo("painel_links")),
+          comRetry(() => buscarTudo("painel_links_categorias"))
+        ]);
+        linksCache = links;
+        linksCategoriasCache = categorias;
+        renderizarLinks();
+      } catch (erroLinks) {
+        console.error("Erro ao carregar/renderizar Links:", erroLinks);
       }
       try {
         // Isolado do carregamento principal: a tabela financas_contas_fixas_ocultas só
@@ -8146,6 +8237,16 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("roteiroBotaoAddCena").addEventListener("click", adicionarCenaManualRoteiro);
     document.getElementById("roteiroBotaoCopiarLink").addEventListener("click", copiarLinkPublicoRoteiro);
 
+    // ---------- Links ----------
+    document.getElementById("linksBotaoNovo").addEventListener("click", abrirModalNovoLink);
+    document.getElementById("linksModalFechar").addEventListener("click", fecharModalLink);
+    document.getElementById("linksModalCancelar").addEventListener("click", fecharModalLink);
+    document.getElementById("linksModalSalvar").addEventListener("click", salvarLink);
+    document.getElementById("linksBotaoAddCategoria").addEventListener("click", criarCategoriaLink);
+    document.getElementById("linksCampoCategoria").addEventListener("change", (e) => {
+      document.getElementById("linksNovaCategoriaWrap").classList.toggle("oculto", e.target.value !== VALOR_NOVA_CATEGORIA_LINK);
+    });
+
     // Barra de formatação do roteiro: document.execCommand ainda funciona em todos os
     // navegadores pra isso (negrito/itálico/sublinhado/lista/cor), e evita carregar uma
     // biblioteca de editor de texto só pra essa caixinha.
@@ -8793,6 +8894,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.querySelectorAll("#subAbasMensagens .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subabaMsg === sub));
     document.getElementById("mensagensSubPortfolio").classList.toggle("oculto", sub !== "portfolio");
     document.getElementById("mensagensSubAdmin").classList.toggle("oculto", sub !== "admin");
+    document.getElementById("mensagensSubRoteiros").classList.toggle("oculto", sub !== "roteiros");
   }
 
   function trocarSubAbaIara(sub){
@@ -8875,12 +8977,13 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("painelInstagram").classList.toggle("oculto", aba !== "instagram");
     document.getElementById("painelAdministrativo").classList.toggle("oculto", aba !== "administrativo");
     document.getElementById("painelRoteiros").classList.toggle("oculto", aba !== "roteiros");
+    document.getElementById("painelLinks").classList.toggle("oculto", aba !== "links");
 
-    const titulos = { principal: "Dashboard", portfolio: "Portfólio", agenda: "Agenda", mensagens: "Mensagens", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Marcas", clientes: "Clientes", prospeccao: "Disparo de E-mails", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo", roteiros: "Roteiros" };
+    const titulos = { principal: "Dashboard", portfolio: "Portfólio", agenda: "Agenda", mensagens: "Mensagens", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Marcas", clientes: "Clientes", prospeccao: "Disparo de E-mails", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo", roteiros: "Roteiros", links: "Links" };
     document.getElementById("tituloTopo").innerHTML = titulos[aba];
 
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
-    const abasSemFiltroPeriodo = ["agenda", "mensagens", "financas", "negocio", "abordagem", "clientes", "prospeccao", "iara", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo", "roteiros"];
+    const abasSemFiltroPeriodo = ["agenda", "mensagens", "financas", "negocio", "abordagem", "clientes", "prospeccao", "iara", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo", "roteiros", "links"];
     document.getElementById("filtroPeriodo").classList.toggle("oculto", abasSemFiltroPeriodo.includes(aba));
     document.getElementById("ultimaAtualizacaoFinancas").classList.toggle("oculto", aba !== "financas");
 
@@ -9139,6 +9242,267 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       renderizarBriefing(briefingCache);
       atualizarBadgesMensagens();
     }
+  }
+
+  // ---------- Aprovação de Roteiro (respostas da marca no link público) ----------
+  function renderizarRespostasRoteiros(){
+    const container = document.getElementById("listaRespostasRoteiros");
+    if (!container) return;
+
+    if (!roteirosRespostasCache.length){
+      container.innerHTML = '<p class="texto-vazio">Nenhuma resposta de roteiro por enquanto.</p>';
+      return;
+    }
+
+    const ordenados = [...roteirosRespostasCache].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    container.innerHTML = ordenados.map((item, i) => {
+      const data = new Date(item.created_at).toLocaleDateString("pt-BR", {
+        day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
+      });
+      const aprovado = item.tipo === "aprovado";
+      const roteiroAinda = roteirosCache.find(r => r.id === item.roteiro_id);
+
+      return `
+        <div class="cartao-mensagem ${item.lida ? "" : "nao-lida"}">
+          <div class="cartao-mensagem-topo" data-idx="${i}" data-id="${item.id}">
+            <span class="selo-origem">${aprovado ? "✅ Aprovado" : "✏️ Ajuste pedido"}</span>
+            <span class="cartao-mensagem-principal">
+              <span class="cartao-mensagem-nome">${escaparHtmlMarcas(item.marca)}</span>
+            </span>
+            <span class="cartao-mensagem-data">${data}</span>
+            <button type="button" class="cartao-mensagem-excluir" data-acao="excluir-resposta-roteiro" aria-label="Excluir resposta">&times;</button>
+          </div>
+          <div class="cartao-mensagem-corpo oculto" id="resposta-roteiro-${i}">
+            <p>${aprovado ? "A marca aprovou o roteiro — pode seguir pra gravação." : "A marca pediu ajuste nas condições solicitadas."}</p>
+            ${roteiroAinda ? `<button type="button" class="btn-fantasma" data-acao="ver-roteiro" data-id="${item.roteiro_id}" style="margin-top:8px;">Ver roteiro</button>` : ""}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    container.querySelectorAll(".cartao-mensagem-topo").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const corpo = document.getElementById("resposta-roteiro-" + btn.dataset.idx);
+        corpo.classList.toggle("oculto");
+        marcarRespostaRoteiroLida(btn.dataset.id);
+      });
+    });
+
+    container.querySelectorAll("[data-acao='excluir-resposta-roteiro']").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = btn.closest(".cartao-mensagem-topo").dataset.id;
+        excluirRespostaRoteiro(id);
+      });
+    });
+
+    container.querySelectorAll("[data-acao='ver-roteiro']").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        trocarAba("roteiros");
+        iniciarEdicaoRoteiro(btn.dataset.id);
+      });
+    });
+  }
+
+  async function marcarRespostaRoteiroLida(id){
+    const item = roteirosRespostasCache.find(r => r.id === id);
+    if (!item || item.lida) return;
+
+    item.lida = true;
+    atualizarBadgesMensagens();
+
+    const { error } = await Auth.client
+      .from("painel_roteiros_respostas")
+      .update({ lida: true })
+      .eq("id", id);
+
+    if (error){
+      item.lida = false;
+      atualizarBadgesMensagens();
+    }
+  }
+
+  async function excluirRespostaRoteiro(id){
+    const { error } = await Auth.client
+      .from("painel_roteiros_respostas")
+      .delete()
+      .eq("id", id);
+
+    if (!error){
+      roteirosRespostasCache = roteirosRespostasCache.filter(r => r.id !== id);
+      renderizarRespostasRoteiros();
+      atualizarBadgesMensagens();
+    }
+  }
+
+  // ===================== ABA LINKS =====================
+  const VALOR_NOVA_CATEGORIA_LINK = "__nova__";
+
+  function preencherSelectCategoriaLinks(valorAtual){
+    const select = document.getElementById("linksCampoCategoria");
+    if (!select) return;
+    const ordenadas = linksCategoriasCache.slice().sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    select.innerHTML = `<option value="">Sem categoria</option>` +
+      ordenadas.map(c => `<option value="${escaparHtmlMarcas(c.nome)}">${escaparHtmlMarcas(c.nome)}</option>`).join("") +
+      `<option value="${VALOR_NOVA_CATEGORIA_LINK}">+ Adicionar nova categoria</option>`;
+    select.value = valorAtual && ordenadas.some(c => c.nome === valorAtual) ? valorAtual : "";
+    document.getElementById("linksNovaCategoriaWrap").classList.add("oculto");
+    document.getElementById("linksCampoNovaCategoria").value = "";
+  }
+
+  function abrirModalNovoLink(){
+    linkEditandoId = null;
+    document.getElementById("linksModalTitulo").textContent = "Novo link";
+    document.getElementById("linksCampoNome").value = "";
+    document.getElementById("linksCampoDescricao").value = "";
+    document.getElementById("linksCampoUrl").value = "";
+    preencherSelectCategoriaLinks("");
+    document.getElementById("linksModal").classList.remove("oculto");
+  }
+
+  function iniciarEdicaoLink(id){
+    const item = linksCache.find(l => l.id === id);
+    if (!item) return;
+    linkEditandoId = id;
+    document.getElementById("linksModalTitulo").textContent = "Editar link";
+    document.getElementById("linksCampoNome").value = item.nome || "";
+    document.getElementById("linksCampoDescricao").value = item.descricao || "";
+    document.getElementById("linksCampoUrl").value = item.url || "";
+    preencherSelectCategoriaLinks(item.categoria || "");
+    document.getElementById("linksModal").classList.remove("oculto");
+  }
+
+  function fecharModalLink(){
+    document.getElementById("linksModal").classList.add("oculto");
+    linkEditandoId = null;
+  }
+
+  // Cria a categoria de verdade no banco assim que ela é digitada (não só quando o link é
+  // salvo) — por isso ela já fica disponível permanentemente pros próximos links, mesmo que
+  // esse link específico seja cancelado depois.
+  async function criarCategoriaLink(){
+    const nome = document.getElementById("linksCampoNovaCategoria").value.trim();
+    if (!nome){ alert("Digite o nome da nova categoria."); return; }
+
+    const existente = linksCategoriasCache.find(c => c.nome.toLowerCase() === nome.toLowerCase());
+    if (existente){
+      preencherSelectCategoriaLinks(existente.nome);
+      document.getElementById("linksCampoCategoria").value = existente.nome;
+      return;
+    }
+
+    try {
+      const { data, error } = await Auth.client.from("painel_links_categorias").insert({ nome }).select();
+      if (error) throw error;
+      linksCategoriasCache = linksCategoriasCache.concat(data);
+      preencherSelectCategoriaLinks(nome);
+      document.getElementById("linksCampoCategoria").value = nome;
+    } catch (erro) {
+      console.error("Erro ao criar categoria de link:", erro);
+      alert(`Não deu pra criar a categoria.\n\nMotivo: ${erro?.message || erro}`);
+    }
+  }
+
+  async function salvarLink(){
+    const nome = document.getElementById("linksCampoNome").value.trim();
+    const url = document.getElementById("linksCampoUrl").value.trim();
+    if (!nome){ alert("Digite o nome do link."); return; }
+    if (!url){ alert("Digite a URL do link."); return; }
+
+    const categoriaSelecionada = document.getElementById("linksCampoCategoria").value;
+    if (categoriaSelecionada === VALOR_NOVA_CATEGORIA_LINK){
+      alert('Termina de criar a categoria nova (botão "Adicionar categoria") antes de salvar o link.');
+      return;
+    }
+
+    const payload = {
+      nome,
+      url,
+      descricao: document.getElementById("linksCampoDescricao").value.trim() || null,
+      categoria: categoriaSelecionada || null
+    };
+
+    const botao = document.getElementById("linksModalSalvar");
+    botao.disabled = true;
+    botao.textContent = "Salvando...";
+
+    try {
+      if (linkEditandoId){
+        const { data, error } = await Auth.client.from("painel_links").update(payload).eq("id", linkEditandoId).select();
+        if (error) throw error;
+        const idx = linksCache.findIndex(l => l.id === linkEditandoId);
+        if (idx !== -1) linksCache[idx] = data[0];
+      } else {
+        const { data, error } = await Auth.client.from("painel_links").insert(payload).select();
+        if (error) throw error;
+        linksCache = linksCache.concat(data);
+      }
+      fecharModalLink();
+      renderizarLinks();
+    } catch (erro) {
+      console.error("Erro ao salvar link:", erro);
+      alert(`Não deu pra salvar o link.\n\nMotivo: ${erro?.message || erro}`);
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Salvar link";
+    }
+  }
+
+  async function removerLink(id){
+    const item = linksCache.find(l => l.id === id);
+    if (!item) return;
+    if (!confirm(`Excluir o link "${item.nome}"? Essa ação não pode ser desfeita.`)) return;
+
+    try {
+      const { error } = await Auth.client.from("painel_links").delete().eq("id", id);
+      if (error) throw error;
+      linksCache = linksCache.filter(l => l.id !== id);
+      renderizarLinks();
+    } catch (erro) {
+      console.error("Erro ao excluir link:", erro);
+      alert("Não deu pra excluir. Tenta de novo.");
+    }
+  }
+
+  function renderLinhaLinkHtml(item){
+    const subInfo = [item.categoria, item.descricao].filter(Boolean).join(" · ");
+    return `
+      <div class="links-linha" data-id="${item.id}">
+        ${item.categoria ? `<span class="links-pill-categoria">${escaparHtmlMarcas(item.categoria)}</span>` : ""}
+        <div class="links-linha-info">
+          <a class="nome" href="${escaparHtmlMarcas(item.url)}" target="_blank" rel="noopener">${escaparHtmlMarcas(item.nome)}</a>
+          <div class="sub">${escaparHtmlMarcas(item.descricao || "—")}</div>
+        </div>
+        <div class="links-linha-acoes">
+          <button type="button" class="marcas-botao-icone" data-acao="link-editar" data-id="${item.id}" title="Editar">✎</button>
+          <button type="button" class="marcas-botao-icone" data-acao="link-remover" data-id="${item.id}" title="Excluir">✕</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function reatarEventosLinhasLinks(container){
+    container.querySelectorAll("[data-acao='link-editar']").forEach(btn => {
+      btn.addEventListener("click", () => iniciarEdicaoLink(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='link-remover']").forEach(btn => {
+      btn.addEventListener("click", () => removerLink(btn.dataset.id));
+    });
+  }
+
+  function renderizarLinks(){
+    const corpo = document.getElementById("linksListaCorpo");
+    if (!corpo) return;
+    const ordenados = linksCache.slice().sort((a, b) => {
+      const cat = (a.categoria || "").localeCompare(b.categoria || "", "pt-BR");
+      return cat !== 0 ? cat : a.nome.localeCompare(b.nome, "pt-BR");
+    });
+    corpo.innerHTML = ordenados.length
+      ? ordenados.map(renderLinhaLinkHtml).join("")
+      : `<p class="ugc-vazio">Nenhum link cadastrado ainda.</p>`;
+    reatarEventosLinhasLinks(corpo);
   }
 
   function renderizarGrafico(visitas, idContainer){
@@ -9422,7 +9786,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   // Admin somadas) no botão "Mensagens" do menu lateral. Sempre conta o total
   // de mensagens não lidas, sem depender do filtro de período selecionado.
   function atualizarBadgesMensagens(){
-    const naoLidas = leadsCache.filter(l => !l.lida).length + briefingCache.filter(b => !b.lida).length;
+    const naoLidas = leadsCache.filter(l => !l.lida).length + briefingCache.filter(b => !b.lida).length +
+      roteirosRespostasCache.filter(r => !r.lida).length;
 
     const badgeSidebar = document.getElementById("badgeMensagensPortfolio");
     if (badgeSidebar){
@@ -11411,6 +11776,11 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       rotulo: (n) => n === 1 ? "resposta de briefing (App Admin)" : "respostas de briefing (App Admin)"
     },
     {
+      grupo: "roteiro-aprovacao",
+      obter: obterAlertasRespostasRoteiro,
+      rotulo: (n) => n === 1 ? "resposta de roteiro" : "respostas de roteiro"
+    },
+    {
       grupo: "clientes",
       obter: obterAlertasReengajamentoClientes,
       rotulo: (n) => n === 1 ? "cliente pra reengajar" : "clientes pra reengajar"
@@ -11463,6 +11833,14 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       trocarSubAbaMensagens("admin");
       requestAnimationFrame(() => {
         document.getElementById("cartaoBriefingRespostas")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      return;
+    }
+    if (grupo === "roteiro-aprovacao"){
+      trocarAba("mensagens");
+      trocarSubAbaMensagens("roteiros");
+      requestAnimationFrame(() => {
+        document.getElementById("cartaoRespostasRoteiros")?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
       return;
     }
@@ -13661,6 +14039,12 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     return briefingCache
       .filter(b => !b.lida)
       .map(b => ({ ...b, diasParaVencer: 0 }));
+  }
+
+  function obterAlertasRespostasRoteiro(){
+    return roteirosRespostasCache
+      .filter(r => !r.lida)
+      .map(r => ({ ...r, diasParaVencer: 0 }));
   }
 
   // Pendência administrativa permanente: negociação fechada que ainda não virou

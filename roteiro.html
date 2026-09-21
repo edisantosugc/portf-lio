@@ -75,6 +75,17 @@
   .aviso-envio.sucesso{ color:var(--verde); }
   .aviso-envio.erro{ color:var(--vermelho); }
 
+  .caixa-aprovacao{ background:var(--branco); border-radius:14px; padding:20px 22px; margin-top:14px; text-align:center; }
+  .botoes-aprovacao{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:12px; }
+  .botao-aprovar, .botao-ajustar{
+    flex:1; min-width:180px; padding:12px 18px; border-radius:10px; font-weight:600; font-size:.85rem; cursor:pointer;
+    font-family:'Outfit',sans-serif; border:none;
+  }
+  .botao-aprovar{ background:var(--verde); color:var(--branco); }
+  .botao-ajustar{ background:var(--branco); color:var(--grafite); border:1px solid var(--borda); }
+  .botao-aprovar:disabled, .botao-ajustar:disabled{ opacity:.5; cursor:default; }
+  .selo-resposta-registrada{ font-size:.85rem; font-weight:600; padding:10px; }
+
   .rodape-roteiro{ text-align:center; padding:18px 10px 4px; font-size:.78rem; color:var(--texto-suave); }
   .rodape-roteiro strong{ font-family:'Fraunces',serif; font-style:italic; color:var(--grafite); display:block; margin-bottom:3px; }
 
@@ -119,6 +130,15 @@
       <textarea id="campoMensagemComentario" placeholder="Escreva seu comentário..."></textarea>
       <button type="button" class="botao-primario" id="botaoEnviarComentario">Enviar comentário</button>
       <p class="aviso-envio" id="avisoComentario"></p>
+    </div>
+
+    <div class="caixa-aprovacao" id="caixaAprovacao">
+      <h3 style="font-size:1.05rem;">O que achou do roteiro?</h3>
+      <div class="botoes-aprovacao">
+        <button type="button" class="botao-aprovar" id="botaoAprovar">✅ Aprovar</button>
+        <button type="button" class="botao-ajustar" id="botaoAjustar">✏️ Realizar ajustes necessários</button>
+      </div>
+      <p class="aviso-envio" id="avisoAprovacao"></p>
     </div>
 
     <div class="rodape-roteiro">
@@ -285,6 +305,31 @@
       botao.disabled = false;
     }
   });
+
+  async function responderRoteiro(tipo){
+    const botaoAprovar = document.getElementById("botaoAprovar");
+    const botaoAjustar = document.getElementById("botaoAjustar");
+    const aviso = document.getElementById("avisoAprovacao");
+    botaoAprovar.disabled = true;
+    botaoAjustar.disabled = true;
+    try {
+      await chamarFuncaoPublica("responder_roteiro_publico", { p_token: token, p_tipo: tipo });
+      document.querySelector(".botoes-aprovacao").hidden = true;
+      aviso.className = "selo-resposta-registrada";
+      aviso.textContent = tipo === "aprovado"
+        ? "✅ Aprovado! A Edilaine já foi avisada."
+        : "✏️ Ajuste registrado! A Edilaine já foi avisada e vai revisar.";
+    } catch (erro) {
+      console.error("Erro ao registrar resposta do roteiro:", erro);
+      aviso.className = "aviso-envio erro";
+      aviso.textContent = "Não deu pra registrar agora. Tenta de novo em instantes.";
+      botaoAprovar.disabled = false;
+      botaoAjustar.disabled = false;
+    }
+  }
+
+  document.getElementById("botaoAprovar").addEventListener("click", () => responderRoteiro("aprovado"));
+  document.getElementById("botaoAjustar").addEventListener("click", () => responderRoteiro("ajustes"));
 
   iniciar();
 </script>
