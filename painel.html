@@ -3179,11 +3179,32 @@
   .prospeccao-aviso-fonte{ font-size:.78rem; color:var(--texto-suave); background:var(--creme); border:1px solid var(--borda); border-radius:10px; padding:9px 12px; margin-bottom:16px; }
   .prospeccao-aviso-fonte strong{ color:var(--coral); }
 
+  .prospeccao-busca-marca{ margin-bottom:14px; position:relative; }
+  .prospeccao-busca-marca-chip{
+    display:flex; align-items:center; gap:8px; background:rgba(0,0,128,.08); border:1px solid var(--coral);
+    color:var(--coral); border-radius:9px; padding:8px 12px; font-size:.85rem; font-weight:600;
+  }
+  .prospeccao-busca-marca-chip button{ margin-left:auto; background:none; border:none; color:var(--coral); cursor:pointer; font-size:.85rem; }
+  #prospeccaoBuscaMarcaInput{
+    width:100%; padding:9px 11px; border:1px solid var(--borda); border-radius:9px; font-family:'Outfit',sans-serif;
+    font-size:.85rem; background:var(--branco); color:var(--grafite);
+  }
+  #prospeccaoBuscaMarcaInput:focus{ outline:none; border-color:var(--coral); }
+  .prospeccao-busca-marca-resultados{
+    position:absolute; top:100%; left:0; right:0; z-index:10; background:var(--branco); border:1px solid var(--borda);
+    border-radius:10px; margin-top:4px; max-height:220px; overflow-y:auto; box-shadow:0 8px 20px rgba(0,0,0,.1);
+  }
+  .prospeccao-busca-marca-resultado{ padding:9px 12px; font-size:.83rem; cursor:pointer; display:flex; justify-content:space-between; gap:8px; }
+  .prospeccao-busca-marca-resultado:hover{ background:var(--creme); }
+  .prospeccao-busca-marca-resultado .sem-email{ color:var(--vermelho); font-size:.72rem; }
+  .prospeccao-busca-marca-vazio{ padding:10px 12px; font-size:.8rem; color:var(--texto-suave); }
+
   .prospeccao-contagem{ display:flex; gap:16px; flex-wrap:wrap; font-size:.8rem; color:var(--grafite); background:var(--creme); border-radius:10px; padding:10px 12px; margin-bottom:14px; }
   .prospeccao-contagem b{ font-family:'Fraunces',serif; font-size:1rem; }
   .prospeccao-contagem .fora{ color:var(--vermelho); }
 
   .prospeccao-checkbox-linha{ display:flex; align-items:center; gap:8px; font-size:.8rem; color:var(--grafite); margin-bottom:16px; cursor:pointer; }
+  #prospeccaoModalConfirmarBotao:disabled{ opacity:.45; cursor:not-allowed; }
 
   .prospeccao-toggle-envio{ display:flex; gap:6px; margin-bottom:16px; }
   .prospeccao-toggle-envio button{ flex:1; padding:9px; border:1px solid var(--borda); border-radius:9px; background:var(--branco); font-family:'Outfit',sans-serif; font-weight:600; font-size:.78rem; color:var(--grafite); cursor:pointer; }
@@ -4847,6 +4868,17 @@
               <select id="prospeccaoSelectDestino"></select>
             </div>
 
+            <div class="prospeccao-busca-marca oculto" id="prospeccaoBuscaMarcaWrap">
+              <div class="prospeccao-busca-marca-chip oculto" id="prospeccaoBuscaMarcaChip">
+                <span id="prospeccaoBuscaMarcaChipTexto"></span>
+                <button type="button" id="prospeccaoBuscaMarcaLimpar" aria-label="Trocar marca">✕</button>
+              </div>
+              <div id="prospeccaoBuscaMarcaCampoWrap">
+                <input type="text" id="prospeccaoBuscaMarcaInput" placeholder="Digite o nome da marca...">
+                <div class="prospeccao-busca-marca-resultados oculto" id="prospeccaoBuscaMarcaResultados"></div>
+              </div>
+            </div>
+
             <div class="prospeccao-contagem" id="prospeccaoContagem"></div>
 
             <label class="prospeccao-checkbox-linha">
@@ -5089,6 +5121,10 @@
         </div>
         <div class="cliente-modal-corpo">
           <p id="prospeccaoModalConfirmarTexto"></p>
+          <label class="prospeccao-checkbox-linha oculto" id="prospeccaoModalConferirNomeWrap" style="background:rgba(201,166,107,.16); padding:10px 12px; border-radius:9px;">
+            <input type="checkbox" id="prospeccaoModalConferirNome">
+            Já conferi e atualizei o nome da marca no início do e-mail
+          </label>
           <div style="display:flex; justify-content:flex-end; gap:10px;">
             <button type="button" class="btn-fantasma" id="prospeccaoModalCancelarBotao">Cancelar</button>
             <button type="button" class="botao-add-tarefa" id="prospeccaoModalConfirmarBotao">Sim, disparar</button>
@@ -5830,6 +5866,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   let prospeccaoModoEnvio = "resend"; // "resend" | "rascunho"
   let prospeccaoModoCompositor = "facil"; // "facil" | "html"
   let prospeccaoFilaRascunhoAtual = [];
+  let prospeccaoMarcaUnicaId = null; // marca escolhida na busca individual ("busca-unica")
 
   // Estado da aba Roteiros: lista de roteiros, id em edição (null = criando um novo) e as
   // fotos do moodboard/imagem de cor escolhidas no formulário aberto no momento (só viram
@@ -8535,7 +8572,14 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       btn.addEventListener("click", () => trocarModoCompositorProspeccao(btn.dataset.modoCompositor));
     });
 
-    document.getElementById("prospeccaoSelectDestino").addEventListener("change", atualizarContagemProspeccao);
+    document.getElementById("prospeccaoSelectDestino").addEventListener("change", () => {
+      alternarBuscaMarcaProspeccao();
+      atualizarContagemProspeccao();
+    });
+    document.getElementById("prospeccaoBuscaMarcaInput").addEventListener("input", (e) => {
+      renderizarResultadosBuscaMarcaProspeccao(e.target.value);
+    });
+    document.getElementById("prospeccaoBuscaMarcaLimpar").addEventListener("click", limparMarcaUnicaProspeccao);
     document.getElementById("prospeccaoPularEnviados").addEventListener("change", atualizarContagemProspeccao);
     document.getElementById("prospeccaoAssunto").addEventListener("input", () => { atualizarContagemProspeccao(); atualizarPreviaProspeccao(); });
     document.getElementById("prospeccaoCorpoFacil").addEventListener("input", atualizarPreviaProspeccao);
@@ -8557,7 +8601,11 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
     document.getElementById("prospeccaoModalCancelar").addEventListener("click", () => document.getElementById("prospeccaoModalConfirmar").classList.add("oculto"));
     document.getElementById("prospeccaoModalCancelarBotao").addEventListener("click", () => document.getElementById("prospeccaoModalConfirmar").classList.add("oculto"));
+    document.getElementById("prospeccaoModalConferirNome").addEventListener("change", (e) => {
+      document.getElementById("prospeccaoModalConfirmarBotao").disabled = !e.target.checked;
+    });
     document.getElementById("prospeccaoModalConfirmarBotao").addEventListener("click", () => {
+      if (document.getElementById("prospeccaoModalConfirmarBotao").disabled) return;
       document.getElementById("prospeccaoModalConfirmar").classList.add("oculto");
       if (prospeccaoModoEnvio === "rascunho") iniciarFilaRascunhoProspeccao();
       else dispararProspeccao();
@@ -15141,6 +15189,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   // não ter e-mail) — obterDestinatariosProspeccao() já filtra por e-mail de verdade.
   function obterMarcasBaseProspeccao(){
     const modo = document.getElementById("prospeccaoSelectDestino").value;
+    if (modo === "busca-unica") return prospeccaoMarcaUnicaId ? marcasCache.filter(m => m.id === prospeccaoMarcaUnicaId) : [];
     if (modo === "selecionadas") return marcasCache.filter(m => m.selecionada);
     if (modo === "todas") return marcasCache.slice();
     if (modo === "followup") return obterAlertasFollowUpMarcas();
@@ -15182,11 +15231,71 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       el.innerHTML = `<span>📬 <b>1</b> vai receber (você mesma)</span>`;
       return;
     }
+    if (modo === "busca-unica" && !prospeccaoMarcaUnicaId){
+      el.innerHTML = `<span>🔍 Busque e escolha uma marca acima</span>`;
+      return;
+    }
     const universo = obterMarcasBaseProspeccao();
     const semEmail = universo.filter(m => !m.email).length;
     const destinatarios = obterDestinatariosProspeccao();
     el.innerHTML = `<span>📬 <b>${destinatarios.length}</b> vão receber</span>` +
       (semEmail ? `<span class="fora">⚠ <b>${semEmail}</b> ficaram de fora (sem e-mail)</span>` : "");
+  }
+
+  // ---------- Busca de uma marca específica (disparo individual) ----------
+  function alternarBuscaMarcaProspeccao(){
+    const modo = document.getElementById("prospeccaoSelectDestino").value;
+    const wrap = document.getElementById("prospeccaoBuscaMarcaWrap");
+    wrap.classList.toggle("oculto", modo !== "busca-unica");
+    if (modo !== "busca-unica") return;
+    const temEscolhida = !!prospeccaoMarcaUnicaId;
+    document.getElementById("prospeccaoBuscaMarcaChip").classList.toggle("oculto", !temEscolhida);
+    document.getElementById("prospeccaoBuscaMarcaCampoWrap").classList.toggle("oculto", temEscolhida);
+  }
+
+  function renderizarResultadosBuscaMarcaProspeccao(termo){
+    const box = document.getElementById("prospeccaoBuscaMarcaResultados");
+    const normalizar = (t) => String(t || "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
+    const alvo = normalizar(termo);
+    if (!alvo){ box.classList.add("oculto"); box.innerHTML = ""; return; }
+
+    const resultados = marcasCache.filter(m => normalizar(m.nome).includes(alvo)).slice(0, 8);
+    box.classList.remove("oculto");
+    box.innerHTML = resultados.length
+      ? resultados.map(m => `
+          <div class="prospeccao-busca-marca-resultado" data-id="${m.id}">
+            <span>${escaparHtmlMarcas(m.nome)}</span>
+            ${m.email ? "" : `<span class="sem-email">sem e-mail</span>`}
+          </div>
+        `).join("")
+      : `<p class="prospeccao-busca-marca-vazio">Nenhuma marca encontrada.</p>`;
+
+    box.querySelectorAll(".prospeccao-busca-marca-resultado").forEach(item => {
+      item.addEventListener("click", () => selecionarMarcaUnicaProspeccao(item.dataset.id));
+    });
+  }
+
+  function selecionarMarcaUnicaProspeccao(id){
+    const marca = marcasCache.find(m => m.id === id);
+    if (!marca) return;
+    if (!marca.email){
+      alert(`"${marca.nome}" não tem e-mail cadastrado — não dá pra disparar pra ela.`);
+      return;
+    }
+    prospeccaoMarcaUnicaId = id;
+    document.getElementById("prospeccaoBuscaMarcaInput").value = "";
+    document.getElementById("prospeccaoBuscaMarcaResultados").classList.add("oculto");
+    document.getElementById("prospeccaoBuscaMarcaChipTexto").textContent = marca.nome;
+    alternarBuscaMarcaProspeccao();
+    atualizarContagemProspeccao();
+    atualizarPreviaProspeccao();
+  }
+
+  function limparMarcaUnicaProspeccao(){
+    prospeccaoMarcaUnicaId = null;
+    alternarBuscaMarcaProspeccao();
+    atualizarContagemProspeccao();
+    atualizarPreviaProspeccao();
   }
 
   function atualizarSelectDestinoProspeccao(){
@@ -15203,6 +15312,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
     const opcoes = [
       { valor: "selecionadas", rotulo: `⭐ Só as marcas selecionadas (${selecionadasComEmail})` },
+      { valor: "busca-unica", rotulo: "🔍 Buscar uma marca específica" },
       { valor: "teste", rotulo: "🧪 Só pra mim (teste)" },
       { valor: "todas", rotulo: `Todas as marcas com e-mail (${comEmail.length})` },
       { valor: "status:a_enviar", rotulo: `Marcas novas, nunca abordadas (${comEmail.filter(m => m.status === "a_enviar").length})` },
@@ -15393,6 +15503,17 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("prospeccaoModalConfirmarTexto").textContent = prospeccaoModoEnvio === "rascunho"
       ? `Vai montar uma fila de rascunho com ${destinatarios.length} marca(s), da lista "${nomeLista}". Você confirma o envio de cada uma no Gmail, uma de cada vez.`
       : `Vai enviar pra ${destinatarios.length} marca(s), da lista "${nomeLista}", e não dá pra desfazer.`;
+
+    // Nesse modo o texto costuma ser escrito à mão pra marca específica — trava o disparo
+    // até ela confirmar que trocou o nome no início do e-mail, pra não sair errado.
+    const modo = selectDestino.value;
+    const precisaConferirNome = modo === "busca-unica";
+    const wrapConferir = document.getElementById("prospeccaoModalConferirNomeWrap");
+    const checkConferir = document.getElementById("prospeccaoModalConferirNome");
+    wrapConferir.classList.toggle("oculto", !precisaConferirNome);
+    checkConferir.checked = false;
+    document.getElementById("prospeccaoModalConfirmarBotao").disabled = precisaConferirNome;
+
     document.getElementById("prospeccaoModalConfirmar").classList.remove("oculto");
   }
 
