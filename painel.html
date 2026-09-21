@@ -4495,7 +4495,7 @@
         </div>
 
         <details class="cartao cartao-colapsavel" id="marcasAjudaCsv">
-          <summary class="resumo-colapsavel"><h2>❓ Como pedir a planilha pronta pra importar</h2><span class="seta-colapsavel">▾</span></summary>
+          <summary class="resumo-colapsavel"><h2>PROMPT</h2><span class="seta-colapsavel">▾</span></summary>
           <p class="marcas-ajuda-texto">Toda vez que for pesquisar marcas (numa IA, com alguém da equipe, ou você mesma numa planilha), use estas colunas na primeira linha, exatamente com este nome: <code>nome, site, instagram, seguidores, email, whatsapp, contato, nicho, origem, status, observacao, data</code>. Só o <code>nome</code> é obrigatório. Salve como CSV e importe direto aqui.</p>
           <p class="marcas-ajuda-texto">Ou copie o prompt abaixo e cole numa IA (ChatGPT, Claude, Gemini) pedindo a pesquisa — ele já pede o formato certo:</p>
           <textarea class="marcas-ajuda-prompt" id="marcasAjudaPromptTexto" readonly rows="8"></textarea>
@@ -5844,17 +5844,19 @@
   // já pede o formato exato de coluna que o importador de CSV desta aba entende.
   const MARCAS_PROMPT_PESQUISA = `Preciso de uma lista de marcas em formato de tabela (CSV), pronta pra eu importar direto no meu sistema.
 
-Pesquise [DESCREVA AQUI O TIPO DE MARCA, EX: "marcas de skincare que fazem parceria com criadoras de conteúdo no Instagram"] e monte uma planilha com exatamente estas colunas, nesta ordem, com o nome exato de cada uma na primeira linha:
+Pesquise marcas de [PRODUTO OU SERVIÇO] que tenham perfil ativo no Instagram, com no mínimo 5 mil e no máximo 100 mil seguidores (dando prioridade para marcas com até 50 mil seguidores, se possível), e monte uma planilha com exatamente estas colunas, nesta ordem, com o nome exato de cada uma na primeira linha:
 
 nome, site, instagram, seguidores, email, whatsapp, contato, nicho, origem, status, observacao, data
 
 Regras:
 - nome: obrigatório, nunca deixe em branco.
-- seguidores: só número, sem "mil" ou "k" (ex: 45000, e não "45k").
+- seguidores: só número, sem "mil" ou "k" (ex: 45.000, e não "45k"). Deve estar entre 5.000 e 100.000.
 - status: deixe sempre como "a_enviar" (eu troco manualmente depois).
 - origem: de onde veio essa marca (ex: "Instagram", "Google", "indicação").
 - data: formato AAAA-MM-DD. Se não souber, deixe em branco.
-- Preencha site, instagram, email, whatsapp, contato, nicho e observacao com o que encontrar de verdade — deixe em branco o que não achar, nunca invente dado.
+- nicho: preencher como "Air Fryer" ou "Panelas", conforme o caso.
+- email e whatsapp são campos críticos: preencha somente se encontrar de verdade. Se não encontrar o WhatsApp ou o e-mail da marca, deixe o campo em branco — nunca invente ou estime um contato.
+- Preencha site, link do produto, instagram, contato e observacao com o que encontrar de verdade, deixe em branco o que não achar, nunca invente dados.
 
 Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
