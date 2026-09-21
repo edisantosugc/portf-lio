@@ -173,6 +173,10 @@
   }
   .menu-item svg{ width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
   .menu-item:hover{ background: var(--creme); color: var(--grafite); }
+  /* Sem isso, depois de clicar o navegador desenha um contorno azul quadrado por cima
+     da pílula arredondada — ele não segue o border-radius e fica saindo pra fora do
+     cantinho, batendo na linha do menu ao lado */
+  .menu-item:focus{ outline: none; }
 
   /* ---------- Gaveta "Clientes" (Manager/Abordagem/Disparo de E-mails/Trabalhos/Roteiros) ---------- */
   .menu-gaveta-cabecalho{ display: flex; align-items: center; gap: 2px; }
@@ -189,6 +193,17 @@
   .menu-subitem:last-child::before{ bottom: 50%; }
   .menu-subitem svg{ width: 15px; height: 15px; }
   .menu-item.ativo{ background: var(--coral); color: var(--branco); }
+  /* No item ativo/hover dentro da gaveta, o destaque não pode cobrir a caixa toda
+     (isso invadia a linha fininha à esquerda) — nasce um pouco depois da linha, só
+     por trás do ícone/texto, sem mexer na posição deles. Essas regras precisam vir
+     DEPOIS de ".menu-item.ativo"/".menu-item:hover" acima, senão a cascata ignora. */
+  .menu-subitem:hover{ background: transparent; }
+  .menu-subitem.ativo{ background: transparent; }
+  .menu-subitem:hover::after, .menu-subitem.ativo::after{
+    content: ""; position: absolute; top: 6px; bottom: 6px; left: 21px; right: 0; border-radius: 9px; z-index: -1;
+  }
+  .menu-subitem:hover::after{ background: var(--creme); }
+  .menu-subitem.ativo::after{ background: var(--coral); }
   /* Só o "I" maiúsculo do nome da IAra troca pra fonte serifada (com os tracinhos em
      cima/embaixo), pra não ser confundido com um "l" minúsculo. A margem negativa
      compensa o espaço próprio da serifa, pra não abrir vão até o "Ara" ao lado. */
