@@ -3074,7 +3074,12 @@
   }
   .marcas-filtro-btn.ativo{ color:var(--coral); font-weight:700; }
   .marcas-filtro-dropdown{
-    position:absolute; z-index:40; background:var(--branco); border:1px solid var(--borda); border-radius:10px;
+    /* position:fixed (não absolute) de propósito: o card da lista tem overflow:hidden
+       pros cantos arredondados, e um "position:absolute" preso dentro dele cortava o
+       dropdown quando abria perto do fim da lista. Sendo "fixed" e virando filho do
+       <body> na hora de abrir (ver abrirFiltroColunaMarcas/Links), ele nunca mais é
+       cortado, não importa onde a lista rolar. */
+    position:fixed; z-index:200; background:var(--branco); border:1px solid var(--borda); border-radius:10px;
     box-shadow:0 12px 30px rgba(26,24,22,.15); padding:10px; width:220px;
   }
   .marcas-filtro-dropdown input[type="text"]{
@@ -3363,14 +3368,25 @@
   .roteiro-linha-acoes{ display:flex; gap:6px; flex-shrink:0; }
 
   /* ===================== ABA LINKS ===================== */
-  .links-linha{ display:flex; align-items:center; gap:14px; padding:14px 20px; border-bottom:1px solid var(--borda); flex-wrap:wrap; }
+  .links-grade-lista{ display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1.3fr) 150px minmax(0,1.1fr) 70px; align-items:center; gap:12px; }
+  .links-linha{
+    display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1.3fr) 150px minmax(0,1.1fr) 70px; align-items:center; gap:12px;
+    padding:13px 20px; border-bottom:1px solid var(--borda); font-size:.85rem;
+  }
   .links-linha:last-child{ border-bottom:none; }
-  .links-linha-info{ flex:1; min-width:200px; }
-  .links-linha-info a.nome{ font-weight:600; font-size:.9rem; color:var(--coral); text-decoration:none; }
+  .links-linha:hover{ background: rgba(0,0,128,.03); }
+  .links-linha-info a.nome{ font-weight:600; font-size:.88rem; color:var(--coral); text-decoration:none; }
   .links-linha-info a.nome:hover{ text-decoration:underline; }
-  .links-linha-info .sub{ font-size:.78rem; color:var(--texto-suave); margin-top:2px; }
-  .links-pill-categoria{ font-size:.7rem; font-weight:700; padding:5px 12px; border-radius:999px; border:1px solid var(--coral); color:var(--coral); background:rgba(0,0,128,.06); flex-shrink:0; white-space:nowrap; }
-  .links-linha-acoes{ display:flex; gap:6px; flex-shrink:0; }
+  .links-col-descricao, .links-col-url{ font-size:.82rem; color:var(--texto-suave); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .links-col-url{ color:var(--coral); text-decoration:none; }
+  .links-col-url:hover{ text-decoration:underline; }
+  .links-pill-categoria{ font-size:.7rem; font-weight:700; padding:5px 12px; border-radius:999px; border:1px solid var(--coral); color:var(--coral); background:rgba(0,0,128,.06); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:fit-content; max-width:100%; }
+  .links-linha-acoes{ display:flex; gap:6px; justify-content:flex-end; }
+
+  @media (max-width: 900px){
+    .links-grade-lista{ display:none; }
+    .links-linha{ grid-template-columns: 1fr; gap:6px; }
+  }
 
   @media (max-width: 640px){
     .roteiro-opcoes-cor{ flex-direction:column; }
@@ -5124,7 +5140,19 @@
     <section id="painelLinks" class="painel-tab oculto">
       <button type="button" class="ugc-linha-add" id="linksBotaoNovo">+ Adicionar link</button>
 
-      <div class="cartao ugc-lista-cartao" id="linksListaContainer">
+      <div class="cartao ugc-lista-cartao" id="linksListaContainer" style="position:relative;">
+        <div class="ugc-cabecalho-lista links-grade-lista">
+          <span class="marcas-th">Nome<button type="button" class="marcas-filtro-btn" data-campo="nome" aria-label="Filtrar por nome">▾</button></span>
+          <span class="marcas-th">Descrição<button type="button" class="marcas-filtro-btn" data-campo="descricao" aria-label="Filtrar por descrição">▾</button></span>
+          <span class="marcas-th">Categoria<button type="button" class="marcas-filtro-btn" data-campo="categoria" aria-label="Filtrar por categoria">▾</button></span>
+          <span class="marcas-th">URL<button type="button" class="marcas-filtro-btn" data-campo="url" aria-label="Filtrar por URL">▾</button></span>
+          <span></span>
+        </div>
+        <div class="marcas-filtro-dropdown oculto" id="linksFiltroDropdown">
+          <input type="text" id="linksFiltroBusca" placeholder="Buscar valor...">
+          <label class="marcas-filtro-item marcas-filtro-todos"><input type="checkbox" id="linksFiltroTodos"> <strong>(Selecionar tudo)</strong></label>
+          <div class="marcas-filtro-lista" id="linksFiltroLista"></div>
+        </div>
         <div id="linksListaCorpo"></div>
       </div>
     </section>
@@ -8247,6 +8275,40 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       document.getElementById("linksNovaCategoriaWrap").classList.toggle("oculto", e.target.value !== VALOR_NOVA_CATEGORIA_LINK);
     });
 
+    document.querySelectorAll("#linksListaContainer .marcas-filtro-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const campo = btn.dataset.campo;
+        if (linksFiltroColunaAberta === campo) fecharFiltroColunaLinks();
+        else abrirFiltroColunaLinks(campo, btn);
+      });
+    });
+    document.getElementById("linksFiltroDropdown").addEventListener("click", (e) => e.stopPropagation());
+    document.getElementById("linksFiltroBusca").addEventListener("input", (e) => {
+      renderizarListaFiltroLinks(e.target.value);
+    });
+    document.getElementById("linksFiltroTodos").addEventListener("change", (e) => {
+      const campo = linksFiltroColunaAberta;
+      if (!campo) return;
+      linksFiltrosColuna[campo] = e.target.checked ? null : new Set();
+      renderizarListaFiltroLinks(document.getElementById("linksFiltroBusca").value);
+      renderizarLinks();
+    });
+    document.getElementById("linksFiltroLista").addEventListener("change", (e) => {
+      if (e.target.type !== "checkbox") return;
+      const campo = linksFiltroColunaAberta;
+      if (!campo) return;
+      const todosValores = obterValoresColunaLinks(campo);
+      const atual = linksFiltrosColuna[campo] ? new Set(linksFiltrosColuna[campo]) : new Set(todosValores.map(v => v.chave));
+      if (e.target.checked) atual.add(e.target.value); else atual.delete(e.target.value);
+      linksFiltrosColuna[campo] = atual.size === todosValores.length ? null : atual;
+      document.getElementById("linksFiltroTodos").checked = !linksFiltrosColuna[campo];
+      renderizarLinks();
+    });
+    document.addEventListener("click", () => {
+      if (linksFiltroColunaAberta) fecharFiltroColunaLinks();
+    });
+
     // Barra de formatação do roteiro: document.execCommand ainda funciona em todos os
     // navegadores pra isso (negrito/itálico/sublinhado/lista/cor), e evita carregar uma
     // biblioteca de editor de texto só pra essa caixinha.
@@ -8628,6 +8690,13 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.addEventListener("click", () => {
       if (marcasFiltroColunaAberta) fecharFiltroColunaMarcas();
     });
+    // O dropdown é "fixed" (pra nunca ser cortado pelo card), então não acompanha a
+    // rolagem sozinho — fecha ele assim que a página rolar, senão fica flutuando
+    // desgrudado do botão que abriu ele.
+    window.addEventListener("scroll", () => {
+      if (marcasFiltroColunaAberta) fecharFiltroColunaMarcas();
+      if (linksFiltroColunaAberta) fecharFiltroColunaLinks();
+    }, true);
 
     document.getElementById("marcasBotaoSelecionarFiltradas").addEventListener("click", selecionarTodasFiltradasMarcas);
     document.getElementById("marcasBotaoLimparSelecao").addEventListener("click", limparSelecaoMarcas);
@@ -9478,14 +9547,14 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   }
 
   function renderLinhaLinkHtml(item){
-    const subInfo = [item.categoria, item.descricao].filter(Boolean).join(" · ");
     return `
       <div class="links-linha" data-id="${item.id}">
-        ${item.categoria ? `<span class="links-pill-categoria">${escaparHtmlMarcas(item.categoria)}</span>` : ""}
         <div class="links-linha-info">
           <a class="nome" href="${escaparHtmlMarcas(item.url)}" target="_blank" rel="noopener">${escaparHtmlMarcas(item.nome)}</a>
-          <div class="sub">${escaparHtmlMarcas(item.descricao || "—")}</div>
         </div>
+        <div class="links-col-descricao" title="${escaparHtmlMarcas(item.descricao || "")}">${escaparHtmlMarcas(item.descricao || "—")}</div>
+        <div>${item.categoria ? `<span class="links-pill-categoria">${escaparHtmlMarcas(item.categoria)}</span>` : "—"}</div>
+        <a class="links-col-url" href="${escaparHtmlMarcas(item.url)}" target="_blank" rel="noopener" title="${escaparHtmlMarcas(item.url)}">${escaparHtmlMarcas(item.url)}</a>
         <div class="links-linha-acoes">
           <button type="button" class="marcas-botao-icone" data-acao="link-editar" data-id="${item.id}" title="Editar">✎</button>
           <button type="button" class="marcas-botao-icone" data-acao="link-remover" data-id="${item.id}" title="Excluir">✕</button>
@@ -9503,17 +9572,108 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     });
   }
 
+  /* ---------- Filtros estilo Excel na lista de Links (Nome/Descrição/Categoria/URL) ---------- */
+  let linksFiltrosColuna = { nome: null, descricao: null, categoria: null, url: null };
+  let linksFiltroColunaAberta = null;
+
+  function chaveColunaLinks(item, campo){
+    return item[campo] || "";
+  }
+
+  function rotuloColunaLinks(item, campo){
+    if (campo === "categoria") return item.categoria || "Sem categoria";
+    if (campo === "descricao") return item.descricao || "Sem descrição";
+    return item[campo] || "";
+  }
+
+  function obterValoresColunaLinks(campo){
+    const vistos = new Map();
+    linksCache.forEach(item => {
+      vistos.set(chaveColunaLinks(item, campo), rotuloColunaLinks(item, campo));
+    });
+    return Array.from(vistos.entries())
+      .map(([chave, rotulo]) => ({ chave, rotulo }))
+      .sort((a, b) => a.rotulo.localeCompare(b.rotulo, "pt-BR"));
+  }
+
+  function passaFiltrosColunaLinks(item){
+    return Object.keys(linksFiltrosColuna).every(campo => {
+      const filtro = linksFiltrosColuna[campo];
+      return !filtro || filtro.has(chaveColunaLinks(item, campo));
+    });
+  }
+
+  function atualizarIndicadoresFiltroLinks(){
+    document.querySelectorAll("#linksListaContainer .marcas-filtro-btn").forEach(btn => {
+      btn.classList.toggle("ativo", !!linksFiltrosColuna[btn.dataset.campo]);
+    });
+  }
+
+  function renderizarListaFiltroLinks(termo){
+    const campo = linksFiltroColunaAberta;
+    if (!campo) return;
+    const valores = obterValoresColunaLinks(campo);
+    const filtroAtual = linksFiltrosColuna[campo];
+    const termoLower = (termo || "").trim().toLowerCase();
+
+    document.getElementById("linksFiltroTodos").checked = !filtroAtual || filtroAtual.size === valores.length;
+
+    const visiveis = valores.filter(v => !termoLower || v.rotulo.toLowerCase().includes(termoLower));
+    document.getElementById("linksFiltroLista").innerHTML = visiveis.length
+      ? visiveis.map(v => `
+          <label class="marcas-filtro-item">
+            <input type="checkbox" value="${escaparHtmlMarcas(v.chave)}" ${(!filtroAtual || filtroAtual.has(v.chave)) ? "checked" : ""}>
+            ${escaparHtmlMarcas(v.rotulo)}
+          </label>
+        `).join("")
+      : `<p class="ugc-vazio" style="padding:6px 2px;">Nada encontrado.</p>`;
+  }
+
+  // Posiciona um dropdown de filtro "fixed" colado no botão que abriu ele — e se não
+  // couber embaixo (botão perto do fim da tela), abre pra CIMA em vez de embaixo, pra
+  // sempre aparecer inteiro, mesmo numa página curta sem espaço pra rolar até ele.
+  function posicionarDropdownFiltro(painel, botaoEl){
+    const rectBotao = botaoEl.getBoundingClientRect();
+    const larguraPainel = painel.offsetWidth || 220;
+    const alturaPainel = painel.offsetHeight || 260;
+    const espacoAbaixo = window.innerHeight - rectBotao.bottom;
+
+    painel.style.top = espacoAbaixo >= alturaPainel + 8
+      ? (rectBotao.bottom + 4) + "px"
+      : Math.max(8, rectBotao.top - alturaPainel - 4) + "px";
+    painel.style.left = Math.max(8, Math.min(rectBotao.right - larguraPainel, window.innerWidth - larguraPainel - 8)) + "px";
+  }
+
+  function abrirFiltroColunaLinks(campo, botaoEl){
+    linksFiltroColunaAberta = campo;
+    const painel = document.getElementById("linksFiltroDropdown");
+    document.getElementById("linksFiltroBusca").value = "";
+    renderizarListaFiltroLinks("");
+    painel.classList.remove("oculto");
+    // Vira filho direto do <body> (fixed) pra não ser cortado pelo overflow:hidden do
+    // card da lista — ver comentário em .marcas-filtro-dropdown no CSS.
+    document.body.appendChild(painel);
+    posicionarDropdownFiltro(painel, botaoEl);
+  }
+
+  function fecharFiltroColunaLinks(){
+    document.getElementById("linksFiltroDropdown").classList.add("oculto");
+    linksFiltroColunaAberta = null;
+  }
+
   function renderizarLinks(){
     const corpo = document.getElementById("linksListaCorpo");
     if (!corpo) return;
-    const ordenados = linksCache.slice().sort((a, b) => {
+    const filtrados = linksCache.filter(passaFiltrosColunaLinks);
+    const ordenados = filtrados.slice().sort((a, b) => {
       const cat = (a.categoria || "").localeCompare(b.categoria || "", "pt-BR");
       return cat !== 0 ? cat : a.nome.localeCompare(b.nome, "pt-BR");
     });
     corpo.innerHTML = ordenados.length
       ? ordenados.map(renderLinhaLinkHtml).join("")
-      : `<p class="ugc-vazio">Nenhum link cadastrado ainda.</p>`;
+      : `<p class="ugc-vazio">${linksCache.length ? "Nenhum link bate com esse filtro." : "Nenhum link cadastrado ainda."}</p>`;
     reatarEventosLinhasLinks(corpo);
+    atualizarIndicadoresFiltroLinks();
   }
 
   function renderizarGrafico(visitas, idContainer){
@@ -14941,17 +15101,13 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   function abrirFiltroColunaMarcas(campo, botaoEl){
     marcasFiltroColunaAberta = campo;
     const painel = document.getElementById("marcasFiltroDropdown");
-    const container = document.getElementById("marcasListaContainer");
     document.getElementById("marcasFiltroBusca").value = "";
     renderizarListaFiltroMarcas("");
     painel.classList.remove("oculto");
-
-    const rectBotao = botaoEl.getBoundingClientRect();
-    const rectContainer = container.getBoundingClientRect();
-    const larguraPainel = painel.offsetWidth || 220;
-    painel.style.top = (rectBotao.bottom - rectContainer.top + 4) + "px";
-    // Alinha a borda direita do painel com a borda direita do botão, pra não estourar pra fora do card
-    painel.style.left = Math.max(0, rectBotao.right - rectContainer.left - larguraPainel) + "px";
+    // Vira filho direto do <body> (fixed) pra não ser cortado pelo overflow:hidden do
+    // card da lista — ver comentário em .marcas-filtro-dropdown no CSS.
+    document.body.appendChild(painel);
+    posicionarDropdownFiltro(painel, botaoEl);
   }
 
   function fecharFiltroColunaMarcas(){
@@ -15293,6 +15449,9 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     try {
       const { error } = await Auth.client.from("painel_marcas").update({ status }).eq("id", id);
       if (error) throw error;
+      // Muda pra "Enviado" na mão (fora do disparo de e-mail) também alimenta a aba
+      // Abordagens sozinha, igual já acontece quando o envio é automático.
+      if (status === "enviado") await sincronizarAbordagemDaMarca(id, null, "manual");
     } catch (erro) {
       console.error("Erro ao mudar status da marca:", erro);
       item.status = statusAntes;
@@ -15808,12 +15967,14 @@ ${corpoHtml}
     }
   }
 
-  // Conecta a Prospecção com a aba Abordagens: todo e-mail enviado de verdade também vira
-  // (ou atualiza) uma linha lá, sem precisar cadastrar na mão. Primeiro e-mail pra uma marca
-  // cria a abordagem ("Abordagem realizada", canal E-mail); um e-mail seguinte pra mesma
-  // marca (follow up) atualiza a MESMA linha pra "Follow up enviado" com a data de novo —
-  // nunca cria uma segunda linha. A ligação é pelo marca_origem_id, não pelo nome.
-  async function sincronizarAbordagemDaMarca(marcaId, assuntoPersonalizado){
+  // Conecta a Marcas (manual ou por e-mail) com a aba Abordagens: toda marca que vira
+  // "Enviado" também vira (ou atualiza) uma linha lá, sem precisar cadastrar na mão.
+  // Primeira vez pra uma marca cria a abordagem ("Abordagem realizada"); uma vez seguinte
+  // pra mesma marca (follow up, ou reenviado manualmente) atualiza a MESMA linha pra
+  // "Follow up enviado" com a data de novo — nunca cria uma segunda linha. A ligação é
+  // pelo marca_origem_id, não pelo nome. "origem" só muda o texto da observação (email vs
+  // manual), pra não dizer "e-mail" numa marca que foi marcada como enviada na mão.
+  async function sincronizarAbordagemDaMarca(marcaId, contexto, origem = "email"){
     const marca = marcasCache.find(m => m.id === marcaId);
     if (!marca) return;
 
@@ -15826,26 +15987,26 @@ ${corpoHtml}
         data_abordagem: hoje,
         data_followup: somarDias(hoje, DIAS_FOLLOWUP_ABORDAGEM),
         followup_feito: false,
-        observacao: `Follow up por e-mail: ${assuntoPersonalizado}`
+        observacao: origem === "manual" ? "Marcada como enviada de novo, na mão, na aba Marcas." : `Follow up por e-mail: ${contexto}`
       };
       const { error } = await Auth.client.from("painel_abordagens").update(dados).eq("id", existente.id);
-      if (error){ console.error("Erro ao atualizar abordagem a partir da Prospecção:", error); return; }
+      if (error){ console.error("Erro ao atualizar abordagem a partir de Marcas:", error); return; }
       Object.assign(existente, dados);
     } else {
       const dados = {
         marca: marca.nome,
         nicho: marca.nicho || null,
-        canal: "email",
-        canal_detalhe: marca.email || null,
+        canal: origem === "manual" ? null : "email",
+        canal_detalhe: origem === "manual" ? null : (marca.email || null),
         status: "realizada",
         data_abordagem: hoje,
         data_followup: somarDias(hoje, DIAS_FOLLOWUP_ABORDAGEM),
         followup_feito: false,
-        observacao: `E-mail de prospecção: ${assuntoPersonalizado}`,
+        observacao: origem === "manual" ? "Marcada como enviada na mão, na aba Marcas." : `E-mail de prospecção: ${contexto}`,
         marca_origem_id: marcaId
       };
       const { data, error } = await Auth.client.from("painel_abordagens").insert(dados).select();
-      if (error){ console.error("Erro ao criar abordagem a partir da Prospecção:", error); return; }
+      if (error){ console.error("Erro ao criar abordagem a partir de Marcas:", error); return; }
       abordagensCache = abordagensCache.concat(data);
     }
     renderizarAbordagens();
