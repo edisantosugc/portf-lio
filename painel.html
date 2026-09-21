@@ -3143,17 +3143,14 @@
   @media (max-width: 900px){
     .marcas-contadores{ grid-template-columns: repeat(4,1fr); }
     .marcas-contador-card.total{ grid-column: 1 / -1; }
+    /* Mesmo estilo de tabela com rolagem lateral por arraste que já existe em
+       Abordagens/Trabalhos — em vez de empilhar cada marca num card, a tabela mantém
+       as colunas e o card ganha rolagem horizontal (arrasta pro lado igual Abordagens). */
+    .marcas-lista-cartao{ overflow-x:auto; -webkit-overflow-scrolling:touch; overflow-y:hidden; }
+    .marcas-grade-lista{ min-width:950px; }
   }
   @media (max-width: 640px){
     .marcas-contadores{ grid-template-columns: repeat(2,1fr); }
-    .marcas-grade-lista{ display:none; }
-    .marcas-linha{ grid-template-columns: 1fr; gap:8px; }
-    .marcas-estrela{ justify-self:flex-start; font-size:1.3rem; }
-    .marcas-checkbox{ justify-self:flex-start; width:20px; height:20px; }
-    .marcas-col-nicho, .marcas-col-origem{ white-space:normal; }
-    .marcas-col-contato{ order:3; }
-    .marcas-pill-status{ width:auto; justify-self:flex-start; }
-    .marcas-col-acoes{ justify-content:flex-start; }
   }
 
   /* ===================== ABA PROSPECÇÃO (disparo de e-mails em massa) ===================== */
