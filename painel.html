@@ -3166,6 +3166,12 @@
   .prospeccao-capa-numero .legenda{ font-size:.72rem; color:rgba(255,255,255,.78); margin-top:4px; }
   .prospeccao-capa-tags{ display:flex; gap:8px; flex-wrap:wrap; margin-top:20px; position:relative; z-index:1; }
   .prospeccao-capa-tag{ font-size:.7rem; font-weight:600; padding:6px 12px; border-radius:999px; background:rgba(255,255,255,.14); color:rgba(255,255,255,.92); border:1px solid rgba(255,255,255,.2); }
+  .prospeccao-capa-botao-externo{
+    display:inline-flex; align-items:center; gap:6px; margin-top:14px; font-size:.8rem; font-weight:600;
+    padding:9px 16px; border-radius:9px; background:var(--branco); color:var(--coral); text-decoration:none;
+    position:relative; z-index:1; width:fit-content;
+  }
+  .prospeccao-capa-botao-externo:hover{ background:rgba(255,255,255,.88); }
 
   .prospeccao-cartoes{ display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:14px; margin-bottom:22px; }
   .prospeccao-cartao-metrica{ background:var(--branco); border:1px solid var(--borda); border-radius:14px; padding:15px 17px 15px 19px; position:relative; overflow:hidden; }
@@ -4826,6 +4832,7 @@
             <span class="prospeccao-capa-tag">a chave vive no Supabase</span>
             <span class="prospeccao-capa-tag">quem responde SAIR sai da lista</span>
           </div>
+          <a href="https://eilaradam.github.io/admin-imersao/email/" target="_blank" rel="noopener" class="prospeccao-capa-botao-externo" id="prospeccaoBotaoGerarLink">🔗 Modelo Abordagens</a>
         </div>
 
         <!-- ---------- CARTÕES ---------- -->
