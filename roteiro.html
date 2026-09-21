@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Roteiro para aprovação | Edilaine Santos</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💙</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --coral: #000080; --coral-escuro: #00004d; --creme: #F3EEE9; --branco: #FFFFFF;
+    --grafite: #2A2622; --texto-suave: #6B645C; --borda: #CCC2BC; --verde: #2D7A4F;
+    --vermelho: #C4453C; --dourado: #C9A66B;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--creme); color:var(--grafite); font-family:'Outfit',sans-serif;
+    padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);
+    min-height:100vh;
+  }
+  h1,h2,h3{ font-family:'Fraunces',serif; font-weight:600; text-wrap:balance; }
+  .pagina{ max-width:760px; margin:0 auto; padding:28px 18px 60px; }
+  img{ max-width:100%; }
+
+  .capa-roteiro{
+    border-radius:16px; padding:26px 28px; color:var(--branco); margin-bottom:16px;
+    background:linear-gradient(135deg, var(--cor-marca, var(--coral)), var(--cor-marca-escura, var(--coral-escuro)));
+  }
+  .capa-roteiro-topo{ display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; }
+  .capa-roteiro-topo .assinatura{ font-family:'Fraunces',serif; font-style:italic; font-size:.95rem; opacity:.9; }
+  .capa-roteiro-topo .etiqueta{ font-size:.68rem; font-weight:700; letter-spacing:.08em; opacity:.8; }
+  .capa-roteiro h1{ color:var(--branco); font-size:1.7rem; margin:14px 0 6px; line-height:1.25; }
+  .capa-roteiro .categoria{ font-size:.85rem; opacity:.85; margin-bottom:10px; }
+  .selo-formato{ display:inline-block; font-size:.72rem; font-weight:700; padding:5px 12px; border-radius:999px; background:rgba(255,255,255,.16); }
+
+  .card-cena{ background:var(--branco); border-radius:14px; padding:18px 20px; margin-bottom:14px; box-shadow:0 4px 14px rgba(0,0,0,.05); }
+  .card-cena-topo{ display:flex; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+  .card-cena-numero{ font-family:'Fraunces',serif; font-size:1.6rem; color:var(--borda); font-weight:600; }
+  .tag-etapa{ font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:4px 10px; border-radius:999px; color:var(--branco); }
+  .tag-etapa.hook{ background:var(--cor-marca, var(--coral)); }
+  .tag-etapa.contexto{ background:var(--dourado); color:var(--grafite); }
+  .tag-etapa.desenvolvimento{ background:var(--verde); }
+  .tag-etapa.cta{ background:var(--vermelho); }
+  .card-cena-tempo{ margin-left:auto; font-size:.76rem; color:var(--texto-suave); }
+  .card-cena-corpo{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .card-cena-corpo .bloco h5{ font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--texto-suave); margin-bottom:4px; }
+  .card-cena-corpo .bloco p{ font-size:.85rem; line-height:1.55; white-space:pre-wrap; }
+  .bloco-observacao textarea{
+    width:100%; min-height:60px; border:1px dashed var(--borda); border-radius:8px; padding:8px; font-family:'Outfit',sans-serif;
+    font-size:.8rem; color:var(--grafite); background:var(--creme); resize:vertical;
+  }
+  .bloco-observacao textarea:focus{ outline:none; border-color:var(--cor-marca, var(--coral)); }
+  .status-obs{ font-size:.68rem; color:var(--verde); margin-top:4px; height:1em; }
+
+  .card-texto-livre{ background:var(--branco); border-radius:14px; padding:20px 22px; margin-bottom:14px; box-shadow:0 4px 14px rgba(0,0,0,.05); font-size:.9rem; line-height:1.7; }
+
+  .caixa-comentario{ background:var(--branco); border-radius:14px; padding:20px 22px; margin-top:6px; }
+  .caixa-comentario input, .caixa-comentario textarea{
+    width:100%; padding:10px 12px; border:1px solid var(--borda); border-radius:9px; font-family:'Outfit',sans-serif;
+    font-size:.85rem; margin-top:10px;
+  }
+  .caixa-comentario input:focus, .caixa-comentario textarea:focus{ outline:none; border-color:var(--cor-marca, var(--coral)); }
+  .caixa-comentario textarea{ min-height:70px; resize:vertical; }
+  .botao-primario{
+    background:var(--cor-marca, var(--coral)); color:var(--branco); border:none; border-radius:10px; padding:10px 20px;
+    font-weight:600; font-size:.85rem; cursor:pointer; font-family:'Outfit',sans-serif; margin-top:10px;
+  }
+  .botao-primario:disabled{ opacity:.6; cursor:default; }
+  .aviso-envio{ font-size:.8rem; margin-top:8px; }
+  .aviso-envio.sucesso{ color:var(--verde); }
+  .aviso-envio.erro{ color:var(--vermelho); }
+
+  .rodape-roteiro{ text-align:center; padding:18px 10px 4px; font-size:.78rem; color:var(--texto-suave); }
+  .rodape-roteiro strong{ font-family:'Fraunces',serif; font-style:italic; color:var(--grafite); display:block; margin-bottom:3px; }
+
+  .estado-carregando, .estado-erro{ text-align:center; padding:80px 20px; color:var(--texto-suave); }
+  .estado-erro h1{ font-size:1.3rem; margin-bottom:8px; color:var(--grafite); }
+  [hidden]{ display:none !important; }
+
+  @media (max-width: 640px){
+    .card-cena-corpo{ grid-template-columns:1fr; }
+    .capa-roteiro h1{ font-size:1.35rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="pagina">
+  <div class="estado-carregando" id="estadoCarregando">Carregando roteiro...</div>
+
+  <div class="estado-erro" id="estadoErro" hidden>
+    <h1>Não encontramos esse roteiro</h1>
+    <p>Confira se o link foi copiado certinho, ou peça pra Edilaine te mandar de novo.</p>
+  </div>
+
+  <div id="conteudoRoteiro" hidden>
+    <div class="capa-roteiro" id="capaRoteiro">
+      <div class="capa-roteiro-topo">
+        <span class="assinatura">Edilaine Santos</span>
+        <span class="etiqueta">ROTEIRO PARA APROVAÇÃO</span>
+      </div>
+      <h1 id="tituloRoteiro"></h1>
+      <p class="categoria" id="categoriaRoteiro"></p>
+      <span class="selo-formato" id="seloFormato" hidden></span>
+    </div>
+
+    <div id="listaCenas"></div>
+    <div class="card-texto-livre" id="textoLivre" hidden></div>
+
+    <div class="caixa-comentario">
+      <h3 style="font-size:1.05rem;">Deixar um comentário</h3>
+      <p style="font-size:.8rem; color:var(--texto-suave); margin-top:4px;">Alguma observação geral sobre o roteiro? Escreve aqui que eu recebo.</p>
+      <input type="text" id="campoAutorComentario" placeholder="Seu nome (opcional)">
+      <textarea id="campoMensagemComentario" placeholder="Escreva seu comentário..."></textarea>
+      <button type="button" class="botao-primario" id="botaoEnviarComentario">Enviar comentário</button>
+      <p class="aviso-envio" id="avisoComentario"></p>
+    </div>
+
+    <div class="rodape-roteiro">
+      <strong>Edilaine Santos</strong>
+      Dúvidas ou ajustes? É só responder a mensagem que te mandou esse link.
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://dqtoxxngjqyoibdgmrjr.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc";
+
+  const TAGS_ETAPA = { hook: "Hook", contexto: "Contexto", desenvolvimento: "Desenvolvimento", cta: "CTA" };
+
+  const token = new URLSearchParams(location.search).get("t");
+
+  async function chamarFuncaoPublica(nome, corpo){
+    const resposta = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${nome}`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(corpo)
+    });
+    if (!resposta.ok) throw new Error(await resposta.text());
+    const texto = await resposta.text();
+    return texto ? JSON.parse(texto) : null;
+  }
+
+  function escaparHtml(texto){
+    const div = document.createElement("div");
+    div.textContent = texto == null ? "" : String(texto);
+    return div.innerHTML;
+  }
+
+  function mostrarErro(){
+    document.getElementById("estadoCarregando").hidden = true;
+    document.getElementById("estadoErro").hidden = false;
+  }
+
+  function aplicarCorMarca(roteiro){
+    if (roteiro.personalizar_cor && roteiro.cor_marca){
+      const raiz = document.documentElement;
+      raiz.style.setProperty("--cor-marca", roteiro.cor_marca);
+      raiz.style.setProperty("--cor-marca-escura", escurecerHex(roteiro.cor_marca));
+    }
+  }
+
+  function escurecerHex(hex){
+    const n = hex.replace("#", "");
+    const r = Math.max(0, parseInt(n.substring(0, 2), 16) - 55);
+    const g = Math.max(0, parseInt(n.substring(2, 4), 16) - 55);
+    const b = Math.max(0, parseInt(n.substring(4, 6), 16) - 55);
+    return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("");
+  }
+
+  function renderizarCabecalho(roteiro){
+    const partes = [roteiro.produto, roteiro.marca].filter(Boolean);
+    document.getElementById("tituloRoteiro").textContent = partes.join(" — ") || "Roteiro";
+    document.getElementById("categoriaRoteiro").textContent = roteiro.categoria || "";
+    if (roteiro.duracao_prevista){
+      const selo = document.getElementById("seloFormato");
+      selo.hidden = false;
+      selo.textContent = roteiro.duracao_prevista;
+    }
+  }
+
+  function renderizarCenas(cenas){
+    const lista = document.getElementById("listaCenas");
+    lista.innerHTML = cenas.map((cena, indice) => `
+      <div class="card-cena">
+        <div class="card-cena-topo">
+          <span class="card-cena-numero">${String(indice + 1).padStart(2, "0")}</span>
+          <span class="tag-etapa ${escaparHtml(cena.tag_etapa || "desenvolvimento")}">${escaparHtml(TAGS_ETAPA[cena.tag_etapa] || "Cena")}</span>
+          ${cena.tempo ? `<span class="card-cena-tempo">${escaparHtml(cena.tempo)}</span>` : ""}
+        </div>
+        <div class="card-cena-corpo">
+          ${cena.descricao_cena ? `<div class="bloco"><h5>Cena / Ação</h5><p>${escaparHtml(cena.descricao_cena)}</p></div>` : ""}
+          ${cena.narracao ? `<div class="bloco"><h5>Narração</h5><p>${escaparHtml(cena.narracao)}</p></div>` : ""}
+          <div class="bloco bloco-observacao">
+            <h5>Observação da marca</h5>
+            <textarea data-indice="${indice}" placeholder="Sugestão de ajuste nessa cena...">${escaparHtml(cena.observacao || "")}</textarea>
+            <p class="status-obs" data-status="${indice}"></p>
+          </div>
+        </div>
+      </div>
+    `).join("");
+
+    lista.querySelectorAll("textarea[data-indice]").forEach(area => {
+      area.addEventListener("blur", async () => {
+        const indice = Number(area.dataset.indice);
+        const status = document.querySelector(`[data-status="${indice}"]`);
+        status.textContent = "Salvando...";
+        try {
+          await chamarFuncaoPublica("salvar_observacao_cena_publico", { p_token: token, p_indice: indice, p_observacao: area.value });
+          status.textContent = "Salvo ✓";
+          setTimeout(() => { status.textContent = ""; }, 2500);
+        } catch (erro) {
+          console.error("Erro ao salvar observação:", erro);
+          status.textContent = "Não deu pra salvar, tenta de novo.";
+        }
+      });
+    });
+  }
+
+  function renderizarTextoLivre(html){
+    const bloco = document.getElementById("textoLivre");
+    bloco.hidden = false;
+    bloco.innerHTML = html;
+  }
+
+  async function iniciar(){
+    if (!token){ mostrarErro(); return; }
+    try {
+      const roteiro = await chamarFuncaoPublica("obter_roteiro_publico", { p_token: token });
+      if (!roteiro){ mostrarErro(); return; }
+
+      aplicarCorMarca(roteiro);
+      renderizarCabecalho(roteiro);
+
+      const cenas = Array.isArray(roteiro.cenas) ? roteiro.cenas : [];
+      if (cenas.length){
+        renderizarCenas(cenas);
+      } else if (roteiro.roteiro_html){
+        renderizarTextoLivre(roteiro.roteiro_html);
+      }
+
+      document.getElementById("estadoCarregando").hidden = true;
+      document.getElementById("conteudoRoteiro").hidden = false;
+    } catch (erro) {
+      console.error("Erro ao carregar roteiro público:", erro);
+      mostrarErro();
+    }
+  }
+
+  document.getElementById("botaoEnviarComentario").addEventListener("click", async () => {
+    const mensagem = document.getElementById("campoMensagemComentario").value.trim();
+    const aviso = document.getElementById("avisoComentario");
+    if (!mensagem){
+      aviso.textContent = "Escreva um comentário antes de enviar.";
+      aviso.className = "aviso-envio erro";
+      return;
+    }
+    const botao = document.getElementById("botaoEnviarComentario");
+    botao.disabled = true;
+    try {
+      await chamarFuncaoPublica("enviar_comentario_roteiro_publico", {
+        p_token: token,
+        p_autor: document.getElementById("campoAutorComentario").value.trim(),
+        p_mensagem: mensagem
+      });
+      aviso.textContent = "Comentário enviado! Obrigada 💙";
+      aviso.className = "aviso-envio sucesso";
+      document.getElementById("campoMensagemComentario").value = "";
+      document.getElementById("campoAutorComentario").value = "";
+    } catch (erro) {
+      console.error("Erro ao enviar comentário:", erro);
+      aviso.textContent = "Não deu pra enviar agora. Tenta de novo em instantes.";
+      aviso.className = "aviso-envio erro";
+    } finally {
+      botao.disabled = false;
+    }
+  });
+
+  iniciar();
+</script>
+</body>
+</html>

@@ -25,6 +25,9 @@
      (ex: PDF de mapa mental exportado como imagem), extrairTextoPdf renderiza a
      página num canvas e usa isso aqui pra tentar reconhecer o texto mesmo assim -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<!-- Lê o arquivo Word (.docx) anexado num Roteiro: um .docx é um .zip com XML dentro,
+     o JSZip abre esse zip no navegador pra gente extrair a tabela de dentro -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
 <style>
   /* ===================== VARIÁVEIS DO DESIGN SYSTEM ===================== */
@@ -3260,13 +3263,50 @@
   .roteiro-editor:empty::before{ content:attr(data-placeholder); color:var(--texto-suave); }
   .roteiro-divisor-ou{ text-align:center; font-size:.7rem; color:var(--texto-suave); font-weight:700; text-transform:uppercase; margin:12px 0; }
 
-  .roteiro-moodboard-area{ min-height:120px; border:1.5px dashed var(--borda); border-radius:10px; padding:14px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-start; background:var(--creme); }
-  .roteiro-moodboard-foto{ position:relative; width:90px; height:90px; border-radius:8px; overflow:hidden; box-shadow:0 6px 16px rgba(0,0,0,.15); border:1px solid var(--borda); }
-  .roteiro-moodboard-foto img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .roteiro-moodboard-area{ min-height:220px; border:1.5px dashed var(--borda); border-radius:10px; padding:14px; position:relative; background:var(--creme); user-select:none; }
+  .roteiro-moodboard-foto{
+    position:absolute; width:90px; height:90px; border-radius:8px; overflow:hidden; box-shadow:0 6px 16px rgba(0,0,0,.15);
+    border:1px solid var(--borda); cursor:grab; touch-action:none;
+  }
+  .roteiro-moodboard-foto.arrastando{ cursor:grabbing; box-shadow:0 10px 24px rgba(0,0,0,.28); z-index:5; }
+  .roteiro-moodboard-foto img{ width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; }
   .roteiro-moodboard-remover{
     position:absolute; top:3px; right:3px; width:18px; height:18px; border-radius:50%; border:none; background:rgba(0,0,0,.55);
     color:var(--branco); font-size:.7rem; cursor:pointer; line-height:1;
   }
+  .roteiro-moodboard-dica{ position:absolute; bottom:8px; left:12px; font-size:.68rem; color:var(--texto-suave); }
+
+  .roteiro-paleta-preview{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .roteiro-paleta-preview span{
+    width:26px; height:26px; border-radius:7px; border:1px solid var(--borda); cursor:pointer; display:block;
+  }
+  .roteiro-paleta-preview span:hover{ transform:scale(1.1); }
+
+  .roteiro-cenas-form{ margin:14px 0; background:var(--creme); border-radius:10px; padding:14px; }
+  .roteiro-cena-editor{ background:var(--branco); border:1px solid var(--borda); border-radius:10px; padding:14px; margin-bottom:10px; }
+  .roteiro-cena-editor-topo{ display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+  .roteiro-cena-editor-topo .numero{ font-family:'Fraunces',serif; font-weight:600; color:var(--texto-suave); }
+  .roteiro-cena-editor-topo select{ font-size:.78rem; padding:5px 8px; border:1px solid var(--borda); border-radius:7px; font-family:'Outfit',sans-serif; }
+  .roteiro-cena-editor-topo input{ font-size:.78rem; padding:5px 8px; border:1px solid var(--borda); border-radius:7px; width:90px; font-family:'Outfit',sans-serif; }
+  .roteiro-cena-editor-remover{ margin-left:auto; background:none; border:none; color:var(--vermelho); cursor:pointer; font-size:.85rem; }
+  .roteiro-cena-editor textarea{
+    width:100%; min-height:56px; border:1px solid var(--borda); border-radius:8px; padding:8px; font-family:'Outfit',sans-serif;
+    font-size:.82rem; margin-top:6px; resize:vertical;
+  }
+  .roteiro-cena-editor label{ font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--texto-suave); }
+  .roteiro-cena-obs-marca{ background:rgba(201,166,107,.14); border-radius:8px; padding:8px 10px; font-size:.8rem; margin-top:8px; }
+
+  .roteiro-link-publico{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:rgba(0,0,128,.06); border-radius:9px;
+    padding:10px 14px; font-size:.8rem; margin-bottom:14px;
+  }
+  .roteiro-link-publico a{ color:var(--coral); font-weight:600; word-break:break-all; }
+  .roteiro-link-publico .btn-fantasma{ margin-left:auto; font-size:.72rem; padding:5px 12px; }
+
+  .roteiro-comentarios-wrap{ margin:14px 0; }
+  .roteiro-comentario-item{ background:var(--creme); border-radius:9px; padding:10px 12px; margin-bottom:8px; font-size:.82rem; }
+  .roteiro-comentario-item .autor{ font-weight:700; font-size:.76rem; color:var(--coral); }
+  .roteiro-comentario-item .data{ font-size:.68rem; color:var(--texto-suave); float:right; }
 
   .roteiro-linha{ display:flex; align-items:center; gap:14px; padding:14px 20px; border-bottom:1px solid var(--borda); flex-wrap:wrap; }
   .roteiro-linha:last-child{ border-bottom:none; }
@@ -4895,8 +4935,8 @@
     </section>
 
     <!-- ===================== ABA: ROTEIROS =====================
-         Casca vazia por enquanto — só o menu (dentro da gaveta de Clientes) e a troca de
-         aba já funcionam. O conteúdo de verdade fica pra depois.
+         Formulário + leitura de Word + cor automática + moodboard arrastável + link
+         público de aprovação (roteiro.html) com comentários da marca.
          ===================== -->
     <section id="painelRoteiros" class="painel-tab oculto">
       <button type="button" class="ugc-linha-add" id="roteiroBotaoNovo">+ novo roteiro</button>
@@ -4921,6 +4961,12 @@
           </div>
         </div>
 
+        <div class="roteiro-link-publico oculto" id="roteiroLinkPublicoWrap">
+          <span>🔗 Link pra marca aprovar:</span>
+          <a href="#" id="roteiroLinkPublicoTexto" target="_blank" rel="noopener"></a>
+          <button type="button" class="btn-fantasma" id="roteiroBotaoCopiarLink">Copiar link</button>
+        </div>
+
         <label class="roteiro-checkbox-linha">
           <input type="checkbox" id="roteiroCampoPersonalizar">
           Personalizar cor da marca (padrão usa a sua paleta do site)
@@ -4934,7 +4980,8 @@
             <h4>🖼️ Ou identificar de uma imagem</h4>
             <div class="zona-upload-roteiro" id="roteiroBotaoImagemCor">Clique ou escolha uma imagem da marca</div>
             <input type="file" id="roteiroInputImagemCor" accept="image/*" class="oculto">
-            <p class="roteiro-campo-nota" id="roteiroImagemCorNota">A identificação automática da paleta chega numa próxima etapa — por enquanto a imagem só fica salva de referência.</p>
+            <p class="roteiro-campo-nota" id="roteiroImagemCorNota">Envie uma imagem da marca (logo, print, foto) pra eu identificar as cores automaticamente.</p>
+            <div class="roteiro-paleta-preview oculto" id="roteiroPaletaPreview"></div>
           </div>
         </div>
 
@@ -4960,8 +5007,15 @@
         </div>
         <div class="roteiro-editor" id="roteiroEditor" contenteditable="true" data-placeholder="Escreva seu roteiro aqui... gancho, desenvolvimento, CTA"></div>
         <p class="roteiro-divisor-ou">— ou —</p>
-        <div class="zona-upload-roteiro" id="roteiroBotaoExcel">📎 Anexar planilha em Word (.docx) com a tabela "Cena / Ação", "Narração" e "Observações"</div>
-        <p class="roteiro-campo-nota">A leitura automática do Excel chega na próxima etapa — por enquanto, escreve direto no campo acima.</p>
+        <div class="zona-upload-roteiro" id="roteiroBotaoExcel">📎 Anexar arquivo em Word (.docx) com a tabela "Cena / Ação", "Narração" e "Observações"</div>
+        <input type="file" id="roteiroInputWord" accept=".docx" class="oculto">
+        <p class="roteiro-campo-nota">Ao anexar, as cenas abaixo são geradas automaticamente a partir da tabela do Word.</p>
+
+        <div class="roteiro-cenas-form oculto" id="roteiroCenasFormWrap">
+          <div class="ugc-campo largo" style="margin-bottom:6px;"><label>Cenas geradas</label></div>
+          <div id="roteiroCenasFormLista"></div>
+          <button type="button" class="btn-fantasma" id="roteiroBotaoAddCena" style="margin-top:6px;">+ Adicionar cena manual</button>
+        </div>
 
         <div class="ugc-campo largo" style="margin:16px 0 6px;"><label>Moodboard geral</label></div>
         <div class="roteiro-moodboard-area" id="roteiroMoodboardArea">
@@ -4969,6 +5023,11 @@
         </div>
         <button type="button" class="btn-fantasma" id="roteiroBotaoMoodboard" style="margin-top:8px;">+ Anexar foto</button>
         <input type="file" id="roteiroInputMoodboard" accept="image/*" multiple class="oculto">
+
+        <div class="roteiro-comentarios-wrap oculto" id="roteiroComentariosWrap">
+          <div class="ugc-campo largo" style="margin-bottom:6px;"><label>Comentários da marca</label></div>
+          <div id="roteiroComentariosLista"></div>
+        </div>
 
         <div style="display:flex; justify-content:space-between; gap:10px; margin-top:18px;">
           <button type="button" class="btn-fantasma" id="roteiroBotaoCopiar">Copiar roteiro completo</button>
@@ -5764,6 +5823,16 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   let roteiroEditandoId = null;
   let roteiroMoodboardAtual = [];
   let roteiroImagemCorUrlAtual = null;
+  let roteiroCenasAtual = []; // cenas geradas do Word (ou criadas manualmente): [{tag_etapa, tempo, descricao_cena, narracao, observacao}]
+  let roteiroPaletaAtual = []; // hexs identificados na imagem de referência da marca
+  let roteiroComentariosCache = []; // comentários da marca no roteiro em edição (só leitura aqui)
+  const LINK_PUBLICO_ROTEIRO_BASE = "https://edilainesantos.com/roteiro.html?t=";
+  const ROTEIRO_TAGS_ETAPA = [
+    { chave: "hook", nome: "Hook" },
+    { chave: "contexto", nome: "Contexto" },
+    { chave: "desenvolvimento", nome: "Desenvolvimento" },
+    { chave: "cta", nome: "CTA" }
+  ];
   const ROTEIRO_STATUS = [
     { chave: "rascunho", nome: "Rascunho" },
     { chave: "enviado", nome: "Enviado pra aprovação" },
@@ -8006,8 +8075,15 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     });
 
     document.getElementById("roteiroBotaoExcel").addEventListener("click", () => {
-      alert('A leitura automática do Word ainda não está pronta (é a próxima etapa). Por enquanto, escreve direto no campo "Roteiro" acima.');
+      document.getElementById("roteiroInputWord").click();
     });
+    document.getElementById("roteiroInputWord").addEventListener("change", (e) => {
+      const arquivo = e.target.files && e.target.files[0];
+      if (arquivo) processarArquivoWordRoteiro(arquivo);
+      e.target.value = "";
+    });
+    document.getElementById("roteiroBotaoAddCena").addEventListener("click", adicionarCenaManualRoteiro);
+    document.getElementById("roteiroBotaoCopiarLink").addEventListener("click", copiarLinkPublicoRoteiro);
 
     // Barra de formatação do roteiro: document.execCommand ainda funciona em todos os
     // navegadores pra isso (negrito/itálico/sublinhado/lista/cor), e evita carregar uma
@@ -15439,6 +15515,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     select.value = valorAtual || "";
   }
 
+  // Posição das fotos é guardada como % da área (x/y de 0 a 100), não pixel — assim o
+  // moodboard continua fazendo sentido em telas de tamanhos diferentes (painel x celular).
   function renderizarMoodboardFormRoteiro(){
     const area = document.getElementById("roteiroMoodboardArea");
     if (!area) return;
@@ -15446,24 +15524,282 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       area.innerHTML = `<p class="ugc-vazio">Nenhuma foto ainda.</p>`;
       return;
     }
-    area.innerHTML = roteiroMoodboardAtual.map((foto, indice) => `
-      <div class="roteiro-moodboard-foto">
+    area.innerHTML = roteiroMoodboardAtual.map((foto, indice) => {
+      const x = foto.x != null ? foto.x : (10 + (indice % 5) * 16);
+      const y = foto.y != null ? foto.y : (10 + Math.floor(indice / 5) * 40);
+      const rot = foto.rotacao || 0;
+      return `
+      <div class="roteiro-moodboard-foto" data-indice="${indice}" style="left:${x}%; top:${y}%; transform:rotate(${rot}deg);">
         <img src="${foto.url}" alt="Foto do moodboard">
         <button type="button" class="roteiro-moodboard-remover" data-indice="${indice}" aria-label="Remover foto">✕</button>
       </div>
-    `).join("");
+    `;
+    }).join("") + `<p class="roteiro-moodboard-dica">Arraste as fotos pra organizar o moodboard</p>`;
+
     area.querySelectorAll(".roteiro-moodboard-remover").forEach(btn => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
         roteiroMoodboardAtual.splice(Number(btn.dataset.indice), 1);
         renderizarMoodboardFormRoteiro();
       });
     });
+
+    area.querySelectorAll(".roteiro-moodboard-foto").forEach(el => {
+      el.addEventListener("pointerdown", (e) => {
+        if (e.target.closest(".roteiro-moodboard-remover")) return;
+        e.preventDefault();
+        const indice = Number(el.dataset.indice);
+        const areaRect = area.getBoundingClientRect();
+        el.classList.add("arrastando");
+        el.setPointerCapture(e.pointerId);
+
+        const mover = (ev) => {
+          let x = ((ev.clientX - areaRect.left) / areaRect.width) * 100;
+          let y = ((ev.clientY - areaRect.top) / areaRect.height) * 100;
+          x = Math.max(0, Math.min(90, x));
+          y = Math.max(0, Math.min(85, y));
+          el.style.left = x + "%";
+          el.style.top = y + "%";
+          if (roteiroMoodboardAtual[indice]){
+            roteiroMoodboardAtual[indice].x = x;
+            roteiroMoodboardAtual[indice].y = y;
+          }
+        };
+        const soltar = () => {
+          el.classList.remove("arrastando");
+          el.removeEventListener("pointermove", mover);
+          el.removeEventListener("pointerup", soltar);
+        };
+        el.addEventListener("pointermove", mover);
+        el.addEventListener("pointerup", soltar);
+      });
+    });
+  }
+
+  // ---------- Cenas (geradas do Word ou criadas manualmente) ----------
+  function renderizarCenasFormRoteiro(){
+    const wrap = document.getElementById("roteiroCenasFormWrap");
+    const lista = document.getElementById("roteiroCenasFormLista");
+    if (!wrap || !lista) return;
+    if (!roteiroCenasAtual.length){
+      wrap.classList.add("oculto");
+      lista.innerHTML = "";
+      return;
+    }
+    wrap.classList.remove("oculto");
+    lista.innerHTML = roteiroCenasAtual.map((cena, indice) => `
+      <div class="roteiro-cena-editor" data-indice="${indice}">
+        <div class="roteiro-cena-editor-topo">
+          <span class="numero">${String(indice + 1).padStart(2, "0")}</span>
+          <select data-campo="tag_etapa">
+            ${ROTEIRO_TAGS_ETAPA.map(t => `<option value="${t.chave}" ${cena.tag_etapa === t.chave ? "selected" : ""}>${t.nome}</option>`).join("")}
+          </select>
+          <input type="text" data-campo="tempo" placeholder="Ex: 0-5s" value="${escaparHtmlMarcas(cena.tempo || "")}">
+          <button type="button" class="roteiro-cena-editor-remover" data-acao="remover-cena" title="Remover cena">✕ remover</button>
+        </div>
+        <label>Cena / Ação</label>
+        <textarea data-campo="descricao_cena" placeholder="O que aparece na tela...">${escaparHtmlMarcas(cena.descricao_cena || "")}</textarea>
+        <label>Narração</label>
+        <textarea data-campo="narracao" placeholder="O que é falado...">${escaparHtmlMarcas(cena.narracao || "")}</textarea>
+        ${cena.observacao ? `<div class="roteiro-cena-obs-marca">💬 <strong>Observação da marca:</strong> ${escaparHtmlMarcas(cena.observacao)}</div>` : ""}
+      </div>
+    `).join("");
+
+    lista.querySelectorAll(".roteiro-cena-editor").forEach(cartao => {
+      const indice = Number(cartao.dataset.indice);
+      cartao.querySelectorAll("[data-campo]").forEach(campo => {
+        campo.addEventListener("input", () => {
+          roteiroCenasAtual[indice][campo.dataset.campo] = campo.value;
+        });
+      });
+      cartao.querySelector("[data-acao='remover-cena']").addEventListener("click", () => {
+        roteiroCenasAtual.splice(indice, 1);
+        renderizarCenasFormRoteiro();
+      });
+    });
+  }
+
+  function adicionarCenaManualRoteiro(){
+    roteiroCenasAtual.push({ tag_etapa: "desenvolvimento", tempo: "", descricao_cena: "", narracao: "", observacao: "" });
+    renderizarCenasFormRoteiro();
+    document.getElementById("roteiroCenasFormLista").lastElementChild?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  // Um .docx é um .zip com XML dentro (word/document.xml). O JSZip abre esse zip no
+  // navegador e a gente varre as tags w:tbl/w:tr/w:tc/w:t do Word (schema OOXML) pra
+  // extrair a primeira tabela como linhas de texto, sem precisar de servidor nenhum.
+  async function lerTabelaWordRoteiro(file){
+    const zip = await JSZip.loadAsync(file);
+    const arquivoXml = zip.file("word/document.xml");
+    if (!arquivoXml) throw new Error("Não parece um arquivo Word (.docx) válido.");
+    const xmlTexto = await arquivoXml.async("text");
+    const xmlDoc = new DOMParser().parseFromString(xmlTexto, "application/xml");
+    const tabelas = xmlDoc.getElementsByTagName("w:tbl");
+    if (!tabelas.length) throw new Error("Nenhuma tabela encontrada dentro do arquivo Word.");
+
+    const linhasTexto = [];
+    const linhas = tabelas[0].getElementsByTagName("w:tr");
+    for (let i = 0; i < linhas.length; i++){
+      const celulas = linhas[i].getElementsByTagName("w:tc");
+      const colunas = [];
+      for (let j = 0; j < celulas.length; j++){
+        const runs = celulas[j].getElementsByTagName("w:t");
+        let texto = "";
+        for (let k = 0; k < runs.length; k++) texto += runs[k].textContent;
+        colunas.push(texto.trim());
+      }
+      linhasTexto.push(colunas);
+    }
+    if (linhasTexto.length < 2) throw new Error("A tabela do Word não tem linhas de cena (só o cabeçalho).");
+
+    const cabecalho = linhasTexto[0].map(c => c.toLowerCase());
+    const acharColuna = (...termos) => cabecalho.findIndex(c => termos.some(t => c.includes(t)));
+    const idxCena = acharColuna("cena", "ação", "acao");
+    const idxNarracao = acharColuna("narra");
+    const idxObs = acharColuna("observa");
+
+    const cenasBrutas = linhasTexto.slice(1).filter(linha => linha.some(c => c));
+    return cenasBrutas.map((linha, indice) => {
+      let tag = "desenvolvimento";
+      if (indice === 0) tag = "hook";
+      else if (indice === 1) tag = "contexto";
+      else if (indice === cenasBrutas.length - 1 && cenasBrutas.length > 1) tag = "cta";
+      return {
+        tag_etapa: tag,
+        tempo: "",
+        descricao_cena: idxCena !== -1 ? (linha[idxCena] || "") : (linha[0] || ""),
+        narracao: idxNarracao !== -1 ? (linha[idxNarracao] || "") : (linha[1] || ""),
+        observacao: idxObs !== -1 ? (linha[idxObs] || "") : ""
+      };
+    });
+  }
+
+  async function processarArquivoWordRoteiro(file){
+    const botao = document.getElementById("roteiroBotaoExcel");
+    const textoOriginal = botao.textContent;
+    botao.textContent = "Lendo o arquivo...";
+    try {
+      const cenas = await lerTabelaWordRoteiro(file);
+      roteiroCenasAtual = cenas;
+      renderizarCenasFormRoteiro();
+    } catch (erro) {
+      console.error("Erro ao ler Word do roteiro:", erro);
+      alert(`Não deu pra ler a tabela desse arquivo.\n\nMotivo: ${erro?.message || erro}\n\nConfira se é um .docx com uma tabela de cenas, ou escreva direto no campo "Roteiro" acima.`);
+    } finally {
+      botao.textContent = textoOriginal;
+    }
+  }
+
+  // ---------- Paleta de cor identificada a partir de uma imagem ----------
+  // Reduz a imagem pra uma miniatura (mais rápido de processar), agrupa os pixels em
+  // baldes de cor (quantização) e devolve as cores mais frequentes — tudo no navegador,
+  // sem precisar mandar a imagem pra nenhum serviço externo.
+  function extrairPaletaDeImagem(file, quantidade = 5){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const tamanho = 80;
+          const canvas = document.createElement("canvas");
+          canvas.width = tamanho;
+          canvas.height = tamanho;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, tamanho, tamanho);
+          const dados = ctx.getImageData(0, 0, tamanho, tamanho).data;
+
+          const baldes = {};
+          for (let i = 0; i < dados.length; i += 4){
+            const alfa = dados[i + 3];
+            if (alfa < 128) continue;
+            const r = dados[i], g = dados[i + 1], b = dados[i + 2];
+            // agrupa em degraus de 24 pra juntar tons parecidos no mesmo balde
+            const chave = [Math.round(r / 24), Math.round(g / 24), Math.round(b / 24)].join(",");
+            if (!baldes[chave]) baldes[chave] = { r: 0, g: 0, b: 0, n: 0 };
+            baldes[chave].r += r; baldes[chave].g += g; baldes[chave].b += b; baldes[chave].n++;
+          }
+          const paraHex = (v) => v.toString(16).padStart(2, "0");
+          const cores = Object.values(baldes)
+            .sort((a, b) => b.n - a.n)
+            .slice(0, quantidade)
+            .map(c => "#" + paraHex(Math.round(c.r / c.n)) + paraHex(Math.round(c.g / c.n)) + paraHex(Math.round(c.b / c.n)));
+          URL.revokeObjectURL(img.src);
+          resolve(cores);
+        } catch (erro) { reject(erro); }
+      };
+      img.onerror = () => reject(new Error("Não deu pra abrir essa imagem."));
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  function renderizarPaletaPreviewRoteiro(){
+    const preview = document.getElementById("roteiroPaletaPreview");
+    if (!preview) return;
+    if (!roteiroPaletaAtual.length){
+      preview.classList.add("oculto");
+      preview.innerHTML = "";
+      return;
+    }
+    preview.classList.remove("oculto");
+    preview.innerHTML = roteiroPaletaAtual.map(hex =>
+      `<span style="background:${hex}" data-hex="${hex}" title="Usar ${hex} como cor da marca"></span>`
+    ).join("");
+    preview.querySelectorAll("span").forEach(span => {
+      span.addEventListener("click", () => {
+        document.getElementById("roteiroCampoCorManual").value = span.dataset.hex;
+      });
+    });
+  }
+
+  // ---------- Comentários da marca (só leitura aqui — quem escreve é a marca no link público) ----------
+  async function carregarComentariosRoteiro(roteiroId){
+    document.getElementById("roteiroComentariosWrap").classList.add("oculto");
+    try {
+      const { data, error } = await Auth.client
+        .from("painel_roteiros_comentarios")
+        .select("*")
+        .eq("roteiro_id", roteiroId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      roteiroComentariosCache = data || [];
+      renderizarComentariosRoteiro();
+    } catch (erro) {
+      console.error("Erro ao carregar comentários do roteiro:", erro);
+    }
+  }
+
+  function renderizarComentariosRoteiro(){
+    const wrap = document.getElementById("roteiroComentariosWrap");
+    const lista = document.getElementById("roteiroComentariosLista");
+    if (!wrap || !lista) return;
+    if (!roteiroComentariosCache.length){
+      wrap.classList.add("oculto");
+      return;
+    }
+    wrap.classList.remove("oculto");
+    lista.innerHTML = roteiroComentariosCache.map(c => `
+      <div class="roteiro-comentario-item">
+        <span class="autor">${escaparHtmlMarcas(c.autor || "Marca")}</span>
+        <span class="data">${c.created_at ? new Date(c.created_at).toLocaleString("pt-BR") : ""}</span>
+        <div style="clear:both; margin-top:4px;">${escaparHtmlMarcas(c.mensagem || "")}</div>
+      </div>
+    `).join("");
+  }
+
+  function copiarLinkPublicoRoteiro(){
+    const url = document.getElementById("roteiroLinkPublicoTexto").textContent;
+    if (!url) return;
+    navigator.clipboard.writeText(url)
+      .then(() => alert("Link copiado!"))
+      .catch(() => alert("Não deu pra copiar automaticamente. Selecione o link manualmente."));
   }
 
   function abrirFormNovoRoteiro(){
     roteiroEditandoId = null;
     roteiroMoodboardAtual = [];
     roteiroImagemCorUrlAtual = null;
+    roteiroCenasAtual = [];
+    roteiroPaletaAtual = [];
+    roteiroComentariosCache = [];
 
     document.getElementById("roteiroFormTitulo").textContent = "Novo roteiro";
     ["roteiroCampoMarca", "roteiroCampoProduto", "roteiroCampoDuracao", "roteiroCampoCategoria"].forEach(id => {
@@ -15473,11 +15809,16 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("roteiroCampoPersonalizar").checked = false;
     document.getElementById("roteiroOpcoesCor").classList.add("oculto");
     document.getElementById("roteiroCampoCorManual").value = "#000080";
-    document.getElementById("roteiroImagemCorNota").textContent = "A identificação automática da paleta chega numa próxima etapa — por enquanto a imagem só fica salva de referência.";
+    document.getElementById("roteiroImagemCorNota").textContent = "Envie uma imagem da marca (logo, print, foto) pra eu identificar as cores automaticamente.";
+    document.getElementById("roteiroPaletaPreview").classList.add("oculto");
+    document.getElementById("roteiroPaletaPreview").innerHTML = "";
     document.getElementById("roteiroCampoVisualizacaoWrap").classList.add("oculto");
+    document.getElementById("roteiroLinkPublicoWrap").classList.add("oculto");
+    document.getElementById("roteiroComentariosWrap").classList.add("oculto");
     document.getElementById("roteiroEditor").innerHTML = "";
     preencherSelectTrabalhoRoteiro("");
     renderizarMoodboardFormRoteiro();
+    renderizarCenasFormRoteiro();
 
     document.getElementById("roteiroFormNovo").classList.remove("oculto");
     document.getElementById("roteiroFormNovo").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -15495,6 +15836,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     roteiroEditandoId = id;
     roteiroMoodboardAtual = Array.isArray(item.moodboard) ? item.moodboard.slice() : [];
     roteiroImagemCorUrlAtual = item.imagem_referencia_url || null;
+    roteiroCenasAtual = Array.isArray(item.cenas) ? item.cenas.map(c => ({ ...c })) : [];
+    roteiroPaletaAtual = Array.isArray(item.paleta_marca) ? item.paleta_marca.slice() : [];
 
     document.getElementById("roteiroFormTitulo").textContent = "Editar roteiro";
     document.getElementById("roteiroCampoMarca").value = item.marca || "";
@@ -15506,8 +15849,9 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("roteiroOpcoesCor").classList.toggle("oculto", !item.personalizar_cor);
     document.getElementById("roteiroCampoCorManual").value = item.cor_marca || "#000080";
     document.getElementById("roteiroImagemCorNota").textContent = item.imagem_referencia_url
-      ? "Já tem uma imagem salva. A identificação automática da paleta chega numa próxima etapa."
-      : "A identificação automática da paleta chega numa próxima etapa — por enquanto a imagem só fica salva de referência.";
+      ? "Imagem salva. Clique numa cor da paleta abaixo pra usar como cor da marca."
+      : "Envie uma imagem da marca (logo, print, foto) pra eu identificar as cores automaticamente.";
+    renderizarPaletaPreviewRoteiro();
     document.getElementById("roteiroEditor").innerHTML = item.roteiro_html || "";
     preencherSelectTrabalhoRoteiro(item.trabalho_id || "");
 
@@ -15519,7 +15863,19 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("roteiroCampoVisualizacaoTexto").innerHTML =
       `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${corVisto};margin-right:6px;"></span>${textoVisto}`;
 
+    if (item.link_token){
+      const url = `${LINK_PUBLICO_ROTEIRO_BASE}${item.link_token}`;
+      document.getElementById("roteiroLinkPublicoWrap").classList.remove("oculto");
+      const a = document.getElementById("roteiroLinkPublicoTexto");
+      a.href = url;
+      a.textContent = url;
+    } else {
+      document.getElementById("roteiroLinkPublicoWrap").classList.add("oculto");
+    }
+
     renderizarMoodboardFormRoteiro();
+    renderizarCenasFormRoteiro();
+    carregarComentariosRoteiro(id);
     document.getElementById("roteiroFormNovo").classList.remove("oculto");
     document.getElementById("roteiroFormNovo").scrollIntoView({ behavior: "smooth", block: "start" });
   }
@@ -15539,10 +15895,19 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   }
 
   async function selecionarImagemCorRoteiro(file){
+    const nota = document.getElementById("roteiroImagemCorNota");
+    nota.textContent = "Identificando as cores da imagem...";
+    try {
+      roteiroPaletaAtual = await extrairPaletaDeImagem(file);
+      renderizarPaletaPreviewRoteiro();
+      if (roteiroPaletaAtual.length) document.getElementById("roteiroCampoCorManual").value = roteiroPaletaAtual[0];
+    } catch (erro) {
+      console.error("Erro ao identificar paleta da imagem:", erro);
+    }
     const url = await enviarArquivoRoteiro(file, "cor-marca");
     if (!url) return;
     roteiroImagemCorUrlAtual = url;
-    document.getElementById("roteiroImagemCorNota").textContent = "Imagem salva. A identificação automática da paleta chega numa próxima etapa.";
+    nota.textContent = "Imagem salva. Clique numa cor da paleta acima pra usar como cor da marca.";
   }
 
   async function selecionarFotosMoodboardRoteiro(arquivos){
@@ -15569,7 +15934,9 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       duracao_prevista: document.getElementById("roteiroCampoDuracao").value.trim() || null,
       categoria: document.getElementById("roteiroCampoCategoria").value.trim() || null,
       roteiro_html: document.getElementById("roteiroEditor").innerHTML.trim() || null,
-      moodboard: roteiroMoodboardAtual
+      moodboard: roteiroMoodboardAtual,
+      cenas: roteiroCenasAtual,
+      paleta_marca: roteiroPaletaAtual.length ? roteiroPaletaAtual : null
     };
 
     const botao = document.getElementById("roteiroBotaoSalvar");
@@ -15582,12 +15949,22 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         if (error) throw error;
         const idx = roteirosCache.findIndex(r => r.id === roteiroEditandoId);
         if (idx !== -1) roteirosCache[idx] = data[0];
+        fecharFormRoteiro();
       } else {
         const { data, error } = await Auth.client.from("painel_roteiros").insert(payload).select();
         if (error) throw error;
         roteirosCache = roteirosCache.concat(data);
+        // Fica na edição (em vez de fechar) pra já mostrar o link público gerado
+        roteiroEditandoId = data[0].id;
+        if (data[0].link_token){
+          const url = `${LINK_PUBLICO_ROTEIRO_BASE}${data[0].link_token}`;
+          document.getElementById("roteiroLinkPublicoWrap").classList.remove("oculto");
+          const a = document.getElementById("roteiroLinkPublicoTexto");
+          a.href = url;
+          a.textContent = url;
+        }
+        document.getElementById("roteiroFormTitulo").textContent = "Editar roteiro";
       }
-      fecharFormRoteiro();
       renderizarRoteiros();
     } catch (erro) {
       console.error("Erro ao salvar roteiro:", erro);
@@ -15633,6 +16010,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         </div>
         <span class="roteiro-pill-status ${item.status}">${nomeStatusRoteiro(item.status)}</span>
         <div class="roteiro-linha-acoes">
+          ${item.link_token ? `<button type="button" class="marcas-botao-icone" data-acao="roteiro-link" data-id="${item.id}" title="Copiar link público">🔗</button>` : ""}
           <button type="button" class="marcas-botao-icone" data-acao="roteiro-editar" data-id="${item.id}" title="Editar">✎</button>
           <button type="button" class="marcas-botao-icone" data-acao="roteiro-remover" data-id="${item.id}" title="Excluir">✕</button>
         </div>
@@ -15646,6 +16024,15 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     });
     container.querySelectorAll("[data-acao='roteiro-remover']").forEach(btn => {
       btn.addEventListener("click", () => removerRoteiro(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='roteiro-link']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const item = roteirosCache.find(r => r.id === btn.dataset.id);
+        if (!item || !item.link_token) return;
+        navigator.clipboard.writeText(`${LINK_PUBLICO_ROTEIRO_BASE}${item.link_token}`)
+          .then(() => alert("Link copiado!"))
+          .catch(() => alert("Não deu pra copiar automaticamente."));
+      });
     });
   }
 
