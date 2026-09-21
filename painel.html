@@ -5987,7 +5987,10 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
       document.getElementById("areaCarregando").classList.add("oculto");
       renderizarTudo();
-      renderizarNotificacoesPopup();
+      // O aviso flutuante/badge só calcula de verdade lá no fim (depois de todos os blocos
+      // isolados abaixo) — chamar aqui cedo mostrava um valor errado por meio segundo
+      // (ex: conta já excluída) que depois se corrigia sozinho, dando a impressão de bug
+      // "pisca e some".
       // Notificações push mandam pra /painel.html?ir=<grupo> (financas, agenda,
       // negocio, portfolio) — isso já abre direto na aba certa, sem precisar
       // clicar em "Ver X" no aviso. Só funciona pros grupos que não dependem de
@@ -6057,7 +6060,6 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         abordagensCache = await comRetry(() => buscarTudo("painel_abordagens"));
         await arquivarAbordagensMesAnterior();
         renderizarAbordagens();
-        renderizarNotificacoesPopup();
       } catch (erroAbordagem) {
         console.error("Erro ao carregar/renderizar Abordagem:", erroAbordagem);
       }
@@ -6088,10 +6090,6 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         contasFixasOcultas = new Set(ocultas.map(o => o.nome));
         renderizarFinancas();
         renderizarAlertasContas();
-        // Sem isso, o avisinho flutuante e o número no menu (que já rodaram antes desta
-        // busca terminar) ficavam presos calculados sem saber quais contas estão ocultas —
-        // a tabela de Contas a Pagar corrigia sozinha, mas o aviso/badge nunca recalculava.
-        renderizarNotificacoesPopup();
       } catch (erroContasOcultas) {
         console.error("Erro ao carregar contas fixas ocultas:", erroContasOcultas);
       }
@@ -6177,6 +6175,11 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       } catch (erroInstagramLeads) {
         console.error("Erro ao carregar/renderizar Interações do Instagram:", erroInstagramLeads);
       }
+
+      // Só aqui, depois que TODOS os blocos isolados acima já tentaram carregar (contas
+      // ocultas, abordagens, marcas, clientes, etc.), é que o aviso flutuante/badge calcula
+      // de verdade — uma única vez, com o dado completo, sem piscar um valor errado no meio do caminho.
+      renderizarNotificacoesPopup();
     } catch (erro) {
       console.error(erro);
       document.getElementById("areaCarregando").classList.add("oculto");
