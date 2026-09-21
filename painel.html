@@ -170,6 +170,21 @@
   }
   .menu-item svg{ width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
   .menu-item:hover{ background: var(--creme); color: var(--grafite); }
+
+  /* ---------- Gaveta "Clientes" (Manager/Abordagem/Disparo de E-mails/Trabalhos/Roteiros) ---------- */
+  .menu-gaveta-cabecalho{ display: flex; align-items: center; gap: 2px; }
+  .menu-item-gaveta-principal{ flex: 1; min-width: 0; }
+  .menu-seta-gaveta{
+    flex-shrink: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+    border: none; background: transparent; border-radius: 8px; color: var(--texto-suave); cursor: pointer;
+  }
+  .menu-seta-gaveta:hover{ background: var(--creme); color: var(--grafite); }
+  .menu-seta-gaveta svg{ width: 13px; height: 13px; transition: transform .2s ease; }
+  .menu-item-gaveta.aberta .menu-seta-gaveta svg{ transform: rotate(180deg); }
+  .menu-subitem{ padding-left: 30px; font-size: .87rem; position: relative; }
+  .menu-subitem::before{ content: ""; position: absolute; left: 19px; top: 0; bottom: 0; width: 1px; background: var(--borda); }
+  .menu-subitem:last-child::before{ bottom: 50%; }
+  .menu-subitem svg{ width: 15px; height: 15px; }
   .menu-item.ativo{ background: var(--coral); color: var(--branco); }
   /* Só o "I" maiúsculo do nome da IAra troca pra fonte serifada (com os tracinhos em
      cima/embaixo), pra não ser confundido com um "l" minúsculo. A margem negativa
@@ -3548,42 +3563,55 @@
         <svg viewBox="0 0 16 16"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.556 0 5.83 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.444.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.83 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.444-.445.719-.891.923-1.417.198-.509.333-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.174-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 8 0zm0 1.441c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.232s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.232s.008-2.389.046-3.232c.036-.78.166-1.204.276-1.485.145-.374.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.843-.038 1.096-.046 3.232-.046zm0 2.451a4.108 4.108 0 1 0 0 8.216 4.108 4.108 0 0 0 0-8.216zm0 6.775a2.667 2.667 0 1 1 0-5.334 2.667 2.667 0 0 1 0 5.334zm5.23-6.937a.96.96 0 1 1-1.92 0 .96.96 0 0 1 1.92 0z"/></svg>
         Instagram
       </button>
-      <button class="menu-item" data-tab="abordagem">
-        <svg viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.259.408a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg>
-        Abordagem
-        <span class="badge-alerta-sidebar oculto" id="badgeAlertaAbordagem"></span>
-      </button>
-      <button class="menu-item" data-tab="clientes">
-        <svg viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
-        Clientes
-        <span class="badge-alerta-sidebar oculto" id="badgeAlertaClientes"></span>
-      </button>
-      <button class="menu-item" data-tab="prospeccao">
-        <span style="width:18px; display:inline-flex; justify-content:center; flex-shrink:0;">
-          <svg viewBox="0 0 24 24" style="width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;">
-            <g transform="rotate(-22 12 12)">
-              <rect x="4" y="6.5" width="14" height="9" rx="1.5"/>
-              <path d="M4 6.5 11 12.2 18 6.5"/>
-              <line x1="0.5" y1="8" x2="4" y2="8"/>
-              <line x1="0" y1="11.5" x2="4" y2="11.5"/>
-              <line x1="1" y1="15" x2="4" y2="15"/>
-            </g>
-          </svg>
-        </span>
-        Disparo de E-mails
-      </button>
+      <div class="menu-item-gaveta" id="menuGavetaClientes">
+        <div class="menu-gaveta-cabecalho">
+          <button class="menu-item menu-item-gaveta-principal" data-tab="clientes">
+            <svg viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
+            Clientes
+            <span class="badge-alerta-sidebar oculto" id="badgeAlertaClientes"></span>
+          </button>
+          <button type="button" class="menu-seta-gaveta" id="botaoToggleGavetaClientes" aria-label="Mostrar mais opções" aria-expanded="false">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 6 8 10 12 6"/></svg>
+          </button>
+        </div>
+        <div class="menu-gaveta-lista oculto" id="menuGavetaListaClientes">
+          <button class="menu-item menu-subitem" data-tab="projetos">
+            <svg viewBox="0 0 16 16"><path d="M13.5 1h-11a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm-11 1h3v12h-3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm4 0h3v7h-3V2zm4 0h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3V2z"/></svg>
+            Manager
+          </button>
+          <button class="menu-item menu-subitem" data-tab="abordagem">
+            <svg viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.259.408a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg>
+            Abordagem
+            <span class="badge-alerta-sidebar oculto" id="badgeAlertaAbordagem"></span>
+          </button>
+          <button class="menu-item menu-subitem" data-tab="prospeccao">
+            <span style="width:18px; display:inline-flex; justify-content:center; flex-shrink:0;">
+              <svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;">
+                <g transform="rotate(-22 12 12)">
+                  <rect x="4" y="6.5" width="14" height="9" rx="1.5"/>
+                  <path d="M4 6.5 11 12.2 18 6.5"/>
+                  <line x1="0.5" y1="8" x2="4" y2="8"/>
+                  <line x1="0" y1="11.5" x2="4" y2="11.5"/>
+                  <line x1="1" y1="15" x2="4" y2="15"/>
+                </g>
+              </svg>
+            </span>
+            Disparo de E-mails
+          </button>
+          <button class="menu-item menu-subitem" data-tab="ugc-creator">
+            <svg viewBox="0 0 16 16"><path d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5z"/></svg>
+            Trabalhos
+            <span class="badge-alerta-sidebar oculto" id="badgeAlertaUgcCreator"></span>
+          </button>
+          <button class="menu-item menu-subitem" data-tab="roteiros">
+            <svg viewBox="0 0 16 16"><path d="M4 0h5.5L14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm5.5 1.5V4a1 1 0 0 0 1 1h2.5L9.5 1.5zM5 8a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2.5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2.5a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1H5z"/></svg>
+            Roteiros
+          </button>
+        </div>
+      </div>
       <button class="menu-item" data-tab="iara">
         <svg viewBox="0 0 16 16"><path d="M8 15c4.418 0 8-3.134 8-7s-3.582-7-8-7-8 3.134-8 7c0 1.76.743 3.37 1.97 4.6-.097 1.016-.417 2.13-.771 2.966-.079.186.074.394.273.362 2.256-.37 3.597-.938 4.18-1.234A9.06 9.06 0 0 0 8 15z"/></svg>
         <span><span class="marca-iara">I</span>Ara</span>
-      </button>
-      <button class="menu-item" data-tab="ugc-creator">
-        <svg viewBox="0 0 16 16"><path d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5z"/></svg>
-        Trabalhos
-        <span class="badge-alerta-sidebar oculto" id="badgeAlertaUgcCreator"></span>
-      </button>
-      <button class="menu-item" data-tab="projetos">
-        <svg viewBox="0 0 16 16"><path d="M13.5 1h-11a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm-11 1h3v12h-3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm4 0h3v7h-3V2zm4 0h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3V2z"/></svg>
-        Manager
       </button>
       <button class="menu-item" data-tab="administrativo">
         <svg viewBox="0 0 16 16"><path d="M8 0a1 1 0 0 1 .8.4l5 6.5A1 1 0 0 1 13 8.5h-1v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.8-1.6l5-6.5A1 1 0 0 1 8 0z"/></svg>
@@ -4807,6 +4835,17 @@
             </table>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ===================== ABA: ROTEIROS =====================
+         Casca vazia por enquanto — só o menu (dentro da gaveta de Clientes) e a troca de
+         aba já funcionam. O conteúdo de verdade fica pra depois.
+         ===================== -->
+    <section id="painelRoteiros" class="painel-tab oculto">
+      <div class="cartao" style="text-align:center; padding:40px 24px;">
+        <h2 style="margin-bottom:10px;">Roteiros</h2>
+        <p style="color:var(--texto-suave); max-width:420px; margin:0 auto; line-height:1.6;">Essa aba ainda está vazia — a gente vai montar o conteúdo dela em breve.</p>
       </div>
     </section>
 
@@ -7774,6 +7813,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       btn.addEventListener("click", () => trocarAba(btn.dataset.tab));
     });
 
+    document.getElementById("botaoToggleGavetaClientes").addEventListener("click", () => alternarGavetaClientes());
+
     document.querySelectorAll(".periodo-btn").forEach(btn => {
       btn.addEventListener("click", () => trocarPeriodo(btn.dataset.periodo));
     });
@@ -8473,12 +8514,13 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("painelBancoCriativo").classList.toggle("oculto", aba !== "banco-criativo");
     document.getElementById("painelInstagram").classList.toggle("oculto", aba !== "instagram");
     document.getElementById("painelAdministrativo").classList.toggle("oculto", aba !== "administrativo");
+    document.getElementById("painelRoteiros").classList.toggle("oculto", aba !== "roteiros");
 
-    const titulos = { principal: "Dashboard", portfolio: "Portfólio", agenda: "Agenda", mensagens: "Mensagens", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", prospeccao: "Disparo de E-mails", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo" };
+    const titulos = { principal: "Dashboard", portfolio: "Portfólio", agenda: "Agenda", mensagens: "Mensagens", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Abordagem", clientes: "Clientes", prospeccao: "Disparo de E-mails", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo", roteiros: "Roteiros" };
     document.getElementById("tituloTopo").innerHTML = titulos[aba];
 
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
-    const abasSemFiltroPeriodo = ["agenda", "mensagens", "financas", "negocio", "abordagem", "clientes", "prospeccao", "iara", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo"];
+    const abasSemFiltroPeriodo = ["agenda", "mensagens", "financas", "negocio", "abordagem", "clientes", "prospeccao", "iara", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo", "roteiros"];
     document.getElementById("filtroPeriodo").classList.toggle("oculto", abasSemFiltroPeriodo.includes(aba));
     document.getElementById("ultimaAtualizacaoFinancas").classList.toggle("oculto", aba !== "financas");
 
@@ -8486,10 +8528,28 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     // aba Marcas desde a última vez que essa aba foi vista).
     if (aba === "prospeccao") renderizarProspeccao();
 
+    // A gaveta de Clientes (Manager/Abordagem/Disparo de E-mails/Trabalhos/Roteiros) abre
+    // sozinha quando a aba ativa é uma das que moram dentro dela, pra sempre mostrar qual
+    // sub-item está selecionado em vez de esconder ele atrás de uma gaveta fechada.
+    if (["projetos", "abordagem", "prospeccao", "ugc-creator", "roteiros"].includes(aba)){
+      alternarGavetaClientes(true);
+    }
+
     // Lembra a aba atual pra continuar nela se a página for atualizada (F5)
     localStorage.setItem("painelAbaAtiva", aba);
 
     fecharGaveta();
+  }
+
+  // Abre/fecha a gaveta lateral de Clientes. Sem argumento, alterna; com true/false,
+  // força um estado específico (usado pelo trocarAba pra sempre abrir sozinha quando a
+  // aba ativa mora dentro dela).
+  function alternarGavetaClientes(forcarAberta){
+    const gaveta = document.getElementById("menuGavetaClientes");
+    const aberta = typeof forcarAberta === "boolean" ? forcarAberta : !gaveta.classList.contains("aberta");
+    gaveta.classList.toggle("aberta", aberta);
+    document.getElementById("menuGavetaListaClientes").classList.toggle("oculto", !aberta);
+    document.getElementById("botaoToggleGavetaClientes").setAttribute("aria-expanded", String(aberta));
   }
 
   function trocarPeriodo(periodo){
