@@ -532,6 +532,16 @@ ETAPAS.forEach((etapa, i) => {
 });
 
 wrap.addEventListener("change", (e) => {
+  // Avisa na hora se o arquivo já vier grande demais, em vez de só descobrir
+  // isso depois de preencher o formulário inteiro e tentar enviar no fim.
+  if (e.target.type === "file"){
+    const arquivo = e.target.files[0];
+    if (arquivo && arquivo.size > TAMANHO_MAXIMO_ANEXO_BRIEFING){
+      alert("Esse arquivo é grande demais (máximo 8MB). Escolhe uma imagem menor.");
+      e.target.value = "";
+    }
+    return;
+  }
   if (e.target.type !== "radio") return;
   const nome = e.target.name;
   const valor = e.target.value;
@@ -603,13 +613,24 @@ function etapaValida(idx){
   return true;
 }
 
+// Tenta de novo uma vez sozinho antes de desistir — rede de celular (o caso mais comum
+// de quem preenche esse formulário) sofre bastante com uma instabilidade passageira.
+async function comRetryBriefing(fn){
+  try {
+    return await fn();
+  } catch (_primeiroErro) {
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    return await fn();
+  }
+}
+
 // Sobe o arquivo pro bucket "briefing-anexos" do Supabase Storage e devolve
 // o link público dele — é esse link (texto) que fica salvo em "respostas",
 // não o arquivo em si.
 async function enviarArquivoBriefing(arquivo){
   const nomeSeguro = arquivo.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
   const caminho = `${Date.now()}-${nomeSeguro}`;
-  const resposta = await fetch(`${SUPABASE_URL}/storage/v1/object/briefing-anexos/${caminho}`, {
+  const resposta = await comRetryBriefing(() => fetch(`${SUPABASE_URL}/storage/v1/object/briefing-anexos/${caminho}`, {
     method: "POST",
     headers: {
       "apikey": SUPABASE_ANON_KEY,
@@ -617,10 +638,14 @@ async function enviarArquivoBriefing(arquivo){
       "Content-Type": arquivo.type || "application/octet-stream"
     },
     body: arquivo
-  });
+  }));
   if (!resposta.ok) throw new Error("Falha ao enviar arquivo");
   return `${SUPABASE_URL}/storage/v1/object/public/briefing-anexos/${caminho}`;
 }
+
+// EDITE AQUI se quiser aceitar arquivos maiores — 8MB já folga bastante pra
+// foto de celular sem deixar subir um arquivo gigante que trava numa rede fraca.
+const TAMANHO_MAXIMO_ANEXO_BRIEFING = 8 * 1024 * 1024;
 
 async function coletarRespostas(){
   const dados = { nome: "", contato: "", respostas: {} };
@@ -637,7 +662,30 @@ async function coletarRespostas(){
 
           const arquivoInput = wrap.querySelector(`[data-extra-arquivo="${campo.nome}_arquivo"]`);
           const arquivo = arquivoInput && arquivoInput.files[0];
-          if (arquivo) dados.respostas[`${campo.nome}_arquivo_url`] = await enviarArquivoBriefing(arquivo);
+          if (arquivo){
+            // Se essa mesma pessoa já tentou enviar antes e o arquivo já subiu com sucesso
+            // (só as respostas falharam depois), reaproveita o link em vez de subir de novo.
+            const assinatura = `${arquivo.name}-${arquivo.size}-${arquivo.lastModified}`;
+            if (arquivoInput.dataset.assinaturaEnviada === assinatura && arquivoInput.dataset.urlEnviada){
+              dados.respostas[`${campo.nome}_arquivo_url`] = arquivoInput.dataset.urlEnviada;
+            } else {
+              if (arquivo.size > TAMANHO_MAXIMO_ANEXO_BRIEFING){
+                const erroTamanho = new Error("Arquivo muito grande");
+                erroTamanho.tipoBriefing = "arquivo_tamanho";
+                throw erroTamanho;
+              }
+              try {
+                const url = await enviarArquivoBriefing(arquivo);
+                arquivoInput.dataset.assinaturaEnviada = assinatura;
+                arquivoInput.dataset.urlEnviada = url;
+                dados.respostas[`${campo.nome}_arquivo_url`] = url;
+              } catch (_erroUpload) {
+                const erroArquivo = new Error("Falha ao enviar arquivo");
+                erroArquivo.tipoBriefing = "arquivo";
+                throw erroArquivo;
+              }
+            }
+          }
         }
       } else {
         const input = wrap.querySelector(`[name="${campo.nome}"]`);
@@ -653,13 +701,14 @@ async function coletarRespostas(){
 async function enviarBriefing(){
   const botao = wrap.querySelector(`.etapa[data-etapa="${etapaAtual}"] [data-avancar]`);
   const avisoEnvio = document.getElementById("avisoEnvio");
+  const textoOriginalAviso = avisoEnvio.textContent;
   botao.disabled = true;
   botao.textContent = "Enviando...";
   avisoEnvio.classList.remove("visivel");
 
   try {
     const dados = await coletarRespostas();
-    const resposta = await fetch(SUPABASE_URL + "/rest/v1/painel_briefing_respostas", {
+    const resposta = await comRetryBriefing(() => fetch(SUPABASE_URL + "/rest/v1/painel_briefing_respostas", {
       method: "POST",
       headers: {
         "apikey": SUPABASE_ANON_KEY,
@@ -668,13 +717,22 @@ async function enviarBriefing(){
         "Prefer": "return=minimal"
       },
       body: JSON.stringify({ nome: dados.nome, contato: dados.contato, respostas: dados.respostas })
-    });
-    if (!resposta.ok) throw new Error("Falha ao enviar");
+    }));
+    if (!resposta.ok) throw new Error("Falha ao enviar respostas");
 
     document.getElementById("formBriefing").style.display = "none";
     document.querySelector(".progresso-wrap").style.display = "none";
     document.getElementById("telaFinal").classList.add("ativa");
   } catch (erro) {
+    // Mensagem diferente conforme o que falhou — antes tudo caía no mesmo aviso
+    // genérico de "internet", mesmo quando o problema era o arquivo anexado.
+    if (erro && erro.tipoBriefing === "arquivo_tamanho"){
+      avisoEnvio.textContent = "O arquivo anexado é grande demais (máximo 8MB). Escolhe uma imagem menor e tenta de novo.";
+    } else if (erro && erro.tipoBriefing === "arquivo"){
+      avisoEnvio.textContent = "Não consegui enviar o arquivo anexado. Confere sua internet e tenta de novo.";
+    } else {
+      avisoEnvio.textContent = textoOriginalAviso;
+    }
     avisoEnvio.classList.add("visivel");
     botao.disabled = false;
     botao.textContent = "Enviar respostas";
