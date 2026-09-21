@@ -5825,6 +5825,12 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   // então sincroniza em qualquer aparelho — e a Edge Function do aviso diário consulta
   // essa mesma tabela antes de notificar, então excluir aqui também para a notificação.
   let contasFixasOcultas = new Set();
+  // Só vira true depois que financas_contas_fixas_ocultas carregar com sucesso. Enquanto
+  // for false (ainda carregando, ou a busca falhou), obterAlertasContas() não avalia contas
+  // fixas pra aviso — evita um falso positivo tratando "ainda não sei quem está oculta"
+  // como "ninguém está oculta" (foi o que fez a Vivo Celular reaparecer no aviso de vez em
+  // quando, só quando essa busca especificamente falhava numa sessão).
+  let contasFixasOcultasCarregada = false;
 
   // Formata uma data como AAAA-MM-DD (mesmo formato usado na coluna "data" do Supabase)
   function formatarDataISO(data){
@@ -6085,9 +6091,11 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         // Isolado do carregamento principal: a tabela financas_contas_fixas_ocultas só
         // existe depois que o SQL for rodado no Supabase. Recarrega Finanças depois de
         // preencher o Set porque o primeiro renderizarFinancas() (acima) já rodou sem saber
-        // quais contas estão ocultas.
-        const ocultas = await comRetry(() => buscarTudo("financas_contas_fixas_ocultas"));
+        // quais contas estão ocultas. comRetryForte (3 tentativas) porque uma falha aqui
+        // gera um falso positivo visível (conta já excluída "voltando" no aviso).
+        const ocultas = await comRetryForte(() => buscarTudo("financas_contas_fixas_ocultas"));
         contasFixasOcultas = new Set(ocultas.map(o => o.nome));
+        contasFixasOcultasCarregada = true;
         renderizarFinancas();
         renderizarAlertasContas();
       } catch (erroContasOcultas) {
@@ -6203,6 +6211,23 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       await new Promise(resolve => setTimeout(resolve, 1500));
       return await fn();
     }
+  }
+
+  // Igual comRetry, mas insiste até 3 vezes — reservado pra buscas onde "desistir cedo
+  // demais e seguir como se estivesse vazio" gera um falso positivo visível pra usuária
+  // (ex: financas_contas_fixas_ocultas, ver contasFixasOcultasCarregada).
+  async function comRetryForte(fn, tentativas = 3){
+    let ultimoErro;
+    for (let i = 0; i < tentativas; i++){
+      try {
+        return await fn();
+      } catch (erro) {
+        ultimoErro = erro;
+        console.warn(`Tentativa ${i + 1} de ${tentativas} falhou, tentando de novo:`, erro);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+    }
+    throw ultimoErro;
   }
 
   // Busca todas as linhas de uma tabela em blocos de 1000 (limite do Supabase)
@@ -10740,6 +10765,10 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
     const alertas = [];
     itens.forEach(item => {
+      // Enquanto financas_contas_fixas_ocultas não tiver carregado de verdade, não dá pra
+      // confiar em "quais contas fixas estão escondidas" — melhor não avaliar nenhuma conta
+      // fixa agora do que arriscar reavisar sobre uma que já foi excluída.
+      if (item.tipo === "fixo" && !contasFixasOcultasCarregada) return;
       if (item.vencimento === null || item.vencimento === undefined) return;
       if (item.pago) return;
 
@@ -10752,8 +10781,6 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     });
 
     alertas.sort((a, b) => a.diasParaVencer - b.diasParaVencer);
-    // TEMPORÁRIO: só pra descobrir a causa de um aviso "fantasma" — tirar depois.
-    if (alertas.length) console.log("[debug contas a pagar]", alertas.map(a => ({ nome: a.nome, tipo: a.tipo, vencimento: a.vencimento, diasParaVencer: a.diasParaVencer, pago: a.pago, valor: a.valor })));
     return { alertas, anoAtual, mesAtual };
   }
 
