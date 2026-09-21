@@ -726,12 +726,15 @@ async function enviarBriefing(){
   } catch (erro) {
     // Mensagem diferente conforme o que falhou — antes tudo caía no mesmo aviso
     // genérico de "internet", mesmo quando o problema era o arquivo anexado.
+    // TEMPORÁRIO: mostra o detalhe técnico entre parênteses só pra diagnosticar
+    // o problema da Júlia — tirar assim que confirmarmos a causa.
+    const detalheTecnico = erro && erro.message ? ` (detalhe técnico: ${erro.message})` : "";
     if (erro && erro.tipoBriefing === "arquivo_tamanho"){
-      avisoEnvio.textContent = "O arquivo anexado é grande demais (máximo 8MB). Escolhe uma imagem menor e tenta de novo.";
+      avisoEnvio.textContent = "O arquivo anexado é grande demais (máximo 8MB). Escolhe uma imagem menor e tenta de novo." + detalheTecnico;
     } else if (erro && erro.tipoBriefing === "arquivo"){
-      avisoEnvio.textContent = "Não consegui enviar o arquivo anexado. Confere sua internet e tenta de novo.";
+      avisoEnvio.textContent = "Não consegui enviar o arquivo anexado. Confere sua internet e tenta de novo." + detalheTecnico;
     } else {
-      avisoEnvio.textContent = textoOriginalAviso;
+      avisoEnvio.textContent = textoOriginalAviso + detalheTecnico;
     }
     avisoEnvio.classList.add("visivel");
     botao.disabled = false;
