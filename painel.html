@@ -3100,7 +3100,7 @@
   .marcas-linha:hover{ background: rgba(0,0,128,.03); }
 
   .marcas-col-marca{ display:flex; flex-direction:column; gap:2px; min-width:0; }
-  .marcas-col-marca .nome{ font-weight:600; }
+  .marcas-col-marca .nome{ font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .marcas-col-marca .sub{ font-size:.74rem; color:var(--texto-suave); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .marcas-col-seguidores{ font-variant-numeric:tabular-nums; color:var(--texto-suave); font-size:.82rem; }
   .marcas-col-nicho, .marcas-col-origem{ font-size:.82rem; color:var(--grafite); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -3148,6 +3148,7 @@
        as colunas e o card ganha rolagem horizontal (arrasta pro lado igual Abordagens). */
     .marcas-lista-cartao{ overflow-x:auto; -webkit-overflow-scrolling:touch; overflow-y:hidden; }
     .marcas-grade-lista{ min-width:950px; }
+    .marcas-linha{ min-width:950px; }
   }
   @media (max-width: 640px){
     .marcas-contadores{ grid-template-columns: repeat(2,1fr); }
@@ -3393,7 +3394,7 @@
   }
   .links-linha:last-child{ border-bottom:none; }
   .links-linha:hover{ background: rgba(0,0,128,.03); }
-  .links-linha-info a.nome{ font-weight:600; font-size:.88rem; color:var(--coral); text-decoration:none; }
+  .links-linha-info a.nome{ font-weight:600; font-size:.88rem; color:var(--coral); text-decoration:none; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .links-linha-info a.nome:hover{ text-decoration:underline; }
   .links-col-descricao, .links-col-url{ font-size:.82rem; color:var(--texto-suave); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .links-col-url{ color:var(--coral); text-decoration:none; }
@@ -3402,8 +3403,10 @@
   .links-linha-acoes{ display:flex; gap:6px; justify-content:flex-end; }
 
   @media (max-width: 900px){
-    .links-grade-lista{ display:none; }
-    .links-linha{ grid-template-columns: 1fr; gap:6px; }
+    /* Mesmo estilo de tabela com rolagem lateral por arraste de Marcas/Abordagens —
+       #linksListaContainer já tem overflow-x:auto herdado de .ugc-lista-cartao. */
+    .links-grade-lista{ min-width:780px; }
+    .links-linha{ min-width:780px; }
   }
 
   @media (max-width: 640px){
