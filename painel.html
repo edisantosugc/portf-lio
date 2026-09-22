@@ -3286,6 +3286,8 @@
   .prospeccao-tabela-historico td{ padding:10px; border-bottom:1px solid var(--borda); }
   .prospeccao-selo-ok{ color:var(--verde); font-weight:700; font-size:.76rem; }
   .prospeccao-selo-erro{ color:var(--vermelho); font-weight:700; font-size:.76rem; }
+  .prospeccao-historico-apagar{ background:none; border:none; color:var(--texto-suave); font-size:1.1rem; line-height:1; cursor:pointer; padding:2px 8px; border-radius:6px; }
+  .prospeccao-historico-apagar:hover{ background:rgba(196,69,60,.12); color:var(--vermelho); }
 
   @media (max-width: 900px){
     .prospeccao-bloco-principal{ grid-template-columns:1fr; }
@@ -5040,7 +5042,7 @@
           </div>
           <div style="overflow-x:auto;">
             <table class="prospeccao-tabela-historico">
-              <thead><tr><th>E-mail</th><th>Assunto</th><th>Quando</th><th>Status</th></tr></thead>
+              <thead><tr><th>E-mail</th><th>Assunto</th><th>Quando</th><th>Status</th><th></th></tr></thead>
               <tbody id="prospeccaoHistoricoCorpo"></tbody>
             </table>
           </div>
@@ -8858,6 +8860,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("prospeccaoModalCardFechar").addEventListener("click", () => document.getElementById("prospeccaoModalCard").classList.add("oculto"));
 
     document.getElementById("prospeccaoHistoricoCorpo").addEventListener("click", (e) => {
+      const botaoApagar = e.target.closest("[data-apagar-id]");
+      if (botaoApagar){ apagarEnvioTesteProspeccao(botaoApagar.dataset.apagarId); return; }
       const linha = e.target.closest("[data-envio-idx]");
       if (!linha) return;
       abrirEmailEnviadoProspeccao(prospeccaoHistoricoListaEnvios[Number(linha.dataset.envioIdx)]);
@@ -16073,16 +16077,18 @@ ${corpoHtml}
     corpo.innerHTML = linhas.length
       ? linhas.map((e, idx) => {
           const temConteudo = !!e.corpo_html;
+          const ehTeste = (e.email || "").toLowerCase() === PROSPECCAO_EMAIL_TESTE.toLowerCase();
           return `
           <tr>
             <td>${escaparHtmlMarcas(e.email)}</td>
             <td>${temConteudo ? `<span class="prospeccao-assunto-clicavel" data-envio-idx="${idx}">${escaparHtmlMarcas(e.assunto)}</span>` : escaparHtmlMarcas(e.assunto)}</td>
             <td>${formatarDataHoraCurtaProspeccao(e.created_at)}</td>
             <td>${e.status === "ok" ? '<span class="prospeccao-selo-ok">✓ Enviado</span>' : `<span class="prospeccao-selo-erro" title="${escaparHtmlMarcas(e.erro || "")}">✕ Erro</span>`}</td>
+            <td>${ehTeste ? `<button type="button" class="prospeccao-historico-apagar" data-apagar-id="${e.id}" title="Apagar este teste" aria-label="Apagar este teste">×</button>` : ""}</td>
           </tr>
         `;
         }).join("")
-      : `<tr><td colspan="4" class="ugc-vazio">Nenhum envio registrado ainda.</td></tr>`;
+      : `<tr><td colspan="5" class="ugc-vazio">Nenhum envio registrado ainda.</td></tr>`;
   }
 
   function renderizarProspeccao(){
@@ -16117,6 +16123,19 @@ ${corpoHtml}
     } catch (erro) {
       console.error("Erro ao recarregar histórico de e-mails:", erro);
     }
+  }
+
+  // Apaga do histórico só esse envio pro próprio e-mail de teste — o "×" só aparece em
+  // linhas cujo destinatário é PROSPECCAO_EMAIL_TESTE, nunca em envio de verdade pra marca.
+  async function apagarEnvioTesteProspeccao(id){
+    if (!confirm("Apagar este envio de teste do histórico? Não dá pra desfazer.")) return;
+
+    const { error } = await Auth.client.from("email_envios").delete().eq("id", id);
+    if (error){ alert("Não deu pra apagar agora. Tenta de novo."); console.error("Erro ao apagar envio de teste do histórico:", error); return; }
+
+    await recarregarEmailEnviosProspeccao();
+    renderizarHistoricoProspeccao();
+    renderizarProspeccao();
   }
 
   // Conecta a Marcas (manual ou por e-mail) com a aba Abordagens: toda marca que vira
