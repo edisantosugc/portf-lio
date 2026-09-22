@@ -3398,6 +3398,63 @@
   .roteiro-pill-status.aprovado{ background:rgba(45,122,79,.12); border-color:var(--verde); color:var(--verde); }
   .roteiro-linha-acoes{ display:flex; gap:6px; flex-shrink:0; }
 
+  /* ===================== SUB-ABA TRANSCRIÇÃO (dentro de Roteiros) ===================== */
+  .transcricao-chave-box{ background:var(--creme); border:1px solid var(--borda); border-radius:10px; padding:12px 14px; font-size:.82rem; }
+  .transcricao-chave-linha{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .transcricao-chave-linha input[type="text"]{ flex:1; min-width:180px; }
+  .transcricao-chave-saldo{ font-size:.76rem; color:var(--texto-suave); margin-top:6px; }
+  .transcricao-chave-ajuda{ font-size:.78rem; color:var(--texto-suave); line-height:1.5; }
+  .transcricao-chave-ajuda a{ color:var(--coral); font-weight:600; }
+
+  .transcricao-aviso{ margin-top:14px; padding:12px 14px; border-radius:10px; font-size:.85rem; line-height:1.5; background:rgba(0,0,128,.06); color:var(--coral); }
+  .transcricao-aviso.erro{ background:rgba(196,69,60,.1); color:var(--vermelho); }
+  .transcricao-aviso.sucesso{ background:rgba(45,122,79,.1); color:var(--verde); }
+
+  .transcricao-chips{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+  .transcricao-chip{
+    padding:6px 14px; border-radius:999px; border:1px solid var(--borda); background:var(--branco); color:var(--texto-suave);
+    font-family:'Outfit',sans-serif; font-weight:600; font-size:.78rem; cursor:pointer;
+  }
+  .transcricao-chip:hover{ border-color:var(--coral); color:var(--coral); }
+  .transcricao-chip.ativo{ background:var(--coral); border-color:var(--coral); color:var(--branco); }
+
+  .transcricao-grade{ display:grid; grid-template-columns:repeat(auto-fill, minmax(340px,1fr)); gap:16px; }
+  .transcricao-card{
+    background:var(--branco); border:1px solid var(--borda); border-radius:16px; overflow:hidden; display:flex; flex-direction:column;
+  }
+  .transcricao-card-topo{ display:flex; gap:14px; padding:14px; }
+  .transcricao-card-capa{
+    width:110px; height:150px; flex-shrink:0; border-radius:10px; background:var(--creme); position:relative; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .transcricao-card-capa iframe{ width:100%; height:100%; border:none; }
+  .transcricao-card-play{
+    background:var(--coral); color:var(--branco); border:none; border-radius:999px; padding:8px 14px; font-size:.72rem; font-weight:600;
+    cursor:pointer; font-family:'Outfit',sans-serif;
+  }
+  .transcricao-card-relogio{ font-size:1.8rem; }
+  .transcricao-card-info{ flex:1; min-width:0; }
+  .transcricao-card-titulo{ font-weight:700; font-size:.92rem; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  .transcricao-card-perfil{ font-size:.78rem; color:var(--texto-suave); margin-bottom:6px; }
+  .transcricao-card-selos{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .transcricao-selo{ font-size:.66rem; font-weight:700; padding:3px 9px; border-radius:999px; }
+  .transcricao-selo.minha{ background:rgba(0,0,128,.1); color:var(--coral); }
+  .transcricao-selo.outra{ background:rgba(201,166,107,.18); color:#8a6d34; }
+  .transcricao-selo.fonte{ background:var(--creme); color:var(--texto-suave); }
+  .transcricao-selo.falhou{ background:rgba(196,69,60,.1); color:var(--vermelho); }
+  .transcricao-card-tags{ display:flex; gap:5px; flex-wrap:wrap; margin-bottom:6px; }
+  .transcricao-card-tag{ font-size:.66rem; background:var(--creme); color:var(--texto-suave); padding:2px 8px; border-radius:999px; }
+  .transcricao-card-data{ font-size:.7rem; color:var(--texto-suave); }
+  .transcricao-card-trecho{ padding:0 14px 12px; font-size:.8rem; color:var(--grafite); line-height:1.5; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
+  .transcricao-card-erro{ padding:0 14px 12px; font-size:.8rem; color:var(--vermelho); }
+  .transcricao-card-acoes{ display:flex; gap:6px; padding:10px 14px; border-top:1px solid var(--borda); flex-wrap:wrap; }
+  .transcricao-card-acoes button{ font-size:.72rem; padding:6px 12px; }
+
+  @media (max-width: 640px){
+    .transcricao-grade{ grid-template-columns:1fr; }
+    .transcricao-chave-linha{ flex-direction:column; align-items:stretch; }
+  }
+
   /* ===================== ABA LINKS ===================== */
   .links-grade-lista{ display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1.3fr) 150px minmax(0,1.1fr) 70px; align-items:center; gap:12px; }
   .links-linha{
@@ -5067,6 +5124,12 @@
          público de aprovação (roteiro.html) com comentários da marca.
          ===================== -->
     <section id="painelRoteiros" class="painel-tab oculto">
+      <div class="sub-abas-negocio" id="subAbasRoteiros">
+        <button type="button" class="sub-aba-btn ativo" data-subaba="aprovacao">📋 Meus roteiros</button>
+        <button type="button" class="sub-aba-btn" data-subaba="transcricao">🎙️ Transcrição</button>
+      </div>
+
+      <div id="roteiroSubAbaAprovacao">
       <button type="button" class="ugc-linha-add" id="roteiroBotaoNovo">+ novo roteiro</button>
 
       <div class="cartao ugc-form-novo oculto" id="roteiroFormNovo">
@@ -5169,7 +5232,83 @@
       <div class="cartao ugc-lista-cartao" id="roteirosListaContainer">
         <div id="roteirosListaCorpo"></div>
       </div>
+      </div>
+
+      <!-- ===================== SUB-ABA: TRANSCRIÇÃO ===================== -->
+      <div id="roteiroSubAbaTranscricao" class="oculto">
+        <div class="cartao" style="margin-bottom:20px;">
+          <h2 style="margin-bottom:4px;">🎙️ Transcrição de vídeos</h2>
+          <p class="prospeccao-campo-nota" style="margin-bottom:16px;">Cole o link de um reel e eu transcrevo. Serve pros seus e pros das outras, com etiqueta pra você separar.</p>
+
+          <div class="transcricao-chave-box" id="transcricaoChaveBox"></div>
+
+          <div class="ugc-form-grade" style="margin-top:16px;">
+            <div class="ugc-campo largo">
+              <label>Link do vídeo</label>
+              <input type="text" id="transcricaoCampoLink" placeholder="Cole aqui: instagram.com/reel/... · tiktok.com/... · youtube.com/...">
+            </div>
+            <div class="ugc-campo">
+              <label>De quem é</label>
+              <select id="transcricaoCampoDeQuem">
+                <option value="outra">De outra pessoa</option>
+                <option value="minha">Meu</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:4px;">
+            <button type="button" class="botao-add-tarefa" id="transcricaoBotaoTranscrever">🎙️ Transcrever</button>
+            <button type="button" class="btn-fantasma" id="transcricaoBotaoManual">+ Escrever na mão</button>
+            <button type="button" class="btn-fantasma" id="transcricaoBotaoEstudar">🧠 Estudar com o Claude</button>
+          </div>
+
+          <div class="transcricao-aviso oculto" id="transcricaoAviso"></div>
+        </div>
+
+        <div class="cartao">
+          <div class="ugc-campo largo" style="margin-bottom:12px;">
+            <input type="text" id="transcricaoBusca" placeholder="Buscar por texto, perfil, título ou notas...">
+          </div>
+          <div class="transcricao-chips" id="transcricaoChips"></div>
+          <div class="transcricao-grade" id="transcricaoListaCorpo"></div>
+        </div>
+      </div>
     </section>
+
+    <!-- Modal: editar um roteiro transcrito -->
+    <div class="ugc-modal-overlay oculto" id="transcricaoModalEditar" role="dialog" aria-modal="true" aria-labelledby="transcricaoModalTitulo">
+      <div class="cliente-modal-cartao largo">
+        <div class="cliente-modal-topo">
+          <h2 id="transcricaoModalTitulo">Editar roteiro</h2>
+          <button type="button" class="cliente-modal-fechar" id="transcricaoModalFechar" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="cliente-modal-corpo">
+          <div class="ugc-form-grade">
+            <div class="ugc-campo largo"><label>Título</label><input type="text" id="transcricaoCampoTitulo" placeholder="Ex: Rotina de skincare em 30s"></div>
+            <div class="ugc-campo">
+              <label>De quem é</label>
+              <select id="transcricaoCampoModalDeQuem">
+                <option value="outra">De outra pessoa</option>
+                <option value="minha">Meu</option>
+              </select>
+            </div>
+          </div>
+          <div class="ugc-form-grade">
+            <div class="ugc-campo"><label>Perfil (@)</label><input type="text" id="transcricaoCampoPerfil" placeholder="Ex: @nomedaconta"></div>
+            <div class="ugc-campo"><label>Data de postagem</label><input type="date" id="transcricaoCampoPostadoEm"></div>
+            <div class="ugc-campo"><label>Tags (separadas por vírgula)</label><input type="text" id="transcricaoCampoTags" placeholder="Ex: gancho, black friday, review"></div>
+          </div>
+          <div class="ugc-campo largo"><label>Link</label><input type="text" id="transcricaoCampoUrl" placeholder="https://..."></div>
+          <div class="ugc-campo largo"><label>Legenda do post</label><textarea id="transcricaoCampoLegenda" rows="3" placeholder="Cole aqui a legenda, se quiser guardar"></textarea></div>
+          <div class="ugc-campo largo"><label>Transcrição</label><textarea id="transcricaoCampoTranscricao" rows="10" placeholder="O texto falado no vídeo"></textarea></div>
+          <div class="ugc-campo largo"><label>Notas minhas</label><textarea id="transcricaoCampoObs" rows="3" placeholder="O que você achou, ideias que isso te deu..."></textarea></div>
+          <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" class="btn-fantasma" id="transcricaoModalCancelar">Cancelar</button>
+            <button type="button" class="botao-add-tarefa" id="transcricaoModalSalvar">Salvar</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ===================== ABA: LINKS ===================== -->
     <section id="painelLinks" class="painel-tab oculto">
@@ -6056,6 +6195,15 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   let roteiroPaletaAtual = []; // hexs identificados na imagem de referência da marca
   let roteiroComentariosCache = []; // comentários da marca no roteiro em edição (só leitura aqui)
   const LINK_PUBLICO_ROTEIRO_BASE = "https://edilainesantos.com/roteiro.html?t=";
+
+  // Estado da sub-aba "Transcrição" (dentro de Roteiros): biblioteca de vídeos
+  // transcritos via Supadata, separada do fluxo de aprovação de roteiro com marca.
+  let transcricoesCache = [];
+  let transcricaoBuscaTermo = "";
+  let transcricaoFiltroChip = "todos"; // "todos" | "minha" | "outra" | "tag:<nome>"
+  let transcricaoChaveSupadata = null; // cache em memória da chave, depois de buscar de app_config
+  let transcricaoEditandoId = null;
+  const SUPADATA_API_BASE = "https://api.supadata.ai/v1";
   const ROTEIRO_TAGS_ETAPA = [
     { chave: "hook", nome: "Hook" },
     { chave: "contexto", nome: "Contexto" },
@@ -6615,6 +6763,14 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         atualizarBadgesMensagens();
       } catch (erroRespostasRoteiros) {
         console.error("Erro ao carregar/renderizar respostas de Roteiros:", erroRespostasRoteiros);
+      }
+      try {
+        // Isolado do carregamento principal: a tabela "roteiros" (biblioteca de
+        // transcrições) só existe depois que sql-roteiros.sql for rodado no Supabase.
+        transcricoesCache = await comRetry(() => buscarTudo("roteiros"));
+        renderizarTranscricoes();
+      } catch (erroTranscricoes) {
+        console.error("Erro ao carregar/renderizar Transcrição:", erroTranscricoes);
       }
       try {
         // Isolado do carregamento principal: as tabelas painel_links/painel_links_categorias
@@ -8297,6 +8453,41 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     });
 
     document.getElementById("botaoToggleGavetaClientes").addEventListener("click", () => alternarGavetaClientes());
+
+    // ---------- Roteiros: sub-aba Transcrição ----------
+    document.querySelectorAll("#subAbasRoteiros .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => trocarSubAbaRoteiro(btn.dataset.subaba));
+    });
+    document.getElementById("transcricaoBotaoTranscrever").addEventListener("click", iniciarTranscricao);
+    document.getElementById("transcricaoBotaoManual").addEventListener("click", abrirTranscricaoManual);
+    document.getElementById("transcricaoBotaoEstudar").addEventListener("click", montarPromptEstudarClaude);
+    document.getElementById("transcricaoBusca").addEventListener("input", (e) => {
+      transcricaoBuscaTermo = e.target.value;
+      renderizarTranscricoes();
+    });
+    document.getElementById("transcricaoChips").addEventListener("click", (e) => {
+      const chip = e.target.closest("[data-chip]");
+      if (!chip) return;
+      transcricaoFiltroChip = chip.dataset.chip;
+      renderizarTranscricoes();
+    });
+    document.getElementById("transcricaoListaCorpo").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-acao]");
+      if (!btn) return;
+      const id = btn.dataset.id;
+      const acoes = {
+        "transcricao-ver-video": () => abrirEmbedTranscricao(id),
+        "transcricao-copiar": () => copiarTranscricaoRoteiro(id, btn),
+        "transcricao-editar": () => abrirModalEditarTranscricao(id),
+        "transcricao-abrir-mesmo-assim": () => abrirModalEditarTranscricao(id),
+        "transcricao-apagar": () => apagarTranscricaoRoteiro(id),
+        "transcricao-tentar-de-novo": () => tentarDeNovoTranscricao(id),
+      };
+      (acoes[btn.dataset.acao] || (() => {}))();
+    });
+    document.getElementById("transcricaoModalFechar").addEventListener("click", fecharModalEditarTranscricao);
+    document.getElementById("transcricaoModalCancelar").addEventListener("click", fecharModalEditarTranscricao);
+    document.getElementById("transcricaoModalSalvar").addEventListener("click", salvarEdicaoTranscricao);
 
     // ---------- Roteiros ----------
     document.getElementById("roteiroBotaoNovo").addEventListener("click", abrirFormNovoRoteiro);
@@ -17353,6 +17544,593 @@ ${corpo}
     if (!error){
       clientesCache = clientesCache.filter(c => c.id !== id);
       renderizarClientes();
+    }
+  }
+
+  /* =========================================================================
+     SUB-ABA TRANSCRIÇÃO (dentro de Roteiros): biblioteca de vídeos transcritos
+     via Supadata, separada do fluxo de aprovação de roteiro com marca.
+     ========================================================================= */
+  function trocarSubAbaRoteiro(sub){
+    document.querySelectorAll("#subAbasRoteiros .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === sub));
+    document.getElementById("roteiroSubAbaAprovacao").classList.toggle("oculto", sub !== "aprovacao");
+    document.getElementById("roteiroSubAbaTranscricao").classList.toggle("oculto", sub !== "transcricao");
+    if (sub === "transcricao") renderizarChaveSupadataBox();
+  }
+
+  // "instagram.com/reels/" vira "instagram.com/reel/", e tira "igsh"/"utm_*" da URL —
+  // pra dois links do mesmo vídeo (com ou sem esses parâmetros) contarem como o mesmo,
+  // na hora de checar se já está na biblioteca.
+  function limparLinkTranscricao(urlTexto){
+    let texto = (urlTexto || "").trim();
+    texto = texto.replace("instagram.com/reels/", "instagram.com/reel/");
+    try {
+      const url = new URL(/^https?:\/\//i.test(texto) ? texto : `https://${texto}`);
+      url.searchParams.delete("igsh");
+      [...url.searchParams.keys()].filter(k => k.toLowerCase().startsWith("utm_")).forEach(k => url.searchParams.delete(k));
+      return url.toString();
+    } catch (erro) {
+      return texto;
+    }
+  }
+
+  function detectarFonteInfoTranscricao(urlTexto){
+    const texto = (urlTexto || "").toLowerCase();
+    if (texto.includes("instagram.com")){
+      const m = urlTexto.match(/instagram\.com\/([a-zA-Z0-9_.]+)\/reels?\//);
+      return { fonte: "instagram", perfil: m ? `@${m[1]}` : null };
+    }
+    if (texto.includes("tiktok.com")){
+      const m = urlTexto.match(/tiktok\.com\/@([a-zA-Z0-9_.]+)/);
+      return { fonte: "tiktok", perfil: m ? `@${m[1]}` : null };
+    }
+    if (texto.includes("youtube.com") || texto.includes("youtu.be")){
+      return { fonte: "youtube", perfil: null };
+    }
+    return { fonte: "manual", perfil: null };
+  }
+
+  // Constrói o link de embed (só quando clica "ver vídeo", pra não carregar tudo de
+  // uma vez) — não tenta mostrar a capa do Instagram por link direto porque o CDN
+  // deles recusa pedido vindo do navegador.
+  function obterEmbedUrlTranscricao(roteiro){
+    const url = roteiro.url || "";
+    if (roteiro.fonte === "instagram"){
+      const m = url.match(/instagram\.com\/(?:[a-zA-Z0-9_.]+\/)?reel\/([a-zA-Z0-9_-]+)/);
+      return m ? `https://www.instagram.com/reel/${m[1]}/embed` : null;
+    }
+    if (roteiro.fonte === "youtube"){
+      let id = null;
+      let m = url.match(/[?&]v=([a-zA-Z0-9_-]{6,})/); if (m) id = m[1];
+      if (!id){ m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/); if (m) id = m[1]; }
+      if (!id){ m = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{6,})/); if (m) id = m[1]; }
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+    if (roteiro.fonte === "tiktok"){
+      const m = url.match(/\/video\/(\d+)/);
+      return m ? `https://www.tiktok.com/embed/v2/${m[1]}` : null;
+    }
+    return null;
+  }
+
+  // ---------- Chave da Supadata (guardada em app_config, igual outros segredos) ----------
+  async function obterChaveSupadata(){
+    if (transcricaoChaveSupadata !== null) return transcricaoChaveSupadata;
+    try {
+      const { data } = await Auth.client.from("app_config").select("valor").eq("nome", "supadata_api_key").maybeSingle();
+      transcricaoChaveSupadata = data?.valor || "";
+    } catch (erro) {
+      transcricaoChaveSupadata = "";
+    }
+    return transcricaoChaveSupadata;
+  }
+
+  async function salvarChaveSupadata(valor){
+    const chave = (valor || "").trim();
+    const { error } = await Auth.client.from("app_config").upsert({ nome: "supadata_api_key", valor: chave, updated_at: new Date().toISOString() });
+    if (error){ alert("Não deu pra salvar a chave agora. Tenta de novo."); console.error("Erro ao salvar chave Supadata:", error); return false; }
+    transcricaoChaveSupadata = chave;
+    return true;
+  }
+
+  async function consultarSaldoSupadata(chave){
+    try {
+      const resposta = await fetch(`${SUPADATA_API_BASE}/me`, { headers: { "x-api-key": chave } });
+      if (!resposta.ok) return null;
+      return await resposta.json();
+    } catch (erro) {
+      return null;
+    }
+  }
+
+  async function renderizarChaveSupadataBox(){
+    const box = document.getElementById("transcricaoChaveBox");
+    if (!box) return;
+    const chave = await obterChaveSupadata();
+
+    if (!chave){
+      box.innerHTML = `
+        <div class="transcricao-chave-ajuda">
+          <strong>Falta configurar sua chave da Supadata</strong> (é o serviço que transcreve os vídeos).<br>
+          1. Crie uma conta grátis em <a href="https://supadata.ai" target="_blank" rel="noopener">supadata.ai</a> (100 créditos por mês, sem cartão).<br>
+          2. Copie a sua API key e cola aqui embaixo.
+        </div>
+        <div class="transcricao-chave-linha" style="margin-top:10px;">
+          <input type="text" id="transcricaoCampoChave" placeholder="Cole aqui sua API key da Supadata">
+          <button type="button" class="btn-fantasma" id="transcricaoBotaoSalvarChave">Salvar chave</button>
+        </div>
+      `;
+      document.getElementById("transcricaoBotaoSalvarChave").addEventListener("click", async () => {
+        const valor = document.getElementById("transcricaoCampoChave").value.trim();
+        if (!valor) return;
+        const ok = await salvarChaveSupadata(valor);
+        if (ok) renderizarChaveSupadataBox();
+      });
+      return;
+    }
+
+    const mascarada = "••••••••" + chave.slice(-4);
+    box.innerHTML = `
+      <div class="transcricao-chave-linha">
+        <span>🔑 Chave: <strong>${escaparHtmlMarcas(mascarada)}</strong></span>
+        <button type="button" class="btn-fantasma" id="transcricaoBotaoTrocarChave">Trocar chave</button>
+      </div>
+      <div class="transcricao-chave-saldo" id="transcricaoSaldoTexto">Consultando saldo...</div>
+    `;
+    document.getElementById("transcricaoBotaoTrocarChave").addEventListener("click", async () => {
+      if (!confirm("Trocar a chave da Supadata?")) return;
+      await salvarChaveSupadata("");
+      renderizarChaveSupadataBox();
+    });
+
+    const saldo = await consultarSaldoSupadata(chave);
+    const saldoEl = document.getElementById("transcricaoSaldoTexto");
+    if (saldoEl){
+      saldoEl.textContent = saldo
+        ? `${saldo.usedCredits ?? "?"} de ${saldo.maxCredits ?? "?"} créditos usados este mês`
+        : "Não consegui consultar o saldo agora (isso não impede de transcrever).";
+    }
+  }
+
+  // ---------- Aviso de andamento/erro ----------
+  function mostrarAvisoTranscricao(texto, tipo){
+    const el = document.getElementById("transcricaoAviso");
+    if (!el) return;
+    el.textContent = texto;
+    el.className = "transcricao-aviso" + (tipo ? ` ${tipo}` : "");
+    el.classList.remove("oculto");
+  }
+
+  // ---------- Fluxo principal: transcrever ----------
+  function validarLinkTranscricao(url){
+    return /^https?:\/\//i.test(url || "");
+  }
+
+  function atualizarItemTranscricaoNoCache(item){
+    const idx = transcricoesCache.findIndex(r => r.id === item.id);
+    if (idx === -1) transcricoesCache.unshift(item);
+    else transcricoesCache[idx] = item;
+  }
+
+  async function iniciarTranscricao(){
+    const linkOriginal = document.getElementById("transcricaoCampoLink").value.trim();
+    const deQuem = document.getElementById("transcricaoCampoDeQuem").value;
+
+    if (!validarLinkTranscricao(linkOriginal)){
+      mostrarAvisoTranscricao("Isso não parece um link válido. Cola o link completo do vídeo (com http:// ou https://).", "erro");
+      return;
+    }
+
+    const chave = await obterChaveSupadata();
+    if (!chave){
+      mostrarAvisoTranscricao("Falta configurar sua chave da Supadata ali em cima antes de transcrever.", "erro");
+      return;
+    }
+
+    const linkLimpo = limparLinkTranscricao(linkOriginal);
+    const jaExiste = transcricoesCache.find(r => r.url === linkLimpo);
+    if (jaExiste && !confirm("Esse link já está na sua biblioteca. Quer transcrever de novo mesmo assim?")) return;
+
+    const { fonte, perfil } = detectarFonteInfoTranscricao(linkLimpo);
+    const botao = document.getElementById("transcricaoBotaoTranscrever");
+    botao.disabled = true;
+
+    const { data: linhaNova, error: erroInsert } = await Auth.client.from("roteiros")
+      .insert({ fonte, url: linkLimpo, perfil, de_quem: deQuem, status: "processando" })
+      .select().single();
+
+    if (erroInsert || !linhaNova){
+      mostrarAvisoTranscricao("Não consegui começar a transcrição agora. Tenta de novo.", "erro");
+      console.error("Erro ao criar linha de roteiro:", erroInsert);
+      botao.disabled = false;
+      return;
+    }
+
+    transcricoesCache.unshift(linhaNova);
+    renderizarTranscricoes();
+    document.getElementById("transcricaoCampoLink").value = "";
+
+    await executarTranscricaoSupadata(linhaNova.id, linkLimpo, chave);
+    botao.disabled = false;
+  }
+
+  async function executarTranscricaoSupadata(roteiroId, url, chave){
+    const inicio = Date.now();
+    mostrarAvisoTranscricao("🎧 Ouvindo o vídeo… 0s. Costuma levar de 30s a 4 minutos, pode deixar a aba aberta.");
+
+    try {
+      const resposta = await fetch(`${SUPADATA_API_BASE}/transcript?${new URLSearchParams({ url, mode: "auto", text: "true", lang: "pt" })}`, {
+        headers: { "x-api-key": chave },
+      });
+
+      if (resposta.status === 202){
+        const corpo = await resposta.json();
+        await acompanharJobSupadata(roteiroId, corpo.jobId, chave, inicio);
+        return;
+      }
+
+      const corpo = await resposta.json().catch(() => ({}));
+
+      // Atenção: HTTP 206 (Partial Content) é a resposta usada pra "vídeo sem legenda
+      // disponível", mas o Fetch API considera 206 como "ok" (está no intervalo
+      // 200-299) — por isso confere o status certo antes de confiar em resposta.ok.
+      if (!resposta.ok || resposta.status === 206){
+        await tratarErroSupadata(roteiroId, resposta.status, corpo);
+        return;
+      }
+
+      await finalizarTranscricaoComResposta(roteiroId, corpo);
+    } catch (erroRede) {
+      console.error("Erro de rede na transcrição:", erroRede);
+      await marcarTranscricaoFalha(roteiroId, "Não consegui falar com o serviço de transcrição agora. Confere sua internet e tenta de novo.");
+    }
+  }
+
+  async function acompanharJobSupadata(roteiroId, jobId, chave, inicio){
+    const LIMITE_MS = 6 * 60 * 1000;
+
+    while (Date.now() - inicio < LIMITE_MS){
+      const segundos = Math.round((Date.now() - inicio) / 1000);
+      mostrarAvisoTranscricao(`🎧 Ouvindo o vídeo… ${segundos}s. Costuma levar de 30s a 4 minutos, pode deixar a aba aberta.`);
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
+      try {
+        const resposta = await fetch(`${SUPADATA_API_BASE}/transcript/${jobId}`, { headers: { "x-api-key": chave } });
+        const corpo = await resposta.json().catch(() => ({}));
+
+        if (!resposta.ok){
+          await tratarErroSupadata(roteiroId, resposta.status, corpo);
+          return;
+        }
+        if (corpo.status === "completed"){
+          await finalizarTranscricaoComResposta(roteiroId, corpo);
+          return;
+        }
+        if (corpo.status === "failed"){
+          await marcarTranscricaoFalha(roteiroId, "A transcrição falhou no meio do caminho. Tenta de novo.");
+          return;
+        }
+      } catch (erroRede) {
+        console.error("Erro consultando job da Supadata:", erroRede);
+      }
+    }
+
+    await marcarTranscricaoFalha(roteiroId, "Demorou demais e eu desisti de esperar. Tenta de novo em alguns minutos.");
+  }
+
+  async function tratarErroSupadata(roteiroId, statusHttp, corpo){
+    const codigo = corpo?.error || corpo?.code || "";
+    const detalhes = String(corpo?.details || "").toLowerCase();
+
+    if (codigo === "limit-exceeded" || statusHttp === 429){
+      if (detalhes.includes("rate")){
+        await marcarTranscricaoFalha(roteiroId, "Muitas transcrições seguidas. Espera 1 minutinho e tenta de novo.");
+      } else {
+        await marcarTranscricaoFalha(roteiroId, "Acabaram os créditos do mês na sua conta da Supadata. Volta mês que vem ou faz upgrade lá no site deles.");
+      }
+      return;
+    }
+    if (statusHttp === 401 || statusHttp === 403){
+      await marcarTranscricaoFalha(roteiroId, "Sua chave da Supadata não é válida. Confere se colou certo na configuração.");
+      return;
+    }
+    if (statusHttp === 206 || codigo === "transcript-unavailable"){
+      await marcarTranscricaoFalha(roteiroId, "Não achei fala nesse vídeo. Costuma ser reel só com música ou só com texto na tela.");
+      return;
+    }
+    await marcarTranscricaoFalha(roteiroId, "Não consegui transcrever esse vídeo agora. Tenta de novo.");
+  }
+
+  async function finalizarTranscricaoComResposta(roteiroId, corpo){
+    let texto = "";
+    let segmentos = null;
+
+    if (typeof corpo.content === "string"){
+      texto = corpo.content;
+    } else if (Array.isArray(corpo.content)){
+      segmentos = corpo.content;
+      texto = corpo.content.map(t => t.text).join(" ");
+    }
+
+    if (!texto.trim() || corpo.lang === "none"){
+      await marcarTranscricaoFalha(roteiroId, "Não achei fala nesse vídeo. Costuma ser reel só com música ou só com texto na tela.");
+      return;
+    }
+
+    const { data, error } = await Auth.client.from("roteiros")
+      .update({ transcricao: texto, segmentos, status: "pronto", erro: null, updated_at: new Date().toISOString() })
+      .eq("id", roteiroId).select().single();
+
+    if (error){
+      console.error("Erro ao salvar transcrição:", error);
+      mostrarAvisoTranscricao("A transcrição saiu certa mas não consegui salvar. Tenta de novo.", "erro");
+      return;
+    }
+
+    atualizarItemTranscricaoNoCache(data);
+    renderizarTranscricoes();
+    mostrarAvisoTranscricao("✅ Pronto! Revisa, dá um nome e salva.", "sucesso");
+    abrirModalEditarTranscricao(roteiroId);
+  }
+
+  async function marcarTranscricaoFalha(roteiroId, mensagem){
+    const { data, error } = await Auth.client.from("roteiros")
+      .update({ status: "falhou", erro: mensagem, updated_at: new Date().toISOString() })
+      .eq("id", roteiroId).select().single();
+
+    if (!error && data) atualizarItemTranscricaoNoCache(data);
+    renderizarTranscricoes();
+    mostrarAvisoTranscricao(mensagem, "erro");
+  }
+
+  async function tentarDeNovoTranscricao(id){
+    const item = transcricoesCache.find(r => r.id === id);
+    if (!item) return;
+    const chave = await obterChaveSupadata();
+    if (!chave){
+      mostrarAvisoTranscricao("Falta configurar sua chave da Supadata ali em cima antes de transcrever.", "erro");
+      return;
+    }
+    await Auth.client.from("roteiros").update({ status: "processando", erro: null }).eq("id", id);
+    atualizarItemTranscricaoNoCache({ ...item, status: "processando", erro: null });
+    renderizarTranscricoes();
+    await executarTranscricaoSupadata(id, item.url, chave);
+  }
+
+  // ---------- Biblioteca: busca, filtros e cards ----------
+  function obterTagsUnicasTranscricoes(){
+    const vistas = new Set();
+    transcricoesCache.forEach(r => (r.tags || []).forEach(t => vistas.add(t)));
+    return Array.from(vistas).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }
+
+  function renderizarChipsTranscricao(){
+    const container = document.getElementById("transcricaoChips");
+    if (!container) return;
+    const chipsBase = [
+      { valor: "todos", rotulo: "Todos" },
+      { valor: "minha", rotulo: "Meus" },
+      { valor: "outra", rotulo: "De outras" },
+    ];
+    const chipsTags = obterTagsUnicasTranscricoes().map(t => ({ valor: `tag:${t}`, rotulo: t }));
+    container.innerHTML = [...chipsBase, ...chipsTags].map(c => `
+      <button type="button" class="transcricao-chip${transcricaoFiltroChip === c.valor ? " ativo" : ""}" data-chip="${escaparHtmlMarcas(c.valor)}">${escaparHtmlMarcas(c.rotulo)}</button>
+    `).join("");
+  }
+
+  function trechoTranscricao(texto, linhas = 3){
+    if (!texto) return "";
+    return texto.split(/\n+/).slice(0, linhas).join(" ").slice(0, 220);
+  }
+
+  function renderizarCardTranscricao(r){
+    const fonteNome = { instagram: "Instagram", tiktok: "TikTok", youtube: "YouTube", manual: "Escrito na mão" }[r.fonte] || r.fonte;
+    const temEmbed = r.status === "pronto" && !!obterEmbedUrlTranscricao(r);
+
+    let capaHtml;
+    if (r.status === "processando"){
+      capaHtml = `<div class="transcricao-card-relogio">⏳</div>`;
+    } else if (temEmbed){
+      capaHtml = `<button type="button" class="transcricao-card-play" data-acao="transcricao-ver-video" data-id="${r.id}">▶ ver vídeo</button>`;
+    } else {
+      capaHtml = `<span style="font-size:1.6rem;">🎬</span>`;
+    }
+
+    const selos = `
+      <span class="transcricao-selo ${r.de_quem === "minha" ? "minha" : "outra"}">${r.de_quem === "minha" ? "Meu" : "De outra"}</span>
+      <span class="transcricao-selo fonte">${escaparHtmlMarcas(fonteNome)}</span>
+      ${r.status === "falhou" ? `<span class="transcricao-selo falhou">Falhou</span>` : ""}
+    `;
+
+    const tagsHtml = (r.tags || []).length
+      ? `<div class="transcricao-card-tags">${r.tags.map(t => `<span class="transcricao-card-tag">${escaparHtmlMarcas(t)}</span>`).join("")}</div>`
+      : "";
+
+    const dataTexto = r.postado_em
+      ? new Date(`${r.postado_em}T00:00:00`).toLocaleDateString("pt-BR")
+      : (r.created_at ? new Date(r.created_at).toLocaleDateString("pt-BR") : "");
+
+    const corpoExtra = r.status === "falhou"
+      ? `<div class="transcricao-card-erro">${escaparHtmlMarcas(r.erro || "Não consegui transcrever.")}</div>`
+      : (r.status === "processando"
+          ? `<div class="transcricao-card-erro" style="color:var(--texto-suave);">Transcrevendo, isso pode levar alguns minutos...</div>`
+          : `<div class="transcricao-card-trecho">${escaparHtmlMarcas(trechoTranscricao(r.transcricao))}</div>`);
+
+    const acoes = r.status === "falhou"
+      ? `
+        <button type="button" class="btn-fantasma" data-acao="transcricao-tentar-de-novo" data-id="${r.id}">🔁 Tentar de novo</button>
+        <button type="button" class="btn-fantasma" data-acao="transcricao-abrir-mesmo-assim" data-id="${r.id}">Abrir mesmo assim</button>
+        <button type="button" class="btn-fantasma" data-acao="transcricao-apagar" data-id="${r.id}">Apagar</button>
+      `
+      : (r.status === "processando"
+          ? ""
+          : `
+        <button type="button" class="btn-fantasma" data-acao="transcricao-copiar" data-id="${r.id}">📋 Copiar transcrição</button>
+        <button type="button" class="btn-fantasma" data-acao="transcricao-editar" data-id="${r.id}">✏️ Editar</button>
+        <button type="button" class="btn-fantasma" data-acao="transcricao-apagar" data-id="${r.id}">🗑️ Apagar</button>
+      `);
+
+    return `
+      <div class="transcricao-card">
+        <div class="transcricao-card-topo">
+          <div class="transcricao-card-capa" id="transcricaoCapa-${r.id}">${capaHtml}</div>
+          <div class="transcricao-card-info">
+            <div class="transcricao-card-titulo">${escaparHtmlMarcas(r.titulo || "Sem título")}</div>
+            <div class="transcricao-card-perfil">${escaparHtmlMarcas(r.perfil || "Sem perfil")}</div>
+            <div class="transcricao-card-selos">${selos}</div>
+            ${tagsHtml}
+            <div class="transcricao-card-data">${dataTexto}</div>
+          </div>
+        </div>
+        ${corpoExtra}
+        ${acoes ? `<div class="transcricao-card-acoes">${acoes}</div>` : ""}
+      </div>
+    `;
+  }
+
+  function renderizarTranscricoes(){
+    const corpo = document.getElementById("transcricaoListaCorpo");
+    if (!corpo) return;
+
+    renderizarChipsTranscricao();
+
+    const termo = transcricaoBuscaTermo.toLowerCase();
+    const filtradas = transcricoesCache.filter(r => {
+      if (transcricaoFiltroChip === "minha" && r.de_quem !== "minha") return false;
+      if (transcricaoFiltroChip === "outra" && r.de_quem !== "outra") return false;
+      if (transcricaoFiltroChip.startsWith("tag:") && !(r.tags || []).includes(transcricaoFiltroChip.slice(4))) return false;
+      if (!termo) return true;
+      const alvo = [r.transcricao, r.perfil, r.titulo, r.obs].filter(Boolean).join(" ").toLowerCase();
+      return alvo.includes(termo);
+    });
+
+    corpo.innerHTML = filtradas.length
+      ? filtradas.map(renderizarCardTranscricao).join("")
+      : `<p class="ugc-vazio">Nenhum roteiro por aqui ainda.</p>`;
+  }
+
+  function abrirEmbedTranscricao(id){
+    const item = transcricoesCache.find(r => r.id === id);
+    const url = item && obterEmbedUrlTranscricao(item);
+    const capa = document.getElementById(`transcricaoCapa-${id}`);
+    if (!url || !capa) return;
+    capa.innerHTML = `<iframe src="${url}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>`;
+  }
+
+  async function copiarTranscricaoRoteiro(id, botao){
+    const item = transcricoesCache.find(r => r.id === id);
+    if (!item || !item.transcricao) return;
+    try {
+      await navigator.clipboard.writeText(item.transcricao);
+      if (botao){
+        const original = botao.textContent;
+        botao.textContent = "Copiado ✓";
+        setTimeout(() => { botao.textContent = original; }, 1800);
+      }
+    } catch (erro) {
+      console.error("Erro ao copiar transcrição:", erro);
+    }
+  }
+
+  async function apagarTranscricaoRoteiro(id){
+    const item = transcricoesCache.find(r => r.id === id);
+    if (!item) return;
+    if (!confirm(`Apagar "${item.titulo || "este roteiro"}"? Não dá pra desfazer.`)) return;
+
+    const { error } = await Auth.client.from("roteiros").delete().eq("id", id);
+    if (error){ alert("Não deu pra apagar agora. Tenta de novo."); console.error("Erro ao apagar roteiro:", error); return; }
+
+    transcricoesCache = transcricoesCache.filter(r => r.id !== id);
+    renderizarTranscricoes();
+  }
+
+  // ---------- Modal editar/criar na mão ----------
+  function abrirModalEditarTranscricao(id){
+    const item = transcricoesCache.find(r => r.id === id);
+    if (!item) return;
+    transcricaoEditandoId = id;
+    document.getElementById("transcricaoModalTitulo").textContent = "Editar roteiro";
+    document.getElementById("transcricaoCampoTitulo").value = item.titulo || "";
+    document.getElementById("transcricaoCampoModalDeQuem").value = item.de_quem || "outra";
+    document.getElementById("transcricaoCampoPerfil").value = item.perfil || "";
+    document.getElementById("transcricaoCampoPostadoEm").value = item.postado_em || "";
+    document.getElementById("transcricaoCampoTags").value = (item.tags || []).join(", ");
+    document.getElementById("transcricaoCampoUrl").value = item.url || "";
+    document.getElementById("transcricaoCampoLegenda").value = item.legenda || "";
+    document.getElementById("transcricaoCampoTranscricao").value = item.transcricao || "";
+    document.getElementById("transcricaoCampoObs").value = item.obs || "";
+    document.getElementById("transcricaoModalEditar").classList.remove("oculto");
+  }
+
+  function abrirTranscricaoManual(){
+    transcricaoEditandoId = null;
+    document.getElementById("transcricaoModalTitulo").textContent = "Novo roteiro (escrito na mão)";
+    document.getElementById("transcricaoCampoTitulo").value = "";
+    document.getElementById("transcricaoCampoModalDeQuem").value = "outra";
+    document.getElementById("transcricaoCampoPerfil").value = "";
+    document.getElementById("transcricaoCampoPostadoEm").value = "";
+    document.getElementById("transcricaoCampoTags").value = "";
+    document.getElementById("transcricaoCampoUrl").value = document.getElementById("transcricaoCampoLink").value.trim();
+    document.getElementById("transcricaoCampoLegenda").value = "";
+    document.getElementById("transcricaoCampoTranscricao").value = "";
+    document.getElementById("transcricaoCampoObs").value = "";
+    document.getElementById("transcricaoModalEditar").classList.remove("oculto");
+  }
+
+  function fecharModalEditarTranscricao(){
+    document.getElementById("transcricaoModalEditar").classList.add("oculto");
+    transcricaoEditandoId = null;
+  }
+
+  async function salvarEdicaoTranscricao(){
+    const tagsTexto = document.getElementById("transcricaoCampoTags").value.trim();
+    const urlValor = document.getElementById("transcricaoCampoUrl").value.trim() || null;
+    const payload = {
+      titulo: document.getElementById("transcricaoCampoTitulo").value.trim() || null,
+      de_quem: document.getElementById("transcricaoCampoModalDeQuem").value,
+      perfil: document.getElementById("transcricaoCampoPerfil").value.trim() || null,
+      postado_em: document.getElementById("transcricaoCampoPostadoEm").value || null,
+      tags: tagsTexto ? tagsTexto.split(",").map(t => t.trim()).filter(Boolean) : [],
+      url: urlValor,
+      legenda: document.getElementById("transcricaoCampoLegenda").value.trim() || null,
+      transcricao: document.getElementById("transcricaoCampoTranscricao").value,
+      obs: document.getElementById("transcricaoCampoObs").value.trim() || null,
+      status: "pronto",
+      updated_at: new Date().toISOString(),
+    };
+
+    if (transcricaoEditandoId){
+      const { data, error } = await Auth.client.from("roteiros").update(payload).eq("id", transcricaoEditandoId).select().single();
+      if (error){ alert("Não deu pra salvar agora. Tenta de novo."); console.error("Erro ao salvar edição de roteiro:", error); return; }
+      atualizarItemTranscricaoNoCache(data);
+    } else {
+      payload.fonte = detectarFonteInfoTranscricao(urlValor || "").fonte;
+      const { data, error } = await Auth.client.from("roteiros").insert(payload).select().single();
+      if (error){ alert("Não deu pra salvar agora. Tenta de novo."); console.error("Erro ao criar roteiro na mão:", error); return; }
+      transcricoesCache.unshift(data);
+    }
+
+    renderizarTranscricoes();
+    fecharModalEditarTranscricao();
+  }
+
+  // ---------- "Estudar com o Claude" ----------
+  async function montarPromptEstudarClaude(){
+    const ultimos = transcricoesCache.filter(r => r.de_quem === "outra" && r.transcricao).slice(0, 10);
+    if (!ultimos.length){
+      mostrarAvisoTranscricao("Ainda não tem nenhum roteiro \"de outra\" com transcrição pra estudar.", "erro");
+      return;
+    }
+
+    const blocos = ultimos.map((r, i) => `${i + 1}) Perfil: ${r.perfil || "desconhecido"}\nTranscrição: ${r.transcricao}`).join("\n\n");
+    const prompt = `Analise estas ${ultimos.length} transcrições de vídeos de outras creators de UGC/conteúdo:\n\n${blocos}\n\nMe entregue:\n1. Assuntos em alta (temas que se repetem entre os vídeos).\n2. Expressões e frases que estão prendendo atenção, com exemplo real de cada uma.\n3. Padrões de gancho (os primeiros segundos de cada vídeo), com um exemplo real de cada.\n4. 5 roteiros novos pro meu próprio conteúdo, reaproveitando a ESTRUTURA desses vídeos (não o conteúdo, nem as mesmas palavras), sem soar robotizado ou copiado.`;
+
+    try {
+      await navigator.clipboard.writeText(prompt);
+      mostrarAvisoTranscricao("Prompt copiado! Cola no chat do Claude.", "sucesso");
+    } catch (erro) {
+      console.error("Erro ao copiar prompt de estudo:", erro);
+      mostrarAvisoTranscricao("Não consegui copiar automaticamente. Tenta de novo.", "erro");
     }
   }
 
