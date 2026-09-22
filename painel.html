@@ -15737,9 +15737,18 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   // Monta o HTML final do modo "Texto fácil": fundo branco, letra escura, largura máxima de
   // 560px, botão opcional e o rodapé de descadastro — o mesmo modelo que "Começar do modelo
   // pronto" cola no modo HTML, pra ela partir daqui em vez do zero.
+  // Se ela esquecer o "https://" no link do botão, o navegador trata como caminho relativo
+  // à página atual (vira algo tipo edilainesantos.com/edilainesantos.com/portfolio) — por
+  // isso completa o protocolo sozinho quando falta.
+  function normalizarLinkBotaoProspeccao(link){
+    if (!link) return link;
+    if (/^(https?:|mailto:|tel:)/i.test(link)) return link;
+    return "https://" + link;
+  }
+
   function construirHtmlEmailPadrao(corpoTexto, botaoTexto, botaoLink){
     const botaoHtml = (botaoTexto && botaoLink)
-      ? `<p style="margin:20px 0;"><a href="${escaparHtmlMarcas(botaoLink)}" style="display:inline-block;background:#000080;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">${escaparHtmlMarcas(botaoTexto)}</a></p>`
+      ? `<p style="margin:20px 0;"><a href="${escaparHtmlMarcas(normalizarLinkBotaoProspeccao(botaoLink))}" style="display:inline-block;background:#000080;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">${escaparHtmlMarcas(botaoTexto)}</a></p>`
       : "";
 
     // O botão precisa ficar acima da assinatura (logo depois do CTA), não no fim de tudo —
