@@ -6208,6 +6208,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   let transcricaoChaveSupadata = null; // cache em memória da chave, depois de buscar de app_config
   let transcricaoEditandoId = null;
   const SUPADATA_API_BASE = "https://api.supadata.ai/v1";
+  const PERFIL_INSTAGRAM_EDILAINE = "@byedisantos";
   const ROTEIRO_TAGS_ETAPA = [
     { chave: "hook", nome: "Hook" },
     { chave: "contexto", nome: "Contexto" },
@@ -17593,6 +17594,40 @@ ${corpo}
     return { fonte: "manual", perfil: null };
   }
 
+  // Tenta achar a capa de verdade do vídeo. YouTube tem link de capa público e direto
+  // (sem precisar de chamada nenhuma); TikTok só dá pra saber consultando o oEmbed
+  // público deles. Instagram não dá pra pegar por fora (CDN deles bloqueia), fica sem.
+  async function resolverCapaUrlTranscricao(fonte, url){
+    if (!url) return null;
+    if (fonte === "youtube"){
+      let id = null;
+      let m = url.match(/[?&]v=([a-zA-Z0-9_-]{6,})/); if (m) id = m[1];
+      if (!id){ m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/); if (m) id = m[1]; }
+      if (!id){ m = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{6,})/); if (m) id = m[1]; }
+      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+    }
+    if (fonte === "tiktok"){
+      try {
+        const resposta = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`);
+        if (!resposta.ok) return null;
+        const corpo = await resposta.json();
+        return corpo.thumbnail_url || null;
+      } catch (erro) {
+        return null;
+      }
+    }
+    if (fonte === "instagram"){
+      try {
+        const { data, error } = await Auth.client.functions.invoke("instagram-oembed", { body: { url } });
+        if (error) return null;
+        return data?.thumbnail_url || null;
+      } catch (erro) {
+        return null;
+      }
+    }
+    return null;
+  }
+
   // ---------- Chave da Supadata (guardada em app_config, igual outros segredos) ----------
   async function obterChaveSupadata(){
     if (transcricaoChaveSupadata !== null) return transcricaoChaveSupadata;
@@ -17712,11 +17747,14 @@ ${corpo}
     if (jaExiste && !confirm("Esse link já está na sua biblioteca. Quer transcrever de novo mesmo assim?")) return;
 
     const { fonte, perfil } = detectarFonteInfoTranscricao(linkLimpo);
+    // O link nem sempre traz o @ (ex: reel do Instagram sem o usuário na URL) — quando é
+    // "Meu" e não achou, já preenche com o seu Instagram em vez de deixar em branco.
+    const perfilFinal = perfil || (deQuem === "minha" ? PERFIL_INSTAGRAM_EDILAINE : null);
     const botao = document.getElementById("transcricaoBotaoTranscrever");
     botao.disabled = true;
 
     const { data: linhaNova, error: erroInsert } = await Auth.client.from("roteiros")
-      .insert({ fonte, url: linkLimpo, perfil, de_quem: deQuem, status: "processando" })
+      .insert({ fonte, url: linkLimpo, perfil: perfilFinal, de_quem: deQuem, status: "processando" })
       .select().single();
 
     if (erroInsert || !linhaNova){
@@ -17837,8 +17875,11 @@ ${corpo}
       return;
     }
 
+    const itemAtual = transcricoesCache.find(r => r.id === roteiroId);
+    const capaUrl = itemAtual ? await resolverCapaUrlTranscricao(itemAtual.fonte, itemAtual.url) : null;
+
     const { data, error } = await Auth.client.from("roteiros")
-      .update({ transcricao: texto, segmentos, status: "pronto", erro: null, updated_at: new Date().toISOString() })
+      .update({ transcricao: texto, segmentos, capa_url: capaUrl, status: "pronto", erro: null, updated_at: new Date().toISOString() })
       .eq("id", roteiroId).select().single();
 
     if (error){
@@ -17907,16 +17948,19 @@ ${corpo}
     const fonteNome = { instagram: "Instagram", tiktok: "TikTok", youtube: "YouTube", manual: "Escrito na mão" }[r.fonte] || r.fonte;
     const iconeFonte = { instagram: "📸", tiktok: "🎵", youtube: "▶️", manual: "✍️" }[r.fonte] || "🎬";
 
-    // Não dá pra puxar a capa de verdade do Instagram/TikTok/YouTube por link direto
-    // (o CDN deles recusa pedido vindo do navegador) — em vez disso, sempre mostra uma
-    // capa com o ícone da fonte, e clicar nela abre o vídeo original numa aba nova.
+    // Capa de verdade quando dá pra pegar (YouTube sempre, TikTok quando o oEmbed deles
+    // responde) — Instagram não dá (CDN deles bloqueia), fica só no ícone. De qualquer
+    // jeito, clicar na capa sempre abre o vídeo original numa aba nova.
     let capaHtml;
     if (r.status === "processando"){
       capaHtml = `<div class="transcricao-card-relogio">⏳</div>`;
     } else if (r.url){
+      const conteudoCapa = r.capa_url
+        ? `<img src="${escaparHtmlMarcas(r.capa_url)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`
+        : `<span class="transcricao-card-capa-icone">${iconeFonte}</span>`;
       capaHtml = `
         <a href="${escaparHtmlMarcas(r.url)}" target="_blank" rel="noopener" class="transcricao-card-capa-link" title="Abrir vídeo original">
-          <span class="transcricao-card-capa-icone">${iconeFonte}</span>
+          ${conteudoCapa}
           <span class="transcricao-card-capa-play">▶</span>
         </a>
       `;
@@ -18065,6 +18109,9 @@ ${corpo}
   async function salvarEdicaoTranscricao(){
     const tagsTexto = document.getElementById("transcricaoCampoTags").value.trim();
     const urlValor = document.getElementById("transcricaoCampoUrl").value.trim() || null;
+    const itemExistente = transcricaoEditandoId ? transcricoesCache.find(r => r.id === transcricaoEditandoId) : null;
+    const fonteDetectada = itemExistente ? itemExistente.fonte : detectarFonteInfoTranscricao(urlValor || "").fonte;
+
     const payload = {
       titulo: document.getElementById("transcricaoCampoTitulo").value.trim() || null,
       de_quem: document.getElementById("transcricaoCampoModalDeQuem").value,
@@ -18079,12 +18126,16 @@ ${corpo}
       updated_at: new Date().toISOString(),
     };
 
+    // Busca a capa toda vez que salva (não só quando o link muda) — assim, abrir e
+    // salvar um roteiro antigo (de antes dessa busca existir) já preenche a capa dele.
+    payload.capa_url = await resolverCapaUrlTranscricao(fonteDetectada, urlValor);
+
     if (transcricaoEditandoId){
       const { data, error } = await Auth.client.from("roteiros").update(payload).eq("id", transcricaoEditandoId).select().single();
       if (error){ alert("Não deu pra salvar agora. Tenta de novo."); console.error("Erro ao salvar edição de roteiro:", error); return; }
       atualizarItemTranscricaoNoCache(data);
     } else {
-      payload.fonte = detectarFonteInfoTranscricao(urlValor || "").fonte;
+      payload.fonte = fonteDetectada;
       const { data, error } = await Auth.client.from("roteiros").insert(payload).select().single();
       if (error){ alert("Não deu pra salvar agora. Tenta de novo."); console.error("Erro ao criar roteiro na mão:", error); return; }
       transcricoesCache.unshift(data);

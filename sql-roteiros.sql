@@ -27,6 +27,8 @@ create table if not exists public.roteiros (
   segmentos jsonb
 );
 
+alter table public.roteiros add column if not exists capa_url text;
+
 create index if not exists idx_roteiros_created_at on public.roteiros (created_at desc);
 
 alter table public.roteiros enable row level security;
