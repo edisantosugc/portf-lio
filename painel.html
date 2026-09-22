@@ -6028,6 +6028,11 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   let prospeccaoFilaRascunhoAtual = [];
   let prospeccaoMarcaUnicaId = null; // marca escolhida na busca individual ("busca-unica")
 
+  // O que está sendo escrito na Prospecção (assunto, texto, botão, modo) e a fila do modo
+  // rascunho ficam salvos no navegador — sem isso, um F5 ou fechar a aba sem querer perdia
+  // tudo (inclusive a fila já em andamento, com marcas já retiradas da lista).
+  const PROSPECCAO_RASCUNHO_LOCAL_KEY = "painelProspeccaoRascunho";
+
   // Estado da aba Roteiros: lista de roteiros, id em edição (null = criando um novo) e as
   // fotos do moodboard/imagem de cor escolhidas no formulário aberto no momento (só viram
   // linha de verdade no banco quando o roteiro é salvo).
@@ -6413,6 +6418,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.body.style.visibility = "visible";
 
     configurarEventosDeInterface();
+    restaurarRascunhoProspeccaoLocal();
 
     try {
       const { eventos, leads, briefing, tarefas, lancamentos, pagamentosCartao, pessoasPagas, gastosFixos, negocio, trabalhosUgc } = await comRetry(async () => {
@@ -8813,17 +8819,18 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("prospeccaoSelectDestino").addEventListener("change", () => {
       alternarBuscaMarcaProspeccao();
       atualizarContagemProspeccao();
+      salvarRascunhoProspeccaoLocal();
     });
     document.getElementById("prospeccaoBuscaMarcaInput").addEventListener("input", (e) => {
       renderizarResultadosBuscaMarcaProspeccao(e.target.value);
     });
     document.getElementById("prospeccaoBuscaMarcaLimpar").addEventListener("click", limparMarcaUnicaProspeccao);
     document.getElementById("prospeccaoPularEnviados").addEventListener("change", atualizarContagemProspeccao);
-    document.getElementById("prospeccaoAssunto").addEventListener("input", () => { atualizarContagemProspeccao(); atualizarPreviaProspeccao(); });
-    document.getElementById("prospeccaoCorpoFacil").addEventListener("input", atualizarPreviaProspeccao);
-    document.getElementById("prospeccaoCorpoHtml").addEventListener("input", atualizarPreviaProspeccao);
-    document.getElementById("prospeccaoBotaoTexto").addEventListener("input", atualizarPreviaProspeccao);
-    document.getElementById("prospeccaoBotaoLink").addEventListener("input", atualizarPreviaProspeccao);
+    document.getElementById("prospeccaoAssunto").addEventListener("input", () => { atualizarContagemProspeccao(); atualizarPreviaProspeccao(); salvarRascunhoProspeccaoLocal(); });
+    document.getElementById("prospeccaoCorpoFacil").addEventListener("input", () => { atualizarPreviaProspeccao(); salvarRascunhoProspeccaoLocal(); });
+    document.getElementById("prospeccaoCorpoHtml").addEventListener("input", () => { atualizarPreviaProspeccao(); salvarRascunhoProspeccaoLocal(); });
+    document.getElementById("prospeccaoBotaoTexto").addEventListener("input", () => { atualizarPreviaProspeccao(); salvarRascunhoProspeccaoLocal(); });
+    document.getElementById("prospeccaoBotaoLink").addEventListener("input", () => { atualizarPreviaProspeccao(); salvarRascunhoProspeccaoLocal(); });
 
     document.getElementById("prospeccaoBotaoModelo").addEventListener("click", () => {
       document.getElementById("prospeccaoCorpoHtml").value = construirHtmlEmailPadrao(
@@ -15801,6 +15808,23 @@ ${corpoHtml}
 </div>`;
   }
 
+  // Versão em texto puro do mesmo e-mail, pra quando o rascunho vai pro Gmail (que não
+  // aceita HTML no link de compor) — sem isso, o botão "Texto do botão"/"Link do botão"
+  // simplesmente sumia no rascunho, mesmo estando preenchido. Mesma regra de posição:
+  // encaixa antes da assinatura ("Att") quando acha, senão vai no final.
+  function construirTextoEmailComBotaoProspeccao(corpoTexto, botaoTexto, botaoLink){
+    if (!botaoTexto || !botaoLink) return corpoTexto || "";
+    const linha = `${botaoTexto}: ${normalizarLinkBotaoProspeccao(botaoLink)}`;
+
+    const linhas = (corpoTexto || "").split("\n");
+    const indiceAssinatura = linhas.findIndex(l => /^\s*att[,.:]?\s/i.test(l) || /^\s*atenciosamente/i.test(l));
+    if (indiceAssinatura === -1) return `${corpoTexto || ""}\n\n${linha}`;
+
+    const antes = linhas.slice(0, indiceAssinatura).join("\n");
+    const depois = linhas.slice(indiceAssinatura).join("\n");
+    return `${antes}\n\n${linha}\n\n${depois}`;
+  }
+
   function obterHtmlFinalProspeccao(){
     if (prospeccaoModoCompositor === "html") return document.getElementById("prospeccaoCorpoHtml").value;
     return construirHtmlEmailPadrao(
@@ -15808,6 +15832,61 @@ ${corpoHtml}
       document.getElementById("prospeccaoBotaoTexto").value.trim(),
       document.getElementById("prospeccaoBotaoLink").value.trim()
     );
+  }
+
+  // Salva o que está sendo escrito (e a fila do modo rascunho, se já tiver uma em
+  // andamento) no navegador, pra não perder nada se der F5 ou fechar a aba sem querer.
+  function salvarRascunhoProspeccaoLocal(){
+    try {
+      const dados = {
+        assunto: document.getElementById("prospeccaoAssunto").value,
+        corpoFacil: document.getElementById("prospeccaoCorpoFacil").value,
+        corpoHtml: document.getElementById("prospeccaoCorpoHtml").value,
+        botaoTexto: document.getElementById("prospeccaoBotaoTexto").value,
+        botaoLink: document.getElementById("prospeccaoBotaoLink").value,
+        modoCompositor: prospeccaoModoCompositor,
+        modoEnvio: prospeccaoModoEnvio,
+        selectDestino: document.getElementById("prospeccaoSelectDestino").value,
+        fila: prospeccaoFilaRascunhoAtual,
+      };
+      localStorage.setItem(PROSPECCAO_RASCUNHO_LOCAL_KEY, JSON.stringify(dados));
+    } catch (erro) {}
+  }
+
+  function limparRascunhoProspeccaoLocal(){
+    try { localStorage.removeItem(PROSPECCAO_RASCUNHO_LOCAL_KEY); } catch (erro) {}
+  }
+
+  // Devolve o que estava sendo escrito (e a fila em andamento) assim que a Prospecção
+  // carrega. A escolha de "Destinatários" volta junto, mas se era "Buscar uma marca
+  // específica" a marca escolhida em si não — a busca não tem como saber o nome antes das
+  // marcas carregarem, então nesse caso só pede pra escolher de novo.
+  function restaurarRascunhoProspeccaoLocal(){
+    let dados;
+    try {
+      const bruto = localStorage.getItem(PROSPECCAO_RASCUNHO_LOCAL_KEY);
+      if (!bruto) return;
+      dados = JSON.parse(bruto);
+    } catch (erro) { return; }
+    if (!dados) return;
+
+    document.getElementById("prospeccaoAssunto").value = dados.assunto || "";
+    document.getElementById("prospeccaoCorpoFacil").value = dados.corpoFacil || "";
+    document.getElementById("prospeccaoCorpoHtml").value = dados.corpoHtml || "";
+    document.getElementById("prospeccaoBotaoTexto").value = dados.botaoTexto || "";
+    document.getElementById("prospeccaoBotaoLink").value = dados.botaoLink || "";
+    if (dados.selectDestino) document.getElementById("prospeccaoSelectDestino").value = dados.selectDestino;
+
+    trocarModoCompositorProspeccao(dados.modoCompositor === "html" ? "html" : "facil");
+    trocarModoEnvioProspeccao(dados.modoEnvio === "rascunho" ? "rascunho" : "resend");
+    alternarBuscaMarcaProspeccao();
+    atualizarContagemProspeccao();
+
+    if (Array.isArray(dados.fila) && dados.fila.length){
+      prospeccaoFilaRascunhoAtual = dados.fila;
+      document.getElementById("prospeccaoFilaRascunho").classList.remove("oculto");
+      renderizarProximoRascunhoProspeccao();
+    }
   }
 
   // No modo HTML, o que ela colou vai exatamente do jeito que está — por isso confere se o
@@ -15844,6 +15923,7 @@ ${corpoHtml}
     document.getElementById("prospeccaoCampoFacil").classList.toggle("oculto", modo !== "facil");
     document.getElementById("prospeccaoCampoHtml").classList.toggle("oculto", modo !== "html");
     atualizarPreviaProspeccao();
+    salvarRascunhoProspeccaoLocal();
   }
 
   function trocarModoEnvioProspeccao(modo){
@@ -15851,6 +15931,7 @@ ${corpoHtml}
     document.querySelectorAll("#prospeccaoToggleEnvio button").forEach(b => b.classList.toggle("ativo", b.dataset.modoEnvio === modo));
     document.getElementById("prospeccaoBotaoTeste").classList.toggle("oculto", modo === "rascunho");
     document.getElementById("prospeccaoBotaoDisparar").textContent = modo === "rascunho" ? "📝 Montar fila de rascunhos" : "📨 Disparar";
+    salvarRascunhoProspeccaoLocal();
   }
 
   // O "universo" antes de exigir e-mail (usado só pra saber quantas ficaram de fora por
@@ -16335,32 +16416,59 @@ ${corpoHtml}
         ? `<br><br>⚠️ A cota diária do Resend acabou no meio do disparo. Volta amanhã, cola o mesmo assunto e o mesmo texto, deixa marcada a caixinha de "pular quem já recebeu" e ele manda só pros que faltaram.`
         : "");
 
+    if (totalEnviados > 0) limparRascunhoProspeccaoLocal();
+
     if (document.getElementById("prospeccaoSelectDestino").value === "selecionadas" && marcasCache.some(m => m.selecionada)){
       document.getElementById("prospeccaoModalLimparSelecao").classList.remove("oculto");
     }
   }
 
   // ---------- Modo rascunho: fila de destinatários, um por vez, com "Copiar" e "Abrir no Gmail" ----------
+  // Cada item da fila guarda o PRÓPRIO assunto/corpo/botão (já com {{nome}}/{{marca}}
+  // trocados) no momento em que entrou na fila — assim, se ela reescrever o texto pra
+  // mandar pra outra marca específica e clicar "Montar fila" de novo, isso SOMA à fila em
+  // vez de substituir (e não muda o texto de quem já estava esperando na fila).
   function iniciarFilaRascunhoProspeccao(){
-    prospeccaoFilaRascunhoAtual = obterDestinatariosProspeccao();
+    const assuntoBase = document.getElementById("prospeccaoAssunto").value;
+    const corpoBase = document.getElementById("prospeccaoCorpoFacil").value;
+    const botaoTexto = document.getElementById("prospeccaoBotaoTexto").value.trim();
+    const botaoLink = document.getElementById("prospeccaoBotaoLink").value.trim();
+
+    const emailsNaFila = new Set(prospeccaoFilaRascunhoAtual.map(d => d.email));
+    const novosItens = obterDestinatariosProspeccao()
+      .filter(d => !emailsNaFila.has(d.email))
+      .map(d => ({
+        email: d.email, nome: d.nome, marca: d.marca, marcaId: d.marcaId,
+        assunto: trocarVariaveisProspeccao(assuntoBase, d.nome, d.marca),
+        corpoTexto: trocarVariaveisProspeccao(corpoBase, d.nome, d.marca),
+        botaoTexto, botaoLink,
+      }));
+
+    if (!novosItens.length){
+      alert(prospeccaoFilaRascunhoAtual.length ? "Essa(s) marca(s) já está(ão) na fila." : "Não tem nenhuma marca pra mandar com essa seleção e esses filtros.");
+      return;
+    }
+
+    prospeccaoFilaRascunhoAtual = prospeccaoFilaRascunhoAtual.concat(novosItens);
     document.getElementById("prospeccaoFilaRascunho").classList.remove("oculto");
     renderizarProximoRascunhoProspeccao();
+    salvarRascunhoProspeccaoLocal();
   }
 
   function renderizarProximoRascunhoProspeccao(){
     const container = document.getElementById("prospeccaoFilaRascunho");
     if (!prospeccaoFilaRascunhoAtual.length){
       container.innerHTML = `<p class="ugc-vazio">Fila terminada — todas foram marcadas como enviadas.</p>`;
+      limparRascunhoProspeccaoLocal();
       return;
     }
     const atual = prospeccaoFilaRascunhoAtual[0];
-    const assunto = trocarVariaveisProspeccao(document.getElementById("prospeccaoAssunto").value, atual.nome, atual.marca);
-    const corpoFinal = trocarVariaveisProspeccao(document.getElementById("prospeccaoCorpoFacil").value, atual.nome, atual.marca);
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(atual.email)}&su=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpoFinal)}`;
+    const corpoFinal = construirTextoEmailComBotaoProspeccao(atual.corpoTexto, atual.botaoTexto, atual.botaoLink);
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(atual.email)}&su=${encodeURIComponent(atual.assunto)}&body=${encodeURIComponent(corpoFinal)}`;
 
     container.innerHTML = `
       <div class="prospeccao-fila-topo"><span>Faltam ${prospeccaoFilaRascunhoAtual.length}</span><span>${escaparHtmlMarcas(atual.marca)}</span></div>
-      <div class="prospeccao-fila-assunto">${escaparHtmlMarcas(assunto)}</div>
+      <div class="prospeccao-fila-assunto">${escaparHtmlMarcas(atual.assunto)}</div>
       <div class="prospeccao-fila-corpo">${escaparHtmlMarcas(corpoFinal)}</div>
       <div class="prospeccao-fila-botoes">
         <button type="button" class="btn-fantasma" id="prospeccaoRascunhoCopiar">📋 Copiar texto</button>
@@ -16373,23 +16481,19 @@ ${corpoHtml}
       try { await navigator.clipboard.writeText(corpoFinal); } catch (erro) { console.error("Erro ao copiar texto do rascunho:", erro); }
     });
     document.getElementById("prospeccaoRascunhoMarcarEnviada").addEventListener("click", () => marcarRascunhoComoEnviadoProspeccao(atual));
+
+    salvarRascunhoProspeccaoLocal();
   }
 
   async function marcarRascunhoComoEnviadoProspeccao(destinatario){
     prospeccaoFilaRascunhoAtual = prospeccaoFilaRascunhoAtual.filter(d => d !== destinatario);
 
     await marcarMarcasComoEnviadasProspeccao([destinatario.marcaId]);
-
-    const assunto = trocarVariaveisProspeccao(document.getElementById("prospeccaoAssunto").value, destinatario.nome, destinatario.marca);
-    await sincronizarAbordagemDaMarca(destinatario.marcaId, assunto);
+    await sincronizarAbordagemDaMarca(destinatario.marcaId, destinatario.assunto);
     // Guarda o mesmo conteúdo que foi pro rascunho do Gmail, pra poder reabrir depois em
     // "Já receberam" — pode não bater 100% se ela editou algo já dentro do Gmail antes de enviar.
-    const corpoHtml = construirHtmlEmailPadrao(
-      trocarVariaveisProspeccao(document.getElementById("prospeccaoCorpoFacil").value, destinatario.nome, destinatario.marca),
-      document.getElementById("prospeccaoBotaoTexto").value.trim(),
-      document.getElementById("prospeccaoBotaoLink").value.trim()
-    );
-    const { error } = await Auth.client.from("email_envios").insert({ email: destinatario.email, assunto, status: "ok", corpo_html: corpoHtml });
+    const corpoHtml = construirHtmlEmailPadrao(destinatario.corpoTexto, destinatario.botaoTexto, destinatario.botaoLink);
+    const { error } = await Auth.client.from("email_envios").insert({ email: destinatario.email, assunto: destinatario.assunto, status: "ok", corpo_html: corpoHtml });
     if (error) console.error("Erro ao registrar envio manual no histórico:", error);
     await recarregarEmailEnviosProspeccao();
 
