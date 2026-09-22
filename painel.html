@@ -3053,12 +3053,18 @@
   }
 
   .marcas-contadores{ display:grid; grid-template-columns: repeat(7,1fr); gap:12px; margin-bottom:16px; }
-  .marcas-contador-card{ background:var(--branco); border:1px solid var(--borda); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:6px; }
+  .marcas-contador-card{
+    background:var(--branco); border:1px solid var(--borda); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:6px;
+    font-family:inherit; text-align:left; cursor:pointer; transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .marcas-contador-card:hover{ border-color:var(--coral); }
+  .marcas-contador-card.ativo{ border-color:var(--coral); box-shadow:0 0 0 2px var(--coral) inset; }
   .marcas-contador-card .rotulo{ font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--texto-suave); display:flex; align-items:center; gap:6px; }
   .marcas-contador-card .bolinha{ width:7px; height:7px; border-radius:50%; flex-shrink:0; }
   .marcas-contador-card .valor{ font-family:'Fraunces',serif; font-size:1.7rem; font-variant-numeric:tabular-nums; line-height:1; }
   .marcas-contador-card.total{ background:var(--coral); }
   .marcas-contador-card.total .rotulo, .marcas-contador-card.total .valor{ color:var(--branco); }
+  .marcas-contador-card.total.ativo{ box-shadow:0 0 0 2px var(--coral-escuro) inset; }
 
   .marcas-status-toggle{ flex-wrap:wrap; }
 
@@ -4574,13 +4580,13 @@
         </details>
 
         <div class="marcas-contadores" id="marcasContadores">
-          <div class="marcas-contador-card total"><span class="rotulo">Total</span><span class="valor dado-sensivel" id="marcasContadorTotal">0</span></div>
-          <div class="marcas-contador-card"><span class="rotulo"><span class="bolinha" style="background:var(--texto-suave)"></span>A enviar</span><span class="valor dado-sensivel" id="marcasContador-a_enviar">0</span></div>
-          <div class="marcas-contador-card"><span class="rotulo"><span class="bolinha" style="background:var(--coral)"></span>Enviado</span><span class="valor dado-sensivel" id="marcasContador-enviado">0</span></div>
-          <div class="marcas-contador-card"><span class="rotulo"><span class="bolinha" style="background:var(--dourado)"></span>Respondeu</span><span class="valor dado-sensivel" id="marcasContador-respondeu">0</span></div>
-          <div class="marcas-contador-card"><span class="rotulo"><span class="bolinha" style="background:#8a6d34"></span>Proposta</span><span class="valor dado-sensivel" id="marcasContador-proposta">0</span></div>
-          <div class="marcas-contador-card"><span class="rotulo"><span class="bolinha" style="background:var(--verde)"></span>Fechado</span><span class="valor dado-sensivel" id="marcasContador-fechado">0</span></div>
-          <div class="marcas-contador-card"><span class="rotulo"><span class="bolinha" style="background:var(--vermelho)"></span>Sem interesse</span><span class="valor dado-sensivel" id="marcasContador-sem_interesse">0</span></div>
+          <button type="button" class="marcas-contador-card total" data-status-card="todas"><span class="rotulo">Total</span><span class="valor dado-sensivel" id="marcasContadorTotal">0</span></button>
+          <button type="button" class="marcas-contador-card" data-status-card="a_enviar"><span class="rotulo"><span class="bolinha" style="background:var(--texto-suave)"></span>A enviar</span><span class="valor dado-sensivel" id="marcasContador-a_enviar">0</span></button>
+          <button type="button" class="marcas-contador-card" data-status-card="enviado"><span class="rotulo"><span class="bolinha" style="background:var(--coral)"></span>Enviado</span><span class="valor dado-sensivel" id="marcasContador-enviado">0</span></button>
+          <button type="button" class="marcas-contador-card" data-status-card="respondeu"><span class="rotulo"><span class="bolinha" style="background:var(--dourado)"></span>Respondeu</span><span class="valor dado-sensivel" id="marcasContador-respondeu">0</span></button>
+          <button type="button" class="marcas-contador-card" data-status-card="proposta"><span class="rotulo"><span class="bolinha" style="background:#8a6d34"></span>Proposta</span><span class="valor dado-sensivel" id="marcasContador-proposta">0</span></button>
+          <button type="button" class="marcas-contador-card" data-status-card="fechado"><span class="rotulo"><span class="bolinha" style="background:var(--verde)"></span>Fechado</span><span class="valor dado-sensivel" id="marcasContador-fechado">0</span></button>
+          <button type="button" class="marcas-contador-card" data-status-card="sem_interesse"><span class="rotulo"><span class="bolinha" style="background:var(--vermelho)"></span>Sem interesse</span><span class="valor dado-sensivel" id="marcasContador-sem_interesse">0</span></button>
         </div>
 
         <div class="cartao ugc-form-novo oculto" id="marcasFormNovo">
@@ -8789,6 +8795,12 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       renderizarRevisaoImportacaoMarcas();
     });
     document.addEventListener("click", fecharMenusStatusMarcas);
+
+    document.getElementById("marcasContadores").addEventListener("click", (e) => {
+      const card = e.target.closest("[data-status-card]");
+      if (!card) return;
+      alternarFiltroCardStatusMarcas(card.dataset.statusCard);
+    });
 
     document.getElementById("marcasAjudaPromptTexto").value = MARCAS_PROMPT_PESQUISA;
     document.getElementById("marcasBotaoCopiarPrompt").addEventListener("click", async (e) => {
@@ -15404,6 +15416,24 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       const el = document.getElementById(`marcasContador-${s.chave}`);
       if (el) el.textContent = marcasCache.filter(m => m.status === s.chave).length;
     });
+
+    // Destaca o card do status que está filtrando a lista agora (ou "Total" quando não
+    // tem nenhum filtro de status ativo).
+    const filtroStatus = marcasFiltrosColuna.status;
+    const statusCardAtivo = !filtroStatus ? "todas" : (filtroStatus.size === 1 ? [...filtroStatus][0] : null);
+    document.querySelectorAll("#marcasContadores .marcas-contador-card").forEach(card => {
+      card.classList.toggle("ativo", card.dataset.statusCard === statusCardAtivo);
+    });
+  }
+
+  // Clicar num card de status filtra a lista de Marcas por aquele status (mesmo filtro
+  // usado no cabeçalho "estilo Excel" da coluna Status) — clicar de novo no mesmo card,
+  // ou no "Total", limpa o filtro.
+  function alternarFiltroCardStatusMarcas(statusCard){
+    const filtroAtual = marcasFiltrosColuna.status;
+    const jaEstaFiltradoNesse = !!(filtroAtual && filtroAtual.size === 1 && filtroAtual.has(statusCard));
+    marcasFiltrosColuna.status = (statusCard === "todas" || jaEstaFiltradoNesse) ? null : new Set([statusCard]);
+    renderizarMarcas();
   }
 
   function renderizarMarcas(){
