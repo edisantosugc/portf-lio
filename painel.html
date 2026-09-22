@@ -3261,7 +3261,7 @@
   .prospeccao-textarea-codigo{ font-family:'Courier New',monospace !important; font-size:.78rem !important; }
   .prospeccao-link-modelo{ font-size:.76rem; color:var(--coral); font-weight:600; cursor:pointer; background:none; border:none; padding:0; margin-bottom:8px; display:inline-block; }
 
-  .prospeccao-botoes-envio{ display:flex; gap:10px; flex-wrap:wrap; margin-top:4px; }
+  .prospeccao-botoes-envio{ display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; margin-top:4px; }
 
   .prospeccao-progresso{ margin-top:16px; }
   .prospeccao-progresso-barra{ height:8px; border-radius:999px; background:var(--creme); overflow:hidden; }
@@ -5008,6 +5008,7 @@
             <div class="prospeccao-botoes-envio">
               <button type="button" class="btn-fantasma" id="prospeccaoBotaoTeste">🧪 Enviar teste pra mim</button>
               <button type="button" class="botao-add-tarefa" id="prospeccaoBotaoDisparar">📨 Disparar</button>
+              <button type="button" class="btn-fantasma" id="prospeccaoBotaoLimparTudo">🧹 Limpar tudo</button>
             </div>
             <p class="prospeccao-campo-nota">Antes de disparar de verdade, uma janela confirma quantas marcas vão receber.</p>
 
@@ -8858,6 +8859,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       atualizarPreviaProspeccao();
     });
 
+    document.getElementById("prospeccaoBotaoLimparTudo").addEventListener("click", limparTudoProspeccao);
     document.getElementById("prospeccaoBotaoTeste").addEventListener("click", enviarTesteProspeccao);
     document.getElementById("prospeccaoBotaoDisparar").addEventListener("click", abrirModalConfirmarProspeccao);
 
@@ -16100,6 +16102,28 @@ ${corpoHtml}
     alternarBuscaMarcaProspeccao();
     atualizarContagemProspeccao();
     atualizarPreviaProspeccao();
+  }
+
+  // Limpa assunto, texto, botão e a marca escolhida na busca — pra começar um e-mail do
+  // zero pra outra marca sem apagar campo por campo na mão. Não mexe numa fila de
+  // rascunho que já esteja em andamento (isso é outra coisa, com seu próprio fluxo).
+  function limparTudoProspeccao(){
+    const temTexto = document.getElementById("prospeccaoAssunto").value
+      || document.getElementById("prospeccaoCorpoFacil").value
+      || document.getElementById("prospeccaoCorpoHtml").value
+      || document.getElementById("prospeccaoBotaoTexto").value
+      || document.getElementById("prospeccaoBotaoLink").value;
+    if (temTexto && !confirm("Limpar assunto, texto e botão? Não dá pra desfazer.")) return;
+
+    document.getElementById("prospeccaoAssunto").value = "";
+    document.getElementById("prospeccaoCorpoFacil").value = "";
+    document.getElementById("prospeccaoCorpoHtml").value = "";
+    document.getElementById("prospeccaoBotaoTexto").value = "";
+    document.getElementById("prospeccaoBotaoLink").value = "";
+    document.getElementById("prospeccaoBuscaMarcaInput").value = "";
+
+    limparMarcaUnicaProspeccao();
+    salvarRascunhoProspeccaoLocal();
   }
 
   function atualizarSelectDestinoProspeccao(){
