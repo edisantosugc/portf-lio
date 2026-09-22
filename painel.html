@@ -18107,38 +18107,51 @@ ${corpo}
   }
 
   async function salvarEdicaoTranscricao(){
-    const tagsTexto = document.getElementById("transcricaoCampoTags").value.trim();
-    const urlValor = document.getElementById("transcricaoCampoUrl").value.trim() || null;
-    const itemExistente = transcricaoEditandoId ? transcricoesCache.find(r => r.id === transcricaoEditandoId) : null;
-    const fonteDetectada = itemExistente ? itemExistente.fonte : detectarFonteInfoTranscricao(urlValor || "").fonte;
+    // Guarda o id ANTES de qualquer "await" — sem isso, clicar em Salvar mais de uma vez
+    // rápido (ex: enquanto a busca de capa do Instagram ainda está rodando) fazia o
+    // segundo clique já encontrar transcricaoEditandoId zerado pelo primeiro, e criava um
+    // roteiro novo duplicado em vez de atualizar o mesmo.
+    const idAlvo = transcricaoEditandoId;
+    const botaoSalvar = document.getElementById("transcricaoModalSalvar");
+    if (botaoSalvar.disabled) return; // já está salvando, ignora clique repetido
+    botaoSalvar.disabled = true;
 
-    const payload = {
-      titulo: document.getElementById("transcricaoCampoTitulo").value.trim() || null,
-      de_quem: document.getElementById("transcricaoCampoModalDeQuem").value,
-      perfil: document.getElementById("transcricaoCampoPerfil").value.trim() || null,
-      postado_em: document.getElementById("transcricaoCampoPostadoEm").value || null,
-      tags: tagsTexto ? tagsTexto.split(",").map(t => t.trim()).filter(Boolean) : [],
-      url: urlValor,
-      legenda: document.getElementById("transcricaoCampoLegenda").value.trim() || null,
-      transcricao: document.getElementById("transcricaoCampoTranscricao").value,
-      obs: document.getElementById("transcricaoCampoObs").value.trim() || null,
-      status: "pronto",
-      updated_at: new Date().toISOString(),
-    };
+    try {
+      const tagsTexto = document.getElementById("transcricaoCampoTags").value.trim();
+      const urlValor = document.getElementById("transcricaoCampoUrl").value.trim() || null;
+      const itemExistente = idAlvo ? transcricoesCache.find(r => r.id === idAlvo) : null;
+      const fonteDetectada = itemExistente ? itemExistente.fonte : detectarFonteInfoTranscricao(urlValor || "").fonte;
 
-    // Busca a capa toda vez que salva (não só quando o link muda) — assim, abrir e
-    // salvar um roteiro antigo (de antes dessa busca existir) já preenche a capa dele.
-    payload.capa_url = await resolverCapaUrlTranscricao(fonteDetectada, urlValor);
+      const payload = {
+        titulo: document.getElementById("transcricaoCampoTitulo").value.trim() || null,
+        de_quem: document.getElementById("transcricaoCampoModalDeQuem").value,
+        perfil: document.getElementById("transcricaoCampoPerfil").value.trim() || null,
+        postado_em: document.getElementById("transcricaoCampoPostadoEm").value || null,
+        tags: tagsTexto ? tagsTexto.split(",").map(t => t.trim()).filter(Boolean) : [],
+        url: urlValor,
+        legenda: document.getElementById("transcricaoCampoLegenda").value.trim() || null,
+        transcricao: document.getElementById("transcricaoCampoTranscricao").value,
+        obs: document.getElementById("transcricaoCampoObs").value.trim() || null,
+        status: "pronto",
+        updated_at: new Date().toISOString(),
+      };
 
-    if (transcricaoEditandoId){
-      const { data, error } = await Auth.client.from("roteiros").update(payload).eq("id", transcricaoEditandoId).select().single();
-      if (error){ alert("Não deu pra salvar agora. Tenta de novo."); console.error("Erro ao salvar edição de roteiro:", error); return; }
-      atualizarItemTranscricaoNoCache(data);
-    } else {
-      payload.fonte = fonteDetectada;
-      const { data, error } = await Auth.client.from("roteiros").insert(payload).select().single();
-      if (error){ alert("Não deu pra salvar agora. Tenta de novo."); console.error("Erro ao criar roteiro na mão:", error); return; }
-      transcricoesCache.unshift(data);
+      // Busca a capa toda vez que salva (não só quando o link muda) — assim, abrir e
+      // salvar um roteiro antigo (de antes dessa busca existir) já preenche a capa dele.
+      payload.capa_url = await resolverCapaUrlTranscricao(fonteDetectada, urlValor);
+
+      if (idAlvo){
+        const { data, error } = await Auth.client.from("roteiros").update(payload).eq("id", idAlvo).select().single();
+        if (error){ alert("Não deu pra salvar agora. Tenta de novo."); console.error("Erro ao salvar edição de roteiro:", error); return; }
+        atualizarItemTranscricaoNoCache(data);
+      } else {
+        payload.fonte = fonteDetectada;
+        const { data, error } = await Auth.client.from("roteiros").insert(payload).select().single();
+        if (error){ alert("Não deu pra salvar agora. Tenta de novo."); console.error("Erro ao criar roteiro na mão:", error); return; }
+        transcricoesCache.unshift(data);
+      }
+    } finally {
+      botaoSalvar.disabled = false;
     }
 
     renderizarTranscricoes();
