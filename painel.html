@@ -3427,10 +3427,14 @@
     width:110px; height:150px; flex-shrink:0; border-radius:10px; background:var(--creme); position:relative; overflow:hidden;
     display:flex; align-items:center; justify-content:center;
   }
-  .transcricao-card-capa iframe{ width:100%; height:100%; border:none; }
-  .transcricao-card-play{
-    background:var(--coral); color:var(--branco); border:none; border-radius:999px; padding:8px 14px; font-size:.72rem; font-weight:600;
-    cursor:pointer; font-family:'Outfit',sans-serif;
+  .transcricao-card-capa-link{
+    display:flex; align-items:center; justify-content:center; width:100%; height:100%; text-decoration:none; position:relative;
+    background:linear-gradient(160deg, var(--creme), #e4ded6);
+  }
+  .transcricao-card-capa-icone{ font-size:2.2rem; }
+  .transcricao-card-capa-play{
+    position:absolute; bottom:8px; right:8px; background:var(--coral); color:var(--branco); width:26px; height:26px;
+    border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.68rem;
   }
   .transcricao-card-relogio{ font-size:1.8rem; }
   .transcricao-card-info{ flex:1; min-width:0; }
@@ -8476,7 +8480,6 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       if (!btn) return;
       const id = btn.dataset.id;
       const acoes = {
-        "transcricao-ver-video": () => abrirEmbedTranscricao(id),
         "transcricao-copiar": () => copiarTranscricaoRoteiro(id, btn),
         "transcricao-editar": () => abrirModalEditarTranscricao(id),
         "transcricao-abrir-mesmo-assim": () => abrirModalEditarTranscricao(id),
@@ -17590,29 +17593,6 @@ ${corpo}
     return { fonte: "manual", perfil: null };
   }
 
-  // Constrói o link de embed (só quando clica "ver vídeo", pra não carregar tudo de
-  // uma vez) — não tenta mostrar a capa do Instagram por link direto porque o CDN
-  // deles recusa pedido vindo do navegador.
-  function obterEmbedUrlTranscricao(roteiro){
-    const url = roteiro.url || "";
-    if (roteiro.fonte === "instagram"){
-      const m = url.match(/instagram\.com\/(?:[a-zA-Z0-9_.]+\/)?reel\/([a-zA-Z0-9_-]+)/);
-      return m ? `https://www.instagram.com/reel/${m[1]}/embed` : null;
-    }
-    if (roteiro.fonte === "youtube"){
-      let id = null;
-      let m = url.match(/[?&]v=([a-zA-Z0-9_-]{6,})/); if (m) id = m[1];
-      if (!id){ m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/); if (m) id = m[1]; }
-      if (!id){ m = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{6,})/); if (m) id = m[1]; }
-      return id ? `https://www.youtube.com/embed/${id}` : null;
-    }
-    if (roteiro.fonte === "tiktok"){
-      const m = url.match(/\/video\/(\d+)/);
-      return m ? `https://www.tiktok.com/embed/v2/${m[1]}` : null;
-    }
-    return null;
-  }
-
   // ---------- Chave da Supadata (guardada em app_config, igual outros segredos) ----------
   async function obterChaveSupadata(){
     if (transcricaoChaveSupadata !== null) return transcricaoChaveSupadata;
@@ -17925,15 +17905,23 @@ ${corpo}
 
   function renderizarCardTranscricao(r){
     const fonteNome = { instagram: "Instagram", tiktok: "TikTok", youtube: "YouTube", manual: "Escrito na mão" }[r.fonte] || r.fonte;
-    const temEmbed = r.status === "pronto" && !!obterEmbedUrlTranscricao(r);
+    const iconeFonte = { instagram: "📸", tiktok: "🎵", youtube: "▶️", manual: "✍️" }[r.fonte] || "🎬";
 
+    // Não dá pra puxar a capa de verdade do Instagram/TikTok/YouTube por link direto
+    // (o CDN deles recusa pedido vindo do navegador) — em vez disso, sempre mostra uma
+    // capa com o ícone da fonte, e clicar nela abre o vídeo original numa aba nova.
     let capaHtml;
     if (r.status === "processando"){
       capaHtml = `<div class="transcricao-card-relogio">⏳</div>`;
-    } else if (temEmbed){
-      capaHtml = `<button type="button" class="transcricao-card-play" data-acao="transcricao-ver-video" data-id="${r.id}">▶ ver vídeo</button>`;
+    } else if (r.url){
+      capaHtml = `
+        <a href="${escaparHtmlMarcas(r.url)}" target="_blank" rel="noopener" class="transcricao-card-capa-link" title="Abrir vídeo original">
+          <span class="transcricao-card-capa-icone">${iconeFonte}</span>
+          <span class="transcricao-card-capa-play">▶</span>
+        </a>
+      `;
     } else {
-      capaHtml = `<span style="font-size:1.6rem;">🎬</span>`;
+      capaHtml = `<span style="font-size:1.6rem;">${iconeFonte}</span>`;
     }
 
     const selos = `
@@ -17973,7 +17961,7 @@ ${corpo}
     return `
       <div class="transcricao-card">
         <div class="transcricao-card-topo">
-          <div class="transcricao-card-capa" id="transcricaoCapa-${r.id}">${capaHtml}</div>
+          <div class="transcricao-card-capa">${capaHtml}</div>
           <div class="transcricao-card-info">
             <div class="transcricao-card-titulo">${escaparHtmlMarcas(r.titulo || "Sem título")}</div>
             <div class="transcricao-card-perfil">${escaparHtmlMarcas(r.perfil || "Sem perfil")}</div>
@@ -18007,14 +17995,6 @@ ${corpo}
     corpo.innerHTML = filtradas.length
       ? filtradas.map(renderizarCardTranscricao).join("")
       : `<p class="ugc-vazio">Nenhum roteiro por aqui ainda.</p>`;
-  }
-
-  function abrirEmbedTranscricao(id){
-    const item = transcricoesCache.find(r => r.id === id);
-    const url = item && obterEmbedUrlTranscricao(item);
-    const capa = document.getElementById(`transcricaoCapa-${id}`);
-    if (!url || !capa) return;
-    capa.innerHTML = `<iframe src="${url}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>`;
   }
 
   async function copiarTranscricaoRoteiro(id, botao){
