@@ -160,10 +160,11 @@ const CONFIG_PT = {
     // Fitness (ordem e itens sincronizados com o doc VÍDEOS.docx)
     { marca: "Via Fight", titulo: "Storytelling – Jaquetinha fitness", categoria: "Fitness", gradiente: "grad-1", videoId: "7oAktYjTXx4" },
     { marca: "Max Titanium", titulo: "Narrador – Barrinha de proteína", categoria: "Fitness", gradiente: "grad-2", videoId: "Zd0B7ttQZJQ" },
-    { marca: "Via Fight", titulo: "Rotina – Conjunto fitness", categoria: "Fitness", gradiente: "grad-3", videoId: "hzA0a3U7ass" },
-    { marca: "Dreams Burn", titulo: "Storytelling – Cubo termogênico", categoria: "Fitness", gradiente: "grad-4", videoId: "3pbXGVEFaog" },
-    { marca: "Shopee", titulo: "Orgânico – Conjuntinho fitness", categoria: "Fitness", gradiente: "grad-5", videoId: "Y4YrncO4UZo" },
-    { marca: "Max Titanium", titulo: "Depoimento – Whey drink", categoria: "Fitness", gradiente: "grad-6", videoId: "KbJBIB5RHCI" },
+    { marca: "Gallant", titulo: "Depoimento – Bicicleta ergométrica", categoria: "Fitness", gradiente: "grad-3", videoId: "rfEIifHH5mk" },
+    { marca: "Via Fight", titulo: "Rotina – Conjunto fitness", categoria: "Fitness", gradiente: "grad-4", videoId: "hzA0a3U7ass" },
+    { marca: "Dreams Burn", titulo: "Storytelling – Cubo termogênico", categoria: "Fitness", gradiente: "grad-5", videoId: "3pbXGVEFaog" },
+    { marca: "Shopee", titulo: "Orgânico – Conjuntinho fitness", categoria: "Fitness", gradiente: "grad-6", videoId: "Y4YrncO4UZo" },
+    { marca: "Max Titanium", titulo: "Depoimento – Whey drink", categoria: "Fitness", gradiente: "grad-1", videoId: "KbJBIB5RHCI" },
     // Rap 10 (Jme4EkWP1oY) retirado: não consta no VÍDEOS.docx
 
     // Casa e Decoração
@@ -454,10 +455,11 @@ const CONFIG_EN = {
     // Fitness
     { marca: "Via Fight", titulo: "Storytelling – Fitness jacket", categoria: "Fitness", gradiente: "grad-1", videoId: "7oAktYjTXx4" },
     { marca: "Max Titanium", titulo: "Voiceover – Protein bar", categoria: "Fitness", gradiente: "grad-2", videoId: "Zd0B7ttQZJQ" },
-    { marca: "Via Fight", titulo: "Routine – Fitness set", categoria: "Fitness", gradiente: "grad-3", videoId: "hzA0a3U7ass" },
-    { marca: "Dreams Burn", titulo: "Storytelling – Thermogenic cube", categoria: "Fitness", gradiente: "grad-4", videoId: "3pbXGVEFaog" },
-    { marca: "Shopee", titulo: "Organic – Fitness set", categoria: "Fitness", gradiente: "grad-5", videoId: "Y4YrncO4UZo" },
-    { marca: "Max Titanium", titulo: "Testimonial – Whey drink", categoria: "Fitness", gradiente: "grad-6", videoId: "KbJBIB5RHCI" },
+    { marca: "Gallant", titulo: "Testimonial – Exercise bike", categoria: "Fitness", gradiente: "grad-3", videoId: "rfEIifHH5mk" },
+    { marca: "Via Fight", titulo: "Routine – Fitness set", categoria: "Fitness", gradiente: "grad-4", videoId: "hzA0a3U7ass" },
+    { marca: "Dreams Burn", titulo: "Storytelling – Thermogenic cube", categoria: "Fitness", gradiente: "grad-5", videoId: "3pbXGVEFaog" },
+    { marca: "Shopee", titulo: "Organic – Fitness set", categoria: "Fitness", gradiente: "grad-6", videoId: "Y4YrncO4UZo" },
+    { marca: "Max Titanium", titulo: "Testimonial – Whey drink", categoria: "Fitness", gradiente: "grad-1", videoId: "KbJBIB5RHCI" },
 
     // Home & Decor
     { marca: "Condor", titulo: "Storytelling – PVA mop and lint roller", categoria: "Home & Decor", gradiente: "grad-5", videoId: "rjblZsgruDA" },
