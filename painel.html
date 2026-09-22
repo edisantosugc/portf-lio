@@ -3424,17 +3424,14 @@
   }
   .transcricao-card-topo{ display:flex; gap:14px; padding:14px; }
   .transcricao-card-capa{
-    width:110px; height:150px; flex-shrink:0; border-radius:10px; background:var(--creme); position:relative; overflow:hidden;
-    display:flex; align-items:center; justify-content:center;
-  }
-  .transcricao-card-capa-link{
-    display:flex; align-items:center; justify-content:center; width:100%; height:100%; text-decoration:none; position:relative;
-    background:linear-gradient(160deg, var(--creme), #e4ded6);
+    width:120px; height:150px; flex-shrink:0; border-radius:10px; background:linear-gradient(160deg, var(--creme), #e4ded6);
+    position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;
   }
   .transcricao-card-capa-icone{ font-size:2.2rem; }
   .transcricao-card-capa-play{
     position:absolute; bottom:8px; right:8px; background:var(--coral); color:var(--branco); width:26px; height:26px;
     border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.68rem;
+    border:none; padding:0; cursor:pointer;
   }
   .transcricao-card-relogio{ font-size:1.8rem; }
   .transcricao-card-info{ flex:1; min-width:0; }
@@ -8486,9 +8483,21 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         "transcricao-abrir-mesmo-assim": () => abrirModalEditarTranscricao(id),
         "transcricao-apagar": () => apagarTranscricaoRoteiro(id),
         "transcricao-tentar-de-novo": () => tentarDeNovoTranscricao(id),
+        "transcricao-ver-video": () => abrirEmbedTranscricao(id),
       };
       (acoes[btn.dataset.acao] || (() => {}))();
     });
+    // Se a capa (Instagram via proxy, TikTok, YouTube) falhar ao carregar, cai pro ícone da
+    // rede — "error" de imagem não borbulha, por isso escuta na fase de captura.
+    document.getElementById("transcricaoListaCorpo").addEventListener("error", (e) => {
+      const img = e.target;
+      if (!img.classList || !img.classList.contains("transcricao-capa-img")) return;
+      const icone = { instagram: "📸", tiktok: "🎵", youtube: "▶️", manual: "✍️" }[img.dataset.fonte] || "🎬";
+      const span = document.createElement("span");
+      span.className = "transcricao-card-capa-icone";
+      span.textContent = icone;
+      img.replaceWith(span);
+    }, true);
     document.getElementById("transcricaoModalFechar").addEventListener("click", fecharModalEditarTranscricao);
     document.getElementById("transcricaoModalCancelar").addEventListener("click", fecharModalEditarTranscricao);
     document.getElementById("transcricaoModalSalvar").addEventListener("click", salvarEdicaoTranscricao);
@@ -17559,7 +17568,27 @@ ${corpo}
     document.querySelectorAll("#subAbasRoteiros .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === sub));
     document.getElementById("roteiroSubAbaAprovacao").classList.toggle("oculto", sub !== "aprovacao");
     document.getElementById("roteiroSubAbaTranscricao").classList.toggle("oculto", sub !== "transcricao");
-    if (sub === "transcricao") renderizarChaveSupadataBox();
+    if (sub === "transcricao"){
+      renderizarChaveSupadataBox();
+      preencherCapasFaltantesTranscricao();
+    }
+  }
+
+  // Preenche a capa_url de roteiros antigos (de antes dessa busca existir) — só roda uma
+  // vez por sessão, na primeira vez que abre a sub-aba.
+  let transcricaoBackfillCapaFeito = false;
+  async function preencherCapasFaltantesTranscricao(){
+    if (transcricaoBackfillCapaFeito) return;
+    transcricaoBackfillCapaFeito = true;
+
+    const semCapa = transcricoesCache.filter(r => !r.capa_url && r.url && r.fonte !== "manual" && r.status === "pronto");
+    for (const item of semCapa){
+      const capa = await resolverCapaUrlTranscricao(item.fonte, item.url);
+      if (!capa) continue;
+      const { data, error } = await Auth.client.from("roteiros").update({ capa_url: capa }).eq("id", item.id).select().single();
+      if (!error && data) atualizarItemTranscricaoNoCache(data);
+    }
+    if (semCapa.length) renderizarTranscricoes();
   }
 
   // "instagram.com/reels/" vira "instagram.com/reel/", e tira "igsh"/"utm_*" da URL —
@@ -17604,7 +17633,7 @@ ${corpo}
       let m = url.match(/[?&]v=([a-zA-Z0-9_-]{6,})/); if (m) id = m[1];
       if (!id){ m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/); if (m) id = m[1]; }
       if (!id){ m = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{6,})/); if (m) id = m[1]; }
-      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+      return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : null;
     }
     if (fonte === "tiktok"){
       try {
@@ -17617,15 +17646,46 @@ ${corpo}
       }
     }
     if (fonte === "instagram"){
-      try {
-        const { data, error } = await Auth.client.functions.invoke("instagram-oembed", { body: { url } });
-        if (error) return null;
-        return data?.thumbnail_url || null;
-      } catch (erro) {
-        return null;
-      }
+      // O CDN do Instagram recusa pedido vindo direto do navegador — por isso passa pelo
+      // proxy gratuito images.weserv.nl, que busca a imagem do lado dele e reenvia. Usa o
+      // endpoint não oficial "/media/" do Instagram, que pode parar de funcionar sem aviso
+      // (não é um contrato oficial deles), mas não depende de token nem de function.
+      const m = url.match(/instagram\.com\/(?:[a-zA-Z0-9_.]+\/)?(?:reel|p)\/([a-zA-Z0-9_-]+)/);
+      if (!m) return null;
+      const alvo = `instagram.com/p/${m[1]}/media/?size=l`;
+      return `https://images.weserv.nl/?url=${alvo}&w=480&h=600&fit=cover&output=webp`;
     }
     return null;
+  }
+
+  // Link de embed (o player de verdade) — só usado quando clica no botão "ver vídeo",
+  // trocando a capa estática por ele.
+  function obterEmbedUrlTranscricao(roteiro){
+    const url = roteiro.url || "";
+    if (roteiro.fonte === "instagram"){
+      const m = url.match(/instagram\.com\/(?:[a-zA-Z0-9_.]+\/)?(?:reel|p)\/([a-zA-Z0-9_-]+)/);
+      return m ? `https://www.instagram.com/reel/${m[1]}/embed` : null;
+    }
+    if (roteiro.fonte === "youtube"){
+      let id = null;
+      let m = url.match(/[?&]v=([a-zA-Z0-9_-]{6,})/); if (m) id = m[1];
+      if (!id){ m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/); if (m) id = m[1]; }
+      if (!id){ m = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{6,})/); if (m) id = m[1]; }
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+    if (roteiro.fonte === "tiktok"){
+      const m = url.match(/\/video\/(\d+)/);
+      return m ? `https://www.tiktok.com/embed/v2/${m[1]}` : null;
+    }
+    return null;
+  }
+
+  function abrirEmbedTranscricao(id){
+    const item = transcricoesCache.find(r => r.id === id);
+    const url = item && obterEmbedUrlTranscricao(item);
+    const capa = document.getElementById(`transcricaoCapa-${id}`);
+    if (!url || !capa) return;
+    capa.innerHTML = `<iframe src="${url}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy" style="width:100%;height:100%;border:none;"></iframe>`;
   }
 
   // ---------- Chave da Supadata (guardada em app_config, igual outros segredos) ----------
@@ -17948,22 +18008,21 @@ ${corpo}
     const fonteNome = { instagram: "Instagram", tiktok: "TikTok", youtube: "YouTube", manual: "Escrito na mão" }[r.fonte] || r.fonte;
     const iconeFonte = { instagram: "📸", tiktok: "🎵", youtube: "▶️", manual: "✍️" }[r.fonte] || "🎬";
 
-    // Capa de verdade quando dá pra pegar (YouTube sempre, TikTok quando o oEmbed deles
-    // responde) — Instagram não dá (CDN deles bloqueia), fica só no ícone. De qualquer
-    // jeito, clicar na capa sempre abre o vídeo original numa aba nova.
+    // Capa de verdade quando dá pra pegar (YouTube, TikTok e Instagram via proxy). Se a
+    // imagem falhar (onerror, tratado por delegação de evento), cai pro ícone da rede. O
+    // botão "ver vídeo" troca a capa pelo embed de verdade só quando clicado.
+    const temEmbed = r.status === "pronto" && !!obterEmbedUrlTranscricao(r);
     let capaHtml;
     if (r.status === "processando"){
       capaHtml = `<div class="transcricao-card-relogio">⏳</div>`;
     } else if (r.url){
       const conteudoCapa = r.capa_url
-        ? `<img src="${escaparHtmlMarcas(r.capa_url)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`
+        ? `<img src="${escaparHtmlMarcas(r.capa_url)}" alt="" loading="lazy" class="transcricao-capa-img" data-fonte="${escaparHtmlMarcas(r.fonte)}" style="width:100%;height:100%;object-fit:cover;">`
         : `<span class="transcricao-card-capa-icone">${iconeFonte}</span>`;
-      capaHtml = `
-        <a href="${escaparHtmlMarcas(r.url)}" target="_blank" rel="noopener" class="transcricao-card-capa-link" title="Abrir vídeo original">
-          ${conteudoCapa}
-          <span class="transcricao-card-capa-play">▶</span>
-        </a>
-      `;
+      const botaoPlay = temEmbed
+        ? `<button type="button" class="transcricao-card-capa-play" data-acao="transcricao-ver-video" data-id="${r.id}" title="Ver vídeo" aria-label="Ver vídeo">▶</button>`
+        : "";
+      capaHtml = `${conteudoCapa}${botaoPlay}`;
     } else {
       capaHtml = `<span style="font-size:1.6rem;">${iconeFonte}</span>`;
     }
@@ -18005,7 +18064,7 @@ ${corpo}
     return `
       <div class="transcricao-card">
         <div class="transcricao-card-topo">
-          <div class="transcricao-card-capa">${capaHtml}</div>
+          <div class="transcricao-card-capa" id="transcricaoCapa-${r.id}">${capaHtml}</div>
           <div class="transcricao-card-info">
             <div class="transcricao-card-titulo">${escaparHtmlMarcas(r.titulo || "Sem título")}</div>
             <div class="transcricao-card-perfil">${escaparHtmlMarcas(r.perfil || "Sem perfil")}</div>
