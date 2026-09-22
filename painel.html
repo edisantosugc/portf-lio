@@ -3296,6 +3296,7 @@
   .prospeccao-tabela-historico td{ padding:10px; border-bottom:1px solid var(--borda); }
   .prospeccao-selo-ok{ color:var(--verde); font-weight:700; font-size:.76rem; }
   .prospeccao-selo-erro{ color:var(--vermelho); font-weight:700; font-size:.76rem; }
+  .prospeccao-selo-atraso{ color:#8a6d34; font-weight:700; font-size:.76rem; }
   .prospeccao-historico-apagar{ background:none; border:none; color:var(--texto-suave); font-size:1.1rem; line-height:1; cursor:pointer; padding:2px 8px; border-radius:6px; }
   .prospeccao-historico-apagar:hover{ background:rgba(196,69,60,.12); color:var(--vermelho); }
 
@@ -16201,6 +16202,22 @@ ${corpoHtml}
     document.getElementById("prospeccaoModalEmailEnviado").classList.remove("oculto");
   }
 
+  // Combina o status de ENVIO (se o Resend aceitou mandar) com o status de ENTREGA de
+  // verdade (que só chega depois, via webhook — ver supabase/functions/resend-webhook).
+  // Sem confirmação de entrega ainda, mostra "Enviado" mesmo (não é erro, só não
+  // atualizou — a maioria confirma como entregue em segundos).
+  function rotuloStatusEntregaProspeccao(e){
+    if (e.status !== "ok"){
+      return `<span class="prospeccao-selo-erro" title="${escaparHtmlMarcas(e.erro || "")}">✕ Erro</span>`;
+    }
+    const detalheEsc = escaparHtmlMarcas(e.status_entrega_detalhe || "");
+    if (e.status_entrega === "entregue") return '<span class="prospeccao-selo-ok">✓ Entregue</span>';
+    if (e.status_entrega === "atrasado") return `<span class="prospeccao-selo-atraso" title="Servidor de quem recebe está demorando a confirmar — o Resend continua tentando.">⏳ Atrasado</span>`;
+    if (e.status_entrega === "bounced") return `<span class="prospeccao-selo-erro" title="${detalheEsc}">↩ Não entregue</span>`;
+    if (e.status_entrega === "reclamou") return `<span class="prospeccao-selo-erro" title="${detalheEsc}">⚠ Marcou como spam</span>`;
+    return '<span class="prospeccao-selo-ok">✓ Enviado</span>';
+  }
+
   function renderizarHistoricoProspeccao(){
     const corpo = document.getElementById("prospeccaoHistoricoCorpo");
     if (!corpo) return;
@@ -16218,7 +16235,7 @@ ${corpoHtml}
             <td>${escaparHtmlMarcas(e.email)}</td>
             <td>${temConteudo ? `<span class="prospeccao-assunto-clicavel" data-envio-idx="${idx}">${escaparHtmlMarcas(e.assunto)}</span>` : escaparHtmlMarcas(e.assunto)}</td>
             <td>${formatarDataHoraCurtaProspeccao(e.created_at)}</td>
-            <td>${e.status === "ok" ? '<span class="prospeccao-selo-ok">✓ Enviado</span>' : `<span class="prospeccao-selo-erro" title="${escaparHtmlMarcas(e.erro || "")}">✕ Erro</span>`}</td>
+            <td>${rotuloStatusEntregaProspeccao(e)}</td>
             <td>${ehTeste ? `<button type="button" class="prospeccao-historico-apagar" data-apagar-id="${e.id}" title="Apagar este teste" aria-label="Apagar este teste">×</button>` : ""}</td>
           </tr>
         `;
@@ -16259,6 +16276,17 @@ ${corpoHtml}
       console.error("Erro ao recarregar histórico de e-mails:", erro);
     }
   }
+
+  // O status de ENTREGA (entregue/atrasado/bounced) chega depois, pelo webhook do Resend
+  // — sem isso ela precisaria dar F5 toda hora pra ver se mudou. Só busca de novo quando a
+  // aba do navegador está mesmo visível, pra não gastar consulta à toa em segundo plano.
+  setInterval(async () => {
+    if (document.visibilityState !== "visible") return;
+    if (!document.getElementById("prospeccaoHistoricoCorpo")) return;
+    await recarregarEmailEnviosProspeccao();
+    renderizarHistoricoProspeccao();
+    renderizarProspeccao();
+  }, 60000);
 
   // Apaga do histórico só esse envio pro próprio e-mail de teste — o "×" só aparece em
   // linhas cujo destinatário é PROSPECCAO_EMAIL_TESTE, nunca em envio de verdade pra marca.

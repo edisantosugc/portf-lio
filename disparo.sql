@@ -88,6 +88,18 @@ alter table public.painel_abordagens add constraint painel_abordagens_status_che
 -- ---------------------------------------------------------------------
 alter table public.email_envios add column if not exists corpo_html text;
 
+-- ---------------------------------------------------------------------
+-- 6) Status de ENTREGA (diferente do status de ENVIO acima): o Resend
+--    avisa via webhook quando um e-mail é entregue de verdade, atrasa ou
+--    volta (bounce) — a function "resend-webhook" grava isso aqui, pra
+--    não precisar ficar olhando o painel do Resend toda hora.
+-- ---------------------------------------------------------------------
+alter table public.email_envios add column if not exists status_entrega text;
+alter table public.email_envios add column if not exists status_entrega_detalhe text;
+alter table public.email_envios add column if not exists status_entrega_atualizado_em timestamptz;
+
+create index if not exists idx_email_envios_resend_id on public.email_envios (resend_id);
+
 -- Atualiza o cache do Supabase pra reconhecer as tabelas/colunas novas na hora
 -- (sem isso, às vezes ele demora e o painel mostra "tabela não encontrada").
 NOTIFY pgrst, 'reload schema';
