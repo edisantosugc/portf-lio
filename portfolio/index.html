@@ -2377,10 +2377,16 @@ function definirIdioma(idioma){
 }
 
 // Origem de quem chegou ao Portfólio: "direto" é usado no link
-// edilainesantos.com/ugcportfolio (abordagem direta a marcas); "plataforma" é usado no
-// link edilainesantos.com/plataforma (cadastros em plataformas de creator/UGC). Sem
-// nenhuma das duas marcações (busca, link salvo, compartilhamento externo, etc.), fica
-// como "outro".
+// edilainesantos.com/ugcportfolio (abordagem direta a marcas) e também cobre quem cai
+// direto em edilainesantos.com/portfolio sem vir de busca ou rede social (e-mail de
+// prospecção, link digitado, link salvo etc.); "plataforma" é usado no link
+// edilainesantos.com/plataforma (cadastros em plataformas de creator/UGC). Só fica como
+// "outro" quem vem claramente de busca ou rede social.
+const REFERRER_BUSCA_OU_REDE_SOCIAL = [
+  "google.", "bing.", "yahoo.", "duckduckgo.", "baidu.",
+  "instagram.com", "facebook.com", "tiktok.com", "linkedin.com",
+  "twitter.com", "x.com", "pinterest.", "youtube.com", "threads.net"
+];
 function obterOrigemPortfolio(){
   // Ambas podem vir marcadas na sessão (links /ugcportfolio e /plataforma, sem aparecer
   // na URL) ou, se alguém compartilhar um link com "?origem=direto"/"?origem=plataforma"
@@ -2392,7 +2398,10 @@ function obterOrigemPortfolio(){
     const origemSalva = sessionStorage.getItem("origem_portfolio");
     if (origemSalva === "direto" || origemSalva === "plataforma") return origemSalva;
   } catch (erro) {}
-  return "outro";
+
+  const referrer = (document.referrer || "").toLowerCase();
+  const veioDeBuscaOuRedeSocial = REFERRER_BUSCA_OU_REDE_SOCIAL.some(d => referrer.includes(d));
+  return veioDeBuscaOuRedeSocial ? "outro" : "direto";
 }
 
 document.addEventListener("DOMContentLoaded", () => {

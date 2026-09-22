@@ -155,6 +155,7 @@ Deno.serve(async (req: Request) => {
           assunto: assuntoFinal,
           status: "ok",
           resend_id: corpoResposta?.id ?? null,
+          corpo_html: htmlFinal,
         });
       } else if (corpoResposta?.name === "daily_quota_exceeded") {
         // Para na hora — não adianta continuar tentando, todo o resto vai falhar igual.
@@ -167,6 +168,7 @@ Deno.serve(async (req: Request) => {
           assunto: assuntoFinal,
           status: "erro",
           erro: corpoResposta?.message || `Erro HTTP ${resposta.status}`,
+          corpo_html: htmlFinal,
         });
       }
     } catch (erroEnvio: any) {
@@ -176,6 +178,7 @@ Deno.serve(async (req: Request) => {
         assunto: assuntoFinal,
         status: "erro",
         erro: erroEnvio?.message || "Falha de rede ao chamar o Resend",
+        corpo_html: htmlFinal,
       });
     }
 

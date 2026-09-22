@@ -3200,8 +3200,8 @@
   .prospeccao-card-linha .nome{ font-weight:600; }
   .prospeccao-card-linha .sub{ font-size:.76rem; color:var(--texto-suave); margin-top:2px; }
   .prospeccao-card-linha .motivo{ font-size:.76rem; color:var(--vermelho); text-align:right; flex-shrink:0; max-width:45%; }
-  .prospeccao-card-linha.clicavel{ cursor:pointer; border-radius:8px; }
-  .prospeccao-card-linha.clicavel:hover{ background:var(--creme); }
+  .prospeccao-assunto-clicavel{ cursor:pointer; color:var(--coral); text-decoration:underline; text-decoration-color:transparent; transition:text-decoration-color .15s ease; }
+  .prospeccao-assunto-clicavel:hover{ text-decoration-color:var(--coral); }
   .prospeccao-cartao-metrica .valor{ font-family:'Fraunces',serif; font-size:1.8rem; color:var(--cor-cartao,var(--coral)); font-variant-numeric:tabular-nums; line-height:1; }
   .prospeccao-cartao-metrica .rotulo{ font-size:.78rem; font-weight:600; color:var(--grafite); margin-top:6px; }
   .prospeccao-cartao-metrica .contexto{ font-size:.7rem; color:var(--texto-suave); margin-top:3px; min-height:1em; }
@@ -3280,9 +3280,6 @@
   .prospeccao-janela-corpo .prospeccao-botao-email{ display:inline-block; margin-top:14px; background:var(--coral); color:var(--branco) !important; text-decoration:none; padding:10px 20px; border-radius:8px; font-weight:600; font-size:.82rem; }
   .prospeccao-janela-rodape{ padding:12px 20px 18px; font-size:.66rem; color:var(--texto-suave); border-top:1px solid var(--borda); }
   .prospeccao-nota-teste{ font-size:.74rem; color:var(--texto-suave); text-align:center; margin-top:12px; }
-
-  .prospeccao-modal-janela{ position:relative; max-width:560px; width:100%; max-height:88vh; overflow-y:auto; }
-  .prospeccao-modal-fechar{ position:absolute; top:-16px; right:-16px; background:var(--branco); color:var(--grafite); border:none; width:34px; height:34px; border-radius:50%; font-size:1rem; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.2); }
 
   .prospeccao-tabela-historico{ width:100%; border-collapse:collapse; font-size:.82rem; }
   .prospeccao-tabela-historico th{ text-align:left; font-size:.64rem; text-transform:uppercase; letter-spacing:.04em; color:var(--texto-suave); padding:8px 10px; border-bottom:1px solid var(--borda); }
@@ -5254,20 +5251,19 @@
       </div>
     </div>
 
-    <!-- Modal: prévia em tela cheia -->
-    <div class="ugc-modal-overlay oculto" id="prospeccaoModalTelaCheia">
-      <div class="prospeccao-modal-janela">
-        <button type="button" class="prospeccao-modal-fechar" id="prospeccaoModalTelaCheiaFechar" aria-label="Fechar">✕</button>
-        <div class="prospeccao-janela-email">
-          <div class="prospeccao-janela-cabecalho">
-            <div class="prospeccao-avatar">E</div>
-            <div>
-              <div class="prospeccao-janela-assunto" id="prospeccaoPreviaAssuntoModal"></div>
-              <div class="prospeccao-janela-remetente">Edilaine Santos · edilainesantosugc@gmail.com · para você</div>
-            </div>
-          </div>
+    <!-- Modal: prévia em tela cheia — mesmo padrão do modal "Marcas com e-mail"
+         (cliente-modal-cartao), pra ficar reto, centralizado, com o X inteiro visível e
+         só rolagem vertical quando precisar. -->
+    <div class="ugc-modal-overlay oculto" id="prospeccaoModalTelaCheia" role="dialog" aria-modal="true" aria-labelledby="prospeccaoPreviaAssuntoModal">
+      <div class="cliente-modal-cartao largo">
+        <div class="cliente-modal-topo">
+          <h2 id="prospeccaoPreviaAssuntoModal">(sem assunto ainda)</h2>
+          <button type="button" class="cliente-modal-fechar" id="prospeccaoModalTelaCheiaFechar" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="cliente-modal-corpo">
+          <div class="prospeccao-janela-remetente" style="padding-bottom:14px; border-bottom:1px solid var(--borda);">Edilaine Santos · edilainesantosugc@gmail.com · para você</div>
           <div class="prospeccao-janela-corpo" id="prospeccaoPreviaCorpoModal"></div>
-          <div class="prospeccao-janela-rodape">Não quer mais receber estes e-mails? Responda com <strong>SAIR</strong>.</div>
+          <div class="prospeccao-janela-remetente" style="padding-top:14px; border-top:1px solid var(--borda);">Não quer mais receber estes e-mails? Responda com <strong>SAIR</strong>.</div>
         </div>
       </div>
     </div>
@@ -5300,18 +5296,17 @@
       </div>
     </div>
 
-    <!-- Modal: e-mail que foi enviado de verdade pra um destinatário específico (só leitura) -->
+    <!-- Modal: e-mail que foi enviado de verdade pra um destinatário específico (só leitura) —
+         mesmo padrão do modal "Marcas com e-mail" (cliente-modal-cartao), pra ficar reto,
+         centralizado, com o X inteiro visível e só rolagem vertical quando precisar. -->
     <div class="ugc-modal-overlay oculto" id="prospeccaoModalEmailEnviado" role="dialog" aria-modal="true" aria-labelledby="prospeccaoEmailEnviadoAssunto">
-      <div class="prospeccao-modal-janela">
-        <button type="button" class="prospeccao-modal-fechar" id="prospeccaoModalEmailEnviadoFechar" aria-label="Fechar">✕</button>
-        <div class="prospeccao-janela-email">
-          <div class="prospeccao-janela-cabecalho">
-            <div class="prospeccao-avatar">E</div>
-            <div>
-              <div class="prospeccao-janela-assunto" id="prospeccaoEmailEnviadoAssunto"></div>
-              <div class="prospeccao-janela-remetente" id="prospeccaoEmailEnviadoRemetente"></div>
-            </div>
-          </div>
+      <div class="cliente-modal-cartao largo">
+        <div class="cliente-modal-topo">
+          <h2 id="prospeccaoEmailEnviadoAssunto">E-mail enviado</h2>
+          <button type="button" class="cliente-modal-fechar" id="prospeccaoModalEmailEnviadoFechar" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="cliente-modal-corpo">
+          <div class="prospeccao-janela-remetente" id="prospeccaoEmailEnviadoRemetente" style="padding-bottom:14px; border-bottom:1px solid var(--borda);"></div>
           <div class="prospeccao-janela-corpo" id="prospeccaoEmailEnviadoCorpo"></div>
         </div>
       </div>
@@ -6023,9 +6018,9 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   // (texto fácil ou HTML) estão ativos, e a fila do modo rascunho (uma marca de cada vez).
   let emailEnviosCache = [];
   let emailOptoutCache = [];
-  // Lista temporária dos envios mostrados no modal "Já receberam" — permite clicar numa
-  // linha e abrir o e-mail salvo daquele destinatário sem re-consultar o banco.
-  let prospeccaoCardListaEnvios = [];
+  // Lista dos envios mostrados no Histórico de envios — permite clicar no assunto e abrir
+  // o e-mail salvo daquele envio sem re-consultar o banco.
+  let prospeccaoHistoricoListaEnvios = [];
   let prospeccaoModoEnvio = "resend"; // "resend" | "rascunho"
   let prospeccaoModoCompositor = "facil"; // "facil" | "html"
   let prospeccaoFilaRascunhoAtual = [];
@@ -8862,10 +8857,10 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     });
     document.getElementById("prospeccaoModalCardFechar").addEventListener("click", () => document.getElementById("prospeccaoModalCard").classList.add("oculto"));
 
-    document.getElementById("prospeccaoModalCardLista").addEventListener("click", (e) => {
+    document.getElementById("prospeccaoHistoricoCorpo").addEventListener("click", (e) => {
       const linha = e.target.closest("[data-envio-idx]");
       if (!linha) return;
-      abrirEmailEnviadoProspeccao(prospeccaoCardListaEnvios[Number(linha.dataset.envioIdx)]);
+      abrirEmailEnviadoProspeccao(prospeccaoHistoricoListaEnvios[Number(linha.dataset.envioIdx)]);
     });
     document.getElementById("prospeccaoModalEmailEnviadoFechar").addEventListener("click", () => document.getElementById("prospeccaoModalEmailEnviado").classList.add("oculto"));
 
@@ -16016,15 +16011,12 @@ ${corpoHtml}
     } else if (card === "recebido"){
       const emails = [...new Set(enviosOk.map(e => (e.email || "").toLowerCase()))];
       titulo.textContent = `Já receberam (${emails.length})`;
-      prospeccaoCardListaEnvios = [];
       linhas = emails.map(email => {
         const marca = marcasCache.find(m => (m.email || "").toLowerCase() === email);
         const ultimoEnvio = enviosOk.filter(e => (e.email || "").toLowerCase() === email)
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
-        const temConteudo = !!(ultimoEnvio && ultimoEnvio.corpo_html);
-        const idx = prospeccaoCardListaEnvios.push(ultimoEnvio) - 1;
         return `
-          <div class="prospeccao-card-linha${temConteudo ? " clicavel" : ""}" ${temConteudo ? `data-envio-idx="${idx}"` : ""}>
+          <div class="prospeccao-card-linha">
             <div class="principal"><div class="nome">${escaparHtmlMarcas(marca ? marca.nome : email)}</div><div class="sub">${escaparHtmlMarcas(email)}</div></div>
             <div class="sub">${ultimoEnvio ? formatarDataHoraCurtaProspeccao(ultimoEnvio.created_at) : ""}</div>
           </div>
@@ -16060,7 +16052,7 @@ ${corpoHtml}
   }
 
   // Abre a janela de leitura com o e-mail que foi realmente salvo (corpo_html) pra aquele
-  // destinatário — clicado a partir de uma linha do modal "Já receberam".
+  // destinatário — clicado a partir do assunto de uma linha no Histórico de envios.
   function abrirEmailEnviadoProspeccao(envio){
     if (!envio || !envio.corpo_html) return;
     document.getElementById("prospeccaoEmailEnviadoAssunto").textContent = envio.assunto || "(sem assunto)";
@@ -16076,16 +16068,20 @@ ${corpoHtml}
     const campoBusca = document.getElementById("prospeccaoHistoricoBusca");
     const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
     const linhas = emailEnviosCache.filter(e => !termo || (e.email || "").toLowerCase().includes(termo)).slice(0, 200);
+    prospeccaoHistoricoListaEnvios = linhas;
 
     corpo.innerHTML = linhas.length
-      ? linhas.map(e => `
+      ? linhas.map((e, idx) => {
+          const temConteudo = !!e.corpo_html;
+          return `
           <tr>
             <td>${escaparHtmlMarcas(e.email)}</td>
-            <td>${escaparHtmlMarcas(e.assunto)}</td>
+            <td>${temConteudo ? `<span class="prospeccao-assunto-clicavel" data-envio-idx="${idx}">${escaparHtmlMarcas(e.assunto)}</span>` : escaparHtmlMarcas(e.assunto)}</td>
             <td>${formatarDataHoraCurtaProspeccao(e.created_at)}</td>
             <td>${e.status === "ok" ? '<span class="prospeccao-selo-ok">✓ Enviado</span>' : `<span class="prospeccao-selo-erro" title="${escaparHtmlMarcas(e.erro || "")}">✕ Erro</span>`}</td>
           </tr>
-        `).join("")
+        `;
+        }).join("")
       : `<tr><td colspan="4" class="ugc-vazio">Nenhum envio registrado ainda.</td></tr>`;
   }
 
