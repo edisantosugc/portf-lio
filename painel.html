@@ -3207,6 +3207,10 @@
   .prospeccao-cartao-metrica .contexto{ font-size:.7rem; color:var(--texto-suave); margin-top:3px; min-height:1em; }
 
   .prospeccao-bloco-principal{ display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; }
+  /* Sem isso, uma URL bem comprida e sem espaço em algum texto (ex: link de produto de
+     marca) forçava a coluna a crescer além do 1fr pra caber ela numa linha só, esticando
+     a página inteira e empurrando a coluna da prévia pra fora de vista. */
+  .prospeccao-bloco-principal > *{ min-width:0; }
 
   .prospeccao-aviso-fonte{ font-size:.78rem; color:var(--texto-suave); background:var(--creme); border:1px solid var(--borda); border-radius:10px; padding:9px 12px; margin-bottom:16px; }
   .prospeccao-aviso-fonte strong{ color:var(--coral); }
@@ -3263,7 +3267,7 @@
   .prospeccao-fila-rascunho{ margin-top:16px; border:1px solid var(--borda); border-radius:12px; padding:16px; }
   .prospeccao-fila-topo{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:.8rem; color:var(--texto-suave); font-weight:600; }
   .prospeccao-fila-assunto{ font-weight:700; font-size:.92rem; margin-bottom:8px; }
-  .prospeccao-fila-corpo{ white-space:pre-wrap; font-size:.84rem; line-height:1.6; color:var(--grafite); background:var(--creme); border-radius:9px; padding:12px 14px; max-height:220px; overflow-y:auto; margin-bottom:12px; }
+  .prospeccao-fila-corpo{ white-space:pre-wrap; word-break:break-word; font-size:.84rem; line-height:1.6; color:var(--grafite); background:var(--creme); border-radius:9px; padding:12px 14px; max-height:220px; overflow-y:auto; margin-bottom:12px; }
   .prospeccao-fila-botoes{ display:flex; gap:10px; flex-wrap:wrap; }
 
   .prospeccao-previa-wrap{ position:sticky; top:16px; }
