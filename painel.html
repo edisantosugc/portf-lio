@@ -15834,11 +15834,18 @@ ${corpoHtml}
     );
   }
 
+  // Sobe toda vez que o formato do que é salvo aqui muda (ex: os itens da fila ganharam
+  // campo novo). Sem isso, uma fila salva num formato antigo era lida como se fosse do
+  // formato novo — os campos que não existiam viravam "undefined" (e-mail em branco,
+  // botão sumido) em vez de dar erro visível.
+  const PROSPECCAO_RASCUNHO_LOCAL_VERSAO = 2;
+
   // Salva o que está sendo escrito (e a fila do modo rascunho, se já tiver uma em
   // andamento) no navegador, pra não perder nada se der F5 ou fechar a aba sem querer.
   function salvarRascunhoProspeccaoLocal(){
     try {
       const dados = {
+        v: PROSPECCAO_RASCUNHO_LOCAL_VERSAO,
         assunto: document.getElementById("prospeccaoAssunto").value,
         corpoFacil: document.getElementById("prospeccaoCorpoFacil").value,
         corpoHtml: document.getElementById("prospeccaoCorpoHtml").value,
@@ -15870,6 +15877,13 @@ ${corpoHtml}
     } catch (erro) { return; }
     if (!dados) return;
 
+    // Formato antigo (de antes da versão 2, sem campo "v") — descarta em vez de tentar
+    // aproveitar, porque os itens da fila antiga não têm assunto/corpo/botão salvos.
+    if (dados.v !== PROSPECCAO_RASCUNHO_LOCAL_VERSAO){
+      limparRascunhoProspeccaoLocal();
+      return;
+    }
+
     document.getElementById("prospeccaoAssunto").value = dados.assunto || "";
     document.getElementById("prospeccaoCorpoFacil").value = dados.corpoFacil || "";
     document.getElementById("prospeccaoCorpoHtml").value = dados.corpoHtml || "";
@@ -15882,8 +15896,14 @@ ${corpoHtml}
     alternarBuscaMarcaProspeccao();
     atualizarContagemProspeccao();
 
-    if (Array.isArray(dados.fila) && dados.fila.length){
-      prospeccaoFilaRascunhoAtual = dados.fila;
+    // Só aceita item da fila que realmente tem assunto/corpo salvos — protege contra
+    // qualquer formato inesperado em vez de mostrar um rascunho quebrado/em branco.
+    const filaValida = Array.isArray(dados.fila)
+      ? dados.fila.filter(item => item && typeof item.assunto === "string" && typeof item.corpoTexto === "string")
+      : [];
+
+    if (filaValida.length){
+      prospeccaoFilaRascunhoAtual = filaValida;
       document.getElementById("prospeccaoFilaRascunho").classList.remove("oculto");
       renderizarProximoRascunhoProspeccao();
     }
