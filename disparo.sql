@@ -81,6 +81,13 @@ alter table public.painel_abordagens drop constraint if exists painel_abordagens
 alter table public.painel_abordagens add constraint painel_abordagens_status_check
   check (status in ('rascunho', 'realizada', 'follow_up', 'andamento', 'fechada', 'sem_retorno'));
 
+-- ---------------------------------------------------------------------
+-- 5) email_envios ganha o HTML de verdade que foi mandado pra cada
+--    destinatário — sem isso não tem como reabrir depois e ver o que
+--    a marca recebeu (card "Já receberam" no painel).
+-- ---------------------------------------------------------------------
+alter table public.email_envios add column if not exists corpo_html text;
+
 -- Atualiza o cache do Supabase pra reconhecer as tabelas/colunas novas na hora
 -- (sem isso, às vezes ele demora e o painel mostra "tabela não encontrada").
 NOTIFY pgrst, 'reload schema';

@@ -3200,6 +3200,8 @@
   .prospeccao-card-linha .nome{ font-weight:600; }
   .prospeccao-card-linha .sub{ font-size:.76rem; color:var(--texto-suave); margin-top:2px; }
   .prospeccao-card-linha .motivo{ font-size:.76rem; color:var(--vermelho); text-align:right; flex-shrink:0; max-width:45%; }
+  .prospeccao-card-linha.clicavel{ cursor:pointer; border-radius:8px; }
+  .prospeccao-card-linha.clicavel:hover{ background:var(--creme); }
   .prospeccao-cartao-metrica .valor{ font-family:'Fraunces',serif; font-size:1.8rem; color:var(--cor-cartao,var(--coral)); font-variant-numeric:tabular-nums; line-height:1; }
   .prospeccao-cartao-metrica .rotulo{ font-size:.78rem; font-weight:600; color:var(--grafite); margin-top:6px; }
   .prospeccao-cartao-metrica .contexto{ font-size:.7rem; color:var(--texto-suave); margin-top:3px; min-height:1em; }
@@ -5298,6 +5300,23 @@
       </div>
     </div>
 
+    <!-- Modal: e-mail que foi enviado de verdade pra um destinatário específico (só leitura) -->
+    <div class="ugc-modal-overlay oculto" id="prospeccaoModalEmailEnviado" role="dialog" aria-modal="true" aria-labelledby="prospeccaoEmailEnviadoAssunto">
+      <div class="prospeccao-modal-janela">
+        <button type="button" class="prospeccao-modal-fechar" id="prospeccaoModalEmailEnviadoFechar" aria-label="Fechar">✕</button>
+        <div class="prospeccao-janela-email">
+          <div class="prospeccao-janela-cabecalho">
+            <div class="prospeccao-avatar">E</div>
+            <div>
+              <div class="prospeccao-janela-assunto" id="prospeccaoEmailEnviadoAssunto"></div>
+              <div class="prospeccao-janela-remetente" id="prospeccaoEmailEnviadoRemetente"></div>
+            </div>
+          </div>
+          <div class="prospeccao-janela-corpo" id="prospeccaoEmailEnviadoCorpo"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal: perguntar se limpa a seleção depois do disparo -->
     <div class="ugc-modal-overlay oculto" id="prospeccaoModalLimparSelecao" role="dialog" aria-modal="true" aria-labelledby="prospeccaoModalLimparSelecaoTitulo">
       <div class="cliente-modal-cartao" style="max-width:420px;">
@@ -6004,6 +6023,9 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   // (texto fácil ou HTML) estão ativos, e a fila do modo rascunho (uma marca de cada vez).
   let emailEnviosCache = [];
   let emailOptoutCache = [];
+  // Lista temporária dos envios mostrados no modal "Já receberam" — permite clicar numa
+  // linha e abrir o e-mail salvo daquele destinatário sem re-consultar o banco.
+  let prospeccaoCardListaEnvios = [];
   let prospeccaoModoEnvio = "resend"; // "resend" | "rascunho"
   let prospeccaoModoCompositor = "facil"; // "facil" | "html"
   let prospeccaoFilaRascunhoAtual = [];
@@ -8840,6 +8862,13 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     });
     document.getElementById("prospeccaoModalCardFechar").addEventListener("click", () => document.getElementById("prospeccaoModalCard").classList.add("oculto"));
 
+    document.getElementById("prospeccaoModalCardLista").addEventListener("click", (e) => {
+      const linha = e.target.closest("[data-envio-idx]");
+      if (!linha) return;
+      abrirEmailEnviadoProspeccao(prospeccaoCardListaEnvios[Number(linha.dataset.envioIdx)]);
+    });
+    document.getElementById("prospeccaoModalEmailEnviadoFechar").addEventListener("click", () => document.getElementById("prospeccaoModalEmailEnviado").classList.add("oculto"));
+
     document.getElementById("prospeccaoManterSelecao").addEventListener("click", () => document.getElementById("prospeccaoModalLimparSelecao").classList.add("oculto"));
     document.getElementById("prospeccaoLimparSelecaoBotao").addEventListener("click", async () => {
       document.getElementById("prospeccaoModalLimparSelecao").classList.add("oculto");
@@ -9800,12 +9829,12 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     renderizarCliquesContato(cliques);
   }
 
-  // Quem chegou ao Portfólio pelo link direto (edilainesantos.com/ugcportfolio, usado
-  // em abordagem direta a marcas) x quem chegou pelo link de plataforma
-  // (edilainesantos.com/plataforma, usado em cadastros de plataformas de creator/UGC).
-  // Quem não tem nenhuma das duas marcações (busca, link salvo, compartilhamento
-  // externo) não entra em nenhum dos dois cards — por isso a soma dos dois pode ser
-  // menor que o total de visitas.
+  // Quem chegou ao Portfólio via abordagem direta (edilainesantos.com/ugcportfolio, ou
+  // caindo direto em edilainesantos.com/portfolio sem vir de busca/rede social — cobre
+  // e-mail de prospecção, link digitado, link salvo etc.) x quem chegou pelo link de
+  // plataforma (edilainesantos.com/plataforma, usado em cadastros de plataformas de
+  // creator/UGC). Quem vem de busca ou rede social não entra em nenhum dos dois cards —
+  // por isso a soma dos dois pode ser menor que o total de visitas.
   function renderizarOrigemPortfolio(visitas){
     const viaDireto = visitas.filter(e => e.metadata && e.metadata.origem === "direto");
     const viaPlataforma = visitas.filter(e => e.metadata && e.metadata.origem === "plataforma");
@@ -15987,12 +16016,15 @@ ${corpoHtml}
     } else if (card === "recebido"){
       const emails = [...new Set(enviosOk.map(e => (e.email || "").toLowerCase()))];
       titulo.textContent = `Já receberam (${emails.length})`;
+      prospeccaoCardListaEnvios = [];
       linhas = emails.map(email => {
         const marca = marcasCache.find(m => (m.email || "").toLowerCase() === email);
         const ultimoEnvio = enviosOk.filter(e => (e.email || "").toLowerCase() === email)
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+        const temConteudo = !!(ultimoEnvio && ultimoEnvio.corpo_html);
+        const idx = prospeccaoCardListaEnvios.push(ultimoEnvio) - 1;
         return `
-          <div class="prospeccao-card-linha">
+          <div class="prospeccao-card-linha${temConteudo ? " clicavel" : ""}" ${temConteudo ? `data-envio-idx="${idx}"` : ""}>
             <div class="principal"><div class="nome">${escaparHtmlMarcas(marca ? marca.nome : email)}</div><div class="sub">${escaparHtmlMarcas(email)}</div></div>
             <div class="sub">${ultimoEnvio ? formatarDataHoraCurtaProspeccao(ultimoEnvio.created_at) : ""}</div>
           </div>
@@ -16025,6 +16057,17 @@ ${corpoHtml}
     if (!iso) return "—";
     const d = new Date(iso);
     return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  // Abre a janela de leitura com o e-mail que foi realmente salvo (corpo_html) pra aquele
+  // destinatário — clicado a partir de uma linha do modal "Já receberam".
+  function abrirEmailEnviadoProspeccao(envio){
+    if (!envio || !envio.corpo_html) return;
+    document.getElementById("prospeccaoEmailEnviadoAssunto").textContent = envio.assunto || "(sem assunto)";
+    document.getElementById("prospeccaoEmailEnviadoRemetente").textContent =
+      `Edilaine Santos · edilainesantosugc@gmail.com · para ${envio.email} · ${formatarDataHoraCurtaProspeccao(envio.created_at)}`;
+    document.getElementById("prospeccaoEmailEnviadoCorpo").innerHTML = envio.corpo_html;
+    document.getElementById("prospeccaoModalEmailEnviado").classList.remove("oculto");
   }
 
   function renderizarHistoricoProspeccao(){
@@ -16324,7 +16367,14 @@ ${corpoHtml}
 
     const assunto = trocarVariaveisProspeccao(document.getElementById("prospeccaoAssunto").value, destinatario.nome, destinatario.marca);
     await sincronizarAbordagemDaMarca(destinatario.marcaId, assunto);
-    const { error } = await Auth.client.from("email_envios").insert({ email: destinatario.email, assunto, status: "ok" });
+    // Guarda o mesmo conteúdo que foi pro rascunho do Gmail, pra poder reabrir depois em
+    // "Já receberam" — pode não bater 100% se ela editou algo já dentro do Gmail antes de enviar.
+    const corpoHtml = construirHtmlEmailPadrao(
+      trocarVariaveisProspeccao(document.getElementById("prospeccaoCorpoFacil").value, destinatario.nome, destinatario.marca),
+      document.getElementById("prospeccaoBotaoTexto").value.trim(),
+      document.getElementById("prospeccaoBotaoLink").value.trim()
+    );
+    const { error } = await Auth.client.from("email_envios").insert({ email: destinatario.email, assunto, status: "ok", corpo_html: corpoHtml });
     if (error) console.error("Erro ao registrar envio manual no histórico:", error);
     await recarregarEmailEnviosProspeccao();
 
