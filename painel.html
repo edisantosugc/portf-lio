@@ -845,6 +845,15 @@
     flex-shrink: 0;
   }
   .cartao-mensagem-excluir:hover{ color: var(--vermelho); }
+  .cartao-mensagem-proposta{
+    color: var(--texto-suave);
+    text-decoration: none;
+    padding: 4px 6px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+  .cartao-mensagem-proposta:hover{ color: var(--coral); }
   .cartao-mensagem-corpo{
     padding: 4px 16px 18px;
     font-size: .9rem;
@@ -852,6 +861,40 @@
     border-top: 1px solid var(--borda);
   }
   .cartao-mensagem-corpo p{ margin-top: 10px; }
+
+  /* ===== respostas do briefing, por seção (igual ao e-mail) ===== */
+  .brf-secao{ margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--borda); }
+  .brf-secao:first-child{ margin-top: 10px; }
+  .brf-secao-titulo{
+    font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--texto-suave); margin: 0 0 12px;
+  }
+  .brf-pergunta-bloco{ margin-bottom: 16px; }
+  .brf-pergunta-bloco:last-child{ margin-bottom: 0; }
+  .brf-pergunta{ display: block; font-weight: 600; font-size: .86rem; margin-bottom: 8px; color: var(--grafite); }
+  .brf-opcoes{ display: flex; flex-direction: column; gap: 6px; }
+  .brf-opcao{ display: flex; align-items: center; gap: 9px; }
+  .brf-check{
+    width: 15px; height: 15px; border-radius: 4px; border: 1.5px solid var(--borda);
+    background: var(--branco); flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; line-height: 1; color: var(--branco);
+  }
+  .brf-opcao.marcada .brf-check{ background: var(--coral); border-color: var(--coral); }
+  .brf-opcao-texto{ font-size: .84rem; color: var(--texto-suave); }
+  .brf-opcao.marcada .brf-opcao-texto{ color: var(--grafite); font-weight: 600; }
+  .brf-destaque{
+    background: rgba(45,122,79,.28); border-radius: 3px;
+    box-decoration-break: clone; -webkit-box-decoration-break: clone; padding: 1px 3px;
+  }
+  .brf-texto-livre{
+    background: var(--creme); border: 1px solid var(--borda); border-radius: 10px;
+    padding: 10px 12px; font-size: .84rem; color: var(--grafite); line-height: 1.5; white-space: pre-wrap;
+  }
+  .brf-detalhe{
+    margin-top: 8px; margin-left: 2px; padding-left: 12px; border-left: 2px solid var(--borda);
+    font-size: .78rem; color: var(--texto-suave); line-height: 1.5;
+  }
+  .brf-detalhe strong{ color: var(--coral); }
   .cartao-mensagem-acoes{
     display: flex;
     gap: 10px;
@@ -9486,6 +9529,82 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   // e-mail avisando a chegada de uma resposta nova (ver supabase/functions/
   // send-briefing-email/index.ts). Se uma pergunta nova entrar no formulário
   // sem passar a entrar aqui também, o painel só mostra a chave crua.
+  // Espelha a ETAPAS do formulário (formularioadmin/index.html) e a SECOES
+  // da Edge Function send-briefing-email — as três precisam ficar em sincronia
+  // se uma pergunta mudar lá. Usada pra desenhar a resposta do briefing aqui
+  // no painel do mesmo jeito que no e-mail: por seção, com todas as opções
+  // à vista e a marcada em destaque.
+  const SECOES_BRIEFING = [
+    { secao: "Situação atual", campos: [
+      { nome: "organizacao_hoje", pergunta: "Como você organiza isso hoje?", tipo: "radio",
+        opcoes: ["Planilha", "Papel", "Espalhado em vários aplicativos", "Outro"], outro: true, detalhePergunta: "Conta pra mim como é" },
+      { nome: "tentou_antes", pergunta: "Você já tentou resolver isso antes? O que não funcionou?", tipo: "texto_livre" }
+    ]},
+    { secao: "Site (parte pública)", campos: [
+      { nome: "tipo_site", pergunta: "O site vai ter um mini-portfólio/perfil de cada criadora, ou é só institucional?", tipo: "radio",
+        opcoes: ["Mini-portfólio por pessoa", "Só institucional (apresentação da agência/negócio)", "Não preciso de site público"] },
+      { nome: "login_equipe", pergunta: "As pessoas envolvidas vão ter login pra acompanhar algo, ou o acesso logado é só pra você no admin?", tipo: "radio",
+        opcoes: ["Só eu", "Também para a equipe"] }
+    ]},
+    { secao: "Leads", campos: [
+      { nome: "tipo_leads", pergunta: "Os leads que chegam são:", tipo: "radio",
+        opcoes: ["Marcas/clientes querendo contratar", "Pessoas querendo entrar pro time", "Os dois", "Não se aplica"] },
+      { nome: "resposta_leads", pergunta: "Hoje, quando chega um lead, alguém responde na mão, ou você imagina algo mais automático?", tipo: "radio",
+        opcoes: ["Resposta manual", "Automação (sequência de e-mails)", "Não sei ainda"] }
+    ]},
+    { secao: "Disparo de e-mail", campos: [
+      { nome: "objetivo_email", pergunta: "O disparo de e-mail é mais pra:", tipo: "radio",
+        opcoes: ["Nutrir lead (sequência automática)", "Comunicação pontual com sua rede/equipe", "Os dois"] },
+      { nome: "ferramenta_email", pergunta: "Você já usa alguma ferramenta de e-mail hoje, ou quer isso nativo dentro do painel?", tipo: "radio",
+        opcoes: ["Já uso uma ferramenta", "Quero nativo no painel", "Não uso nada ainda"], detalheSe: "Já uso uma ferramenta", detalhePergunta: "Qual ferramenta?" }
+    ]},
+    { secao: "Financeiro", campos: [
+      { nome: "escopo_financeiro", pergunta: "Financeiro pra você é:", tipo: "radio",
+        opcoes: ["Controlar repasse/comissão pra terceiros", "Faturamento do seu negócio", "Tudo junto"] },
+      { nome: "emite_nf_financeiro", pergunta: "Você emite nota fiscal? Isso deve entrar no financeiro do painel?", tipo: "sim_nao" }
+    ]},
+    { secao: "Organizacional", campos: [
+      { nome: "estilo_organizacional", pergunta: "É mais gestão de projeto/campanha por pessoa, ou rotina interna da equipe?", tipo: "radio",
+        opcoes: ["Gestão de campanha (prazo, briefing, aprovação)", "Rotina interna (tarefas, checklist)", "Os dois"] }
+    ]},
+    { secao: "Uso e equipe", campos: [
+      { nome: "quem_usa", pergunta: "O painel será usado só por você, ou mais pessoas também vão utilizá-lo?", tipo: "radio",
+        opcoes: ["Só eu", "Eu + equipe"], detalheSe: "Eu + equipe", detalhePergunta: "Quantas pessoas?" },
+      { nome: "rotina_uso", pergunta: "Como seria a rotina de uso?", tipo: "radio",
+        opcoes: ["Diário", "Semanal", "Uso pontual"] }
+    ]},
+    { secao: "Infraestrutura", campos: [
+      { nome: "dominio", pergunta: "Você prefere ter um domínio próprio, ou começar com um modelo gratuito pra testar antes de investir?", tipo: "radio",
+        opcoes: ["Domínio próprio", "Modelo gratuito", "Não sei, quero orientação"] },
+      { nome: "cnpj_nf", pergunta: "Você tem CNPJ e emite nota fiscal?", tipo: "sim_nao" }
+    ]},
+    { secao: "App e identidade visual", campos: [
+      { nome: "quer_app", pergunta: "Você quer que o painel funcione como um aplicativo no celular?", tipo: "sim_nao" },
+      { nome: "logo_status", pergunta: "Se sim, você já tem uma logo/ícone pronto pra esse aplicativo, ou vai precisar que eu ajude a criar?", tipo: "radio",
+        opcoes: ["Já tenho pronto", "Preciso de ajuda pra criar", "Ainda não pensei nisso"],
+        detalheSe: "Já tenho pronto", detalhePergunta: "Arquivo enviado", arquivo: true },
+      { nome: "quer_notificacoes", pergunta: "Você quer notificações/alertas no painel?", tipo: "sim_nao",
+        detalheSe: "Sim", detalhePergunta: "Do que seriam?" }
+    ]},
+    { secao: "Visão de futuro", campos: [
+      { nome: "visao_crescimento", pergunta: "A longo prazo, você imagina o painel crescendo, ou prefere algo mais enxuto mesmo?", tipo: "radio",
+        opcoes: ["Crescer com o tempo (mais abas, mais automações)", "Enxuto e direto ao ponto"] },
+      { nome: "suporte_pos_entrega", pergunta: "Depois de entregue, você mesma fará pequenos ajustes, ou vai preferir que eu continue dando suporte?", tipo: "radio",
+        opcoes: ["Eu mesma ajusto", "Prefiro suporte contínuo", "Não sei ainda"] }
+    ]},
+    { secao: "Orçamento e prazo", campos: [
+      { nome: "faixa_valor", pergunta: "Você já tem uma ideia de quanto pretende investir, ou prefere que eu apresente as opções primeiro?", tipo: "radio",
+        opcoes: ["Já tenho um valor em mente", "Prefiro ver as opções"], detalheSe: "Já tenho um valor em mente", detalhePergunta: "Qual faixa de valor?" },
+      { nome: "urgencia", pergunta: "Isso é uma prioridade pra resolver logo, ou você está mais numa fase de planejamento?", tipo: "radio",
+        opcoes: ["Preciso resolver logo", "Estou planejando, sem pressa"] },
+      { nome: "prazo_desejado", pergunta: "Quando você gostaria de ter isso em mãos?", tipo: "texto_curto" }
+    ]},
+    { secao: "Resultado esperado", campos: [
+      { nome: "referencia_visual", pergunta: "Existe algum painel ou ferramenta que você já viu e gostou que eu possa usar como referência?", tipo: "texto_livre" },
+      { nome: "definicao_sucesso", pergunta: "O que seria, pra você, o painel \"funcionando bem\"? O que te faria sentir que valeu o investimento?", tipo: "texto_livre" }
+    ]}
+  ];
+
   const ROTULOS_BRIEFING = {
     organizacao_hoje: "Como organiza hoje",
     organizacao_hoje_detalhe: "Detalhe (Outro)",
@@ -9520,6 +9639,95 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     definicao_sucesso: "O que é o painel \"funcionando bem\""
   };
 
+  // Abre o canal de resposta certo a partir do campo livre "contato" do
+  // formulário de briefing (a pessoa digita e-mail OU WhatsApp, sem indicar
+  // qual é). "@" no texto = e-mail; senão, trata como telefone e monta o
+  // link do WhatsApp (assume DDI 55 quando faltam os dois dígitos).
+  function abrirCanalContato(contatoBruto){
+    const contato = (contatoBruto || "").trim();
+    if (!contato) return;
+    if (contato.includes("@")){
+      window.location.href = "mailto:" + contato;
+      return;
+    }
+    let digitos = contato.replace(/\D/g, "");
+    if (digitos.length <= 11) digitos = "55" + digitos;
+    window.open("https://wa.me/" + digitos, "_blank", "noopener");
+  }
+
+  // Desenha a resposta de um campo (pergunta + opções, com a marcada em
+  // destaque) igual ao e-mail que a Edge Function send-briefing-email manda —
+  // mesma lógica, só trocando o HTML de e-mail (estilo inline) pelas classes
+  // CSS "brf-*" do painel.
+  function brfRenderOpcoes(campo, respostas){
+    const valorMarcado = respostas[campo.nome] || "";
+    const opcoes = campo.tipo === "sim_nao" ? ["Sim", "Não"] : (campo.opcoes || []);
+    const itens = opcoes.map(op => {
+      const marcada = op === valorMarcado;
+      const textoHtml = marcada
+        ? `<span class="dado-sensivel"><span class="brf-destaque">${igEscaparHtml(op)}</span></span>`
+        : igEscaparHtml(op);
+      return `<div class="brf-opcao${marcada ? " marcada" : ""}"><span class="brf-check">${marcada ? "✓" : ""}</span><span class="brf-opcao-texto">${textoHtml}</span></div>`;
+    }).join("");
+    return `<div class="brf-opcoes">${itens}</div>`;
+  }
+
+  function brfRenderDetalhe(campo, respostas){
+    const valorMarcado = respostas[campo.nome] || "";
+    if (!campo.detalheSe && !campo.outro) return "";
+    const gatilho = campo.outro ? "Outro" : campo.detalheSe;
+    if (valorMarcado !== gatilho) return "";
+    const rotulo = campo.detalhePergunta || "Detalhe";
+    if (campo.arquivo){
+      const url = respostas[`${campo.nome}_arquivo_url`];
+      if (!url) return "";
+      return `<div class="brf-detalhe"><strong>${igEscaparHtml(rotulo)}:</strong> <a href="${igEscaparHtml(url)}" target="_blank" rel="noopener" class="dado-sensivel">Ver arquivo</a></div>`;
+    }
+    const detalheTexto = respostas[`${campo.nome}_detalhe`];
+    if (!detalheTexto) return "";
+    return `<div class="brf-detalhe"><strong>${igEscaparHtml(rotulo)}:</strong> <span class="dado-sensivel">${igEscaparHtml(String(detalheTexto))}</span></div>`;
+  }
+
+  function brfRenderCampo(campo, respostas){
+    const valor = respostas[campo.nome];
+    if (!valor) return ""; // pergunta condicional que não apareceu pra essa pessoa
+    const perguntaHtml = `<span class="brf-pergunta">${igEscaparHtml(campo.pergunta)}</span>`;
+    const respostaHtml = (campo.tipo === "radio" || campo.tipo === "sim_nao")
+      ? brfRenderOpcoes(campo, respostas)
+      : `<div class="brf-texto-livre dado-sensivel">${igEscaparHtml(String(valor))}</div>`;
+    return `<div class="brf-pergunta-bloco">${perguntaHtml}${respostaHtml}${brfRenderDetalhe(campo, respostas)}</div>`;
+  }
+
+  function renderizarRespostasBriefing(respostas){
+    respostas = respostas || {};
+    const chavesCobertas = new Set();
+    const secoesHtml = SECOES_BRIEFING.map(secao => {
+      const camposHtml = secao.campos.map(c => {
+        chavesCobertas.add(c.nome);
+        chavesCobertas.add(`${c.nome}_detalhe`);
+        chavesCobertas.add(`${c.nome}_arquivo_url`);
+        return brfRenderCampo(c, respostas);
+      }).join("");
+      if (!camposHtml.trim()) return "";
+      return `<div class="brf-secao"><h4 class="brf-secao-titulo">${igEscaparHtml(secao.secao)}</h4>${camposHtml}</div>`;
+    }).join("");
+
+    // Rede de segurança: se uma pergunta nova entrar no formulário sem entrar
+    // aqui em SECOES_BRIEFING, ainda mostra ela (com o rótulo cru) em vez de
+    // sumir silenciosamente.
+    const extrasHtml = Object.entries(respostas)
+      .filter(([chave]) => !chavesCobertas.has(chave))
+      .map(([chave, valor]) => {
+        const valorTexto = String(valor);
+        const valorHtml = valorTexto.startsWith("http")
+          ? `<a href="${igEscaparHtml(valorTexto)}" target="_blank" rel="noopener" class="dado-sensivel">Ver arquivo</a>`
+          : `<span class="dado-sensivel">${igEscaparHtml(valorTexto)}</span>`;
+        return `<p><strong>${igEscaparHtml(ROTULOS_BRIEFING[chave] || chave)}:</strong> ${valorHtml}</p>`;
+      }).join("");
+
+    return (secoesHtml + extrasHtml) || "<p>Sem respostas além do contato.</p>";
+  }
+
   function renderizarBriefing(itens){
     const container = document.getElementById("listaBriefing");
     if (!container) return;
@@ -9542,13 +9750,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       const nomeSeguro = igEscaparHtml(item.nome) || "Sem nome";
       const contatoSeguro = igEscaparHtml(item.contato) || "contato não informado";
 
-      const linhasRespostas = Object.entries(item.respostas || {}).map(([chave, valor]) => {
-        const valorTexto = String(valor);
-        const valorHtml = valorTexto.startsWith("http")
-          ? `<a href="${igEscaparHtml(valorTexto)}" target="_blank" rel="noopener">Ver arquivo</a>`
-          : igEscaparHtml(valorTexto);
-        return `<p><strong>${igEscaparHtml(ROTULOS_BRIEFING[chave] || chave)}:</strong> <span class="dado-sensivel">${valorHtml}</span></p>`;
-      }).join("");
+      const linhasRespostas = renderizarRespostasBriefing(item.respostas);
 
       return `
         <div class="cartao-mensagem ${item.lida ? "" : "nao-lida"}">
@@ -9559,10 +9761,13 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
               <span class="cartao-mensagem-email dado-sensivel">${contatoSeguro}</span>
             </span>
             <span class="cartao-mensagem-data">${data}</span>
+            <button type="button" class="cartao-mensagem-proposta" data-acao="enviar-proposta" title="Enviar proposta" aria-label="Enviar proposta">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </button>
             <button type="button" class="cartao-mensagem-excluir" data-acao="excluir-briefing" aria-label="Excluir resposta">&times;</button>
           </div>
           <div class="cartao-mensagem-corpo oculto" id="briefing-${i}">
-            ${linhasRespostas || "<p>Sem respostas além do contato.</p>"}
+            ${linhasRespostas}
           </div>
         </div>
       `;
@@ -9573,6 +9778,14 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         const corpo = document.getElementById("briefing-" + btn.dataset.idx);
         corpo.classList.toggle("oculto");
         marcarBriefingLido(btn.dataset.id);
+      });
+    });
+
+    container.querySelectorAll("[data-acao='enviar-proposta']").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const idx = Number(btn.closest(".cartao-mensagem-topo").dataset.idx);
+        abrirCanalContato(ordenados[idx].contato);
       });
     });
 
