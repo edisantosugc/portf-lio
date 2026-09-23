@@ -794,9 +794,14 @@
         fecharSidebarMes();
 
         // A Pensão também segue o mês navegado (ver carregarOuCriarPensao) —
-        // busca/gera o registro desse mês específico e redesenha só o card dela
+        // busca/gera o registro desse mês específico e redesenha só o card dela.
+        // Recalcula os totais de novo depois: renderizarSecoesDoMes() já tinha
+        // calculado com a pensão do mês ANTERIOR (essa busca ainda não tinha
+        // voltado), o que deixava "Total com a Pensão" preso sem contar a
+        // pensão certa do mês pra onde você acabou de navegar.
         await carregarOuCriarPensao();
         renderizarPensao();
+        atualizarTotais();
       });
     });
   }

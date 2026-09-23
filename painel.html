@@ -12588,6 +12588,30 @@ ${MODELO_PROPOSTA_HTML}`;
       }
     }
 
+    // Cartão e pessoa são do acordo inteiro, não de uma parcela isolada — mudar só
+    // aqui e deixar as outras parcelas do grupo com o valor antigo é o que fazia
+    // parcelas "sumirem" quando a tela é filtrada por cartão. Por isso, se algum
+    // dos dois mudou, aplica em todas as parcelas do mesmo grupo (passadas e futuras).
+    if (lancamento && lancamento.grupo_parcela && (dados.cartao !== lancamento.cartao || dados.pessoa !== lancamento.pessoa)){
+      const confirmado = confirm(
+        `Essa compra é parcelada (${lancamento.parcela_atual}/${lancamento.parcela_total}). ` +
+        `Mudar o cartão ou a pessoa aqui vai atualizar TODAS as parcelas desse grupo (passadas e futuras), ` +
+        `pra elas não ficarem divergentes entre si. Confirma?`
+      );
+      if (!confirmado) return;
+
+      const { error: erroGrupo } = await Auth.client
+        .from("financas_lancamentos")
+        .update({ cartao: dados.cartao, pessoa: dados.pessoa })
+        .eq("grupo_parcela", lancamento.grupo_parcela);
+
+      if (erroGrupo) return;
+
+      lancamentosCache = lancamentosCache.map(l =>
+        l.grupo_parcela === lancamento.grupo_parcela ? { ...l, cartao: dados.cartao, pessoa: dados.pessoa } : l
+      );
+    }
+
     const { error } = await Auth.client
       .from("financas_lancamentos")
       .update(dados)
