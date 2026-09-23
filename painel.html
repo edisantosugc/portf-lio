@@ -854,6 +854,67 @@
     align-items: center;
   }
   .cartao-mensagem-proposta:hover{ color: var(--coral); }
+
+  .botao-gerar-proposta{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--coral);
+    color: var(--branco);
+    border: none;
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: .78rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .botao-gerar-proposta:hover{ background: var(--coral-escuro); }
+  .botao-gerar-proposta svg{ width: 14px; height: 14px; flex-shrink: 0; }
+
+  .prompt-instrucao{ font-size: .85rem; color: var(--texto-suave); }
+  .prompt-textarea{
+    width: 100%;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: .78rem;
+    line-height: 1.6;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--borda);
+    background: var(--creme);
+    color: var(--grafite);
+    resize: vertical;
+  }
+
+  .canal-badge{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .8rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 50px;
+    background: var(--creme);
+    color: var(--coral);
+    width: fit-content;
+  }
+  .previa-mensagem{
+    background: var(--creme);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: .85rem;
+    white-space: pre-wrap;
+    line-height: 1.55;
+  }
+  .previa-mensagem .assunto-previa{ display: block; font-weight: 700; margin-bottom: 6px; }
+  .previa-mensagem a{ color: var(--coral); }
+  .envio-nota{ font-size: .78rem; color: var(--texto-suave); }
+  .envio-resultado{ font-size: .82rem; padding: 10px 12px; border-radius: 8px; background: var(--creme); }
+  .envio-resultado.erro{ background: #fbe9e7; color: var(--vermelho); }
+  .envio-resultado.sucesso{ background: #e6f4ea; color: var(--verde); }
   .cartao-mensagem-corpo{
     padding: 4px 16px 18px;
     font-size: .9rem;
@@ -5405,6 +5466,53 @@
       </div>
     </div>
 
+    <!-- Modal: prompt pra gerar a proposta de um briefing, pronto pra colar no Claude -->
+    <div class="ugc-modal-overlay oculto" id="modalGerarProposta" role="dialog" aria-modal="true" aria-labelledby="modalGerarPropostaTitulo">
+      <div class="cliente-modal-cartao largo">
+        <div class="cliente-modal-topo">
+          <h2 id="modalGerarPropostaTitulo">Prompt pra gerar a proposta</h2>
+          <button type="button" class="cliente-modal-fechar" id="modalGerarPropostaFechar" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="cliente-modal-corpo">
+          <p class="prompt-instrucao">Copia este texto e cola numa conversa nova com o Claude. Já traz todas as respostas do briefing e a instrução de seguir o modelo padrão de proposta.</p>
+          <textarea id="textoPromptGerado" class="prompt-textarea" readonly rows="14"></textarea>
+          <div style="display:flex; justify-content:flex-end;">
+            <button type="button" class="botao-add-tarefa" id="botaoCopiarPrompt">Copiar prompt</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: revisar a mensagem (WhatsApp ou e-mail, detectado pelo contato) antes de mandar a proposta -->
+    <div class="ugc-modal-overlay oculto" id="modalEnviarProposta" role="dialog" aria-modal="true" aria-labelledby="modalEnviarPropostaTitulo">
+      <div class="cliente-modal-cartao largo">
+        <div class="cliente-modal-topo">
+          <h2 id="modalEnviarPropostaTitulo">Enviar proposta</h2>
+          <button type="button" class="cliente-modal-fechar" id="modalEnviarPropostaFechar" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="cliente-modal-corpo">
+          <span class="canal-badge" id="canalBadgeEnvio"></span>
+
+          <div class="ugc-campo" id="campoAssuntoEnvio">
+            <label>Assunto</label>
+            <input type="text" id="inputAssuntoEnvio">
+          </div>
+          <div class="ugc-campo">
+            <label id="rotuloMensagemEnvio">Mensagem</label>
+            <textarea id="inputMensagemEnvio" rows="7"></textarea>
+          </div>
+
+          <div>
+            <div class="cliente-secao-rotulo" style="margin-bottom:8px;">Prévia</div>
+            <div class="previa-mensagem" id="previaMensagemEnvio"></div>
+          </div>
+
+          <div id="envioResultado" class="envio-resultado oculto"></div>
+        </div>
+        <div class="cliente-modal-rodape" id="envioRodape"></div>
+      </div>
+    </div>
+
     <!-- Modal: revisar marcas antes de importar o CSV -->
     <div class="ugc-modal-overlay oculto" id="marcasModalRevisaoImportacao" role="dialog" aria-modal="true" aria-labelledby="marcasModalRevisaoImportacaoTitulo">
       <div class="cliente-modal-cartao largo">
@@ -8590,6 +8698,27 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("linksModalCancelar").addEventListener("click", fecharModalLink);
     document.getElementById("linksModalSalvar").addEventListener("click", salvarLink);
     document.getElementById("linksBotaoAddCategoria").addEventListener("click", criarCategoriaLink);
+
+    document.getElementById("modalGerarPropostaFechar").addEventListener("click", () => {
+      document.getElementById("modalGerarProposta").classList.add("oculto");
+    });
+    document.getElementById("botaoCopiarPrompt").addEventListener("click", async () => {
+      const btn = document.getElementById("botaoCopiarPrompt");
+      const textarea = document.getElementById("textoPromptGerado");
+      try {
+        await navigator.clipboard.writeText(textarea.value);
+        btn.textContent = "Copiado!";
+        setTimeout(() => { btn.textContent = "Copiar prompt"; }, 2000);
+      } catch (e) {
+        textarea.select();
+      }
+    });
+
+    document.getElementById("modalEnviarPropostaFechar").addEventListener("click", () => {
+      document.getElementById("modalEnviarProposta").classList.add("oculto");
+    });
+    document.getElementById("inputAssuntoEnvio").addEventListener("input", atualizarPreviaEnvio);
+    document.getElementById("inputMensagemEnvio").addEventListener("input", atualizarPreviaEnvio);
     document.getElementById("linksCampoCategoria").addEventListener("change", (e) => {
       document.getElementById("linksNovaCategoriaWrap").classList.toggle("oculto", e.target.value !== VALOR_NOVA_CATEGORIA_LINK);
     });
@@ -9639,20 +9768,33 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     definicao_sucesso: "O que é o painel \"funcionando bem\""
   };
 
-  // Abre o canal de resposta certo a partir do campo livre "contato" do
+  // Detecta o canal de resposta a partir do campo livre "contato" do
   // formulário de briefing (a pessoa digita e-mail OU WhatsApp, sem indicar
-  // qual é). "@" no texto = e-mail; senão, trata como telefone e monta o
-  // link do WhatsApp (assume DDI 55 quando faltam os dois dígitos).
-  function abrirCanalContato(contatoBruto){
+  // qual é). "@" no texto = e-mail; senão, trata como telefone (assume DDI
+  // 55 quando faltam os dois dígitos do país). Usado tanto pelo ícone rápido
+  // de contato quanto pelo fluxo de "Enviar proposta" (abrirModalEnviarProposta).
+  function detectarCanalContato(contatoBruto){
     const contato = (contatoBruto || "").trim();
-    if (!contato) return;
-    if (contato.includes("@")){
-      window.location.href = "mailto:" + contato;
-      return;
-    }
+    if (!contato) return null;
+    if (contato.includes("@")) return { tipo: "email", valor: contato };
     let digitos = contato.replace(/\D/g, "");
+    if (!digitos) return null;
     if (digitos.length <= 11) digitos = "55" + digitos;
-    window.open("https://wa.me/" + digitos, "_blank", "noopener");
+    return { tipo: "whatsapp", valor: digitos, valorExibicao: contato };
+  }
+
+  const ICONE_LINK_PROPOSTA = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+
+  // Monta o ícone rápido de contato (abre direto, sem revisar mensagem) a
+  // partir do canal detectado.
+  function botaoPropostaHtml(contatoBruto){
+    const canal = detectarCanalContato(contatoBruto);
+    if (!canal) return "";
+    if (canal.tipo === "email"){
+      const href = igEscaparHtml("mailto:" + canal.valor);
+      return `<a class="cartao-mensagem-proposta" href="${href}" title="Enviar proposta por e-mail" aria-label="Enviar proposta por e-mail">${ICONE_LINK_PROPOSTA}</a>`;
+    }
+    return `<a class="cartao-mensagem-proposta" href="https://wa.me/${canal.valor}" target="_blank" rel="noopener" title="Enviar proposta por WhatsApp" aria-label="Enviar proposta por WhatsApp">${ICONE_LINK_PROPOSTA}</a>`;
   }
 
   // Desenha a resposta de um campo (pergunta + opções, com a marcada em
@@ -9728,6 +9870,667 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     return (secoesHtml + extrasHtml) || "<p>Sem respostas além do contato.</p>";
   }
 
+  // HTML completo da proposta-modelo (edilainesantos.com/portfolio, proposta
+  // da Julia Trindade), anexado por inteiro no prompt de "Gerar proposta com
+  // Claude" pra ele reaproveitar o mesmo layout/paleta/estrutura num cliente novo.
+  const MODELO_PROPOSTA_HTML = `<title>Proposta Julia Trindade</title>
+<style>
+  :root{
+    --creme: #f3eee9;
+    --creme-escuro: #ccc2bc;
+    --dourado: #d4af37;
+    --navy: #000080;
+    --navy-suave: #1a1a8f;
+    --tinta: #2a2622;
+    --tinta-suave: #5c554d;
+    --branco: #ffffff;
+    --sombra-dura: 6px 6px 0 var(--tinta);
+    --sombra-dura-sm: 4px 4px 0 var(--tinta);
+    color-scheme: light;
+  }
+
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    background: var(--creme);
+    color: var(--tinta);
+    font-family: 'Lato', sans-serif;
+    line-height: 1.65;
+    font-size: 16px;
+    padding-inline: 24px;
+    padding-block: max(48px, env(safe-area-inset-top, 0px)) max(48px, env(safe-area-inset-bottom, 0px));
+  }
+
+  img, svg{ max-width: 100%; display: block; }
+  a{ color: inherit; text-decoration: none; }
+  ul{ list-style: none; }
+
+  h1, h2, h3{
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    line-height: 1.15;
+    text-wrap: balance;
+    color: var(--tinta);
+  }
+
+  .marcador{
+    font-family: 'Alex Brush', cursive;
+    font-weight: 400;
+    color: var(--navy);
+  }
+
+  .wrap{ max-width: 780px; margin: 0 auto; }
+
+  a:focus-visible, button:focus-visible{
+    outline: 3px dashed var(--navy);
+    outline-offset: 3px;
+  }
+
+  /* ---------- Cabeçalho ---------- */
+  .capa{
+    padding-block: 8px 44px;
+    border-bottom: 3px solid var(--tinta);
+    margin-bottom: 48px;
+  }
+  .capa .eyebrow{
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: .78rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-bottom: 18px;
+  }
+  .capa h1{
+    font-size: clamp(2.1rem, 6vw, 3.1rem);
+    margin-bottom: 6px;
+  }
+  .capa .subtitulo{
+    font-size: 1.05rem;
+    color: var(--tinta-suave);
+    max-width: 46ch;
+    margin-bottom: 22px;
+  }
+  .capa .meta{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+    font-family: 'Oswald', sans-serif;
+    font-size: .82rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--tinta-suave);
+  }
+  .capa .meta strong{ color: var(--tinta); }
+
+  /* ---------- Seções ---------- */
+  section{ margin-bottom: 56px; }
+  .tag{
+    display: inline-block;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: .75rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--navy);
+    background: var(--branco);
+    border: 2px solid var(--tinta);
+    padding: 5px 14px;
+    margin-bottom: 14px;
+  }
+  h2{ font-size: clamp(1.5rem, 4vw, 1.9rem); margin-bottom: 10px; }
+  .lead{ color: var(--tinta-suave); max-width: 58ch; margin-bottom: 28px; }
+
+  /* ---------- Card site institucional ---------- */
+  .card-site{
+    background: var(--branco);
+    border: 3px solid var(--tinta);
+    box-shadow: var(--sombra-dura);
+    padding: 28px 26px;
+  }
+  .card-site h3{ font-size: 1.2rem; margin-bottom: 10px; }
+  .card-site p{ color: var(--tinta-suave); }
+  .card-site .nota{
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--creme-escuro);
+    font-size: .9rem;
+    color: var(--navy-suave);
+    font-style: italic;
+  }
+
+  /* ---------- Grid painel admin ---------- */
+  .grid-painel{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+  @media (max-width: 620px){
+    .grid-painel{ grid-template-columns: 1fr; }
+  }
+  .feature{
+    background: var(--branco);
+    border: 2px solid var(--tinta);
+    padding: 20px 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .feature .icone{
+    width: 38px; height: 38px;
+    border: 2px solid var(--tinta);
+    background: var(--creme);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--navy);
+    flex-shrink: 0;
+  }
+  .feature .icone svg{ width: 20px; height: 20px; }
+  .feature h3{
+    font-size: 1rem;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: .01em;
+  }
+  .feature p{ font-size: .92rem; color: var(--tinta-suave); }
+
+  /* ---------- Investimento ---------- */
+  .invest-box{
+    background: var(--tinta);
+    color: var(--creme);
+    border: 3px solid var(--tinta);
+    box-shadow: var(--sombra-dura);
+    padding: 34px 30px;
+  }
+  .invest-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 22px;
+  }
+  @media (max-width: 560px){
+    .invest-grid{ grid-template-columns: 1fr; }
+  }
+  .invest-item .rotulo{
+    font-family: 'Oswald', sans-serif;
+    font-size: .75rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--dourado);
+    margin-bottom: 8px;
+  }
+  .invest-item .valor{
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(1.8rem, 5vw, 2.3rem);
+    font-weight: 700;
+    color: var(--branco);
+    margin-bottom: 6px;
+  }
+  .invest-item .desc{ font-size: .92rem; color: #d8d2c8; }
+  .invest-obs{
+    border-top: 1px solid #4a453f;
+    padding-top: 18px;
+    font-size: .88rem;
+    color: #c9c2b6;
+  }
+  .invest-obs strong{ color: var(--dourado); }
+
+  /* ---------- Prazo ---------- */
+  .prazo-box{
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    background: var(--branco);
+    border: 2px solid var(--tinta);
+    padding: 24px 26px;
+  }
+  .prazo-num{
+    font-family: 'Oswald', sans-serif;
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .prazo-num span{ font-size: 1rem; display: block; color: var(--tinta-suave); font-family: 'Lato', sans-serif; font-weight: 400; margin-top: 4px; }
+  .prazo-texto{ color: var(--tinta-suave); font-size: .95rem; }
+
+  /* ---------- Checklist "pra começar" ---------- */
+  .checklist{ display: flex; flex-direction: column; gap: 14px; }
+  .checklist li{
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: var(--branco);
+    border: 2px solid var(--tinta);
+    padding: 18px 20px;
+  }
+  .checklist .num{
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--branco);
+    background: var(--navy);
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .checklist h3{ font-size: 1rem; margin-bottom: 4px; }
+  .checklist p{ font-size: .92rem; color: var(--tinta-suave); }
+
+  /* ---------- CTA final ---------- */
+  .cta-final{
+    text-align: center;
+    padding-top: 12px;
+  }
+  .cta-final .marcador{ font-size: 1.6rem; display: block; margin-bottom: 10px; }
+  .cta-final h2{ margin-bottom: 12px; }
+  .cta-final p{ color: var(--tinta-suave); max-width: 46ch; margin: 0 auto 28px; }
+  .pill-btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    padding: 16px 36px;
+    background: var(--navy);
+    color: var(--branco);
+    border: 3px solid var(--tinta);
+    box-shadow: var(--sombra-dura-sm);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .pill-btn:hover{
+    transform: translate(-2px,-2px);
+    box-shadow: 6px 6px 0 var(--tinta);
+  }
+  .pill-btn svg{ width: 18px; height: 18px; }
+
+  footer{
+    margin-top: 60px;
+    padding-top: 22px;
+    border-top: 1px solid var(--creme-escuro);
+    text-align: center;
+    font-size: .85rem;
+    color: var(--tinta-suave);
+  }
+  footer strong{ color: var(--tinta); }
+  footer .footer-email{ margin-top: 6px; }
+  footer .footer-email a{ text-decoration: underline; text-underline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce){
+    .pill-btn{ transition: none; }
+  }
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Oswald:wght@700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+
+<div class="wrap">
+
+  <header class="capa">
+    <div class="eyebrow">Proposta comercial</div>
+    <h1>Julia Trindade</h1>
+    <p class="subtitulo">Site institucional + Painel Admin para a agência exclusiva de mães criadoras de conteúdo.</p>
+    <div class="meta">
+      <span>Elaborado por <strong>Edilaine Santos</strong></span>
+      <span>Setembro de 2026</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="tag">Escopo · Site</div>
+    <h2>Site institucional</h2>
+    <p class="lead">A vitrine da agência, pensada pra transmitir confiança pra marcas que estão avaliando contratar.</p>
+    <div class="card-site">
+      <h3>Apresentação da agência Julia Trindade</h3>
+      <p>Página institucional que apresenta a agência como marca; não são perfis individuais de cada criadora. O foco é mostrar quem você é, o que a agência entrega e por que uma marca deveria te contratar.</p>
+      <p class="nota">Pra montar a identidade visual, preciso da paleta de cores da agência (ver seção "Pra começar" mais abaixo).</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="tag">Escopo · Painel</div>
+    <h2>Painel Admin</h2>
+    <p class="lead">O motor por trás da agência: onde você e sua equipe gerenciam leads, dinheiro, campanhas e a rotina do time, todo dia.</p>
+
+    <div class="grid-painel">
+
+      <div class="feature">
+        <div class="icone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 9v6l-4 2v-8L3 4z"/></svg>
+        </div>
+        <h3>Leads</h3>
+        <p>Dois formulários dedicados: marcas querendo contratar e pessoas querendo entrar pro time. Cada lead cai direto no funil certo, organizado por etapa.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 6l9 7 9-7"/></svg>
+        </div>
+        <h3>Disparo de e-mail</h3>
+        <p>Nativo no painel: escolha a lista, escreva o texto com variáveis como {{nome}} e {{marca}}, veja o preview e dispare em lote.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="13" rx="1.5"/><path d="M2.5 10h19"/><circle cx="16.5" cy="14.2" r="1.4" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <h3>Financeiro</h3>
+        <p>Controle de repasses e comissões das criadoras, faturamento geral do negócio e uma aba própria pra nota fiscal.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+        </div>
+        <h3>Organizacional</h3>
+        <p>Gestão de campanha com prazo, briefing e aprovação, mais a rotina interna do time: tarefas e checklist personalizado do dia a dia.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><path d="M2.5 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="8.5" r="2.3"/><path d="M15 14.2c2.6.2 4.7 2.5 4.7 5.3"/></svg>
+        </div>
+        <h3>Multiusuário</h3>
+        <p>Acesso pra você e sua equipe (4 pessoas), tanto no site quanto no painel. Cada uma entra com seu próprio login.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.4 3.8 5.6 3.8 9S14.5 20.6 12 23M12 3C9.5 5.4 8.2 8.6 8.2 12S9.5 20.6 12 23"/></svg>
+        </div>
+        <h3>Infraestrutura</h3>
+        <p>Tudo publicado no domínio que a agência já tem hoje.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg>
+        </div>
+        <h3>App (PWA)</h3>
+        <p>O painel funciona como aplicativo: ícone na tela inicial do celular, abre em tela cheia, com a logo da agência.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a5 5 0 0 0-5 5v3.5c0 .8-.3 1.6-.9 2.2L4.5 15.5h15L18 13.7c-.6-.6-.9-1.4-.9-2.2V8a5 5 0 0 0-5-5z"/><path d="M9.5 18.5a2.5 2.5 0 0 0 5 0"/></svg>
+        </div>
+        <h3>Notificações</h3>
+        <p>Alertas automáticos pra lead novo, movimentação financeira e prazo chegando.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="tag">Investimento</div>
+    <h2>Valores</h2>
+    <div class="invest-box">
+      <div class="invest-grid">
+        <div class="invest-item">
+          <div class="rotulo">Desenvolvimento completo</div>
+          <div class="valor">R$ 800,00</div>
+          <div class="desc">Pagamento único que inclui tudo o que está listado no escopo acima.</div>
+        </div>
+        <div class="invest-item">
+          <div class="rotulo">Manutenção mensal</div>
+          <div class="valor">R$ 50,00<span style="font-size:.5em; font-weight:400;">/mês</span></div>
+          <div class="desc">Cobre ajustes e correção de bugs apenas no painel já criado.</div>
+        </div>
+      </div>
+      <div class="invest-obs">
+        <strong>Fora da recorrência:</strong> qualquer alteração no site já finalizado (layout, textos, imagens etc.) e a criação de aba ou função nova no painel são orçadas à parte, sob demanda.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="tag">Prazo</div>
+    <h2>Entrega</h2>
+    <div class="prazo-box">
+      <div class="prazo-num">45<span>dias</span></div>
+      <div class="prazo-texto">Contados a partir da aprovação desta proposta e da confirmação do pagamento.</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="tag">Pra começar</div>
+    <h2>O que eu preciso de você</h2>
+    <p class="lead">Duas coisas liberam o início do desenvolvimento:</p>
+    <ul class="checklist">
+      <li>
+        <div class="num">1</div>
+        <div>
+          <h3>Rotina e organização da empresa</h3>
+          <p>Como funciona o dia a dia da agência, checklist da equipe e organização da semana — é a base pra montar a aba Organizacional do jeito que vocês realmente trabalham.</p>
+        </div>
+      </li>
+      <li>
+        <div class="num">2</div>
+        <div>
+          <h3>Paleta de cores do site</h3>
+          <p>Nome de cada cor e o código hexadecimal (#) — é o que define a identidade visual do site institucional.</p>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="cta-final">
+    <span class="marcador">Vamos começar?</span>
+    <h2>Aprove a proposta e me manda a rotina da agência + a paleta de cores</h2>
+    <p>Assim que eu receber essas duas informações e o pagamento, o desenvolvimento começa e a entrega sai em até 45 dias.</p>
+    <a class="pill-btn" href="https://wa.me/5519993842684?text=Oi%20Edi!%20Vi%20a%20proposta%20do%20site%20%2B%20painel%20admin%20pra%20minha%20ag%C3%AAncia%20e%20quero%20conversar%20sobre%20os%20pr%C3%B3ximos%20passos." target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.1.2-.3.2-.6.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.3-.4.1-.2 0-.4 0-.5-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2.1 3.2 5 4.4.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.6.2-1.2.2-1.3-.1-.2-.3-.2-.6-.3z"/><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>
+      Falar sobre a proposta
+    </a>
+  </section>
+
+  <footer>
+    Elaborado por <strong>Edilaine Santos</strong>
+    <div class="footer-email"><a href="mailto:edilainesantosugc@gmail.com">edilainesantosugc@gmail.com</a></div>
+  </footer>
+
+</div>`;
+
+  // Monta o prompt completo (todas as respostas do briefing, por seção, + o
+  // modelo padrão anexado) pronto pra colar numa conversa nova com o Claude.
+  function montarPromptProposta(item){
+    const nome = item.nome || "Sem nome";
+    const contato = item.contato || "não informado";
+    const respostas = item.respostas || {};
+
+    const blocos = SECOES_BRIEFING.map(secao => {
+      const linhas = secao.campos
+        .map(campo => {
+          const valor = respostas[campo.nome];
+          if (!valor) return null;
+          const rotulo = ROTULOS_BRIEFING[campo.nome] || campo.pergunta;
+          return `${rotulo}: ${valor}`;
+        })
+        .filter(Boolean);
+      if (!linhas.length) return null;
+      return `${secao.secao.toUpperCase()}\n${linhas.join("\n")}`;
+    }).filter(Boolean).join("\n\n");
+
+    return `Crie uma proposta comercial em página única para o cliente descrito abaixo, seguindo EXATAMENTE o layout, a paleta de cores, a tipografia e a estrutura de seções do modelo HTML em anexo.
+
+IMPORTANTE: o modelo anexado é só REFERÊNCIA VISUAL — foi feito pra outro cliente (Julia Trindade) e não tem nenhuma relação com o cliente de agora. Não reaproveite nome, contato, textos, escopo, valores, prazo ou qualquer conteúdo específico do modelo. Todo o conteúdo da proposta nova (nome, escopo, investimento, prazo, etc.) vem exclusivamente das respostas do cliente abaixo — o modelo empresta só o visual.
+
+CLIENTE
+Nome: ${nome}
+Contato: ${contato}
+
+${blocos}
+
+MODELO HTML DE REFERÊNCIA (copie o layout/cores/estrutura, nunca o conteúdo):
+${MODELO_PROPOSTA_HTML}`;
+  }
+
+  function abrirModalGerarProposta(item){
+    document.getElementById("textoPromptGerado").value = montarPromptProposta(item);
+    document.getElementById("modalGerarProposta").classList.remove("oculto");
+  }
+
+  async function salvarPropostaUrl(id, url){
+    const item = briefingCache.find(b => b.id === id);
+    if (!item) return;
+    const { error } = await Auth.client
+      .from("painel_briefing_respostas")
+      .update({ proposta_url: url })
+      .eq("id", id);
+    if (error){
+      alert("Não consegui salvar o link. Tenta de novo.");
+      return;
+    }
+    item.proposta_url = url;
+    renderizarBriefing(briefingCache);
+  }
+
+  // Estado do modal de envio (canal detectado + o item de briefing atual),
+  // usado pelos handlers de input/preview/envio enquanto o modal está aberto.
+  let propostaEnvioAtual = null;
+
+  function abrirModalEnviarProposta(item){
+    const canal = detectarCanalContato(item.contato);
+    if (!canal){
+      alert("Esse briefing não tem e-mail nem WhatsApp preenchido.");
+      return;
+    }
+    propostaEnvioAtual = { item, canal };
+
+    const nomeCurto = (item.nome || "").trim().split(" ")[0] || "";
+    const link = item.proposta_url || "";
+
+    const badge = document.getElementById("canalBadgeEnvio");
+    const campoAssunto = document.getElementById("campoAssuntoEnvio");
+    const inputAssunto = document.getElementById("inputAssuntoEnvio");
+    const rotuloMensagem = document.getElementById("rotuloMensagemEnvio");
+    const inputMensagem = document.getElementById("inputMensagemEnvio");
+    const envioResultado = document.getElementById("envioResultado");
+    envioResultado.classList.add("oculto");
+    envioResultado.textContent = "";
+
+    if (canal.tipo === "email"){
+      badge.textContent = "✉️ E-mail — " + canal.valor;
+      campoAssunto.classList.remove("oculto");
+      inputAssunto.value = `Sua proposta está pronta${nomeCurto ? ", " + nomeCurto : ""}!`;
+      rotuloMensagem.textContent = "Corpo do e-mail";
+      inputMensagem.value = `Oi${nomeCurto ? " " + nomeCurto : ""}, tudo bem?\n\nTerminei de montar sua proposta, com tudo que a gente alinhou no briefing.\n\nVocê pode ver aqui: ${link}\n\nQualquer dúvida, é só responder este e-mail.\n\nUm abraço,\nEdilaine`;
+    } else {
+      badge.textContent = "📱 WhatsApp — " + canal.valorExibicao;
+      campoAssunto.classList.add("oculto");
+      rotuloMensagem.textContent = "Mensagem";
+      inputMensagem.value = `Oi${nomeCurto ? " " + nomeCurto : ""}! Tudo bem? Terminei de montar sua proposta, com tudo que a gente conversou no briefing 🙂\n\nDá uma olhada: ${link}\n\nQualquer dúvida, me chama por aqui mesmo!`;
+    }
+
+    montarRodapeEnvio(canal.tipo);
+    atualizarPreviaEnvio();
+    document.getElementById("modalEnviarProposta").classList.remove("oculto");
+  }
+
+  // Monta os botões de ação do rodapé conforme o canal: e-mail tem "enviar
+  // direto" (Resend) e "abrir rascunho no Gmail" (sem Resend), igual às duas
+  // opções do Disparo de E-mails; WhatsApp só abre a conversa pronta — não
+  // existe integração de envio automático por WhatsApp neste painel.
+  function montarRodapeEnvio(tipo){
+    const rodape = document.getElementById("envioRodape");
+    if (tipo === "email"){
+      rodape.innerHTML = `
+        <a class="btn-fantasma" id="linkAbrirGmail" href="#" target="_blank" rel="noopener" style="text-decoration:none; display:inline-flex; align-items:center;">Abrir rascunho no Gmail</a>
+        <button type="button" class="botao-add-tarefa" id="botaoEnviarAgora">Enviar agora</button>
+      `;
+      document.getElementById("botaoEnviarAgora").addEventListener("click", enviarPropostaPorEmail);
+    } else {
+      rodape.innerHTML = `<a class="botao-add-tarefa" id="linkAbrirWhats" href="#" target="_blank" rel="noopener" style="text-decoration:none; display:inline-flex; align-items:center;">Abrir WhatsApp com esta mensagem</a>`;
+      document.getElementById("linkAbrirWhats").addEventListener("click", () => {
+        const resultado = document.getElementById("envioResultado");
+        resultado.textContent = "📱 Aberto! O envio final é seu, lá dentro do WhatsApp.";
+        resultado.className = "envio-resultado sucesso";
+        resultado.classList.remove("oculto");
+      });
+    }
+  }
+
+  // Recalcula a prévia e os links dinâmicos (Gmail / WhatsApp) toda vez que
+  // ela edita assunto ou mensagem, antes de mandar de verdade.
+  function atualizarPreviaEnvio(){
+    if (!propostaEnvioAtual) return;
+    const { canal } = propostaEnvioAtual;
+    const assunto = document.getElementById("inputAssuntoEnvio").value;
+    const mensagem = document.getElementById("inputMensagemEnvio").value;
+    const previa = document.getElementById("previaMensagemEnvio");
+
+    const corpoPreviaHtml = igEscaparHtml(mensagem)
+      .replace(/(https?:\/\/[^\s<]+)/g, (url) => `<a href="${url}" target="_blank" rel="noopener">${url}</a>`)
+      .replace(/\n/g, "<br>");
+
+    if (canal.tipo === "email"){
+      previa.innerHTML = `<span class="assunto-previa">${igEscaparHtml(assunto)}</span>${corpoPreviaHtml}`;
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(canal.valor)}&su=${encodeURIComponent(assunto)}&body=${encodeURIComponent(mensagem)}`;
+      const linkGmail = document.getElementById("linkAbrirGmail");
+      if (linkGmail) linkGmail.href = gmailUrl;
+    } else {
+      previa.innerHTML = corpoPreviaHtml;
+      const whatsUrl = `https://wa.me/${canal.valor}?text=${encodeURIComponent(mensagem)}`;
+      const linkWhats = document.getElementById("linkAbrirWhats");
+      if (linkWhats) linkWhats.href = whatsUrl;
+    }
+  }
+
+  // Manda de verdade pelo Resend — mesma Edge Function do Disparo de E-mails,
+  // só que com um destinatário só.
+  async function enviarPropostaPorEmail(){
+    if (!propostaEnvioAtual || propostaEnvioAtual.canal.tipo !== "email") return;
+    const btn = document.getElementById("botaoEnviarAgora");
+    const resultado = document.getElementById("envioResultado");
+    const assunto = document.getElementById("inputAssuntoEnvio").value.trim();
+    const mensagem = document.getElementById("inputMensagemEnvio").value.trim();
+    const nome = (propostaEnvioAtual.item.nome || "").trim();
+    const destinatario = propostaEnvioAtual.canal.valor;
+
+    if (!assunto || !mensagem){
+      alert("Preenche assunto e mensagem antes de enviar.");
+      return;
+    }
+
+    const corpoHtml = igEscaparHtml(mensagem)
+      .replace(/(https?:\/\/[^\s<]+)/g, (url) => `<a href="${url}">${url}</a>`)
+      .replace(/\n/g, "<br>");
+    const htmlFinal = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#2a2622;">${corpoHtml}</div>`;
+
+    btn.disabled = true;
+    btn.textContent = "Enviando...";
+    resultado.classList.add("oculto");
+
+    try {
+      const { data, error } = await Auth.client.functions.invoke("enviar-emails", {
+        body: { destinatarios: [{ email: destinatario, nome }], assunto, html: htmlFinal }
+      });
+      if (error) throw error;
+      if (data?.enviados > 0){
+        resultado.textContent = "✅ E-mail enviado!";
+        resultado.className = "envio-resultado sucesso";
+      } else if (data?.cotaEsgotada){
+        resultado.textContent = 'A cota diária do Resend acabou. Tenta de novo amanhã, ou usa "Abrir rascunho no Gmail".';
+        resultado.className = "envio-resultado erro";
+      } else {
+        resultado.textContent = 'Não deu pra enviar. Tenta de novo ou usa "Abrir rascunho no Gmail".';
+        resultado.className = "envio-resultado erro";
+      }
+    } catch (erro) {
+      console.error("Erro ao enviar proposta por e-mail:", erro);
+      resultado.textContent = 'Erro ao enviar. Tenta de novo ou usa "Abrir rascunho no Gmail".';
+      resultado.className = "envio-resultado erro";
+    } finally {
+      resultado.classList.remove("oculto");
+      btn.disabled = false;
+      btn.textContent = "Enviar agora";
+    }
+  }
+
   function renderizarBriefing(itens){
     const container = document.getElementById("listaBriefing");
     if (!container) return;
@@ -9752,6 +10555,11 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
       const linhasRespostas = renderizarRespostasBriefing(item.respostas);
 
+      const linkPropostaHtml = item.proposta_url
+        ? `<div class="ugc-chip-anexo">🔗 <a href="${igEscaparHtml(item.proposta_url)}" target="_blank" rel="noopener">Ver proposta</a></div>
+           <button type="button" class="ugc-btn" data-acao="enviar-proposta-composta" data-id="${item.id}" style="margin-top:8px;">Enviar proposta</button>`
+        : `<div class="ugc-input-briefing" style="margin-top:12px;"><input type="text" placeholder="Cole o link da proposta" data-proposta-link-input="${item.id}"><button type="button" class="ugc-btn" data-acao="salvar-proposta-link" data-id="${item.id}">Salvar</button></div>`;
+
       return `
         <div class="cartao-mensagem ${item.lida ? "" : "nao-lida"}">
           <div class="cartao-mensagem-topo" data-idx="${i}" data-id="${item.id}">
@@ -9760,14 +10568,17 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
               <span class="cartao-mensagem-nome dado-sensivel">${nomeSeguro}</span>
               <span class="cartao-mensagem-email dado-sensivel">${contatoSeguro}</span>
             </span>
-            <span class="cartao-mensagem-data">${data}</span>
-            <button type="button" class="cartao-mensagem-proposta" data-acao="enviar-proposta" title="Enviar proposta" aria-label="Enviar proposta">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <button type="button" class="botao-gerar-proposta" data-acao="gerar-proposta" title="Gerar proposta com Claude">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10M12 13l-3.5-3.5M12 13l3.5-3.5"/><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
+              Gerar proposta com Claude
             </button>
+            <span class="cartao-mensagem-data">${data}</span>
+            ${botaoPropostaHtml(item.contato)}
             <button type="button" class="cartao-mensagem-excluir" data-acao="excluir-briefing" aria-label="Excluir resposta">&times;</button>
           </div>
           <div class="cartao-mensagem-corpo oculto" id="briefing-${i}">
             ${linhasRespostas}
+            ${linkPropostaHtml}
           </div>
         </div>
       `;
@@ -9781,11 +10592,29 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       });
     });
 
-    container.querySelectorAll("[data-acao='enviar-proposta']").forEach(btn => {
+    container.querySelectorAll(".cartao-mensagem-proposta").forEach(link => {
+      link.addEventListener("click", (e) => e.stopPropagation());
+    });
+
+    container.querySelectorAll("[data-acao='gerar-proposta']").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const idx = Number(btn.closest(".cartao-mensagem-topo").dataset.idx);
-        abrirCanalContato(ordenados[idx].contato);
+        abrirModalGerarProposta(ordenados[idx]);
+      });
+    });
+
+    container.querySelectorAll("[data-acao='salvar-proposta-link']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const input = container.querySelector(`[data-proposta-link-input="${btn.dataset.id}"]`);
+        if (input && input.value.trim()) salvarPropostaUrl(btn.dataset.id, input.value.trim());
+      });
+    });
+
+    container.querySelectorAll("[data-acao='enviar-proposta-composta']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const item = briefingCache.find(b => b.id === btn.dataset.id);
+        if (item) abrirModalEnviarProposta(item);
       });
     });
 
