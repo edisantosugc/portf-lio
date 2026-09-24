@@ -3222,10 +3222,10 @@
   .marcas-selecao-resumo{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:.84rem; font-weight:600; color:var(--grafite); }
   .marcas-selecao-acoes{ display:flex; gap:10px; flex-wrap:wrap; }
 
-  .marcas-grade-lista{ display:grid; grid-template-columns: 20px 24px minmax(0,1.1fr) 85px 105px 105px 135px 140px 60px; align-items:center; gap:12px; }
+  .marcas-grade-lista{ display:grid; grid-template-columns: 20px 24px minmax(0,1.1fr) 85px 105px 105px 105px 135px 140px 60px; align-items:center; gap:12px; }
 
   .marcas-lista-cartao{ padding:0; overflow:hidden; }
-  .marcas-linha{ display:grid; grid-template-columns: 20px 24px minmax(0,1.1fr) 85px 105px 105px 135px 140px 60px; align-items:center; gap:12px; padding:13px 20px; border-bottom:1px solid var(--borda); font-size:.85rem; }
+  .marcas-linha{ display:grid; grid-template-columns: 20px 24px minmax(0,1.1fr) 85px 105px 105px 105px 135px 140px 60px; align-items:center; gap:12px; padding:13px 20px; border-bottom:1px solid var(--borda); font-size:.85rem; }
   .marcas-checkbox{ width:16px; height:16px; cursor:pointer; }
   .marcas-checkbox:disabled{ cursor:not-allowed; opacity:.35; }
 
@@ -3260,7 +3260,7 @@
   .marcas-col-marca .nome{ font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .marcas-col-marca .sub{ font-size:.74rem; color:var(--texto-suave); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .marcas-col-seguidores{ font-variant-numeric:tabular-nums; color:var(--texto-suave); font-size:.82rem; }
-  .marcas-col-nicho, .marcas-col-origem{ font-size:.82rem; color:var(--grafite); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .marcas-col-nicho, .marcas-col-produto, .marcas-col-origem{ font-size:.82rem; color:var(--grafite); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .marcas-col-contato{ font-size:.78rem; color:var(--texto-suave); display:flex; flex-direction:column; gap:1px; min-width:0; }
   .marcas-col-contato span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
@@ -3304,8 +3304,8 @@
        Abordagens/Trabalhos — em vez de empilhar cada marca num card, a tabela mantém
        as colunas e o card ganha rolagem horizontal (arrasta pro lado igual Abordagens). */
     .marcas-lista-cartao{ overflow-x:auto; -webkit-overflow-scrolling:touch; overflow-y:hidden; }
-    .marcas-grade-lista{ min-width:950px; }
-    .marcas-linha{ min-width:950px; }
+    .marcas-grade-lista{ min-width:1055px; }
+    .marcas-linha{ min-width:1055px; }
   }
   @media (max-width: 640px){
     .marcas-contadores{ grid-template-columns: repeat(2,1fr); }
@@ -4783,10 +4783,14 @@
 
         <details class="cartao cartao-colapsavel" id="marcasAjudaCsv">
           <summary class="resumo-colapsavel"><h2>PROMPT</h2><span class="seta-colapsavel">▾</span></summary>
-          <p class="marcas-ajuda-texto">Toda vez que for pesquisar marcas (numa IA, com alguém da equipe, ou você mesma numa planilha), use estas colunas na primeira linha, exatamente com este nome: <code>nome, site, instagram, seguidores, email, whatsapp, contato, nicho, origem, status, observacao, data</code>. Só o <code>nome</code> é obrigatório. Salve como CSV e importe direto aqui.</p>
-          <p class="marcas-ajuda-texto">Ou copie o prompt abaixo e cole numa IA (ChatGPT, Claude, Gemini) pedindo a pesquisa — ele já pede o formato certo:</p>
-          <textarea class="marcas-ajuda-prompt" id="marcasAjudaPromptTexto" readonly rows="8"></textarea>
-          <button type="button" class="btn-fantasma" id="marcasBotaoCopiarPrompt">📋 Copiar prompt</button>
+          <p class="marcas-ajuda-texto">Toda vez que for pesquisar marcas (numa IA, com alguém da equipe, ou você mesma numa planilha), use estas colunas na primeira linha, exatamente com este nome: <code>nome, site, instagram, seguidores, email, whatsapp, contato, nicho, produto, origem, status, observacao, data</code>. Só o <code>nome</code> é obrigatório. Salve como CSV e importe direto aqui.</p>
+          <p class="marcas-ajuda-texto">Ou copie o prompt abaixo e cole numa IA (ChatGPT, Claude, Gemini) pedindo a pesquisa — ele já pede o formato certo. Pode editar o texto à vontade; fica salvo pra próxima vez.</p>
+          <textarea class="marcas-ajuda-prompt" id="marcasAjudaPromptTexto" rows="8"></textarea>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">
+            <button type="button" class="btn-fantasma" id="marcasBotaoCopiarPrompt">📋 Copiar prompt</button>
+            <button type="button" class="botao-add-tarefa" id="marcasBotaoSalvarPrompt">💾 Salvar prompt</button>
+            <button type="button" class="btn-fantasma" id="marcasBotaoRestaurarPrompt">↺ Restaurar padrão</button>
+          </div>
         </details>
 
         <div class="marcas-contadores" id="marcasContadores">
@@ -4849,6 +4853,10 @@
               <input type="text" id="marcasCampoNichoOutro" placeholder="Descreva o nicho da marca">
             </div>
             <div class="ugc-campo">
+              <label>Produto (o que você quer abordar)</label>
+              <input type="text" id="marcasCampoProduto" placeholder="Ex: Air Fryer 5L">
+            </div>
+            <div class="ugc-campo">
               <label>Origem (onde você encontrou)</label>
               <input type="text" id="marcasCampoOrigem" placeholder="Ex: Instagram, indicação, Google...">
             </div>
@@ -4900,6 +4908,7 @@
             <span class="marcas-th">Marca</span>
             <span class="marcas-th">Seguidores</span>
             <span class="marcas-th">Nicho<button type="button" class="marcas-filtro-btn" data-campo="nicho" aria-label="Filtrar por nicho">▾</button></span>
+            <span class="marcas-th">Produto<button type="button" class="marcas-filtro-btn" data-campo="produto" aria-label="Filtrar por produto">▾</button></span>
             <span class="marcas-th">Origem</span>
             <span class="marcas-th">Contato</span>
             <span class="marcas-th">Status<button type="button" class="marcas-filtro-btn" data-campo="status" aria-label="Filtrar por status">▾</button></span>
@@ -6370,7 +6379,7 @@
 
 Pesquise marcas de [PRODUTO OU SERVIÇO] que tenham perfil ativo no Instagram, com no mínimo 5 mil e no máximo 100 mil seguidores (dando prioridade para marcas com até 50 mil seguidores, se possível), e monte uma planilha com exatamente estas colunas, nesta ordem, com o nome exato de cada uma na primeira linha:
 
-nome, site, instagram, seguidores, email, whatsapp, contato, nicho, origem, status, observacao, data
+nome, site, instagram, seguidores, email, whatsapp, contato, nicho, produto, origem, status, observacao, data
 
 Regras:
 - nome: obrigatório, nunca deixe em branco.
@@ -6379,10 +6388,46 @@ Regras:
 - origem: de onde veio essa marca (ex: "Instagram", "Google", "indicação").
 - data: formato AAAA-MM-DD. Se não souber, deixe em branco.
 - nicho: preencher como "Air Fryer" ou "Panelas", conforme o caso.
+- produto: o produto específico dessa marca que eu quero abordar (ex: o modelo exato ou item do catálogo), se der pra identificar. Senão, deixe em branco.
 - email e whatsapp são campos críticos: preencha somente se encontrar de verdade. Se não encontrar o WhatsApp ou o e-mail da marca, deixe o campo em branco — nunca invente ou estime um contato.
 - Preencha site, link do produto, instagram, contato e observacao com o que encontrar de verdade, deixe em branco o que não achar, nunca invente dados.
 
 Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
+
+  // O prompt acima é só o padrão de fábrica — ela pode reescrever do jeito dela na tela, e
+  // fica salvo em app_config (mesma tabela genérica de configuração já usada por outras
+  // abas), pra continuar valendo depois de fechar e abrir o painel de novo.
+  async function carregarPromptMarcas(){
+    let texto = MARCAS_PROMPT_PESQUISA;
+    try {
+      const { data } = await Auth.client.from("app_config").select("valor").eq("nome", "marcas_prompt_pesquisa").maybeSingle();
+      if (data?.valor) texto = data.valor;
+    } catch (erro) {
+      console.error("Erro ao carregar prompt customizado de marcas:", erro);
+    }
+    document.getElementById("marcasAjudaPromptTexto").value = texto;
+  }
+
+  async function salvarPromptMarcas(){
+    const texto = document.getElementById("marcasAjudaPromptTexto").value;
+    const botao = document.getElementById("marcasBotaoSalvarPrompt");
+    const textoOriginal = botao.textContent;
+    botao.disabled = true;
+    const { error } = await Auth.client.from("app_config").upsert({ nome: "marcas_prompt_pesquisa", valor: texto, updated_at: new Date().toISOString() });
+    botao.disabled = false;
+    if (error){
+      console.error("Erro ao salvar prompt customizado de marcas:", erro);
+      alert("Não deu pra salvar o prompt agora. Tenta de novo.");
+      return;
+    }
+    botao.textContent = "✓ Salvo!";
+    setTimeout(() => { botao.textContent = textoOriginal; }, 2000);
+  }
+
+  function restaurarPromptMarcasPadrao(){
+    if (!confirm("Restaurar o prompt pro texto padrão? Isso troca o que está escrito na tela agora (só salva de vez se você clicar em \"Salvar prompt\" depois).")) return;
+    document.getElementById("marcasAjudaPromptTexto").value = MARCAS_PROMPT_PESQUISA;
+  }
 
   // Estado da aba Prospecção: e-mails já enviados (email_envios) e quem pediu pra sair
   // (email_optout), qual modo de envio (Resend ou rascunho/Gmail) e qual modo de escrever
@@ -9252,10 +9297,12 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     });
 
     document.getElementById("marcasAjudaPromptTexto").value = MARCAS_PROMPT_PESQUISA;
+    carregarPromptMarcas();
     document.getElementById("marcasBotaoCopiarPrompt").addEventListener("click", async (e) => {
       const botao = e.currentTarget;
+      const texto = document.getElementById("marcasAjudaPromptTexto").value;
       try {
-        await navigator.clipboard.writeText(MARCAS_PROMPT_PESQUISA);
+        await navigator.clipboard.writeText(texto);
       } catch (erro) {
         // Sem permissão de clipboard (ex: navegador mais antigo): seleciona o texto pra
         // copiar manualmente com Ctrl+C, em vez de simplesmente falhar sem avisar nada.
@@ -9267,6 +9314,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       botao.textContent = "✓ Copiado!";
       setTimeout(() => { botao.textContent = textoOriginal; }, 2000);
     });
+    document.getElementById("marcasBotaoSalvarPrompt").addEventListener("click", salvarPromptMarcas);
+    document.getElementById("marcasBotaoRestaurarPrompt").addEventListener("click", restaurarPromptMarcasPadrao);
 
     // ---------- Prospecção (disparo de e-mails em massa pras marcas) ----------
     document.getElementById("prospeccaoBotaoIrMarcas").addEventListener("click", () => {
@@ -16597,7 +16646,7 @@ ${MODELO_PROPOSTA_HTML}`;
   }
 
   /* ---------- Filtros estilo Excel na lista de Marcas (Marca/Seguidores/Nicho/Origem/Contato/Status) ---------- */
-  let marcasFiltrosColuna = { nicho: null, status: null };
+  let marcasFiltrosColuna = { nicho: null, produto: null, status: null };
   let marcasFiltroColunaAberta = null; // qual coluna tem o dropdown de filtro aberto agora
 
   function chaveColunaMarcas(item, campo){
@@ -16612,6 +16661,7 @@ ${MODELO_PROPOSTA_HTML}`;
     if (campo === "contato") return item.contato || item.email || item.whatsapp || "Sem contato";
     if (campo === "nome") return item.nome || "Sem nome";
     if (campo === "nicho") return item.nicho || "Sem nicho";
+    if (campo === "produto") return item.produto || "Sem produto";
     if (campo === "origem") return item.origem || "Sem origem";
     return item[campo] || "";
   }
@@ -16687,6 +16737,7 @@ ${MODELO_PROPOSTA_HTML}`;
         </div>
         <div class="marcas-col-seguidores">${item.seguidores ? Number(item.seguidores).toLocaleString("pt-BR") : "—"}</div>
         <div class="marcas-col-nicho">${escaparHtmlMarcas(item.nicho || "—")}</div>
+        <div class="marcas-col-produto">${escaparHtmlMarcas(item.produto || "—")}</div>
         <div class="marcas-col-origem">${escaparHtmlMarcas(item.origem || "—")}</div>
         <div class="marcas-col-contato">
           <span>${escaparHtmlMarcas(item.contato || "—")}</span>
@@ -16918,7 +16969,7 @@ ${MODELO_PROPOSTA_HTML}`;
   function abrirFormNovaMarca(){
     marcasEditandoId = null;
     document.getElementById("marcasFormTitulo").textContent = "Nova marca";
-    ["marcasCampoNome", "marcasCampoSite", "marcasCampoInstagram", "marcasCampoSeguidores", "marcasCampoEmail", "marcasCampoWhatsapp", "marcasCampoContato", "marcasCampoNichoOutro", "marcasCampoOrigem", "marcasCampoObs"].forEach(id => {
+    ["marcasCampoNome", "marcasCampoSite", "marcasCampoInstagram", "marcasCampoSeguidores", "marcasCampoEmail", "marcasCampoWhatsapp", "marcasCampoContato", "marcasCampoNichoOutro", "marcasCampoProduto", "marcasCampoOrigem", "marcasCampoObs"].forEach(id => {
       document.getElementById(id).value = "";
     });
     document.getElementById("marcasCampoNicho").value = "";
@@ -16947,6 +16998,7 @@ ${MODELO_PROPOSTA_HTML}`;
     document.getElementById("marcasCampoEmail").value = item.email || "";
     document.getElementById("marcasCampoWhatsapp").value = item.whatsapp || "";
     document.getElementById("marcasCampoContato").value = item.contato || "";
+    document.getElementById("marcasCampoProduto").value = item.produto || "";
     document.getElementById("marcasCampoOrigem").value = item.origem || "";
     document.getElementById("marcasCampoData").value = item.data || new Date().toISOString().slice(0, 10);
     document.getElementById("marcasCampoObs").value = item.observacao || "";
@@ -16985,6 +17037,7 @@ ${MODELO_PROPOSTA_HTML}`;
       whatsapp: document.getElementById("marcasCampoWhatsapp").value.trim() || null,
       contato: document.getElementById("marcasCampoContato").value.trim() || null,
       nicho: nicho || null,
+      produto: document.getElementById("marcasCampoProduto").value.trim() || null,
       origem: document.getElementById("marcasCampoOrigem").value.trim() || null,
       status: marcasStatusSelecionado,
       observacao: document.getElementById("marcasCampoObs").value.trim() || null,
@@ -17064,6 +17117,7 @@ ${MODELO_PROPOSTA_HTML}`;
     "whatsapp": "whatsapp", "telefone": "whatsapp", "fone": "whatsapp", "celular": "whatsapp",
     "contato": "contato", "pessoa de contato": "contato", "pessoa": "contato",
     "nicho": "nicho",
+    "produto": "produto",
     "origem": "origem", "onde encontrei": "origem", "onde eu encontrei": "origem",
     "status": "status",
     "observacao": "observacao", "observação": "observacao", "obs": "observacao", "notas": "observacao",
@@ -17160,6 +17214,7 @@ ${MODELO_PROPOSTA_HTML}`;
           whatsapp: r.whatsapp || null,
           contato: r.contato || null,
           nicho: r.nicho || null,
+          produto: r.produto || null,
           origem: r.origem || null,
           status: statusValido ? statusValido.chave : "a_enviar",
           observacao: r.observacao || null,
@@ -17198,7 +17253,7 @@ ${MODELO_PROPOSTA_HTML}`;
       (ignoradas ? ` ${ignoradas} linha(s) do arquivo foram ignoradas por não ter nome.` : "");
 
     document.getElementById("marcasRevisaoLista").innerHTML = marcasImportacaoCandidatos.map((c, indice) => {
-      const detalhe = [c.dados.nicho, c.dados.origem, c.dados.email].filter(Boolean).join(" · ");
+      const detalhe = [c.dados.nicho, c.dados.produto, c.dados.origem, c.dados.email].filter(Boolean).join(" · ");
       return `
         <label class="marcas-revisao-linha ${c.incluir ? "" : "excluida"}">
           <input type="checkbox" data-indice="${indice}" ${c.incluir ? "checked" : ""}>

@@ -590,6 +590,11 @@ create index if not exists idx_painel_marcas_nicho on public.painel_marcas (nich
 -- Estrela de prioridade (lista de Marcas): marcas marcadas ficam sempre no topo da lista.
 alter table public.painel_marcas add column if not exists prioridade boolean not null default false;
 
+-- Produto específico da marca que você quer abordar (separado do "nicho", que é a
+-- categoria mais ampla) — ver adicionar_produto_marcas.sql.
+alter table public.painel_marcas add column if not exists produto text;
+create index if not exists idx_painel_marcas_produto on public.painel_marcas (produto);
+
 alter table public.painel_marcas enable row level security;
 
 drop policy if exists "Usuaria autenticada gerencia suas marcas" on public.painel_marcas;
