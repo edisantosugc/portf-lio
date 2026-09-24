@@ -11180,9 +11180,11 @@ ${MODELO_PROPOSTA_HTML}`;
     return item[campo] || "";
   }
 
+  // Ignora o filtro da própria coluna que está abrindo — senão o dropdown listaria valor
+  // que já não existe mais no que sobrou dos outros filtros (mesma lógica de Marcas/Abordagens).
   function obterValoresColunaLinks(campo){
     const vistos = new Map();
-    linksCache.forEach(item => {
+    linksCache.filter(item => passaFiltrosColunaLinks(item, campo)).forEach(item => {
       vistos.set(chaveColunaLinks(item, campo), rotuloColunaLinks(item, campo));
     });
     return Array.from(vistos.entries())
@@ -11190,8 +11192,9 @@ ${MODELO_PROPOSTA_HTML}`;
       .sort((a, b) => a.rotulo.localeCompare(b.rotulo, "pt-BR"));
   }
 
-  function passaFiltrosColunaLinks(item){
+  function passaFiltrosColunaLinks(item, ignorarCampo){
     return Object.keys(linksFiltrosColuna).every(campo => {
+      if (campo === ignorarCampo) return true;
       const filtro = linksFiltrosColuna[campo];
       return !filtro || filtro.has(chaveColunaLinks(item, campo));
     });
@@ -15005,19 +15008,33 @@ ${MODELO_PROPOSTA_HTML}`;
     return item.marca || "Sem marca";
   }
 
-  // Valores distintos daquela coluna, considerando só as abordagens ativas (não arquivadas).
+  // Valores distintos daquela coluna, considerando só as abordagens que realmente aparecem
+  // na lista agora: ativas (não arquivadas, não rascunho), dentro da busca por nome, do
+  // período escolhido e dos OUTROS filtros de coluna já ativos (ignora o filtro da própria
+  // coluna) — senão o dropdown lista valor que não sobrou em nenhuma linha visível.
   function obterValoresColunaAbordagem(campo){
+    const campoBusca = document.getElementById("abordagemBusca");
+    const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
     const vistos = new Map(); // chave -> rótulo
-    abordagensCache.filter(a => !a.arquivado).forEach(item => {
-      vistos.set(chaveColunaAbordagem(item, campo), rotuloColunaAbordagem(item, campo));
-    });
+    abordagensCache
+      .filter(a =>
+        !a.arquivado &&
+        a.status !== "rascunho" &&
+        (!termo || (a.marca || "").toLowerCase().includes(termo)) &&
+        passaFiltrosColunaAbordagem(a, campo) &&
+        passaPeriodoAbordagem(a.data_abordagem)
+      )
+      .forEach(item => {
+        vistos.set(chaveColunaAbordagem(item, campo), rotuloColunaAbordagem(item, campo));
+      });
     return Array.from(vistos.entries())
       .map(([chave, rotulo]) => ({ chave, rotulo }))
       .sort((a, b) => campo === "data_abordagem" ? a.chave.localeCompare(b.chave) : a.rotulo.localeCompare(b.rotulo, "pt-BR"));
   }
 
-  function passaFiltrosColunaAbordagem(item){
+  function passaFiltrosColunaAbordagem(item, ignorarCampo){
     return Object.keys(abordagemFiltrosColuna).every(campo => {
+      if (campo === ignorarCampo) return true;
       const filtro = abordagemFiltrosColuna[campo];
       return !filtro || filtro.has(chaveColunaAbordagem(item, campo));
     });
@@ -16666,18 +16683,26 @@ ${MODELO_PROPOSTA_HTML}`;
     return item[campo] || "";
   }
 
+  // Só considera valores de marcas que ainda "sobrevivem" à busca por nome e aos OUTROS
+  // filtros de coluna já ativos (ignora o filtro da própria coluna que está abrindo) — senão
+  // o dropdown lista opção que já não bate com mais nada (ex: "Carregador Magnético" some
+  // da lista de "A enviar" porque já foi tudo enviado, mas continuava aparecendo no filtro).
   function obterValoresColunaMarcas(campo){
+    const termo = (document.getElementById("marcasBusca").value || "").trim().toLowerCase();
     const vistos = new Map(); // chave -> rótulo
-    marcasCache.forEach(item => {
-      vistos.set(chaveColunaMarcas(item, campo), rotuloColunaMarcas(item, campo));
-    });
+    marcasCache
+      .filter(item => (!termo || (item.nome || "").toLowerCase().includes(termo)) && passaFiltrosColunaMarcas(item, campo))
+      .forEach(item => {
+        vistos.set(chaveColunaMarcas(item, campo), rotuloColunaMarcas(item, campo));
+      });
     return Array.from(vistos.entries())
       .map(([chave, rotulo]) => ({ chave, rotulo }))
       .sort((a, b) => campo === "seguidores" ? (Number(a.chave) || 0) - (Number(b.chave) || 0) : a.rotulo.localeCompare(b.rotulo, "pt-BR"));
   }
 
-  function passaFiltrosColunaMarcas(item){
+  function passaFiltrosColunaMarcas(item, ignorarCampo){
     return Object.keys(marcasFiltrosColuna).every(campo => {
+      if (campo === ignorarCampo) return true;
       const filtro = marcasFiltrosColuna[campo];
       return !filtro || filtro.has(chaveColunaMarcas(item, campo));
     });
