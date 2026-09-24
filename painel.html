@@ -5150,7 +5150,7 @@
         <div class="prospeccao-bloco-principal">
           <div class="cartao">
             <h3 style="margin-bottom:14px;">Escolher pra quem vai</h3>
-            <p class="prospeccao-aviso-fonte">📇 Os e-mails vêm da sua aba <strong>Marcas</strong>. Nenhum contato novo é cadastrado aqui.</p>
+            <p class="prospeccao-aviso-fonte">📇 Os e-mails vêm das suas abas <strong>Marcas</strong> e <strong>Clientes</strong> (busca individual), ou você digita um na mão. Nenhum contato novo é cadastrado aqui.</p>
 
             <div class="ugc-campo" style="margin-bottom:14px;">
               <label>Destinatários</label>
@@ -5165,6 +5165,17 @@
               <div id="prospeccaoBuscaMarcaCampoWrap">
                 <input type="text" id="prospeccaoBuscaMarcaInput" placeholder="Digite o nome da marca...">
                 <div class="prospeccao-busca-marca-resultados oculto" id="prospeccaoBuscaMarcaResultados"></div>
+              </div>
+            </div>
+
+            <div class="prospeccao-busca-marca oculto" id="prospeccaoEmailManualWrap">
+              <div class="ugc-campo" style="margin-bottom:8px;">
+                <label>Nome (opcional)</label>
+                <input type="text" id="prospeccaoEmailManualNome" placeholder="Ex: seu nome">
+              </div>
+              <div class="ugc-campo" style="margin-bottom:0;">
+                <label>E-mail</label>
+                <input type="email" id="prospeccaoEmailManualInput" placeholder="seuemail@exemplo.com">
               </div>
             </div>
 
@@ -6386,6 +6397,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   let prospeccaoFilaRascunhoAtual = [];
   let prospeccaoRascunhoEditando = false;
   let prospeccaoMarcaUnicaId = null; // marca escolhida na busca individual ("busca-unica")
+  let prospeccaoMarcaUnicaOrigem = "marca"; // "marca" | "cliente" — de qual aba veio a escolha acima
 
   // O que está sendo escrito na Prospecção (assunto, texto, botão, modo) e a fila do modo
   // rascunho ficam salvos no navegador — sem isso, um F5 ou fechar a aba sem querer perdia
@@ -9278,6 +9290,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       renderizarResultadosBuscaMarcaProspeccao(e.target.value);
     });
     document.getElementById("prospeccaoBuscaMarcaLimpar").addEventListener("click", limparMarcaUnicaProspeccao);
+    document.getElementById("prospeccaoEmailManualNome").addEventListener("input", () => { atualizarContagemProspeccao(); salvarRascunhoProspeccaoLocal(); });
+    document.getElementById("prospeccaoEmailManualInput").addEventListener("input", () => { atualizarContagemProspeccao(); salvarRascunhoProspeccaoLocal(); });
     document.getElementById("prospeccaoPularEnviados").addEventListener("change", atualizarContagemProspeccao);
     document.getElementById("prospeccaoAssunto").addEventListener("input", () => { atualizarContagemProspeccao(); atualizarPreviaProspeccao(); salvarRascunhoProspeccaoLocal(); });
     document.getElementById("prospeccaoCorpoFacil").addEventListener("input", () => { atualizarPreviaProspeccao(); salvarRascunhoProspeccaoLocal(); });
@@ -17344,6 +17358,8 @@ ${corpoHtml}
         modoCompositor: prospeccaoModoCompositor,
         modoEnvio: prospeccaoModoEnvio,
         selectDestino: document.getElementById("prospeccaoSelectDestino").value,
+        emailManualNome: document.getElementById("prospeccaoEmailManualNome").value,
+        emailManualInput: document.getElementById("prospeccaoEmailManualInput").value,
         fila: prospeccaoFilaRascunhoAtual,
       };
       localStorage.setItem(PROSPECCAO_RASCUNHO_LOCAL_KEY, JSON.stringify(dados));
@@ -17380,6 +17396,8 @@ ${corpoHtml}
     document.getElementById("prospeccaoBotaoTexto").value = dados.botaoTexto || "";
     document.getElementById("prospeccaoBotaoLink").value = dados.botaoLink || "";
     if (dados.selectDestino) document.getElementById("prospeccaoSelectDestino").value = dados.selectDestino;
+    document.getElementById("prospeccaoEmailManualNome").value = dados.emailManualNome || "";
+    document.getElementById("prospeccaoEmailManualInput").value = dados.emailManualInput || "";
 
     trocarModoCompositorProspeccao(dados.modoCompositor === "html" ? "html" : "facil");
     trocarModoEnvioProspeccao(dados.modoEnvio === "rascunho" ? "rascunho" : "resend");
@@ -17448,7 +17466,14 @@ ${corpoHtml}
   // não ter e-mail) — obterDestinatariosProspeccao() já filtra por e-mail de verdade.
   function obterMarcasBaseProspeccao(){
     const modo = document.getElementById("prospeccaoSelectDestino").value;
-    if (modo === "busca-unica") return prospeccaoMarcaUnicaId ? marcasCache.filter(m => m.id === prospeccaoMarcaUnicaId) : [];
+    if (modo === "busca-unica"){
+      if (!prospeccaoMarcaUnicaId) return [];
+      if (prospeccaoMarcaUnicaOrigem === "cliente"){
+        const c = clientesCache.find(x => x.id === prospeccaoMarcaUnicaId);
+        return c ? [{ id: c.id, nome: c.nome_marca, email: c.contato_email, contato: c.contato_nome }] : [];
+      }
+      return marcasCache.filter(m => m.id === prospeccaoMarcaUnicaId);
+    }
     if (modo === "selecionadas") return marcasCache.filter(m => m.selecionada);
     if (modo === "todas") return marcasCache.slice();
     if (modo === "followup") return obterAlertasFollowUpMarcas();
@@ -17462,6 +17487,12 @@ ${corpoHtml}
   function obterDestinatariosProspeccao(){
     const modo = document.getElementById("prospeccaoSelectDestino").value;
     if (modo === "teste") return [{ email: PROSPECCAO_EMAIL_TESTE, nome: "Edilaine", marca: "Teste", marcaId: null }];
+    if (modo === "manual"){
+      const email = document.getElementById("prospeccaoEmailManualInput").value.trim().toLowerCase();
+      if (!email) return [];
+      const nome = document.getElementById("prospeccaoEmailManualNome").value.trim() || "Você";
+      return [{ email, nome, marca: nome, marcaId: null }];
+    }
 
     const universo = obterMarcasBaseProspeccao().filter(m => m.email);
     const assuntoAtual = document.getElementById("prospeccaoAssunto").value.trim();
@@ -17490,6 +17521,13 @@ ${corpoHtml}
       el.innerHTML = `<span>📬 <b>1</b> vai receber (você mesma)</span>`;
       return;
     }
+    if (modo === "manual"){
+      const destinatarios = obterDestinatariosProspeccao();
+      el.innerHTML = destinatarios.length
+        ? `<span>📬 <b>1</b> vai receber (${escaparHtmlMarcas(destinatarios[0].email)})</span>`
+        : `<span>✉️ Digite o e-mail acima</span>`;
+      return;
+    }
     if (modo === "busca-unica" && !prospeccaoMarcaUnicaId){
       el.innerHTML = `<span>🔍 Busque e escolha uma marca acima</span>`;
       return;
@@ -17505,11 +17543,21 @@ ${corpoHtml}
   function alternarBuscaMarcaProspeccao(){
     const modo = document.getElementById("prospeccaoSelectDestino").value;
     const wrap = document.getElementById("prospeccaoBuscaMarcaWrap");
+    document.getElementById("prospeccaoEmailManualWrap").classList.toggle("oculto", modo !== "manual");
     wrap.classList.toggle("oculto", modo !== "busca-unica");
     if (modo !== "busca-unica") return;
     const temEscolhida = !!prospeccaoMarcaUnicaId;
     document.getElementById("prospeccaoBuscaMarcaChip").classList.toggle("oculto", !temEscolhida);
     document.getElementById("prospeccaoBuscaMarcaCampoWrap").classList.toggle("oculto", temEscolhida);
+  }
+
+  // Junta as duas fontes de contato num formato único pra busca — marcas (aba Marcas) e
+  // clientes (aba Clientes, ex: nome_marca/contato_email) — marcando de onde cada um veio
+  // pra saber depois em qual tabela procurar.
+  function obterUniversoBuscaUnicaProspeccao(){
+    const deMarcas = marcasCache.map(m => ({ id: m.id, nome: m.nome, email: m.email, origem: "marca" }));
+    const deClientes = clientesCache.map(c => ({ id: c.id, nome: c.nome_marca, email: c.contato_email, origem: "cliente" }));
+    return deMarcas.concat(deClientes);
   }
 
   function renderizarResultadosBuscaMarcaProspeccao(termo){
@@ -17518,30 +17566,34 @@ ${corpoHtml}
     const alvo = normalizar(termo);
     if (!alvo){ box.classList.add("oculto"); box.innerHTML = ""; return; }
 
-    const resultados = marcasCache.filter(m => normalizar(m.nome).includes(alvo)).slice(0, 8);
+    const resultados = obterUniversoBuscaUnicaProspeccao().filter(m => normalizar(m.nome).includes(alvo)).slice(0, 8);
     box.classList.remove("oculto");
     box.innerHTML = resultados.length
       ? resultados.map(m => `
-          <div class="prospeccao-busca-marca-resultado" data-id="${m.id}">
+          <div class="prospeccao-busca-marca-resultado" data-id="${m.id}" data-origem="${m.origem}">
             <span>${escaparHtmlMarcas(m.nome)}</span>
+            ${m.origem === "cliente" ? `<span style="color:var(--coral); font-size:.72rem;">cliente</span>` : ""}
             ${m.email ? "" : `<span class="sem-email">sem e-mail</span>`}
           </div>
         `).join("")
       : `<p class="prospeccao-busca-marca-vazio">Nenhuma marca encontrada.</p>`;
 
     box.querySelectorAll(".prospeccao-busca-marca-resultado").forEach(item => {
-      item.addEventListener("click", () => selecionarMarcaUnicaProspeccao(item.dataset.id));
+      item.addEventListener("click", () => selecionarMarcaUnicaProspeccao(item.dataset.id, item.dataset.origem));
     });
   }
 
-  function selecionarMarcaUnicaProspeccao(id){
-    const marca = marcasCache.find(m => m.id === id);
+  function selecionarMarcaUnicaProspeccao(id, origem){
+    const marca = origem === "cliente"
+      ? (() => { const c = clientesCache.find(x => x.id === id); return c ? { id: c.id, nome: c.nome_marca, email: c.contato_email } : null; })()
+      : marcasCache.find(m => m.id === id);
     if (!marca) return;
     if (!marca.email){
       alert(`"${marca.nome}" não tem e-mail cadastrado — não dá pra disparar pra ela.`);
       return;
     }
     prospeccaoMarcaUnicaId = id;
+    prospeccaoMarcaUnicaOrigem = origem === "cliente" ? "cliente" : "marca";
     document.getElementById("prospeccaoBuscaMarcaInput").value = "";
     document.getElementById("prospeccaoBuscaMarcaResultados").classList.add("oculto");
     document.getElementById("prospeccaoBuscaMarcaChipTexto").textContent = marca.nome;
@@ -17552,6 +17604,7 @@ ${corpoHtml}
 
   function limparMarcaUnicaProspeccao(){
     prospeccaoMarcaUnicaId = null;
+    prospeccaoMarcaUnicaOrigem = "marca";
     alternarBuscaMarcaProspeccao();
     atualizarContagemProspeccao();
     atualizarPreviaProspeccao();
@@ -17591,6 +17644,7 @@ ${corpoHtml}
     const opcoes = [
       { valor: "selecionadas", rotulo: `⭐ Só as marcas selecionadas (${selecionadasComEmail})` },
       { valor: "busca-unica", rotulo: "🔍 Buscar uma marca específica" },
+      { valor: "manual", rotulo: "✉️ Digitar um e-mail meu" },
       { valor: "teste", rotulo: "🧪 Só pra mim (teste)" },
       { valor: "followup", rotulo: `🔔 Follow up, sem retorno há ${DIAS_FOLLOWUP_MARCA}+ dias (${followUpComEmail})` },
       { valor: "status:fechado", rotulo: `💼 Marcas já trabalhadas (${comEmail.filter(m => m.status === "fechado").length})` }
@@ -17907,7 +17961,7 @@ ${corpoHtml}
     // Nesse modo o texto costuma ser escrito à mão pra marca específica — trava o disparo
     // até ela confirmar que trocou o nome no início do e-mail, pra não sair errado.
     const modo = selectDestino.value;
-    const precisaConferirNome = modo === "busca-unica";
+    const precisaConferirNome = modo === "busca-unica" || modo === "manual";
     const wrapConferir = document.getElementById("prospeccaoModalConferirNomeWrap");
     const checkConferir = document.getElementById("prospeccaoModalConferirNome");
     wrapConferir.classList.toggle("oculto", !precisaConferirNome);
