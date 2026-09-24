@@ -6384,6 +6384,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   let prospeccaoModoEnvio = "resend"; // "resend" | "rascunho"
   let prospeccaoModoCompositor = "facil"; // "facil" | "html"
   let prospeccaoFilaRascunhoAtual = [];
+  let prospeccaoRascunhoEditando = false;
   let prospeccaoMarcaUnicaId = null; // marca escolhida na busca individual ("busca-unica")
 
   // O que está sendo escrito na Prospecção (assunto, texto, botão, modo) e a fila do modo
@@ -11195,10 +11196,7 @@ ${MODELO_PROPOSTA_HTML}`;
     const corpo = document.getElementById("linksListaCorpo");
     if (!corpo) return;
     const filtrados = linksCache.filter(passaFiltrosColunaLinks);
-    const ordenados = filtrados.slice().sort((a, b) => {
-      const cat = (a.categoria || "").localeCompare(b.categoria || "", "pt-BR");
-      return cat !== 0 ? cat : a.nome.localeCompare(b.nome, "pt-BR");
-    });
+    const ordenados = filtrados.slice().sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
     corpo.innerHTML = ordenados.length
       ? ordenados.map(renderLinhaLinkHtml).join("")
       : `<p class="ugc-vazio">${linksCache.length ? "Nenhum link bate com esse filtro." : "Nenhum link cadastrado ainda."}</p>`;
@@ -18024,7 +18022,34 @@ ${corpoHtml}
       return;
     }
     const atual = prospeccaoFilaRascunhoAtual[0];
-    const corpoFinal = construirTextoEmailComBotaoProspeccao(atual.corpoTexto, atual.botaoTexto, atual.botaoLink);
+    const corpoFinal = atual.corpoFinalEditado != null
+      ? atual.corpoFinalEditado
+      : construirTextoEmailComBotaoProspeccao(atual.corpoTexto, atual.botaoTexto, atual.botaoLink);
+
+    if (prospeccaoRascunhoEditando){
+      container.innerHTML = `
+        <div class="prospeccao-fila-topo"><span>Faltam ${prospeccaoFilaRascunhoAtual.length}</span><span>${escaparHtmlMarcas(atual.marca)}</span></div>
+        <input type="text" id="prospeccaoRascunhoAssuntoEdit" class="prospeccao-fila-assunto-edit" value="${escaparHtmlMarcas(atual.assunto)}" style="width:100%; margin-bottom:8px; padding:8px; border-radius:6px; border:1px solid #CCC2BC; font-weight:600;">
+        <textarea id="prospeccaoRascunhoCorpoEdit" class="prospeccao-fila-corpo-edit" rows="10" style="width:100%; padding:8px; border-radius:6px; border:1px solid #CCC2BC; font-family:inherit; font-size:inherit;">${escaparHtmlMarcas(corpoFinal)}</textarea>
+        <div class="prospeccao-fila-botoes">
+          <button type="button" class="btn-fantasma" id="prospeccaoRascunhoCancelarEdicao">Cancelar</button>
+          <button type="button" class="botao-add-tarefa" id="prospeccaoRascunhoSalvarEdicao">💾 Salvar</button>
+        </div>
+      `;
+
+      document.getElementById("prospeccaoRascunhoCancelarEdicao").addEventListener("click", () => {
+        prospeccaoRascunhoEditando = false;
+        renderizarProximoRascunhoProspeccao();
+      });
+      document.getElementById("prospeccaoRascunhoSalvarEdicao").addEventListener("click", () => {
+        atual.assunto = document.getElementById("prospeccaoRascunhoAssuntoEdit").value;
+        atual.corpoFinalEditado = document.getElementById("prospeccaoRascunhoCorpoEdit").value;
+        prospeccaoRascunhoEditando = false;
+        renderizarProximoRascunhoProspeccao();
+      });
+      return;
+    }
+
     const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(atual.email)}&su=${encodeURIComponent(atual.assunto)}&body=${encodeURIComponent(corpoFinal)}`;
 
     container.innerHTML = `
@@ -18032,12 +18057,17 @@ ${corpoHtml}
       <div class="prospeccao-fila-assunto">${escaparHtmlMarcas(atual.assunto)}</div>
       <div class="prospeccao-fila-corpo">${escaparHtmlMarcas(corpoFinal)}</div>
       <div class="prospeccao-fila-botoes">
+        <button type="button" class="btn-fantasma" id="prospeccaoRascunhoEditar">✏️ Editar</button>
         <button type="button" class="btn-fantasma" id="prospeccaoRascunhoCopiar">📋 Copiar texto</button>
         <a href="${gmailUrl}" target="_blank" rel="noopener" class="botao-add-tarefa" style="text-decoration:none; display:inline-flex; align-items:center;">✉️ Abrir no Gmail</a>
         <button type="button" class="botao-add-tarefa" id="prospeccaoRascunhoMarcarEnviada">✓ Marcar como enviada</button>
       </div>
     `;
 
+    document.getElementById("prospeccaoRascunhoEditar").addEventListener("click", () => {
+      prospeccaoRascunhoEditando = true;
+      renderizarProximoRascunhoProspeccao();
+    });
     document.getElementById("prospeccaoRascunhoCopiar").addEventListener("click", async () => {
       try { await navigator.clipboard.writeText(corpoFinal); } catch (erro) { console.error("Erro ao copiar texto do rascunho:", erro); }
     });
@@ -18053,7 +18083,9 @@ ${corpoHtml}
     await sincronizarAbordagemDaMarca(destinatario.marcaId, destinatario.assunto);
     // Guarda o mesmo conteúdo que foi pro rascunho do Gmail, pra poder reabrir depois em
     // "Já receberam" — pode não bater 100% se ela editou algo já dentro do Gmail antes de enviar.
-    const corpoHtml = construirHtmlEmailPadrao(destinatario.corpoTexto, destinatario.botaoTexto, destinatario.botaoLink);
+    const corpoHtml = destinatario.corpoFinalEditado != null
+      ? construirHtmlEmailPadrao(destinatario.corpoFinalEditado, null, null)
+      : construirHtmlEmailPadrao(destinatario.corpoTexto, destinatario.botaoTexto, destinatario.botaoLink);
     const { error } = await Auth.client.from("email_envios").insert({ email: destinatario.email, assunto: destinatario.assunto, status: "ok", corpo_html: corpoHtml });
     if (error) console.error("Erro ao registrar envio manual no histórico:", error);
     await recarregarEmailEnviosProspeccao();
