@@ -8714,8 +8714,22 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       }
     });
 
+    // Clicar num item do menu que tem lembrete pendente (badge vermelho) leva direto pro
+    // item mais urgente daquele grupo — igual o botão "Ver X" do pop-up de notificação —
+    // em vez de só abrir a aba na visão genérica (onde o item podia ficar escondido atrás
+    // de um período/filtro/sub-aba diferente, parecendo que "sumiu").
     document.querySelectorAll(".menu-item").forEach(btn => {
-      btn.addEventListener("click", () => trocarAba(btn.dataset.tab));
+      btn.addEventListener("click", () => {
+        const tab = btn.dataset.tab;
+        const configGrupo = CONFIG_GRUPOS_LEMBRETE.find(c => c.grupo === tab);
+        const itens = configGrupo ? configGrupo.obter() : [];
+        if (itens.length){
+          const itemMaisUrgente = itens.slice().sort((a, b) => (a.diasParaVencer ?? 0) - (b.diasParaVencer ?? 0))[0];
+          navegarParaGrupoLembrete(tab, itemMaisUrgente);
+          return;
+        }
+        trocarAba(tab);
+      });
     });
 
     document.getElementById("botaoToggleGavetaClientes").addEventListener("click", () => alternarGavetaClientes());
@@ -15554,13 +15568,32 @@ ${MODELO_PROPOSTA_HTML}`;
   // em vermelho, já que todo item que chega aqui por essa via está mesmo "vencendo".
   function irParaAbordagem(id){
     trocarAba("abordagem");
-    renderizarAbordagens();
 
     // Rascunho e arquivado têm sub-aba e container próprios (abordagemRascunhoCorpo /
     // abordagemArquivoCorpo) — sem trocar de sub-aba, a linha nunca aparece na tela
     // (fica escondida atrás de "oculto"), mesmo com o id certo.
     const item = abordagensCache.find(a => a.id === id);
     const subAba = item && item.arquivado ? "arquivados" : item && item.status === "rascunho" ? "rascunhos" : "ativas";
+
+    // Zera período/filtro de coluna/busca que possam estar escondendo o item — um lembrete
+    // de follow-up costuma apontar pra uma abordagem de dias atrás, que sumiria da lista se
+    // o período ainda estivesse em "Hoje" (ou algum filtro de coluna tivesse ficado de uma
+    // navegação anterior). Um clique no lembrete tem que levar direto até a linha, nunca
+    // cair numa lista vazia.
+    if (subAba === "ativas"){
+      abordagemFiltrosColuna = { data_abordagem: null, marca: null, nicho: null, status: null };
+      if (abordagemPeriodoAtual !== "tudo"){
+        abordagemPeriodoAtual = "tudo";
+        document.querySelectorAll(".abordagem-periodo-btn").forEach(b => b.classList.toggle("ativo", b.dataset.periodo === "tudo"));
+      }
+    }
+    const idBuscaSubAba = subAba === "rascunhos" ? "abordagemRascunhoBusca" : subAba === "arquivados" ? "abordagemArquivoBusca" : "abordagemBusca";
+    const campoBuscaSubAba = document.getElementById(idBuscaSubAba);
+    if (campoBuscaSubAba) campoBuscaSubAba.value = "";
+
+    renderizarAbordagens();
+    atualizarIndicadoresFiltroAbordagem();
+
     const containerId = subAba === "rascunhos" ? "abordagemRascunhoCorpo" : subAba === "arquivados" ? "abordagemArquivoCorpo" : "abordagemListaCorpo";
     trocarSubAbaAbordagem(subAba);
 
