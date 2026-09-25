@@ -15777,9 +15777,9 @@ ${MODELO_PROPOSTA_HTML}`;
     renderizarNotificacoesPopup();
   }
 
-  // Alertas de follow up: mesma janela de aviso das contas a pagar/receber (3 dias antes, 1 dia
-  // antes, no dia, depois atrasado). Só avisa enquanto a negociação está "em andamento" e o
-  // follow up ainda não foi marcado como feito.
+  // Alertas de follow up: ao contrário das contas a pagar/receber, NÃO antecipa aviso —
+  // só avisa a partir do dia marcado (e depois "atrasado" enquanto não for feito). Só avisa
+  // enquanto a negociação está "em andamento" e o follow up ainda não foi marcado como feito.
   // Quantos dias faltam pro follow up de uma abordagem (negativo = já passou da data).
   // null quando não tem data de follow up definida.
   function diasParaFollowupAbordagem(item){
@@ -15791,9 +15791,9 @@ ${MODELO_PROPOSTA_HTML}`;
     return Math.round((dataFollowup - hojeSemHora) / (1000 * 60 * 60 * 24));
   }
 
-  // Enquanto o follow up não é marcado como feito, o lembrete continua aparecendo TODO
-  // dia a partir de 3 dias antes da data (não só em dias específicos) — e depois que a
-  // data passa, some pra "atrasado" e continua avisando todo dia até ser feito.
+  // Enquanto o follow up não é marcado como feito, o lembrete só começa a aparecer NO DIA
+  // marcado (nunca antes) — e depois que a data passa, vira "atrasado" e continua avisando
+  // todo dia até ser feito.
   function obterAlertasFollowupAbordagem(){
     const alertas = [];
     abordagensCache.forEach(item => {
@@ -15803,7 +15803,7 @@ ${MODELO_PROPOSTA_HTML}`;
 
       if (diasParaVencer < 0){
         alertas.push({ ...item, statusAlerta: "atrasado", diasParaVencer });
-      } else if (diasParaVencer <= 3){
+      } else if (diasParaVencer === 0){
         alertas.push({ ...item, statusAlerta: "proximo", diasParaVencer });
       }
     });
@@ -15817,9 +15817,7 @@ ${MODELO_PROPOSTA_HTML}`;
       const diasAtraso = Math.abs(item.diasParaVencer);
       return `Follow up atrasado há ${diasAtraso} dia${diasAtraso === 1 ? "" : "s"}`;
     }
-    if (item.diasParaVencer === 0) return "Follow up é hoje";
-    if (item.diasParaVencer === 1) return "Follow up é amanhã";
-    return `Follow up em ${item.diasParaVencer} dias`;
+    return "Follow up é hoje";
   }
 
   // Lembrete pra sair do Rascunho: passou de DIAS_LEMBRETE_RASCUNHO dias desde que a
