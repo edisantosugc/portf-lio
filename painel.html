@@ -5494,13 +5494,18 @@
 
     <!-- ===================== ABA: LINKS ===================== -->
     <section id="painelLinks" class="painel-tab oculto">
+      <div class="ig-subabas" id="subAbasLinks">
+        <button type="button" class="sub-aba-btn ativo" data-subaba-links="links">Links</button>
+        <button type="button" class="sub-aba-btn" data-subaba-links="referencias">Referências</button>
+      </div>
+
       <button type="button" class="ugc-linha-add" id="linksBotaoNovo">+ Adicionar link</button>
 
       <div class="cartao ugc-lista-cartao" id="linksListaContainer" style="position:relative;">
         <div class="ugc-cabecalho-lista links-grade-lista">
           <span class="marcas-th">Nome<button type="button" class="marcas-filtro-btn" data-campo="nome" aria-label="Filtrar por nome">▾</button></span>
           <span class="marcas-th">Descrição<button type="button" class="marcas-filtro-btn" data-campo="descricao" aria-label="Filtrar por descrição">▾</button></span>
-          <span class="marcas-th">Categoria<button type="button" class="marcas-filtro-btn" data-campo="categoria" aria-label="Filtrar por categoria">▾</button></span>
+          <span class="marcas-th"><span id="linksThCategoria">Categoria</span><button type="button" class="marcas-filtro-btn" data-campo="categoria" aria-label="Filtrar por categoria">▾</button></span>
           <span class="marcas-th">URL</span>
           <span></span>
         </div>
@@ -5525,11 +5530,11 @@
           <div class="ugc-campo largo"><label>Descrição</label><textarea id="linksCampoDescricao" rows="3" placeholder="Pra que serve / por que salvei esse link"></textarea></div>
           <div class="ugc-campo largo"><label>URL do link</label><input type="text" id="linksCampoUrl" placeholder="https://..."></div>
           <div class="ugc-campo largo">
-            <label>Categoria</label>
+            <label id="linksLabelCategoria">Categoria</label>
             <select id="linksCampoCategoria"></select>
           </div>
           <div class="ugc-campo largo oculto" id="linksNovaCategoriaWrap">
-            <label>Nome da nova categoria</label>
+            <label id="linksLabelNovaCategoria">Nome da nova categoria</label>
             <div style="display:flex; gap:8px;">
               <input type="text" id="linksCampoNovaCategoria" placeholder="Ex: Estudo" style="flex:1;">
               <button type="button" class="btn-fantasma" id="linksBotaoAddCategoria">Adicionar categoria</button>
@@ -6235,6 +6240,7 @@
   let linksCache = [];
   let linksCategoriasCache = [];
   let linkEditandoId = null;
+  let linksSubAbaAtiva = "links"; // "links" | "referencias"
   let tarefasCache = [];
   let lancamentosCache = [];
   let periodoAtual = "hoje";
@@ -8830,6 +8836,9 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("roteiroBotaoCopiarLink").addEventListener("click", copiarLinkPublicoRoteiro);
 
     // ---------- Links ----------
+    document.querySelectorAll("#subAbasLinks .sub-aba-btn").forEach(btn => {
+      btn.addEventListener("click", () => trocarSubAbaLinks(btn.dataset.subabaLinks));
+    });
     document.getElementById("linksBotaoNovo").addEventListener("click", abrirModalNovoLink);
     document.getElementById("linksModalFechar").addEventListener("click", fecharModalLink);
     document.getElementById("linksModalCancelar").addEventListener("click", fecharModalLink);
@@ -11041,10 +11050,21 @@ ${MODELO_PROPOSTA_HTML}`;
   function preencherSelectCategoriaLinks(valorAtual){
     const select = document.getElementById("linksCampoCategoria");
     if (!select) return;
-    const ordenadas = linksCategoriasCache.slice().sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
-    select.innerHTML = `<option value="">Sem categoria</option>` +
+    const ehReferencias = linksSubAbaAtiva === "referencias";
+    const rotulo = ehReferencias ? "formato" : "categoria";
+
+    document.getElementById("linksLabelCategoria").textContent = ehReferencias ? "Formato" : "Categoria";
+    document.getElementById("linksLabelNovaCategoria").textContent = ehReferencias ? "Nome do novo formato" : "Nome da nova categoria";
+    document.getElementById("linksBotaoAddCategoria").textContent = ehReferencias ? "Adicionar formato" : "Adicionar categoria";
+    document.getElementById("linksCampoNovaCategoria").placeholder = ehReferencias ? "Ex: Storytelling" : "Ex: Estudo";
+
+    const ordenadas = linksCategoriasCache
+      .filter(c => grupoLink(c) === linksSubAbaAtiva)
+      .slice()
+      .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    select.innerHTML = `<option value="">Sem ${rotulo}</option>` +
       ordenadas.map(c => `<option value="${escaparHtmlMarcas(c.nome)}">${escaparHtmlMarcas(c.nome)}</option>`).join("") +
-      `<option value="${VALOR_NOVA_CATEGORIA_LINK}">+ Adicionar nova categoria</option>`;
+      `<option value="${VALOR_NOVA_CATEGORIA_LINK}">+ Adicionar novo${ehReferencias ? "" : "a"} ${rotulo}</option>`;
     select.value = valorAtual && ordenadas.some(c => c.nome === valorAtual) ? valorAtual : "";
     document.getElementById("linksNovaCategoriaWrap").classList.add("oculto");
     document.getElementById("linksCampoNovaCategoria").value = "";
@@ -11052,7 +11072,7 @@ ${MODELO_PROPOSTA_HTML}`;
 
   function abrirModalNovoLink(){
     linkEditandoId = null;
-    document.getElementById("linksModalTitulo").textContent = "Novo link";
+    document.getElementById("linksModalTitulo").textContent = linksSubAbaAtiva === "referencias" ? "Nova referência" : "Novo link";
     document.getElementById("linksCampoNome").value = "";
     document.getElementById("linksCampoDescricao").value = "";
     document.getElementById("linksCampoUrl").value = "";
@@ -11082,9 +11102,9 @@ ${MODELO_PROPOSTA_HTML}`;
   // esse link específico seja cancelado depois.
   async function criarCategoriaLink(){
     const nome = document.getElementById("linksCampoNovaCategoria").value.trim();
-    if (!nome){ alert("Digite o nome da nova categoria."); return; }
+    if (!nome){ alert(linksSubAbaAtiva === "referencias" ? "Digite o nome do novo formato." : "Digite o nome da nova categoria."); return; }
 
-    const existente = linksCategoriasCache.find(c => c.nome.toLowerCase() === nome.toLowerCase());
+    const existente = linksCategoriasCache.find(c => grupoLink(c) === linksSubAbaAtiva && c.nome.toLowerCase() === nome.toLowerCase());
     if (existente){
       preencherSelectCategoriaLinks(existente.nome);
       document.getElementById("linksCampoCategoria").value = existente.nome;
@@ -11092,7 +11112,7 @@ ${MODELO_PROPOSTA_HTML}`;
     }
 
     try {
-      const { data, error } = await Auth.client.from("painel_links_categorias").insert({ nome }).select();
+      const { data, error } = await Auth.client.from("painel_links_categorias").insert({ nome, grupo: linksSubAbaAtiva }).select();
       if (error) throw error;
       linksCategoriasCache = linksCategoriasCache.concat(data);
       preencherSelectCategoriaLinks(nome);
@@ -11121,6 +11141,9 @@ ${MODELO_PROPOSTA_HTML}`;
       descricao: document.getElementById("linksCampoDescricao").value.trim() || null,
       categoria: categoriaSelecionada || null
     };
+    // Só define o grupo (Links/Referências) ao CRIAR — editar um link não deve mudar
+    // ele de sub-aba sozinho.
+    if (!linkEditandoId) payload.grupo = linksSubAbaAtiva;
 
     const botao = document.getElementById("linksModalSalvar");
     botao.disabled = true;
@@ -11199,18 +11222,26 @@ ${MODELO_PROPOSTA_HTML}`;
   }
 
   function rotuloColunaLinks(item, campo){
-    if (campo === "categoria") return item.categoria || "Sem categoria";
+    if (campo === "categoria") return item.categoria || (linksSubAbaAtiva === "referencias" ? "Sem formato" : "Sem categoria");
     if (campo === "descricao") return item.descricao || "Sem descrição";
     return item[campo] || "";
+  }
+
+  // Cada link pertence a uma sub-aba (Links ou Referências) — grava sem "grupo" (links
+  // cadastrados antes dessa coluna existir) conta como "links".
+  function grupoLink(item){
+    return item.grupo || "links";
   }
 
   // Ignora o filtro da própria coluna que está abrindo — senão o dropdown listaria valor
   // que já não existe mais no que sobrou dos outros filtros (mesma lógica de Marcas/Abordagens).
   function obterValoresColunaLinks(campo){
     const vistos = new Map();
-    linksCache.filter(item => passaFiltrosColunaLinks(item, campo)).forEach(item => {
-      vistos.set(chaveColunaLinks(item, campo), rotuloColunaLinks(item, campo));
-    });
+    linksCache
+      .filter(item => grupoLink(item) === linksSubAbaAtiva && passaFiltrosColunaLinks(item, campo))
+      .forEach(item => {
+        vistos.set(chaveColunaLinks(item, campo), rotuloColunaLinks(item, campo));
+      });
     return Array.from(vistos.entries())
       .map(([chave, rotulo]) => ({ chave, rotulo }))
       .sort((a, b) => a.rotulo.localeCompare(b.rotulo, "pt-BR"));
@@ -11282,14 +11313,28 @@ ${MODELO_PROPOSTA_HTML}`;
     linksFiltroColunaAberta = null;
   }
 
+  // Na aba Referências, "categoria" vira "formato" (rótulo diferente, mesmo campo por
+  // baixo) — cada valor de "categoria" salvo num link dessa aba é, na prática, um formato.
+  function trocarSubAbaLinks(sub){
+    linksSubAbaAtiva = sub;
+    document.querySelectorAll("#subAbasLinks .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subabaLinks === sub));
+    const ehReferencias = sub === "referencias";
+    document.getElementById("linksBotaoNovo").textContent = ehReferencias ? "+ Adicionar referência" : "+ Adicionar link";
+    document.getElementById("linksThCategoria").textContent = ehReferencias ? "Formato" : "Categoria";
+    linksFiltrosColuna = { nome: null, descricao: null, categoria: null };
+    renderizarLinks();
+  }
+
   function renderizarLinks(){
     const corpo = document.getElementById("linksListaCorpo");
     if (!corpo) return;
-    const filtrados = linksCache.filter(passaFiltrosColunaLinks);
+    const daAba = linksCache.filter(item => grupoLink(item) === linksSubAbaAtiva);
+    const filtrados = daAba.filter(passaFiltrosColunaLinks);
     const ordenados = filtrados.slice().sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    const rotuloVazio = linksSubAbaAtiva === "referencias" ? "referência" : "link";
     corpo.innerHTML = ordenados.length
       ? ordenados.map(renderLinhaLinkHtml).join("")
-      : `<p class="ugc-vazio">${linksCache.length ? "Nenhum link bate com esse filtro." : "Nenhum link cadastrado ainda."}</p>`;
+      : `<p class="ugc-vazio">${daAba.length ? `Nenhum ${rotuloVazio} bate com esse filtro.` : `Nenhum${linksSubAbaAtiva === "referencias" ? "a" : ""} ${rotuloVazio} cadastrad${linksSubAbaAtiva === "referencias" ? "a" : "o"} ainda.`}</p>`;
     reatarEventosLinhasLinks(corpo);
     atualizarIndicadoresFiltroLinks();
   }

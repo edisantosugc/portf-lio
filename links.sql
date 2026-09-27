@@ -8,9 +8,14 @@
 -- qualquer link usar ela.
 create table if not exists public.painel_links_categorias (
   id uuid primary key default gen_random_uuid(),
-  nome text not null unique,
-  created_at timestamptz not null default now()
+  nome text not null,
+  grupo text not null default 'links', -- 'links' ou 'referencias' — nome só precisa ser único dentro do mesmo grupo
+  created_at timestamptz not null default now(),
+  unique (nome, grupo)
 );
+
+alter table public.painel_links_categorias add column if not exists grupo text not null default 'links';
+create index if not exists idx_painel_links_categorias_grupo on public.painel_links_categorias (grupo);
 
 create table if not exists public.painel_links (
   id uuid primary key default gen_random_uuid(),
@@ -18,10 +23,15 @@ create table if not exists public.painel_links (
   descricao text,
   url text not null,
   categoria text,
+  grupo text not null default 'links', -- 'links' ou 'referencias' (sub-abas dentro de Links)
   created_at timestamptz not null default now()
 );
 
+-- Garante a coluna em quem já rodou este arquivo antes de "grupo" existir.
+alter table public.painel_links add column if not exists grupo text not null default 'links';
+
 create index if not exists idx_painel_links_categoria on public.painel_links (categoria);
+create index if not exists idx_painel_links_grupo on public.painel_links (grupo);
 
 alter table public.painel_links_categorias enable row level security;
 alter table public.painel_links enable row level security;
@@ -45,10 +55,24 @@ create policy "Usuaria autenticada gerencia links"
 grant select, insert, update, delete on public.painel_links_categorias to authenticated;
 grant select, insert, update, delete on public.painel_links to authenticated;
 
--- Categorias de exemplo pra já nascer com algo no dropdown — "do nothing" de propósito,
--- pra rodar esse arquivo de novo no futuro nunca apagar categorias que você já criou.
-insert into public.painel_links_categorias (nome) values
-  ('Estudo'), ('Plataforma'), ('Meu App/Admin'), ('Dominio')
-on conflict (nome) do nothing;
+-- Categorias/formatos de exemplo pra já nascer com algo no dropdown — "do nothing" de
+-- propósito, pra rodar esse arquivo de novo no futuro nunca apagar o que você já criou.
+insert into public.painel_links_categorias (nome, grupo) values
+  ('Estudo', 'links'), ('Plataforma', 'links'), ('Meu App/Admin', 'links'), ('Dominio', 'links'),
+  ('Antes e Depois', 'referencias'),
+  ('Criativo', 'referencias'),
+  ('Depoimento', 'referencias'),
+  ('Gancho', 'referencias'),
+  ('Marketplace', 'referencias'),
+  ('Mini-Vlog / Lifestyle', 'referencias'),
+  ('Orgânico', 'referencias'),
+  ('Problema vs. Solução', 'referencias'),
+  ('Review', 'referencias'),
+  ('Storytelling', 'referencias'),
+  ('Tráfego Pago', 'referencias'),
+  ('Tutorial / Como Usar', 'referencias'),
+  ('Unboxing', 'referencias'),
+  ('Vídeos de Lista', 'referencias')
+on conflict (nome, grupo) do nothing;
 
 NOTIFY pgrst, 'reload schema';
