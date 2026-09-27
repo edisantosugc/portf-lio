@@ -2926,6 +2926,13 @@
     .ugc-grade-lista{ min-width: 620px; }
     .abordagem-grade-lista{ min-width: 740px; }
 
+    /* Mensagens (Portfólio/App Admin/Roteiros): mesma ideia de novo — em vez do
+       nome/e-mail quebrando linha e sobrepondo a data e os botões, a linha vira
+       rolagem horizontal por arraste, igual a lista de Marcas. */
+    .cartao-mensagem-topo{ overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+    .cartao-mensagem-principal{ flex-grow: 0; flex-shrink: 0; min-width: 200px; }
+    .cartao-mensagem-nome{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
     /* Tabela de Clientes: reforça o toque suave no iOS (a rolagem em si já existia). */
     .clientes-tabela-scroll{ -webkit-overflow-scrolling: touch; }
 
