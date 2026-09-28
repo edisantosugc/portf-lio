@@ -15985,11 +15985,16 @@ ${MODELO_PROPOSTA_HTML}`;
 
   // Marcas em "Enviado" (já mandei, ainda sem resposta) há DIAS_FOLLOWUP_MARCA dias ou
   // mais, contando a partir da data em que o e-mail foi marcado como enviado. Some sozinho
-  // do alerta assim que o status muda (respondeu, virou proposta, fechou ou perdeu interesse).
+  // do alerta assim que o status muda (respondeu, virou proposta, fechou ou perdeu interesse)
+  // — ou assim que o follow-up dela for marcado como feito do lado de Abordagens (toda marca
+  // "Enviado" tem uma abordagem espelhada, sincronizada em sincronizarAbordagemDaMarca; sem
+  // essa checagem, marcar o follow-up como feito lá não tirava o aviso daqui).
   function obterAlertasFollowUpMarcas(){
     const alertas = [];
     marcasCache.forEach(marca => {
       if (marca.status !== "enviado" || !marca.email || !marca.data) return;
+      const abordagemLigada = abordagensCache.find(a => a.marca_origem_id === marca.id);
+      if (abordagemLigada && abordagemLigada.followup_feito) return;
       const dias = diasDesde(marca.data);
       if (dias >= DIAS_FOLLOWUP_MARCA){
         alertas.push({ ...marca, diasSemRetorno: dias, diasParaVencer: -dias });
