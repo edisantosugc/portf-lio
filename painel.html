@@ -17219,6 +17219,13 @@ ${MODELO_PROPOSTA_HTML}`;
       // Muda pra "Enviado" na mão (fora do disparo de e-mail) também alimenta a aba
       // Abordagens sozinha, igual já acontece quando o envio é automático.
       if (status === "enviado") await sincronizarAbordagemDaMarca(id, null, "manual");
+      // Muda pra "Follow up" também marca o follow-up da abordagem espelhada como feito —
+      // senão o lembrete de Abordagens (que olha followup_feito, não o status da marca)
+      // continuava aparecendo mesmo depois de marcar aqui.
+      if (status === "follow_up"){
+        const abordagemLigada = abordagensCache.find(a => a.marca_origem_id === id);
+        if (abordagemLigada) await marcarFollowupFeitoAbordagem(abordagemLigada.id);
+      }
     } catch (erro) {
       console.error("Erro ao mudar status da marca:", erro);
       item.status = statusAntes;
