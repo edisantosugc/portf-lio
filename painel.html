@@ -4981,9 +4981,9 @@
 
       <div class="clientes-barra-subabas">
         <div class="sub-abas-negocio" id="subAbasClientes">
-          <button type="button" class="sub-aba-btn ativo" data-subaba="contatos">Base de Contatos <span class="contagem-subaba" id="clienteContagemContatos">0</span></button>
-          <button type="button" class="sub-aba-btn" data-subaba="abordagem">Em Abordagem <span class="contagem-subaba" id="clienteContagemAbordagem">0</span></button>
-          <button type="button" class="sub-aba-btn" data-subaba="historico">Histórico de Clientes <span class="contagem-subaba" id="clienteContagemHistorico">0</span></button>
+          <button type="button" class="sub-aba-btn ativo" data-subaba="contatos">Base de Contatos <span class="contagem-subaba dado-sensivel" id="clienteContagemContatos">0</span></button>
+          <button type="button" class="sub-aba-btn" data-subaba="abordagem">Em Abordagem <span class="contagem-subaba dado-sensivel" id="clienteContagemAbordagem">0</span></button>
+          <button type="button" class="sub-aba-btn" data-subaba="historico">Histórico de Clientes <span class="contagem-subaba dado-sensivel" id="clienteContagemHistorico">0</span></button>
         </div>
         <button type="button" class="btn-negocia" id="clienteBotaoNegocia">🤝 NegocIA</button>
       </div>
@@ -6225,6 +6225,7 @@
 <script src="js/auth.js"></script>
 <script src="js/push.js"></script>
 <script src="js/auto-update.js"></script>
+<script src="js/pull-refresh.js"></script>
 <script>
   /* =========================================================================
      ESTADO EM MEMÓRIA
@@ -6845,10 +6846,12 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
     document.getElementById("usuarioEmail").textContent = usuario.email;
 
-    // Volta pra aba em que a pessoa estava antes de atualizar a página (F5), em vez de
-    // sempre mostrar o Menu Principal. Feito ANTES do body ficar visível, pra nunca
-    // chegar a piscar o Menu Principal por um instante enquanto os dados carregam.
-    const abaSalva = localStorage.getItem("painelAbaAtiva");
+    // Volta pra aba em que a pessoa estava antes de atualizar a página (F5) ou puxar pra
+    // atualizar, em vez de sempre mostrar o Menu Principal — mas só dentro da mesma sessão
+    // (sessionStorage some sozinho quando o app é fechado de verdade, então reabrir do zero
+    // sempre cai na Dashboard). Feito ANTES do body ficar visível, pra nunca chegar a
+    // piscar o Menu Principal por um instante enquanto os dados carregam.
+    const abaSalva = sessionStorage.getItem("painelAbaAtiva");
     if (abaSalva && document.querySelector(`.menu-item[data-tab="${abaSalva}"]`)){
       trocarAba(abaSalva);
     }
@@ -9698,8 +9701,11 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       alternarGavetaClientes(true);
     }
 
-    // Lembra a aba atual pra continuar nela se a página for atualizada (F5)
-    localStorage.setItem("painelAbaAtiva", aba);
+    // Lembra a aba atual pra continuar nela se a página for atualizada (F5) ou se puxar pra
+    // atualizar — mas só enquanto o app continuar aberto: sessionStorage (ao contrário de
+    // localStorage) se apaga sozinho quando o app é fechado de verdade, então reabrir do
+    // zero sempre volta pra Dashboard.
+    sessionStorage.setItem("painelAbaAtiva", aba);
 
     fecharGaveta();
   }
