@@ -3275,6 +3275,7 @@
   .marcas-pill-status::after{ content:"▾"; font-size:.6rem; opacity:.7; }
   .marcas-pill-status.a_enviar{ background:rgba(107,100,92,.1); border-color:var(--texto-suave); color:var(--texto-suave); }
   .marcas-pill-status.enviado{ background:rgba(0,0,128,.08); border-color:var(--coral); color:var(--coral); }
+  .marcas-pill-status.follow_up{ background:rgba(61,107,138,.1); border-color:#3d6b8a; color:#3d6b8a; }
   .marcas-pill-status.respondeu{ background:rgba(201,166,107,.18); border-color:var(--dourado); color:#8a6d34; }
   .marcas-pill-status.proposta{ background:rgba(201,166,107,.3); border-color:var(--dourado); color:#6b5326; }
   .marcas-pill-status.fechado{ background:rgba(45,122,79,.12); border-color:var(--verde); color:var(--verde); }
@@ -4803,6 +4804,7 @@
           <button type="button" class="marcas-contador-card total" data-status-card="todas"><span class="rotulo">Total</span><span class="valor dado-sensivel" id="marcasContadorTotal">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="a_enviar"><span class="rotulo"><span class="bolinha" style="background:var(--texto-suave)"></span>A enviar</span><span class="valor dado-sensivel" id="marcasContador-a_enviar">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="enviado"><span class="rotulo"><span class="bolinha" style="background:var(--coral)"></span>Enviado</span><span class="valor dado-sensivel" id="marcasContador-enviado">0</span></button>
+          <button type="button" class="marcas-contador-card" data-status-card="follow_up"><span class="rotulo"><span class="bolinha" style="background:#3d6b8a"></span>Follow up</span><span class="valor dado-sensivel" id="marcasContador-follow_up">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="respondeu"><span class="rotulo"><span class="bolinha" style="background:var(--dourado)"></span>Respondeu</span><span class="valor dado-sensivel" id="marcasContador-respondeu">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="proposta"><span class="rotulo"><span class="bolinha" style="background:#8a6d34"></span>Proposta</span><span class="valor dado-sensivel" id="marcasContador-proposta">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="fechado"><span class="rotulo"><span class="bolinha" style="background:var(--verde)"></span>Fechado</span><span class="valor dado-sensivel" id="marcasContador-fechado">0</span></button>
@@ -4875,6 +4877,7 @@
               <div class="ugc-origem-toggle marcas-status-toggle" id="marcasStatusToggle">
                 <span class="ativo" data-status="a_enviar">A enviar</span>
                 <span data-status="enviado">Enviado</span>
+                <span data-status="follow_up">Follow up</span>
                 <span data-status="respondeu">Respondeu</span>
                 <span data-status="proposta">Proposta</span>
                 <span data-status="fechado">Fechado</span>
@@ -6374,6 +6377,7 @@
   const MARCAS_STATUS = [
     { chave: "a_enviar", nome: "A enviar" },
     { chave: "enviado", nome: "Enviado" },
+    { chave: "follow_up", nome: "Follow up" },
     { chave: "respondeu", nome: "Respondeu" },
     { chave: "proposta", nome: "Proposta" },
     { chave: "fechado", nome: "Fechado" },

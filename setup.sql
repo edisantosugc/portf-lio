@@ -578,7 +578,7 @@ create table if not exists public.painel_marcas (
   contato text,                         -- pessoa de contato
   nicho text,
   origem text,                          -- onde a marca foi encontrada
-  status text not null default 'a_enviar' check (status in ('a_enviar', 'enviado', 'respondeu', 'proposta', 'fechado', 'sem_interesse')),
+  status text not null default 'a_enviar' check (status in ('a_enviar', 'enviado', 'follow_up', 'respondeu', 'proposta', 'fechado', 'sem_interesse')),
   observacao text,
   data date not null default current_date,
   created_at timestamptz not null default now()
@@ -594,6 +594,11 @@ alter table public.painel_marcas add column if not exists prioridade boolean not
 -- categoria mais ampla) — ver adicionar_produto_marcas.sql.
 alter table public.painel_marcas add column if not exists produto text;
 create index if not exists idx_painel_marcas_produto on public.painel_marcas (produto);
+
+-- Status "Follow up" entre Enviado e Respondeu — ver adicionar_status_followup_marcas.sql.
+alter table public.painel_marcas drop constraint if exists painel_marcas_status_check;
+alter table public.painel_marcas add constraint painel_marcas_status_check
+  check (status in ('a_enviar', 'enviado', 'follow_up', 'respondeu', 'proposta', 'fechado', 'sem_interesse'));
 
 alter table public.painel_marcas enable row level security;
 
