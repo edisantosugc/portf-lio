@@ -21,6 +21,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3";
+import { Buffer } from "node:buffer";
 
 // Sem isso, o navegador nunca chega a mandar a chamada de verdade: antes de
 // um POST "diferente da origem" (o painel chamando a API do Supabase), o
@@ -142,7 +143,10 @@ async function mandarPraConta(conta: string, titulo: string, corpo: string, url:
 }
 
 async function mandarUm(inscricao: any, titulo: string, corpo: string, url: string) {
-  const payload = JSON.stringify({ titulo, corpo, url });
+  // Converte pra Buffer UTF-8 explicitamente antes de mandar pro web-push — sem isso,
+  // acento (ex: "Você") chega corrompido tipo "VocÃª" na notificação do celular, porque a
+  // lib assume os bytes errados ao criptografar o payload se receber só a string.
+  const payload = Buffer.from(JSON.stringify({ titulo, corpo, url }), "utf8");
   const assinatura = {
     endpoint: inscricao.endpoint,
     keys: { p256dh: inscricao.p256dh, auth: inscricao.auth },
