@@ -15811,16 +15811,24 @@ ${MODELO_PROPOSTA_HTML}`;
     }
   }
 
-  // Usado pelo lembrete no pop-up de notificações: sempre marca como feito (dispensa o aviso)
+  // Usado pelo lembrete no pop-up de notificações: sempre marca como feito (dispensa o aviso).
+  // Também põe o Status em "Follow up enviado" — antes eram 2 ações manuais separadas (marcar
+  // feito + trocar o status), agora 1 ação só cobre as duas. O Status continua livre pra ela
+  // trocar à mão depois, pra "Respondeu"/"Em negociação" etc quando a marca responder.
   async function marcarFollowupFeitoAbordagem(id){
-    await atualizarAbordagem(id, { followup_feito: true });
+    await atualizarAbordagem(id, { followup_feito: true, status: "follow_up" });
   }
 
-  // Usado pelo botão no detalhe da abordagem: alterna feito/pendente nos dois sentidos
+  // Usado pelo botão no detalhe da abordagem: alterna feito/pendente nos dois sentidos — só
+  // força o status ao MARCAR como feito (nunca ao desmarcar, pra não atropelar um status que
+  // ela já tenha trocado à mão nesse meio tempo).
   async function alternarFollowupFeitoAbordagem(id){
     const item = abordagensCache.find(a => a.id === id);
     if (!item) return;
-    await atualizarAbordagem(id, { followup_feito: !item.followup_feito });
+    const novoFeito = !item.followup_feito;
+    const campos = { followup_feito: novoFeito };
+    if (novoFeito) campos.status = "follow_up";
+    await atualizarAbordagem(id, campos);
   }
 
   async function removerAbordagem(id){
