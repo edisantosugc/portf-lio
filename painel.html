@@ -3440,6 +3440,13 @@
 
   .prospeccao-fila-rascunho{ margin-top:16px; border:1px solid var(--borda); border-radius:12px; padding:16px; }
   .prospeccao-fila-topo{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:.8rem; color:var(--texto-suave); font-weight:600; }
+  .prospeccao-fila-nav-grupo{ display:flex; align-items:center; gap:8px; }
+  .prospeccao-fila-nav{
+    width:24px; height:24px; border-radius:6px; border:1px solid var(--borda); background:var(--branco);
+    color:var(--texto-suave); font-size:.85rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .prospeccao-fila-nav:hover:not(:disabled){ border-color:var(--coral); color:var(--coral); }
+  .prospeccao-fila-nav:disabled{ opacity:.35; cursor:not-allowed; }
   .prospeccao-fila-assunto{ font-weight:700; font-size:.92rem; margin-bottom:8px; }
   .prospeccao-fila-corpo{ white-space:pre-wrap; word-break:break-word; font-size:.84rem; line-height:1.6; color:var(--grafite); background:var(--creme); border-radius:9px; padding:12px 14px; max-height:220px; overflow-y:auto; margin-bottom:12px; }
   .prospeccao-fila-botoes{ display:flex; gap:10px; flex-wrap:wrap; }
@@ -6496,6 +6503,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   let prospeccaoModoCompositor = "facil"; // "facil" | "html"
   let prospeccaoFilaRascunhoAtual = [];
   let prospeccaoRascunhoEditando = false;
+  let prospeccaoRascunhoIndiceAtual = 0; // qual item da fila está sendo mostrado agora (não precisa ser o primeiro)
   let prospeccaoMarcaUnicaId = null; // marca escolhida na busca individual ("busca-unica")
   let prospeccaoMarcaUnicaOrigem = "marca"; // "marca" | "cliente" — de qual aba veio a escolha acima
 
@@ -9473,8 +9481,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("prospeccaoModalCardFechar").addEventListener("click", () => document.getElementById("prospeccaoModalCard").classList.add("oculto"));
 
     document.getElementById("prospeccaoHistoricoCorpo").addEventListener("click", (e) => {
-      const botaoApagar = e.target.closest("[data-apagar-id]");
-      if (botaoApagar){ apagarEnvioTesteProspeccao(botaoApagar.dataset.apagarId); return; }
+      const botaoDesfazer = e.target.closest("[data-desfazer-id]");
+      if (botaoDesfazer){ desfazerEnvioProspeccao(botaoDesfazer.dataset.desfazerId); return; }
       const linha = e.target.closest("[data-envio-idx]");
       if (!linha) return;
       abrirEmailEnviadoProspeccao(prospeccaoHistoricoListaEnvios[Number(linha.dataset.envioIdx)]);
@@ -18171,14 +18179,13 @@ ${corpoHtml}
     corpo.innerHTML = linhas.length
       ? linhas.map((e, idx) => {
           const temConteudo = !!e.corpo_html;
-          const ehTeste = (e.email || "").toLowerCase() === PROSPECCAO_EMAIL_TESTE.toLowerCase();
           return `
           <tr>
             <td class="dado-sensivel">${escaparHtmlMarcas(e.email)}</td>
             <td class="dado-sensivel">${temConteudo ? `<span class="prospeccao-assunto-clicavel" data-envio-idx="${idx}">${escaparHtmlMarcas(e.assunto)}</span>` : escaparHtmlMarcas(e.assunto)}</td>
             <td>${formatarDataHoraCurtaProspeccao(e.created_at)}</td>
             <td>${rotuloStatusEntregaProspeccao(e)}</td>
-            <td>${ehTeste ? `<button type="button" class="prospeccao-historico-apagar" data-apagar-id="${e.id}" title="Apagar este teste" aria-label="Apagar este teste">×</button>` : ""}</td>
+            <td><button type="button" class="prospeccao-historico-apagar" data-desfazer-id="${e.id}" title="Desfazer: volta pra fila de rascunho" aria-label="Desfazer envio">↩</button></td>
           </tr>
         `;
         }).join("")
@@ -18230,17 +18237,70 @@ ${corpoHtml}
     renderizarProspeccao();
   }, 60000);
 
-  // Apaga do histórico só esse envio pro próprio e-mail de teste — o "×" só aparece em
-  // linhas cujo destinatário é PROSPECCAO_EMAIL_TESTE, nunca em envio de verdade pra marca.
-  async function apagarEnvioTesteProspeccao(id){
-    if (!confirm("Apagar este envio de teste do histórico? Não dá pra desfazer.")) return;
+  // Tira as tags HTML do e-mail salvo (corpo_html) e devolve um texto legível, com as
+  // quebras de linha originais preservadas — usado só pra reconstruir um rascunho editável
+  // quando ela desfaz um envio, já que só o HTML final ficou salvo, não o texto original.
+  function htmlParaTextoAproximadoProspeccao(html){
+    const comQuebras = (html || "")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p>/gi, "\n\n")
+      .replace(/<[^>]+>/g, "");
+    const div = document.createElement("div");
+    div.innerHTML = comQuebras;
+    return (div.textContent || "").trim();
+  }
+
+  // Desfaz um "Marcar como enviada" clicado sem querer: apaga do Histórico, volta o status
+  // da marca pra "A enviar" (só se ela ainda estiver exatamente em "Enviado" — não mexe se
+  // já avançou pra Follow up/Respondeu/etc, pra não atropelar progresso de verdade), apaga a
+  // abordagem espelhada se ela tiver sido criada nesse mesmo envio (ainda "Abordagem
+  // realizada", nunca tocada depois), e recoloca a marca na fila de rascunho, pronta pra
+  // reenviar (o texto reconstruído a partir do e-mail salvo pode ser ajustado com o "Editar"
+  // que já existe na fila, antes de mandar de novo).
+  async function desfazerEnvioProspeccao(id){
+    const envio = emailEnviosCache.find(e => e.id === id);
+    if (!envio) return;
+
+    const marca = marcasCache.find(m => (m.email || "").toLowerCase() === (envio.email || "").toLowerCase());
+    const aviso = marca
+      ? `Desfazer o envio pra "${marca.nome}"? Ela sai do Histórico, o status volta pra "A enviar" e ela volta pra fila de rascunho, pronta pra reenviar.`
+      : `Desfazer este envio? Ele sai do Histórico. Não achei uma marca com esse e-mail na sua base, então só isso será feito.`;
+    if (!confirm(aviso)) return;
 
     const { error } = await Auth.client.from("email_envios").delete().eq("id", id);
-    if (error){ alert("Não deu pra apagar agora. Tenta de novo."); console.error("Erro ao apagar envio de teste do histórico:", error); return; }
+    if (error){ alert("Não deu pra desfazer agora. Tenta de novo."); console.error("Erro ao desfazer envio:", error); return; }
+
+    if (marca && marca.status === "enviado"){
+      marca.status = "a_enviar";
+      const { error: erroMarca } = await Auth.client.from("painel_marcas").update({ status: "a_enviar" }).eq("id", marca.id);
+      if (erroMarca) console.error("Erro ao voltar status da marca pra 'A enviar':", erroMarca);
+
+      const abordagemLigada = abordagensCache.find(a => a.marca_origem_id === marca.id);
+      if (abordagemLigada && abordagemLigada.status === "realizada"){
+        const { error: erroAbordagem } = await Auth.client.from("painel_abordagens").delete().eq("id", abordagemLigada.id);
+        if (!erroAbordagem) abordagensCache = abordagensCache.filter(a => a.id !== abordagemLigada.id);
+      }
+
+      prospeccaoFilaRascunhoAtual = prospeccaoFilaRascunhoAtual.concat([{
+        email: marca.email,
+        nome: primeiroNomeProspeccao(marca),
+        marca: marca.nome,
+        marcaId: marca.id,
+        assunto: envio.assunto,
+        corpoTexto: "",
+        botaoTexto: "",
+        botaoLink: "",
+        corpoFinalEditado: htmlParaTextoAproximadoProspeccao(envio.corpo_html)
+      }]);
+      document.getElementById("prospeccaoFilaRascunho").classList.remove("oculto");
+      renderizarProximoRascunhoProspeccao();
+      salvarRascunhoProspeccaoLocal();
+    }
 
     await recarregarEmailEnviosProspeccao();
     renderizarHistoricoProspeccao();
     renderizarProspeccao();
+    renderizarMarcas();
   }
 
   // Conecta a Marcas (manual ou por e-mail) com a aba Abordagens: toda marca que vira
@@ -18479,6 +18539,13 @@ ${corpoHtml}
     salvarRascunhoProspeccaoLocal();
   }
 
+  // Muda só qual item da fila está sendo mostrado (não manda nem apaga nada) — pra dar pra
+  // olhar todos os rascunhos pendentes, não só o primeiro da fila.
+  function navegarRascunhoProspeccao(passo){
+    prospeccaoRascunhoIndiceAtual = Math.max(0, Math.min(prospeccaoFilaRascunhoAtual.length - 1, prospeccaoRascunhoIndiceAtual + passo));
+    renderizarProximoRascunhoProspeccao();
+  }
+
   function renderizarProximoRascunhoProspeccao(){
     const container = document.getElementById("prospeccaoFilaRascunho");
     if (!prospeccaoFilaRascunhoAtual.length){
@@ -18486,14 +18553,26 @@ ${corpoHtml}
       limparRascunhoProspeccaoLocal();
       return;
     }
-    const atual = prospeccaoFilaRascunhoAtual[0];
+    // Garante que o índice de visualização nunca aponte pra fora da fila (ex: depois de
+    // enviar/excluir justamente o último item que estava sendo visto).
+    if (prospeccaoRascunhoIndiceAtual > prospeccaoFilaRascunhoAtual.length - 1) prospeccaoRascunhoIndiceAtual = prospeccaoFilaRascunhoAtual.length - 1;
+    if (prospeccaoRascunhoIndiceAtual < 0) prospeccaoRascunhoIndiceAtual = 0;
+
+    const atual = prospeccaoFilaRascunhoAtual[prospeccaoRascunhoIndiceAtual];
     const corpoFinal = atual.corpoFinalEditado != null
       ? atual.corpoFinalEditado
       : construirTextoEmailComBotaoProspeccao(atual.corpoTexto, atual.botaoTexto, atual.botaoLink);
 
+    // Desabilitada durante a edição, pra não trocar de item e perder o que ainda não foi salvo.
+    const navHtml = `
+      <button type="button" class="prospeccao-fila-nav" id="prospeccaoRascunhoAnterior" aria-label="Rascunho anterior" ${prospeccaoRascunhoEditando || prospeccaoRascunhoIndiceAtual === 0 ? "disabled" : ""}>←</button>
+      <span>${prospeccaoRascunhoIndiceAtual + 1} de ${prospeccaoFilaRascunhoAtual.length}</span>
+      <button type="button" class="prospeccao-fila-nav" id="prospeccaoRascunhoProximo" aria-label="Próximo rascunho" ${prospeccaoRascunhoEditando || prospeccaoRascunhoIndiceAtual === prospeccaoFilaRascunhoAtual.length - 1 ? "disabled" : ""}>→</button>
+    `;
+
     if (prospeccaoRascunhoEditando){
       container.innerHTML = `
-        <div class="prospeccao-fila-topo"><span>Faltam ${prospeccaoFilaRascunhoAtual.length}</span><span>${escaparHtmlMarcas(atual.marca)}</span></div>
+        <div class="prospeccao-fila-topo"><div class="prospeccao-fila-nav-grupo">${navHtml}</div><span>${escaparHtmlMarcas(atual.marca)}</span></div>
         <input type="text" id="prospeccaoRascunhoAssuntoEdit" class="prospeccao-fila-assunto-edit" value="${escaparHtmlMarcas(atual.assunto)}" style="width:100%; margin-bottom:8px; padding:8px; border-radius:6px; border:1px solid #CCC2BC; font-weight:600;">
         <textarea id="prospeccaoRascunhoCorpoEdit" class="prospeccao-fila-corpo-edit" rows="10" style="width:100%; padding:8px; border-radius:6px; border:1px solid #CCC2BC; font-family:inherit; font-size:inherit;">${escaparHtmlMarcas(corpoFinal)}</textarea>
         <div class="prospeccao-fila-botoes">
@@ -18518,7 +18597,7 @@ ${corpoHtml}
     const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(atual.email)}&su=${encodeURIComponent(atual.assunto)}&body=${encodeURIComponent(corpoFinal)}`;
 
     container.innerHTML = `
-      <div class="prospeccao-fila-topo"><span>Faltam ${prospeccaoFilaRascunhoAtual.length}</span><span>${escaparHtmlMarcas(atual.marca)}</span></div>
+      <div class="prospeccao-fila-topo"><div class="prospeccao-fila-nav-grupo">${navHtml}</div><span>${escaparHtmlMarcas(atual.marca)}</span></div>
       <div class="prospeccao-fila-assunto">${escaparHtmlMarcas(atual.assunto)}</div>
       <div class="prospeccao-fila-corpo">${escaparHtmlMarcas(corpoFinal)}</div>
       <div class="prospeccao-fila-botoes">
@@ -18530,6 +18609,8 @@ ${corpoHtml}
       </div>
     `;
 
+    document.getElementById("prospeccaoRascunhoAnterior").addEventListener("click", () => navegarRascunhoProspeccao(-1));
+    document.getElementById("prospeccaoRascunhoProximo").addEventListener("click", () => navegarRascunhoProspeccao(1));
     document.getElementById("prospeccaoRascunhoEditar").addEventListener("click", () => {
       prospeccaoRascunhoEditando = true;
       renderizarProximoRascunhoProspeccao();
