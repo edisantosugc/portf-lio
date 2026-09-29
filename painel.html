@@ -15249,8 +15249,11 @@ ${MODELO_PROPOSTA_HTML}`;
     const salvou = await atualizarAbordagem(id, campos);
     if (!salvou) return;
 
-    if (novoStatus === "contato_futuro" && marcaOrigemId){
-      await sincronizarStatusMarcaDaAbordagem(marcaOrigemId, "contato_futuro");
+    // Sincroniza de volta pra Marcas sempre que o novo status também existir lá com a mesma
+    // chave ("follow_up", "contato_futuro") — evita ficar tendo que lembrar, um por um, quais
+    // status são compartilhados entre as duas abas.
+    if (marcaOrigemId && MARCAS_STATUS.some(s => s.chave === novoStatus)){
+      await sincronizarStatusMarcaDaAbordagem(marcaOrigemId, novoStatus);
     }
     if (novoStatus === "fechada"){
       const registroDepois = abordagensCache.find(a => a.id === id);
@@ -15952,11 +15955,12 @@ ${MODELO_PROPOSTA_HTML}`;
       }
     }
 
-    // "Contato futuro" definido direto aqui (em vez de vir de Marcas, via mudarStatusMarca)
-    // também precisa refletir na marca de origem, senão os dois lados mostram status diferente.
-    if (salvou && status === "contato_futuro" && statusAnterior !== "contato_futuro"){
+    // Status definido direto aqui (em vez de vir de Marcas, via mudarStatusMarca) também
+    // precisa refletir na marca de origem quando as duas abas compartilham a mesma chave de
+    // status ("follow_up", "contato_futuro") — senão os dois lados mostram status diferente.
+    if (salvou && status !== statusAnterior && MARCAS_STATUS.some(s => s.chave === status)){
       const registroDepois = abordagensCache.find(a => a.id === id);
-      if (registroDepois?.marca_origem_id) await sincronizarStatusMarcaDaAbordagem(registroDepois.marca_origem_id, "contato_futuro");
+      if (registroDepois?.marca_origem_id) await sincronizarStatusMarcaDaAbordagem(registroDepois.marca_origem_id, status);
     }
   }
 
