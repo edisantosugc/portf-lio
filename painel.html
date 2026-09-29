@@ -2551,6 +2551,9 @@
     box-shadow: 0 30px 70px rgba(26,24,22,.3); text-align: left;
   }
   .cliente-modal-cartao.largo{ max-width: 620px; }
+  /* Modal de Cliente especificamente maior que os outros ".largo" — tem o histórico embaixo
+     dos campos, então usar só a largura padrão deixava tudo espremido/rolando demais. */
+  #modalCliente .cliente-modal-cartao{ max-width: 960px; }
   .cliente-modal-topo{
     display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--borda);
     /* Sticky: a rolagem acontece no cartão inteiro (não só no corpo), então sem isso o
