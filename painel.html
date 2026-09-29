@@ -2562,6 +2562,12 @@
   .cliente-modal-corpo{ padding: 20px 22px; display: flex; flex-direction: column; gap: 16px; }
   .cliente-modal-rodape{ display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--borda); }
   .cliente-secao-rotulo{ font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--texto-suave); }
+  .cliente-historico-item{ padding: 10px 0; border-bottom: 1px solid var(--borda); }
+  .cliente-historico-item:last-child{ border-bottom: none; }
+  .cliente-historico-data{ display: flex; justify-content: space-between; align-items: center; font-size: .76rem; font-weight: 600; color: var(--texto-suave); margin-bottom: 4px; }
+  .cliente-historico-remover{ background: none; border: none; color: var(--texto-suave); cursor: pointer; font-size: 1rem; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+  .cliente-historico-remover:hover{ background: rgba(196,69,60,.12); color: var(--vermelho); }
+  .cliente-historico-item p{ font-size: .85rem; white-space: pre-wrap; margin: 0; }
   .cliente-area-upload{
     display: block; border: 1.5px dashed var(--borda); border-radius: 14px; padding: 24px 16px; text-align: center; cursor: pointer;
     color: var(--texto-suave); background: var(--creme); font-size: .82rem;
@@ -3715,6 +3721,14 @@
         <div class="ugc-campo largo"><label>Responsável</label><input type="text" id="clienteCampoContatoNome" placeholder="Nome de quem você fala"></div>
         <div class="ugc-campo"><label>E-mail</label><input type="email" id="clienteCampoContatoEmail" placeholder="email@marca.com"></div>
         <div class="ugc-campo"><label>Telefone</label><input type="text" id="clienteCampoContatoTelefone" placeholder="(11) 90000-0000"></div>
+      </div>
+      <div class="ugc-campo largo oculto" id="clienteHistoricoSecao">
+        <span class="cliente-secao-rotulo">Histórico</span>
+        <div style="display:flex; gap:8px; align-items:flex-end; margin-bottom:12px;">
+          <textarea id="clienteHistoricoCampoTexto" rows="2" placeholder="Ex: Abordei pra Black Friday no dia 28/09, retorno foi..." style="flex:1;"></textarea>
+          <button type="button" class="botao-add-tarefa" id="clienteHistoricoBotaoAdicionar">+ Adicionar</button>
+        </div>
+        <div id="clienteHistoricoLista"></div>
       </div>
     </div>
     <div class="cliente-modal-rodape">
@@ -6539,6 +6553,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
   // Estado da aba Clientes: cadastro, sub-aba ativa (contatos/abordagem/histórico),
   // ordenação da tabela e id do cliente em edição no modal (null = criando um novo)
   let clientesCache = [];
+  let clientesNotasCache = []; // histórico de anotações datadas por cliente (painel_clientes_notas)
   let clienteSubAbaAtiva = "contatos";
   let clienteOrdemRecente = true;
   let clienteEditandoId = null;
@@ -7128,6 +7143,14 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         preencherSelectClienteUgc(document.getElementById("ugcCampoClienteId"), "");
       } catch (erroClientes) {
         console.error("Erro ao carregar/renderizar Clientes:", erroClientes);
+      }
+      try {
+        // Isolado do carregamento principal: a tabela painel_clientes_notas (histórico de
+        // anotações datadas) só existe depois que adicionar_historico_clientes.sql for
+        // rodado no Supabase.
+        clientesNotasCache = await comRetry(() => buscarTudo("painel_clientes_notas"));
+      } catch (erroClientesNotas) {
+        console.error("Erro ao carregar histórico de Clientes:", erroClientesNotas);
       }
       try {
         // Isolado do carregamento principal: painel_documentos_pessoais/painel_documentos_avulsos
@@ -9486,6 +9509,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       if (e.target.id === "modalCliente") fecharModalCliente();
     });
     document.getElementById("clienteModalSalvar").addEventListener("click", salvarCliente);
+    document.getElementById("clienteHistoricoBotaoAdicionar").addEventListener("click", adicionarNotaCliente);
     document.getElementById("clienteCampoCnpj").addEventListener("input", (e) => {
       e.target.value = aplicarMascaraCnpj(e.target.value);
     });
@@ -15106,6 +15130,11 @@ ${MODELO_PROPOSTA_HTML}`;
   // período escolhido e dos OUTROS filtros de coluna já ativos (ignora o filtro da própria
   // coluna) — senão o dropdown lista valor que não sobrou em nenhuma linha visível.
   function obterValoresColunaAbordagem(campo){
+    // Status é uma lista fixa — sempre mostra todas as opções no filtro, mesmo as que ainda
+    // não têm nenhuma abordagem (ex: "Contato futuro" com 0). "Rascunho" fica de fora porque
+    // essa lista (ativas) nunca mostra rascunho mesmo — filtrar por ele sempre daria vazio.
+    if (campo === "status") return ABORDAGEM_STATUS.filter(s => s.chave !== "rascunho").map(s => ({ chave: s.chave, rotulo: s.nome }));
+
     const campoBusca = document.getElementById("abordagemBusca");
     const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
     const vistos = new Map(); // chave -> rótulo
@@ -16954,6 +16983,11 @@ ${MODELO_PROPOSTA_HTML}`;
   // o dropdown lista opção que já não bate com mais nada (ex: "Carregador Magnético" some
   // da lista de "A enviar" porque já foi tudo enviado, mas continuava aparecendo no filtro).
   function obterValoresColunaMarcas(campo){
+    // Status é uma lista fixa (os mesmos 8 cartões de cima) — sempre mostra todas as opções
+    // no filtro, mesmo as que ainda não têm nenhuma marca (ex: "Contato futuro" com 0),
+    // diferente de Nicho/Produto (texto livre, aí sim só faz sentido listar o que existe).
+    if (campo === "status") return MARCAS_STATUS.map(s => ({ chave: s.chave, rotulo: s.nome }));
+
     const termo = (document.getElementById("marcasBusca").value || "").trim().toLowerCase();
     const vistos = new Map(); // chave -> rótulo
     marcasCache
@@ -19174,7 +19208,75 @@ ${corpo}
     document.getElementById("clienteCampoContatoEmail").value = cliente ? (cliente.contato_email || "") : "";
     document.getElementById("clienteCampoContatoTelefone").value = cliente ? (cliente.contato_telefone || "") : "";
 
+    // Histórico só faz sentido pra cliente que já existe (precisa de um id pra anexar a
+    // anotação) — some no cadastro de um cliente novo, aparece ao editar um já salvo.
+    document.getElementById("clienteHistoricoSecao").classList.toggle("oculto", !cliente);
+    document.getElementById("clienteHistoricoCampoTexto").value = "";
+    if (cliente) renderizarHistoricoCliente(id);
+
     document.getElementById("modalCliente").classList.remove("oculto");
+  }
+
+  function renderizarHistoricoCliente(clienteId){
+    const lista = document.getElementById("clienteHistoricoLista");
+    if (!lista) return;
+    const notas = clientesNotasCache
+      .filter(n => n.cliente_id === clienteId)
+      .sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+
+    lista.innerHTML = notas.length
+      ? notas.map(n => `
+        <div class="cliente-historico-item">
+          <div class="cliente-historico-data">
+            <span>${formatarDataHoraCurtaProspeccao(n.created_at)}</span>
+            <button type="button" class="cliente-historico-remover" data-id="${n.id}" aria-label="Excluir anotação">×</button>
+          </div>
+          <p>${escaparHtmlMarcas(n.texto)}</p>
+        </div>
+      `).join("")
+      : `<p class="ugc-vazio">Nenhuma anotação ainda.</p>`;
+
+    lista.querySelectorAll(".cliente-historico-remover").forEach(btn => {
+      btn.addEventListener("click", () => removerNotaCliente(btn.dataset.id, clienteId));
+    });
+  }
+
+  async function adicionarNotaCliente(){
+    if (!clienteEditandoId) return;
+    const campo = document.getElementById("clienteHistoricoCampoTexto");
+    const texto = campo.value.trim();
+    if (!texto) return;
+
+    const botao = document.getElementById("clienteHistoricoBotaoAdicionar");
+    botao.disabled = true;
+    try {
+      const { data, error } = await Auth.client
+        .from("painel_clientes_notas")
+        .insert({ cliente_id: clienteEditandoId, texto })
+        .select();
+      if (error) throw error;
+      clientesNotasCache = clientesNotasCache.concat(data);
+      campo.value = "";
+      renderizarHistoricoCliente(clienteEditandoId);
+    } catch (erro) {
+      console.error("Erro ao adicionar anotação de cliente:", erro);
+      alert("Não deu pra salvar a anotação. Tenta de novo.");
+    } finally {
+      botao.disabled = false;
+    }
+  }
+
+  async function removerNotaCliente(id, clienteId){
+    if (!confirm("Excluir essa anotação? Não dá pra desfazer.")) return;
+    try {
+      const { error } = await Auth.client.from("painel_clientes_notas").delete().eq("id", id);
+      if (error) throw error;
+      clientesNotasCache = clientesNotasCache.filter(n => n.id !== id);
+      renderizarHistoricoCliente(clienteId);
+    } catch (erro) {
+      console.error("Erro ao excluir anotação de cliente:", erro);
+      alert("Não deu pra excluir. Tenta de novo.");
+    }
   }
 
   // Atalho vindo do card "Completar cadastro" (abordagem fechada sem cliente vinculado ainda).
