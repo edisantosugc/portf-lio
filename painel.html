@@ -4748,6 +4748,7 @@
             <label class="abordagem-filtro-item abordagem-filtro-todos"><input type="checkbox" id="abordagemFiltroTodos"> <strong>(Selecionar tudo)</strong></label>
             <div class="abordagem-filtro-lista dado-sensivel" id="abordagemFiltroLista"></div>
           </div>
+          <div class="marcas-menu-status" id="abordagemMenuStatusCompartilhado"></div>
           <div id="abordagemListaCorpo"></div>
         </div>
       </div>
@@ -7187,7 +7188,12 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       document.getElementById("areaCarregando").classList.add("oculto");
       const areaErro = document.getElementById("areaErro");
       const detalhe = (erro && (erro.message || erro.error_description || erro.details)) || String(erro);
-      areaErro.textContent = "Não foi possível carregar os dados agora. Detalhe técnico: " + detalhe;
+      // Um botão de "Tentar de novo" em vez de deixar essa tela sem saída — cobre tanto uma
+      // falha passageira de rede quanto uma sessão que expirou nesse meio tempo (nesse caso o
+      // reload já passa de novo pelo checkAuth, que renova o token sozinho se precisar).
+      areaErro.innerHTML = `Não foi possível carregar os dados agora. Detalhe técnico: ${escaparHtmlMarcas(detalhe)}
+        <br><button type="button" class="btn-fantasma" id="areaErroTentarDeNovo" style="margin-top:10px;">🔄 Tentar de novo</button>`;
+      document.getElementById("areaErroTentarDeNovo").addEventListener("click", () => location.reload());
       areaErro.classList.remove("oculto");
     }
   })();
@@ -9312,6 +9318,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
       if (linksFiltroColunaAberta) fecharFiltroColunaLinks();
       if (abordagemFiltroColunaAberta) fecharFiltroColunaAbordagem();
       fecharMenusStatusMarcas();
+      fecharMenuStatusAbordagem();
     }, true);
 
     document.getElementById("marcasBotaoSelecionarFiltradas").addEventListener("click", selecionarTodasFiltradasMarcas);
@@ -15169,6 +15176,64 @@ ${MODELO_PROPOSTA_HTML}`;
     abordagemFiltroColunaAberta = null;
   }
 
+  // Menu de status direto no card do detalhe (sem precisar clicar em "Editar" primeiro) —
+  // mesmo padrão do menu de status compartilhado já usado na aba Marcas.
+  function fecharMenuStatusAbordagem(){
+    document.getElementById("abordagemMenuStatusCompartilhado")?.classList.remove("aberto");
+  }
+
+  function abrirMenuStatusAbordagem(id, botaoEl){
+    const menu = document.getElementById("abordagemMenuStatusCompartilhado");
+    const jaAbertoNesseId = menu.classList.contains("aberto") && menu.dataset.abordagemId === id;
+    fecharMenuStatusAbordagem();
+    if (jaAbertoNesseId) return;
+
+    menu.dataset.abordagemId = id;
+    menu.innerHTML = ABORDAGEM_STATUS.map(s => `<button type="button" data-status="${s.chave}">${s.nome}</button>`).join("");
+    menu.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        fecharMenuStatusAbordagem();
+        mudarStatusAbordagemRapido(id, btn.dataset.status);
+      });
+    });
+
+    document.body.appendChild(menu);
+    menu.classList.add("aberto");
+    posicionarDropdownFiltro(menu, botaoEl);
+  }
+
+  // Troca de status em 1 clique, direto no card do detalhe — cobre os mesmos efeitos
+  // colaterais de salvarEdicaoAbordagem que dependem só do status (agendar "Contato futuro",
+  // abrir o licenciamento ao fechar), sem precisar passar pelo formulário de edição inteiro.
+  async function mudarStatusAbordagemRapido(id, novoStatus){
+    const item = abordagensCache.find(a => a.id === id);
+    if (!item || item.status === novoStatus) return;
+
+    const campos = { status: novoStatus };
+    if (novoStatus === "contato_futuro"){
+      campos.data_followup = somarDias(new Date().toISOString().slice(0, 10), DIAS_CONTATO_FUTURO);
+      campos.followup_feito = false;
+    }
+
+    const marcaOrigemId = item.marca_origem_id;
+    const salvou = await atualizarAbordagem(id, campos);
+    if (!salvou) return;
+
+    if (novoStatus === "contato_futuro" && marcaOrigemId){
+      await sincronizarStatusMarcaDaAbordagem(marcaOrigemId, "contato_futuro");
+    }
+    if (novoStatus === "fechada"){
+      const registroDepois = abordagensCache.find(a => a.id === id);
+      if (registroDepois?.cliente_id){
+        abrirModalLicenciamento(registroDepois);
+      } else {
+        abordagemLicenciamentoPendenteId = id;
+        abrirModalClienteApartirDeAbordagem(id);
+      }
+    }
+  }
+
   function classeStatusAbordagem(chave){
     if (chave === "fechada") return "pago";
     if (chave === "sem_retorno") return "sem-retorno";
@@ -15327,7 +15392,10 @@ ${MODELO_PROPOSTA_HTML}`;
       <div class="ugc-detalhe-linha"><span class="rotulo">Produto</span><span class="valor">${item.produto || "—"}</span></div>
       ${item.canal ? `<div class="ugc-detalhe-linha"><span class="rotulo">Canal</span><span class="valor">${ABORDAGEM_CANAL_CONFIG[item.canal].nome}${item.canal_detalhe ? ` (${item.canal_detalhe})` : ""}</span></div>` : ""}
       ${linhasData}
-      <div class="ugc-detalhe-linha"><span class="rotulo">Status</span><span class="ugc-etapa-pill ${classeStatusAbordagem(item.status)}">${nomeStatusAbordagem(item.status)}</span></div>
+      <div class="ugc-detalhe-linha"><span class="rotulo">Status</span>${item.arquivado
+        ? `<span class="ugc-etapa-pill ${classeStatusAbordagem(item.status)}">${nomeStatusAbordagem(item.status)}</span>`
+        : `<button type="button" class="ugc-etapa-pill ${classeStatusAbordagem(item.status)}" data-acao="abordagem-abrir-menu-status" data-id="${item.id}" style="cursor:pointer; font-family:inherit;">${nomeStatusAbordagem(item.status)} ▾</button>`
+      }</div>
       ${item.arquivado ? `<div class="ugc-detalhe-linha"><span class="rotulo">Motivo do arquivamento</span><span class="selo-motivo-arquivado ${item.arquivado_automaticamente ? "automatico" : ""}">${item.arquivado_automaticamente ? "🤖 " : ""}${item.motivo_arquivamento ? nomeMotivoArquivamento(item.motivo_arquivamento) : "Não informado"}</span></div>` : ""}
       ${item.abordagem ? `<div class="abordagem-bloco"><span class="rotulo">Abordagem</span><p>${item.abordagem}</p></div>` : ""}
       ${item.observacao ? `<div class="abordagem-bloco"><span class="rotulo">Observação</span><p>${item.observacao}</p></div>` : ""}
@@ -15392,6 +15460,12 @@ ${MODELO_PROPOSTA_HTML}`;
     });
     container.querySelectorAll("[data-acao='abordagem-editar']").forEach(btn => {
       btn.addEventListener("click", () => iniciarEdicaoAbordagem(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='abordagem-abrir-menu-status']").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        abrirMenuStatusAbordagem(btn.dataset.id, btn);
+      });
     });
     container.querySelectorAll("[data-acao='abordagem-remover']").forEach(btn => {
       btn.addEventListener("click", () => removerAbordagem(btn.dataset.id));

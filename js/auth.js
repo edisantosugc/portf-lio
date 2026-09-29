@@ -44,6 +44,20 @@ window.Auth = {
       return null;
     }
 
+    // Se o token de acesso já expirou (ou está prestes a expirar) — comum quando o app fica
+    // muito tempo em segundo plano no celular, sem tempo do navegador renovar sozinho —
+    // renova aqui antes de liberar a página. Sem isso, a sessão parecia válida mas as
+    // primeiras chamadas à API voltavam com erro "JWT expired".
+    const expiraEm = data.session.expires_at ? data.session.expires_at * 1000 : 0;
+    if (expiraEm && expiraEm < Date.now() + 30000) {
+      const { data: renovado, error } = await sb.auth.refreshSession();
+      if (error || !renovado.session) {
+        window.location.href = "login.html";
+        return null;
+      }
+      return renovado.session.user;
+    }
+
     return data.session.user;
   },
 
