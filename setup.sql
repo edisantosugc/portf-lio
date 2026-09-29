@@ -539,14 +539,15 @@ alter table public.painel_abordagens add column if not exists canal_detalhe text
 alter table public.painel_abordagens add column if not exists nicho text;
 alter table public.painel_abordagens add column if not exists nicho_detalhe text;
 
--- Status foi evoluindo em duas rodadas (nasceu com 'andamento/fechada/sem_retorno', depois
--- ganhou 'realizada', depois ganhou 'rascunho') — mas recriar a constraint em duas etapas
--- separadas, cada uma com uma lista de valores incompleta, trava ao rodar de novo assim que
--- já existem linhas reais com status='rascunho' (a etapa intermediária ainda não aceitava
--- esse valor). Por isso agora é uma única troca, direto pra lista final.
+-- Status foi evoluindo em várias rodadas (nasceu com 'andamento/fechada/sem_retorno', depois
+-- ganhou 'realizada', 'rascunho', 'follow_up' e 'contato_futuro') — mas recriar a constraint
+-- em etapas separadas, cada uma com uma lista de valores incompleta, trava ao rodar de novo
+-- assim que já existem linhas reais com algum status que a etapa intermediária ainda não
+-- aceitava. Por isso é sempre uma única troca, direto pra lista final — ver disparo.sql e
+-- adicionar_status_contato_futuro.sql pro histórico de quando cada valor foi somado.
 alter table public.painel_abordagens drop constraint if exists painel_abordagens_status_check;
 alter table public.painel_abordagens add constraint painel_abordagens_status_check
-  check (status in ('rascunho', 'realizada', 'andamento', 'fechada', 'sem_retorno'));
+  check (status in ('rascunho', 'realizada', 'follow_up', 'andamento', 'contato_futuro', 'fechada', 'sem_retorno'));
 alter table public.painel_abordagens alter column status set default 'rascunho';
 alter table public.painel_abordagens add column if not exists data_rascunho date;
 
@@ -578,7 +579,7 @@ create table if not exists public.painel_marcas (
   contato text,                         -- pessoa de contato
   nicho text,
   origem text,                          -- onde a marca foi encontrada
-  status text not null default 'a_enviar' check (status in ('a_enviar', 'enviado', 'follow_up', 'respondeu', 'proposta', 'fechado', 'sem_interesse')),
+  status text not null default 'a_enviar' check (status in ('a_enviar', 'enviado', 'follow_up', 'respondeu', 'contato_futuro', 'proposta', 'fechado', 'sem_interesse')),
   observacao text,
   data date not null default current_date,
   created_at timestamptz not null default now()
@@ -596,9 +597,10 @@ alter table public.painel_marcas add column if not exists produto text;
 create index if not exists idx_painel_marcas_produto on public.painel_marcas (produto);
 
 -- Status "Follow up" entre Enviado e Respondeu — ver adicionar_status_followup_marcas.sql.
+-- Status "Contato futuro" depois de Respondeu — ver adicionar_status_contato_futuro.sql.
 alter table public.painel_marcas drop constraint if exists painel_marcas_status_check;
 alter table public.painel_marcas add constraint painel_marcas_status_check
-  check (status in ('a_enviar', 'enviado', 'follow_up', 'respondeu', 'proposta', 'fechado', 'sem_interesse'));
+  check (status in ('a_enviar', 'enviado', 'follow_up', 'respondeu', 'contato_futuro', 'proposta', 'fechado', 'sem_interesse'));
 
 alter table public.painel_marcas enable row level security;
 

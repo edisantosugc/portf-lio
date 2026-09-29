@@ -2004,6 +2004,7 @@
   .ugc-etapa-pill.sem-retorno{ background: rgba(196,69,60,.1); border-color: var(--vermelho); color: var(--vermelho); }
   .ugc-etapa-pill.realizada{ background: rgba(0,0,128,.08); border-color: var(--coral); color: var(--coral); }
   .ugc-etapa-pill.rascunho{ background: rgba(107,100,92,.1); border-color: var(--texto-suave); color: var(--texto-suave); }
+  .ugc-etapa-pill.contato-futuro{ background: rgba(124,91,166,.1); border-color: #7c5ba6; color: #7c5ba6; }
 
   .abordagem-grade-lista{ display: grid; grid-template-columns: 100px minmax(0,1fr) 130px 90px 190px 16px; align-items: center; gap: 14px; }
   .abordagem-grade-lista span:nth-child(4){ text-align: right; }
@@ -3276,6 +3277,7 @@
   .marcas-pill-status.a_enviar{ background:rgba(107,100,92,.1); border-color:var(--texto-suave); color:var(--texto-suave); }
   .marcas-pill-status.enviado{ background:rgba(0,0,128,.08); border-color:var(--coral); color:var(--coral); }
   .marcas-pill-status.follow_up{ background:rgba(61,107,138,.1); border-color:#3d6b8a; color:#3d6b8a; }
+  .marcas-pill-status.contato_futuro{ background:rgba(124,91,166,.1); border-color:#7c5ba6; color:#7c5ba6; }
   .marcas-pill-status.respondeu{ background:rgba(201,166,107,.18); border-color:var(--dourado); color:#8a6d34; }
   .marcas-pill-status.proposta{ background:rgba(201,166,107,.3); border-color:var(--dourado); color:#6b5326; }
   .marcas-pill-status.fechado{ background:rgba(45,122,79,.12); border-color:var(--verde); color:var(--verde); }
@@ -4697,6 +4699,7 @@
                 <span data-status="realizada">Abordagem realizada</span>
                 <span data-status="follow_up">Follow up enviado</span>
                 <span data-status="andamento">Negociação em andamento</span>
+                <span data-status="contato_futuro">Contato futuro</span>
                 <span data-status="fechada">Negociação fechada</span>
                 <span data-status="sem_retorno">Sem retorno</span>
               </div>
@@ -4806,6 +4809,7 @@
           <button type="button" class="marcas-contador-card" data-status-card="enviado"><span class="rotulo"><span class="bolinha" style="background:var(--coral)"></span>Enviado</span><span class="valor dado-sensivel" id="marcasContador-enviado">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="follow_up"><span class="rotulo"><span class="bolinha" style="background:#3d6b8a"></span>Follow up</span><span class="valor dado-sensivel" id="marcasContador-follow_up">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="respondeu"><span class="rotulo"><span class="bolinha" style="background:var(--dourado)"></span>Respondeu</span><span class="valor dado-sensivel" id="marcasContador-respondeu">0</span></button>
+          <button type="button" class="marcas-contador-card" data-status-card="contato_futuro"><span class="rotulo"><span class="bolinha" style="background:#7c5ba6"></span>Contato futuro</span><span class="valor dado-sensivel" id="marcasContador-contato_futuro">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="proposta"><span class="rotulo"><span class="bolinha" style="background:#8a6d34"></span>Proposta</span><span class="valor dado-sensivel" id="marcasContador-proposta">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="fechado"><span class="rotulo"><span class="bolinha" style="background:var(--verde)"></span>Fechado</span><span class="valor dado-sensivel" id="marcasContador-fechado">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="sem_interesse"><span class="rotulo"><span class="bolinha" style="background:var(--vermelho)"></span>Sem interesse</span><span class="valor dado-sensivel" id="marcasContador-sem_interesse">0</span></button>
@@ -4879,6 +4883,7 @@
                 <span data-status="enviado">Enviado</span>
                 <span data-status="follow_up">Follow up</span>
                 <span data-status="respondeu">Respondeu</span>
+                <span data-status="contato_futuro">Contato futuro</span>
                 <span data-status="proposta">Proposta</span>
                 <span data-status="fechado">Fechado</span>
                 <span data-status="sem_interesse">Sem interesse</span>
@@ -6337,6 +6342,7 @@
     { chave: "realizada", nome: "Abordagem realizada" },
     { chave: "follow_up", nome: "Follow up enviado" },
     { chave: "andamento", nome: "Negociação em andamento" },
+    { chave: "contato_futuro", nome: "Contato futuro" },
     { chave: "fechada", nome: "Negociação fechada" },
     { chave: "sem_retorno", nome: "Sem retorno" }
   ];
@@ -6368,6 +6374,9 @@
   };
   // EDITE AQUI se quiser mudar depois de quantos dias o follow up é sugerido
   const DIAS_FOLLOWUP_ABORDAGEM = 7;
+  // Status "Contato futuro" (marca respondeu mas pediu pra retomar mais pra frente): depois
+  // de quantos dias sem atualização o painel sugere retomar o contato.
+  const DIAS_CONTATO_FUTURO = 90;
 
   // Estado da aba Marcas (base de prospecção, dentro de Abordagens): lista de marcas,
   // id em edição (null = criando uma nova) e qual pill de status está com o menu aberto
@@ -6379,6 +6388,7 @@
     { chave: "enviado", nome: "Enviado" },
     { chave: "follow_up", nome: "Follow up" },
     { chave: "respondeu", nome: "Respondeu" },
+    { chave: "contato_futuro", nome: "Contato futuro" },
     { chave: "proposta", nome: "Proposta" },
     { chave: "fechado", nome: "Fechado" },
     { chave: "sem_interesse", nome: "Sem interesse" }
@@ -13617,7 +13627,7 @@ ${MODELO_PROPOSTA_HTML}`;
   const CONFIG_GRUPOS_LEMBRETE = [
     {
       grupo: "abordagem",
-      obter: () => obterAlertasRascunho().concat(obterAlertasFollowupAbordagem()).concat(obterAlertasCompletarCadastroCliente()),
+      obter: () => obterAlertasRascunho().concat(obterAlertasFollowupAbordagem()).concat(obterAlertasContatoFuturo()).concat(obterAlertasCompletarCadastroCliente()),
       rotulo: (n) => n === 1 ? "lembrete de abordagem" : "lembretes de abordagem"
     },
     {
@@ -15164,6 +15174,7 @@ ${MODELO_PROPOSTA_HTML}`;
     if (chave === "sem_retorno") return "sem-retorno";
     if (chave === "realizada") return "realizada";
     if (chave === "rascunho") return "rascunho";
+    if (chave === "contato_futuro") return "contato-futuro";
     return "andamento";
   }
 
@@ -15325,6 +15336,20 @@ ${MODELO_PROPOSTA_HTML}`;
         <span class="ugc-badge ${badgeFollowup}">${textoFollowup}</span>
         <button type="button" class="ugc-btn" data-acao="abordagem-toggle-followup" data-id="${item.id}">${item.followup_feito ? "Marcar como pendente" : "Marcar como feito"}</button>
       </div>` : ""}
+      ${item.status === "contato_futuro" ? (() => {
+        const dias = diasParaFollowupAbordagem(item);
+        const venceu = dias !== null && dias <= 0;
+        const textoContato = !item.data_followup
+          ? "Sem data de retomada definida"
+          : venceu
+            ? mensagemAlertaContatoFuturo({ ...item, diasParaVencer: dias })
+            : `Retomar contato em ${formatarDataCurta(item.data_followup)}`;
+        return `
+      <div class="ugc-status-aprovacao">
+        <span class="ugc-badge ${venceu ? "atrasado" : "aguardando"}">${textoContato}</span>
+        <button type="button" class="ugc-btn" data-acao="abordagem-adiar-contato-futuro" data-id="${item.id}">Retomei — lembrar em 3 meses</button>
+      </div>`;
+      })() : ""}
     `;
   }
 
@@ -15382,6 +15407,9 @@ ${MODELO_PROPOSTA_HTML}`;
     });
     container.querySelectorAll("[data-acao='abordagem-toggle-followup']").forEach(btn => {
       btn.addEventListener("click", () => alternarFollowupFeitoAbordagem(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='abordagem-adiar-contato-futuro']").forEach(btn => {
+      btn.addEventListener("click", () => definirContatoFuturoAbordagem(btn.dataset.id));
     });
     container.querySelectorAll("[id^='abordagemEdicaoFollowupFeito-']").forEach(toggle => {
       toggle.querySelectorAll("span").forEach(span => {
@@ -15765,6 +15793,9 @@ ${MODELO_PROPOSTA_HTML}`;
     const marca = document.getElementById(`abordagemEdicaoMarca-${id}`).value.trim();
     if (!marca) return;
 
+    const registroAntes = abordagensCache.find(a => a.id === id);
+    const statusAnterior = registroAntes ? registroAntes.status : null;
+
     const statusAtivo = document.querySelector(`#abordagemEdicaoStatus-${id} .ativo`);
     const status = statusAtivo ? statusAtivo.dataset.status : "rascunho";
     const ehRascunho = status === "rascunho";
@@ -15773,6 +15804,17 @@ ${MODELO_PROPOSTA_HTML}`;
     const followupAtivo = document.querySelector(`#abordagemEdicaoFollowupFeito-${id} .ativo`);
     const canalAtivo = document.querySelector(`#abordagemEdicaoCanal-${id} .ativo`);
     const nicho = document.getElementById(`abordagemEdicaoNicho-${id}`).value || null;
+
+    // "Contato futuro" conta os dias a partir de quando o status ENTROU nesse valor, não da
+    // data da abordagem — e não reseta a contagem só por editar/salvar de novo o card
+    // enquanto o status continua "Contato futuro".
+    const dataFollowup = ehRascunho
+      ? null
+      : status === "contato_futuro"
+        ? (statusAnterior === "contato_futuro" && registroAntes?.data_followup
+            ? registroAntes.data_followup
+            : somarDias(new Date().toISOString().slice(0, 10), DIAS_CONTATO_FUTURO))
+        : (dataAbordagem ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null);
 
     const campos = {
       marca: marca,
@@ -15784,14 +15826,11 @@ ${MODELO_PROPOSTA_HTML}`;
       canal_detalhe: document.getElementById(`abordagemEdicaoCanalDetalhe-${id}`).value.trim() || null,
       data_rascunho: ehRascunho ? dataRascunho : null,
       data_abordagem: ehRascunho ? null : dataAbordagem,
-      data_followup: (!ehRascunho && dataAbordagem) ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null,
+      data_followup: dataFollowup,
       observacao: document.getElementById(`abordagemEdicaoObs-${id}`).value.trim() || null,
       status: status,
       followup_feito: followupAtivo ? followupAtivo.dataset.followup === "feito" : false
     };
-
-    const registroAntes = abordagensCache.find(a => a.id === id);
-    const statusAnterior = registroAntes ? registroAntes.status : null;
 
     abordagemEditando.delete(id);
     const salvou = await atualizarAbordagem(id, campos);
@@ -15809,6 +15848,25 @@ ${MODELO_PROPOSTA_HTML}`;
         abrirModalClienteApartirDeAbordagem(id);
       }
     }
+
+    // "Contato futuro" definido direto aqui (em vez de vir de Marcas, via mudarStatusMarca)
+    // também precisa refletir na marca de origem, senão os dois lados mostram status diferente.
+    if (salvou && status === "contato_futuro" && statusAnterior !== "contato_futuro"){
+      const registroDepois = abordagensCache.find(a => a.id === id);
+      if (registroDepois?.marca_origem_id) await sincronizarStatusMarcaDaAbordagem(registroDepois.marca_origem_id, "contato_futuro");
+    }
+  }
+
+  // Mantém o status da marca (aba Marcas) em sincronia quando "Contato futuro" é definido
+  // direto pela aba Abordagens — o caminho mais comum é o contrário (mudarStatusMarca), mas
+  // os dois lados precisam bater, senão parece bug de um lado não saber do outro.
+  async function sincronizarStatusMarcaDaAbordagem(marcaId, status){
+    const marca = marcasCache.find(m => m.id === marcaId);
+    if (!marca || marca.status === status) return;
+    marca.status = status;
+    renderizarMarcas();
+    const { error } = await Auth.client.from("painel_marcas").update({ status }).eq("id", marcaId);
+    if (error) console.error("Erro ao sincronizar status da marca a partir da Abordagem:", error);
   }
 
   // Usado pelo lembrete no pop-up de notificações: sempre marca como feito (dispensa o aviso).
@@ -15817,6 +15875,13 @@ ${MODELO_PROPOSTA_HTML}`;
   // trocar à mão depois, pra "Respondeu"/"Em negociação" etc quando a marca responder.
   async function marcarFollowupFeitoAbordagem(id){
     await atualizarAbordagem(id, { followup_feito: true, status: "follow_up" });
+  }
+
+  // Usado quando a marca é marcada "Contato futuro" pela aba Marcas: põe a abordagem
+  // espelhada no mesmo status e agenda o lembrete pra daqui a DIAS_CONTATO_FUTURO dias.
+  async function definirContatoFuturoAbordagem(id){
+    const dataFollowup = somarDias(new Date().toISOString().slice(0, 10), DIAS_CONTATO_FUTURO);
+    await atualizarAbordagem(id, { status: "contato_futuro", data_followup: dataFollowup, followup_feito: false });
   }
 
   // Usado pelo botão no detalhe da abordagem: alterna feito/pendente nos dois sentidos — só
@@ -15888,6 +15953,27 @@ ${MODELO_PROPOSTA_HTML}`;
       return `Follow up atrasado há ${diasAtraso} dia${diasAtraso === 1 ? "" : "s"}`;
     }
     return "Follow up é hoje";
+  }
+
+  // "Contato futuro": marca respondeu mas pediu pra retomar contato mais pra frente. Só
+  // avisa a partir de DIAS_CONTATO_FUTURO dias depois (nunca antes) — mesma regra de não
+  // antecipar usada no follow up normal.
+  function obterAlertasContatoFuturo(){
+    const alertas = [];
+    abordagensCache.forEach(item => {
+      if (item.status !== "contato_futuro" || item.arquivado) return;
+      const diasParaVencer = diasParaFollowupAbordagem(item);
+      if (diasParaVencer === null || diasParaVencer > 0) return;
+      alertas.push({ ...item, diasParaVencer });
+    });
+    alertas.sort((a, b) => a.diasParaVencer - b.diasParaVencer);
+    return alertas;
+  }
+
+  function mensagemAlertaContatoFuturo(item){
+    if (item.diasParaVencer === 0) return "Hora de retomar o contato";
+    const dias = Math.abs(item.diasParaVencer);
+    return `Contato sem atualização há ${dias} dia${dias === 1 ? "" : "s"} — hora de retomar`;
   }
 
   // Lembrete pra sair do Rascunho: passou de DIAS_LEMBRETE_RASCUNHO dias desde que a
@@ -17233,6 +17319,11 @@ ${MODELO_PROPOSTA_HTML}`;
       if (status === "follow_up"){
         const abordagemLigada = abordagensCache.find(a => a.marca_origem_id === id);
         if (abordagemLigada) await marcarFollowupFeitoAbordagem(abordagemLigada.id);
+      }
+      // Muda pra "Contato futuro" agenda o mesmo lembrete de 3 meses do lado de Abordagens.
+      if (status === "contato_futuro"){
+        const abordagemLigada = abordagensCache.find(a => a.marca_origem_id === id);
+        if (abordagemLigada) await definirContatoFuturoAbordagem(abordagemLigada.id);
       }
     } catch (erro) {
       console.error("Erro ao mudar status da marca:", erro);
