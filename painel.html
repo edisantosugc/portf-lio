@@ -2524,6 +2524,8 @@
   .clientes-tabela tbody td{ padding: 14px 18px; font-size: .84rem; border-bottom: 1px solid var(--borda); vertical-align: middle; }
   .clientes-tabela tbody tr:last-child td{ border-bottom: none; }
   .cliente-empresa-nome{ font-weight: 700; }
+  .cliente-nome-abrir{ background: none; border: none; padding: 0; font: inherit; font-weight: 700; color: var(--grafite); cursor: pointer; text-align: left; }
+  .cliente-nome-abrir:hover{ color: var(--coral); text-decoration: underline; }
   .cliente-contato-linha{ display: block; font-size: .8rem; color: var(--texto-suave); }
   .cliente-contato-linha.email{ color: var(--coral); }
   .cliente-tag{ font-size: .7rem; font-weight: 700; padding: 4px 11px; border-radius: 50px; display: inline-block; white-space: nowrap; }
@@ -3669,7 +3671,7 @@
 
 <!-- ===== Modal: Novo/Editar Cliente ===== -->
 <div class="ugc-modal-overlay oculto" id="modalCliente" role="dialog" aria-modal="true" aria-labelledby="modalClienteTitulo">
-  <div class="cliente-modal-cartao">
+  <div class="cliente-modal-cartao largo">
     <div class="cliente-modal-topo">
       <h2 id="modalClienteTitulo">🏢 Novo Cliente</h2>
       <button type="button" class="cliente-modal-fechar" id="clienteModalFechar" aria-label="Fechar">&times;</button>
@@ -3725,7 +3727,14 @@
       <div class="ugc-campo largo oculto" id="clienteHistoricoSecao">
         <span class="cliente-secao-rotulo">Histórico</span>
         <div style="display:flex; gap:8px; align-items:flex-end; margin-bottom:12px;">
-          <textarea id="clienteHistoricoCampoTexto" rows="2" placeholder="Ex: Abordei pra Black Friday no dia 28/09, retorno foi..." style="flex:1;"></textarea>
+          <div class="ugc-campo" style="margin-bottom:0;">
+            <label>Data</label>
+            <input type="date" id="clienteHistoricoCampoData">
+          </div>
+          <div class="ugc-campo" style="margin-bottom:0; flex:1;">
+            <label>Observação</label>
+            <textarea id="clienteHistoricoCampoTexto" rows="2" placeholder="Ex: Abordei pra Black Friday, retorno foi..."></textarea>
+          </div>
           <button type="button" class="botao-add-tarefa" id="clienteHistoricoBotaoAdicionar">+ Adicionar</button>
         </div>
         <div id="clienteHistoricoLista"></div>
@@ -16850,7 +16859,7 @@ ${MODELO_PROPOSTA_HTML}`;
 
     return `
       <tr data-id="${c.id}">
-        <td class="cliente-empresa-nome dado-sensivel">${c.nome_marca}</td>
+        <td class="cliente-empresa-nome dado-sensivel"><button type="button" class="cliente-nome-abrir" data-acao="cliente-abrir-detalhe" data-id="${c.id}">${escaparHtmlMarcas(c.nome_marca)}</button></td>
         <td>${formatarNichoCliente(c)}</td>
         <td class="dado-sensivel">${contatoHtml}</td>
         <td>${c.ja_trabalhou ? `<span class="cliente-tag trabalhou">Já trabalhou</span>` : "—"}</td>
@@ -16867,6 +16876,9 @@ ${MODELO_PROPOSTA_HTML}`;
   }
 
   function reatarEventosTabelaClientes(corpo){
+    corpo.querySelectorAll("[data-acao='cliente-abrir-detalhe']").forEach(btn => {
+      btn.addEventListener("click", () => abrirModalCliente(btn.dataset.id));
+    });
     corpo.querySelectorAll("[data-acao='cliente-acoes-abrir']").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -19216,6 +19228,7 @@ ${corpo}
     // anotação) — some no cadastro de um cliente novo, aparece ao editar um já salvo.
     document.getElementById("clienteHistoricoSecao").classList.toggle("oculto", !cliente);
     document.getElementById("clienteHistoricoCampoTexto").value = "";
+    document.getElementById("clienteHistoricoCampoData").value = new Date().toISOString().slice(0, 10);
     if (cliente) renderizarHistoricoCliente(id);
 
     document.getElementById("modalCliente").classList.remove("oculto");
@@ -19226,13 +19239,13 @@ ${corpo}
     if (!lista) return;
     const notas = clientesNotasCache
       .filter(n => n.cliente_id === clienteId)
-      .sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+      .sort((a, b) => (b.data || "").localeCompare(a.data || "") || (b.created_at || "").localeCompare(a.created_at || ""));
 
     lista.innerHTML = notas.length
       ? notas.map(n => `
         <div class="cliente-historico-item">
           <div class="cliente-historico-data">
-            <span>${formatarDataHoraCurtaProspeccao(n.created_at)}</span>
+            <span>${n.data ? formatarDataCurta(n.data) : "—"}</span>
             <button type="button" class="cliente-historico-remover" data-id="${n.id}" aria-label="Excluir anotação">×</button>
           </div>
           <p>${escaparHtmlMarcas(n.texto)}</p>
@@ -19248,19 +19261,22 @@ ${corpo}
   async function adicionarNotaCliente(){
     if (!clienteEditandoId) return;
     const campo = document.getElementById("clienteHistoricoCampoTexto");
+    const campoData = document.getElementById("clienteHistoricoCampoData");
     const texto = campo.value.trim();
     if (!texto) return;
+    const data = campoData.value || new Date().toISOString().slice(0, 10);
 
     const botao = document.getElementById("clienteHistoricoBotaoAdicionar");
     botao.disabled = true;
     try {
-      const { data, error } = await Auth.client
+      const { data: inserido, error } = await Auth.client
         .from("painel_clientes_notas")
-        .insert({ cliente_id: clienteEditandoId, texto })
+        .insert({ cliente_id: clienteEditandoId, texto, data })
         .select();
       if (error) throw error;
-      clientesNotasCache = clientesNotasCache.concat(data);
+      clientesNotasCache = clientesNotasCache.concat(inserido);
       campo.value = "";
+      campoData.value = new Date().toISOString().slice(0, 10);
       renderizarHistoricoCliente(clienteEditandoId);
     } catch (erro) {
       console.error("Erro ao adicionar anotação de cliente:", erro);

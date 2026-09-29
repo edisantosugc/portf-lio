@@ -226,8 +226,10 @@ create table if not exists public.painel_clientes_notas (
   id uuid primary key default gen_random_uuid(),
   cliente_id uuid not null references public.painel_clientes(id) on delete cascade,
   texto text not null,
+  data date not null default current_date, -- data do contato/evento (editável), não a data de cadastro
   created_at timestamptz not null default now()
 );
+alter table public.painel_clientes_notas add column if not exists data date not null default current_date;
 
 create index if not exists idx_painel_clientes_notas_cliente on public.painel_clientes_notas (cliente_id);
 
