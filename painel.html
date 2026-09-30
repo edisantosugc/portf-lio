@@ -2038,7 +2038,9 @@
   .abordagem-historico{ margin-top: 6px; }
   /* Campo de texto do Histórico (Clientes e Abordagens): nasce com a mesma altura do campo
      de Data ao lado; continua dando pra puxar pra baixo se o texto for maior. */
-  .ugc-campo .historico-texto-compacto{ line-height: 1.2; height: 40px; min-height: 40px; }
+  .ugc-campo .historico-texto-compacto{ line-height: 20px; height: 40px; min-height: 40px; padding-top: 9px; padding-bottom: 9px; }
+  /* Exemplo (placeholder) sempre numa linha só, centralizado na altura do campo. */
+  .ugc-campo textarea.historico-texto-compacto::placeholder{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .abordagem-historico-form{ display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin-bottom: 6px; }
 
   .ugc-detalhe{ padding: 6px 20px 18px; display: flex; flex-direction: column; gap: 12px; background: var(--creme); }
@@ -3708,7 +3710,7 @@
         </div>
         <div class="ugc-campo" style="margin-bottom:0; flex:1; min-width:200px;">
           <label>Atualização</label>
-          <textarea id="marcasHistoricoCampoTexto" class="historico-texto-compacto" rows="1" placeholder="Ex: Respondeu no Instagram, pediu mídia kit."></textarea>
+          <textarea id="marcasHistoricoCampoTexto" class="historico-texto-compacto" rows="1" placeholder="Ex: Pediu mídia kit."></textarea>
         </div>
         <button type="button" class="botao-add-tarefa" id="marcasHistoricoBotaoAdicionar">+ Adicionar</button>
       </div>
