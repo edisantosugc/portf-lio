@@ -2004,6 +2004,7 @@
   .ugc-etapa-pill.sem-retorno{ background: rgba(196,69,60,.1); border-color: var(--vermelho); color: var(--vermelho); }
   .ugc-etapa-pill.realizada{ background: rgba(0,0,128,.08); border-color: var(--coral); color: var(--coral); }
   .ugc-etapa-pill.rascunho{ background: rgba(107,100,92,.1); border-color: var(--texto-suave); color: var(--texto-suave); }
+  .ugc-etapa-pill.respondeu{ background: rgba(201,166,107,.18); border-color: var(--dourado); color: #8a6d34; }
   .ugc-etapa-pill.contato-futuro{ background: rgba(124,91,166,.1); border-color: #7c5ba6; color: #7c5ba6; }
 
   .abordagem-grade-lista{ display: grid; grid-template-columns: 100px minmax(0,1fr) 130px 90px 190px 16px; align-items: center; gap: 14px; }
@@ -2570,6 +2571,9 @@
   .cliente-modal-fechar{ background: none; border: none; font-size: 1.2rem; color: var(--texto-suave); cursor: pointer; padding: 4px 8px; border-radius: 6px; }
   .cliente-modal-fechar:hover{ background: var(--creme); }
   .cliente-modal-corpo{ padding: 20px 22px; display: flex; flex-direction: column; gap: 16px; }
+  .marca-detalhe-dados{ display: flex; flex-direction: column; gap: 8px; }
+  .marca-detalhe-dados .valor{ overflow-wrap: anywhere; }
+  .marca-detalhe-dados .abordagem-bloco{ margin-top: 4px; }
   .cliente-modal-rodape{ display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--borda); }
   .cliente-secao-rotulo{ font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--texto-suave); }
   .cliente-historico-item{ padding: 10px 0; border-bottom: 1px solid var(--borda); }
@@ -3223,7 +3227,7 @@
     font-family:'Outfit',sans-serif; font-size:.78rem; color:var(--texto-suave); background:var(--creme); resize:vertical;
   }
 
-  .marcas-contadores{ display:grid; grid-template-columns: repeat(7,1fr); gap:12px; margin-bottom:16px; }
+  .marcas-contadores{ display:grid; grid-template-columns: repeat(5,1fr); gap:12px; margin-bottom:16px; }
   .marcas-contador-card{
     background:var(--branco); border:1px solid var(--borda); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:6px;
     font-family:inherit; text-align:left; cursor:pointer; transition:border-color .15s ease, box-shadow .15s ease;
@@ -3278,6 +3282,7 @@
 
   .marcas-col-marca{ display:flex; flex-direction:column; gap:2px; min-width:0; }
   .marcas-col-marca .nome{ font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .marcas-col-marca .nome.cliente-nome-abrir{ display:block; max-width:100%; font-weight:600; }
   .marcas-col-marca .sub{ font-size:.74rem; color:var(--texto-suave); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .marcas-col-seguidores{ font-variant-numeric:tabular-nums; color:var(--texto-suave); font-size:.82rem; }
   .marcas-col-nicho, .marcas-col-produto, .marcas-col-origem{ font-size:.82rem; color:var(--grafite); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -3295,6 +3300,7 @@
   .marcas-pill-status.follow_up{ background:rgba(61,107,138,.1); border-color:#3d6b8a; color:#3d6b8a; }
   .marcas-pill-status.contato_futuro{ background:rgba(124,91,166,.1); border-color:#7c5ba6; color:#7c5ba6; }
   .marcas-pill-status.respondeu{ background:rgba(201,166,107,.18); border-color:var(--dourado); color:#8a6d34; }
+  .marcas-pill-status.andamento{ background:rgba(107,83,38,.14); border-color:#6b5326; color:#6b5326; }
   .marcas-pill-status.proposta{ background:rgba(201,166,107,.3); border-color:var(--dourado); color:#6b5326; }
   .marcas-pill-status.fechado{ background:rgba(45,122,79,.12); border-color:var(--verde); color:var(--verde); }
   .marcas-pill-status.sem_interesse{ background:rgba(196,69,60,.1); border-color:var(--vermelho); color:var(--vermelho); }
@@ -3681,6 +3687,36 @@
     <div id="ugcModalPrazoLista"></div>
     <button type="button" class="ugc-btn ugc-modal-fechar" id="ugcBotaoFecharModal">Fechar por agora</button>
     <p class="ugc-modal-nota">Isso aparece de novo toda vez que você abrir o painel, até a entrega ser marcada como concluída.</p>
+  </div>
+</div>
+
+<!-- ===== Modal: Detalhe da Marca (clique no nome, aba Marcas) ===== -->
+<div class="ugc-modal-overlay oculto" id="modalMarcaDetalhe" role="dialog" aria-modal="true" aria-labelledby="marcaDetalheTitulo">
+  <div class="cliente-modal-cartao largo">
+    <div class="cliente-modal-topo">
+      <h2 id="marcaDetalheTitulo" class="dado-sensivel">Marca</h2>
+      <button type="button" class="cliente-modal-fechar" id="marcaDetalheFechar" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="cliente-modal-corpo">
+      <span class="cliente-secao-rotulo">Dados principais</span>
+      <div id="marcaDetalheDados" class="marca-detalhe-dados dado-sensivel"></div>
+      <span class="cliente-secao-rotulo">Histórico</span>
+      <div class="abordagem-historico-form">
+        <div class="ugc-campo" style="margin-bottom:0;">
+          <label>Data</label>
+          <input type="date" id="marcasHistoricoCampoData" class="historico-texto-compacto">
+        </div>
+        <div class="ugc-campo" style="margin-bottom:0; flex:1; min-width:200px;">
+          <label>Atualização</label>
+          <textarea id="marcasHistoricoCampoTexto" class="historico-texto-compacto" rows="1" placeholder="Ex: Respondeu no Instagram, pediu mídia kit."></textarea>
+        </div>
+        <button type="button" class="botao-add-tarefa" id="marcasHistoricoBotaoAdicionar">+ Adicionar</button>
+      </div>
+      <div id="marcasHistoricoLista"></div>
+    </div>
+    <div class="cliente-modal-rodape">
+      <button type="button" class="botao-add-tarefa" id="marcaDetalheEditar">✎ Editar marca</button>
+    </div>
   </div>
 </div>
 
@@ -4736,6 +4772,7 @@
                 <span class="ativo" data-status="rascunho">Rascunho</span>
                 <span data-status="realizada">Abordagem realizada</span>
                 <span data-status="follow_up">Follow up enviado</span>
+                <span data-status="respondeu">Respondeu</span>
                 <span data-status="andamento">Negociação em andamento</span>
                 <span data-status="contato_futuro">Contato futuro</span>
                 <span data-status="fechada">Negociação fechada</span>
@@ -4850,6 +4887,7 @@
           <button type="button" class="marcas-contador-card" data-status-card="respondeu"><span class="rotulo"><span class="bolinha" style="background:var(--dourado)"></span>Respondeu</span><span class="valor dado-sensivel" id="marcasContador-respondeu">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="contato_futuro"><span class="rotulo"><span class="bolinha" style="background:#7c5ba6"></span>Contato futuro</span><span class="valor dado-sensivel" id="marcasContador-contato_futuro">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="proposta"><span class="rotulo"><span class="bolinha" style="background:#8a6d34"></span>Proposta</span><span class="valor dado-sensivel" id="marcasContador-proposta">0</span></button>
+          <button type="button" class="marcas-contador-card" data-status-card="andamento"><span class="rotulo"><span class="bolinha" style="background:#6b5326"></span>Em negociação</span><span class="valor dado-sensivel" id="marcasContador-andamento">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="fechado"><span class="rotulo"><span class="bolinha" style="background:var(--verde)"></span>Fechado</span><span class="valor dado-sensivel" id="marcasContador-fechado">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="sem_interesse"><span class="rotulo"><span class="bolinha" style="background:var(--vermelho)"></span>Sem interesse</span><span class="valor dado-sensivel" id="marcasContador-sem_interesse">0</span></button>
         </div>
@@ -4924,6 +4962,7 @@
                 <span data-status="respondeu">Respondeu</span>
                 <span data-status="contato_futuro">Contato futuro</span>
                 <span data-status="proposta">Proposta</span>
+                <span data-status="andamento">Em negociação</span>
                 <span data-status="fechado">Fechado</span>
                 <span data-status="sem_interesse">Sem interesse</span>
               </div>
@@ -6381,6 +6420,7 @@
     { chave: "rascunho", nome: "Rascunho" },
     { chave: "realizada", nome: "Abordagem realizada" },
     { chave: "follow_up", nome: "Follow up enviado" },
+    { chave: "respondeu", nome: "Respondeu" },
     { chave: "andamento", nome: "Negociação em andamento" },
     { chave: "contato_futuro", nome: "Contato futuro" },
     { chave: "fechada", nome: "Negociação fechada" },
@@ -6421,6 +6461,7 @@
   // Estado da aba Marcas (base de prospecção, dentro de Abordagens): lista de marcas,
   // id em edição (null = criando uma nova) e qual pill de status está com o menu aberto
   let marcasCache = [];
+  let marcasNotasCache = []; // histórico de atualizações datadas por marca (painel_marcas_notas)
   let marcasEditandoId = null;
   let marcasStatusSelecionado = "a_enviar";
   const MARCAS_STATUS = [
@@ -6430,6 +6471,7 @@
     { chave: "respondeu", nome: "Respondeu" },
     { chave: "contato_futuro", nome: "Contato futuro" },
     { chave: "proposta", nome: "Proposta" },
+    { chave: "andamento", nome: "Em negociação" },
     { chave: "fechado", nome: "Fechado" },
     { chave: "sem_interesse", nome: "Sem interesse" }
   ];
@@ -7072,6 +7114,13 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         renderizarAbordagens();
       } catch (erroAbordagem) {
         console.error("Erro ao carregar/renderizar Abordagem:", erroAbordagem);
+      }
+      try {
+        // Isolado do carregamento principal: painel_marcas_notas (histórico de
+        // atualizações) só existe depois que atualizar_marcas_historico_e_status.sql for rodado.
+        marcasNotasCache = await comRetry(() => buscarTudo("painel_marcas_notas"));
+      } catch (erroMarcasNotas) {
+        console.error("Erro ao carregar histórico de Marcas:", erroMarcasNotas);
       }
       try {
         // Isolado do carregamento principal: a tabela painel_marcas só existe depois
@@ -9311,6 +9360,16 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("marcasBotaoNovo").addEventListener("click", abrirFormNovaMarca);
     document.getElementById("marcasBotaoCancelarNovo").addEventListener("click", fecharFormMarca);
     document.getElementById("marcasBotaoAdicionar").addEventListener("click", salvarMarca);
+    document.getElementById("marcasHistoricoBotaoAdicionar").addEventListener("click", adicionarNotaMarca);
+    document.getElementById("marcaDetalheFechar").addEventListener("click", fecharDetalheMarca);
+    document.getElementById("modalMarcaDetalhe").addEventListener("click", (e) => {
+      if (e.target.id === "modalMarcaDetalhe") fecharDetalheMarca();
+    });
+    document.getElementById("marcaDetalheEditar").addEventListener("click", () => {
+      const id = marcaDetalheId;
+      fecharDetalheMarca();
+      iniciarEdicaoMarca(id);
+    });
     document.getElementById("marcasCampoNicho").addEventListener("change", (e) => {
       document.getElementById("marcasCampoNichoOutroWrap").classList.toggle("oculto", e.target.value !== "Outro");
     });
@@ -15273,21 +15332,20 @@ ${MODELO_PROPOSTA_HTML}`;
     if (!item || item.status === novoStatus) return;
 
     const campos = { status: novoStatus };
+    // Entrou em "Negociação em andamento": o follow up passa a contar a partir de hoje
+    // (a atualização), não mais da data da abordagem original.
+    if (novoStatus === "andamento"){
+      campos.data_followup = somarDias(new Date().toISOString().slice(0, 10), DIAS_FOLLOWUP_ABORDAGEM);
+      campos.followup_feito = false;
+    }
     if (novoStatus === "contato_futuro"){
       campos.data_followup = somarDias(new Date().toISOString().slice(0, 10), DIAS_CONTATO_FUTURO);
       campos.followup_feito = false;
     }
 
-    const marcaOrigemId = item.marca_origem_id;
     const salvou = await atualizarAbordagem(id, campos);
     if (!salvou) return;
 
-    // Sincroniza de volta pra Marcas sempre que o novo status também existir lá com a mesma
-    // chave ("follow_up", "contato_futuro") — evita ficar tendo que lembrar, um por um, quais
-    // status são compartilhados entre as duas abas.
-    if (marcaOrigemId && MARCAS_STATUS.some(s => s.chave === novoStatus)){
-      await sincronizarStatusMarcaDaAbordagem(marcaOrigemId, novoStatus);
-    }
     if (novoStatus === "fechada"){
       const registroDepois = abordagensCache.find(a => a.id === id);
       if (registroDepois?.cliente_id){
@@ -15305,6 +15363,7 @@ ${MODELO_PROPOSTA_HTML}`;
     if (chave === "realizada") return "realizada";
     if (chave === "rascunho") return "rascunho";
     if (chave === "contato_futuro") return "contato-futuro";
+    if (chave === "respondeu") return "respondeu";
     return "andamento";
   }
 
@@ -15537,7 +15596,17 @@ ${MODELO_PROPOSTA_HTML}`;
         .select();
       if (error) throw error;
       abordagensNotasCache = abordagensNotasCache.concat(inserido);
-      renderizarAbordagens();
+
+      // Negociação em andamento: cada atualização nova no Histórico reinicia a contagem do
+      // follow up a partir da data dela (só pra frente — uma anotação com data antiga não
+      // puxa o follow up pra trás).
+      const item = abordagensCache.find(a => a.id === abordagemId);
+      const novoFollowup = somarDias(data, DIAS_FOLLOWUP_ABORDAGEM);
+      if (item && item.status === "andamento" && (!item.data_followup || novoFollowup > item.data_followup)){
+        await atualizarAbordagem(abordagemId, { data_followup: novoFollowup, followup_feito: false });
+      } else {
+        renderizarAbordagens();
+      }
     } catch (erro) {
       console.error("Erro ao adicionar atualização da abordagem:", erro);
       alert("Não deu pra salvar a atualização. Tenta de novo.");
@@ -15991,6 +16060,11 @@ ${MODELO_PROPOSTA_HTML}`;
       if (registro) Object.assign(registro, campos);
       renderizarAbordagens();
       renderizarNotificacoesPopup();
+      // Qualquer troca de status aqui (menu rápido, edição, follow up, contato futuro...)
+      // também vai pra marca de origem na aba Marcas.
+      if (campos.status && registro?.marca_origem_id){
+        await sincronizarStatusMarcaDaAbordagem(registro.marca_origem_id, campos.status);
+      }
     }
     return !error;
   }
@@ -16031,7 +16105,13 @@ ${MODELO_PROPOSTA_HTML}`;
         ? (statusAnterior === "contato_futuro" && registroAntes?.data_followup
             ? registroAntes.data_followup
             : somarDias(new Date().toISOString().slice(0, 10), DIAS_CONTATO_FUTURO))
-        : (dataAbordagem ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null);
+        : status === "andamento"
+          // Negociação em andamento: conta a partir da entrada nesse status (ou da última
+          // atualização do Histórico) — não reseta só por editar/salvar de novo o card.
+          ? (statusAnterior === "andamento" && registroAntes?.data_followup
+              ? registroAntes.data_followup
+              : somarDias(new Date().toISOString().slice(0, 10), DIAS_FOLLOWUP_ABORDAGEM))
+          : (dataAbordagem ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null);
 
     const campos = {
       marca: marca,
@@ -16066,21 +16146,31 @@ ${MODELO_PROPOSTA_HTML}`;
       }
     }
 
-    // Status definido direto aqui (em vez de vir de Marcas, via mudarStatusMarca) também
-    // precisa refletir na marca de origem quando as duas abas compartilham a mesma chave de
-    // status ("follow_up", "contato_futuro") — senão os dois lados mostram status diferente.
-    if (salvou && status !== statusAnterior && MARCAS_STATUS.some(s => s.chave === status)){
-      const registroDepois = abordagensCache.find(a => a.id === id);
-      if (registroDepois?.marca_origem_id) await sincronizarStatusMarcaDaAbordagem(registroDepois.marca_origem_id, status);
-    }
   }
 
   // Mantém o status da marca (aba Marcas) em sincronia quando "Contato futuro" é definido
   // direto pela aba Abordagens — o caminho mais comum é o contrário (mudarStatusMarca), mas
   // os dois lados precisam bater, senão parece bug de um lado não saber do outro.
-  async function sincronizarStatusMarcaDaAbordagem(marcaId, status){
+  // Equivalência de status entre as duas abas — usada nos dois sentidos pra que mudar o
+  // status em qualquer uma sempre reflita na outra. "Proposta" (só existe em Marcas) conta
+  // como negociação em andamento do lado de Abordagens.
+  const STATUS_ABORDAGEM_PARA_MARCA = {
+    rascunho: "a_enviar", realizada: "enviado", follow_up: "follow_up", respondeu: "respondeu",
+    andamento: "andamento", contato_futuro: "contato_futuro", fechada: "fechado", sem_retorno: "sem_interesse"
+  };
+  const STATUS_MARCA_PARA_ABORDAGEM = {
+    a_enviar: "rascunho", enviado: "realizada", follow_up: "follow_up", respondeu: "respondeu",
+    proposta: "andamento", andamento: "andamento", contato_futuro: "contato_futuro", fechado: "fechada", sem_interesse: "sem_retorno"
+  };
+
+  // Recebe o status da ABORDAGEM e leva o equivalente pra marca de origem. Se a marca já
+  // está num status equivalente (ex: "Proposta" enquanto a abordagem é "andamento"), não
+  // mexe — evita rebaixar a marca e evita o vai-e-volta entre as duas abas.
+  async function sincronizarStatusMarcaDaAbordagem(marcaId, statusAbordagem){
     const marca = marcasCache.find(m => m.id === marcaId);
-    if (!marca || marca.status === status) return;
+    const status = STATUS_ABORDAGEM_PARA_MARCA[statusAbordagem];
+    if (!marca || !status || marca.status === status) return;
+    if (STATUS_MARCA_PARA_ABORDAGEM[marca.status] === statusAbordagem) return;
     marca.status = status;
     renderizarMarcas();
     const { error } = await Auth.client.from("painel_marcas").update({ status }).eq("id", marcaId);
@@ -17175,7 +17265,7 @@ ${MODELO_PROPOSTA_HTML}`;
         <input type="checkbox" class="marcas-checkbox" data-acao="marcas-toggle-selecao" data-id="${item.id}" ${item.selecionada ? "checked" : ""} ${item.email ? "" : "disabled"} title="${item.email ? "Selecionar pra prospecção" : "Sem e-mail cadastrado"}">
         <button type="button" class="marcas-estrela ${item.prioridade ? "ativa" : ""}" data-acao="marcas-toggle-prioridade" data-id="${item.id}" title="${item.prioridade ? "Tirar prioridade" : "Marcar como prioridade"}">${item.prioridade ? "★" : "☆"}</button>
         <div class="marcas-col-marca dado-sensivel">
-          <span class="nome">${escaparHtmlMarcas(item.nome)}</span>
+          <button type="button" class="nome cliente-nome-abrir" data-acao="marcas-abrir-detalhe" data-id="${item.id}" title="Ver dados e histórico">${escaparHtmlMarcas(item.nome)}</button>
           <span class="sub">${escaparHtmlMarcas(item.instagram || item.site || "")}</span>
         </div>
         <div class="marcas-col-seguidores">${item.seguidores ? Number(item.seguidores).toLocaleString("pt-BR") : "—"}</div>
@@ -17241,6 +17331,9 @@ ${MODELO_PROPOSTA_HTML}`;
         e.stopPropagation();
         abrirMenuStatusMarca(btn.dataset.id, btn);
       });
+    });
+    container.querySelectorAll("[data-acao='marcas-abrir-detalhe']").forEach(btn => {
+      btn.addEventListener("click", () => abrirDetalheMarca(btn.dataset.id));
     });
     container.querySelectorAll("[data-acao='marcas-editar']").forEach(btn => {
       btn.addEventListener("click", () => iniciarEdicaoMarca(btn.dataset.id));
@@ -17428,6 +17521,116 @@ ${MODELO_PROPOSTA_HTML}`;
     marcasEditandoId = null;
   }
 
+  let marcaDetalheId = null;
+
+  function abrirDetalheMarca(id){
+    const m = marcasCache.find(x => x.id === id);
+    if (!m) return;
+    marcaDetalheId = id;
+
+    const linha = (rotulo, valor) => valor
+      ? `<div class="ugc-detalhe-linha"><span class="rotulo">${rotulo}</span><span class="valor">${valor}</span></div>`
+      : "";
+    const insta = m.instagram
+      ? `<a href="https://instagram.com/${encodeURIComponent(m.instagram.replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/\/.*$/, ""))}" target="_blank" rel="noopener">${escaparHtmlMarcas(m.instagram)}</a>`
+      : "";
+    const site = m.site
+      ? `<a href="${/^https?:\/\//.test(m.site) ? "" : "https://"}${escaparHtmlMarcas(m.site).replace(/"/g, "&quot;")}" target="_blank" rel="noopener">${escaparHtmlMarcas(m.site)}</a>`
+      : "";
+
+    document.getElementById("marcaDetalheTitulo").textContent = m.nome || "Marca";
+    document.getElementById("marcaDetalheDados").innerHTML = `
+      <div class="ugc-detalhe-linha"><span class="rotulo">Status</span><span class="marcas-pill-status ${m.status}">${nomeStatusMarca(m.status)}</span></div>
+      ${linha("Instagram", insta)}
+      ${linha("Site", site)}
+      ${linha("Seguidores", m.seguidores ? Number(m.seguidores).toLocaleString("pt-BR") : "")}
+      ${linha("Contato", escaparHtmlMarcas(m.contato || ""))}
+      ${linha("E-mail", escaparHtmlMarcas(m.email || ""))}
+      ${linha("WhatsApp", escaparHtmlMarcas(m.whatsapp || ""))}
+      ${linha("Nicho", escaparHtmlMarcas(m.nicho || ""))}
+      ${linha("Produto", escaparHtmlMarcas(m.produto || ""))}
+      ${linha("Onde encontrei", escaparHtmlMarcas(m.origem || ""))}
+      ${linha("Data de cadastro", m.data ? formatarDataCurta(m.data) : "")}
+      ${m.observacao ? `<div class="abordagem-bloco"><span class="rotulo">Observação</span><p>${escaparHtmlMarcas(m.observacao)}</p></div>` : ""}
+    `;
+
+    document.getElementById("marcasHistoricoCampoTexto").value = "";
+    document.getElementById("marcasHistoricoCampoData").value = new Date().toISOString().slice(0, 10);
+    renderizarHistoricoMarca(id);
+    document.getElementById("modalMarcaDetalhe").classList.remove("oculto");
+  }
+
+  function fecharDetalheMarca(){
+    document.getElementById("modalMarcaDetalhe").classList.add("oculto");
+    marcaDetalheId = null;
+  }
+
+  function renderizarHistoricoMarca(marcaId){
+    const lista = document.getElementById("marcasHistoricoLista");
+    if (!lista) return;
+    const notas = marcasNotasCache
+      .filter(n => n.marca_id === marcaId)
+      .sort((a, b) => (b.data || "").localeCompare(a.data || "") || (b.created_at || "").localeCompare(a.created_at || ""));
+
+    lista.innerHTML = notas.length
+      ? notas.map(n => `
+        <div class="cliente-historico-item">
+          <div class="cliente-historico-data">
+            <span>${n.data ? formatarDataCurta(n.data) : "—"}</span>
+            <button type="button" class="cliente-historico-remover" data-id="${n.id}" aria-label="Excluir atualização">×</button>
+          </div>
+          <p>${escaparHtmlMarcas(n.texto)}</p>
+        </div>
+      `).join("")
+      : `<p class="ugc-vazio">Nenhuma atualização ainda.</p>`;
+
+    lista.querySelectorAll(".cliente-historico-remover").forEach(btn => {
+      btn.addEventListener("click", () => removerNotaMarca(btn.dataset.id, marcaId));
+    });
+  }
+
+  async function adicionarNotaMarca(){
+    if (!marcaDetalheId) return;
+    const marcaId = marcaDetalheId;
+    const campo = document.getElementById("marcasHistoricoCampoTexto");
+    const campoData = document.getElementById("marcasHistoricoCampoData");
+    const texto = campo.value.trim();
+    if (!texto) return;
+    const data = campoData.value || new Date().toISOString().slice(0, 10);
+
+    const botao = document.getElementById("marcasHistoricoBotaoAdicionar");
+    botao.disabled = true;
+    try {
+      const { data: inserido, error } = await Auth.client
+        .from("painel_marcas_notas")
+        .insert({ marca_id: marcaId, texto, data })
+        .select();
+      if (error) throw error;
+      marcasNotasCache = marcasNotasCache.concat(inserido);
+      campo.value = "";
+      campoData.value = new Date().toISOString().slice(0, 10);
+      renderizarHistoricoMarca(marcaId);
+    } catch (erro) {
+      console.error("Erro ao adicionar atualização da marca:", erro);
+      alert("Não deu pra salvar a atualização. Tenta de novo.");
+    } finally {
+      botao.disabled = false;
+    }
+  }
+
+  async function removerNotaMarca(id, marcaId){
+    if (!confirm("Excluir essa atualização? Não dá pra desfazer.")) return;
+    try {
+      const { error } = await Auth.client.from("painel_marcas_notas").delete().eq("id", id);
+      if (error) throw error;
+      marcasNotasCache = marcasNotasCache.filter(n => n.id !== id);
+      renderizarHistoricoMarca(marcaId);
+    } catch (erro) {
+      console.error("Erro ao excluir atualização da marca:", erro);
+      alert("Não deu pra excluir. Tenta de novo.");
+    }
+  }
+
   function iniciarEdicaoMarca(id){
     const item = marcasCache.find(m => m.id === id);
     if (!item) return;
@@ -17489,10 +17692,13 @@ ${MODELO_PROPOSTA_HTML}`;
 
     try {
       if (marcasEditandoId){
-        const { data, error } = await Auth.client.from("painel_marcas").update(payload).eq("id", marcasEditandoId).select();
+        const marcaId = marcasEditandoId;
+        const statusAntes = marcasCache.find(m => m.id === marcaId)?.status;
+        const { data, error } = await Auth.client.from("painel_marcas").update(payload).eq("id", marcaId).select();
         if (error) throw error;
-        const idx = marcasCache.findIndex(m => m.id === marcasEditandoId);
+        const idx = marcasCache.findIndex(m => m.id === marcaId);
         if (idx !== -1) marcasCache[idx] = data[0];
+        if (payload.status !== statusAntes) await sincronizarAbordagemComStatusMarca(marcaId, payload.status);
       } else {
         const { data, error } = await Auth.client.from("painel_marcas").insert(payload).select();
         if (error) throw error;
@@ -17524,6 +17730,40 @@ ${MODELO_PROPOSTA_HTML}`;
 
   // Troca de status em 1 clique, direto na lista — otimista na tela (muda antes de
   // confirmar com o banco) e desfaz sozinho se o Supabase recusar a gravação
+  // Leva o status novo da marca pra abordagem ligada (aba Abordagens). Usado pelo menu
+  // rápido de status e pelo formulário de editar marca.
+  async function sincronizarAbordagemComStatusMarca(id, status){
+    // Muda pra "Enviado" na mão (fora do disparo de e-mail) também alimenta a aba
+    // Abordagens sozinha, igual já acontece quando o envio é automático.
+    if (status === "enviado") await sincronizarAbordagemDaMarca(id, null, "manual");
+    // Muda pra "Follow up" também marca o follow-up da abordagem espelhada como feito —
+    // senão o lembrete de Abordagens (que olha followup_feito, não o status da marca)
+    // continuava aparecendo mesmo depois de marcar aqui.
+    if (status === "follow_up"){
+      const abordagemLigada = abordagensCache.find(a => a.marca_origem_id === id);
+      if (abordagemLigada) await marcarFollowupFeitoAbordagem(abordagemLigada.id);
+    }
+    // Muda pra "Contato futuro" agenda o mesmo lembrete de 3 meses do lado de Abordagens.
+    if (status === "contato_futuro"){
+      const abordagemLigada = abordagensCache.find(a => a.marca_origem_id === id);
+      if (abordagemLigada) await definirContatoFuturoAbordagem(abordagemLigada.id);
+    }
+    // Qualquer outro status (Respondeu, Proposta, Em negociação, Fechado, Sem interesse,
+    // A enviar) leva o equivalente pra aba Abordagens. Se a marca ainda não tinha
+    // abordagem ligada e já passou da fase de envio, cria a abordagem primeiro.
+    if (!["enviado", "follow_up", "contato_futuro"].includes(status)){
+      let abordagemLigada = abordagensCache.find(a => a.marca_origem_id === id);
+      if (!abordagemLigada && !["a_enviar", "sem_interesse"].includes(status)){
+        await sincronizarAbordagemDaMarca(id, null, "manual");
+        abordagemLigada = abordagensCache.find(a => a.marca_origem_id === id);
+      }
+      const statusAbordagem = STATUS_MARCA_PARA_ABORDAGEM[status];
+      if (abordagemLigada && statusAbordagem && abordagemLigada.status !== statusAbordagem){
+        await mudarStatusAbordagemRapido(abordagemLigada.id, statusAbordagem);
+      }
+    }
+  }
+
   async function mudarStatusMarca(id, status){
     fecharMenusStatusMarcas();
     const item = marcasCache.find(m => m.id === id);
@@ -17536,21 +17776,7 @@ ${MODELO_PROPOSTA_HTML}`;
     try {
       const { error } = await Auth.client.from("painel_marcas").update({ status }).eq("id", id);
       if (error) throw error;
-      // Muda pra "Enviado" na mão (fora do disparo de e-mail) também alimenta a aba
-      // Abordagens sozinha, igual já acontece quando o envio é automático.
-      if (status === "enviado") await sincronizarAbordagemDaMarca(id, null, "manual");
-      // Muda pra "Follow up" também marca o follow-up da abordagem espelhada como feito —
-      // senão o lembrete de Abordagens (que olha followup_feito, não o status da marca)
-      // continuava aparecendo mesmo depois de marcar aqui.
-      if (status === "follow_up"){
-        const abordagemLigada = abordagensCache.find(a => a.marca_origem_id === id);
-        if (abordagemLigada) await marcarFollowupFeitoAbordagem(abordagemLigada.id);
-      }
-      // Muda pra "Contato futuro" agenda o mesmo lembrete de 3 meses do lado de Abordagens.
-      if (status === "contato_futuro"){
-        const abordagemLigada = abordagensCache.find(a => a.marca_origem_id === id);
-        if (abordagemLigada) await definirContatoFuturoAbordagem(abordagemLigada.id);
-      }
+      await sincronizarAbordagemComStatusMarca(id, status);
     } catch (erro) {
       console.error("Erro ao mudar status da marca:", erro);
       item.status = statusAntes;

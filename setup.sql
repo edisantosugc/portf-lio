@@ -573,7 +573,7 @@ alter table public.painel_abordagens add column if not exists nicho_detalhe text
 -- adicionar_status_contato_futuro.sql pro histórico de quando cada valor foi somado.
 alter table public.painel_abordagens drop constraint if exists painel_abordagens_status_check;
 alter table public.painel_abordagens add constraint painel_abordagens_status_check
-  check (status in ('rascunho', 'realizada', 'follow_up', 'andamento', 'contato_futuro', 'fechada', 'sem_retorno'));
+  check (status in ('rascunho', 'realizada', 'follow_up', 'respondeu', 'andamento', 'contato_futuro', 'fechada', 'sem_retorno'));
 alter table public.painel_abordagens alter column status set default 'rascunho';
 alter table public.painel_abordagens add column if not exists data_rascunho date;
 
@@ -625,8 +625,9 @@ create index if not exists idx_painel_marcas_produto on public.painel_marcas (pr
 -- Status "Follow up" entre Enviado e Respondeu — ver adicionar_status_followup_marcas.sql.
 -- Status "Contato futuro" depois de Respondeu — ver adicionar_status_contato_futuro.sql.
 alter table public.painel_marcas drop constraint if exists painel_marcas_status_check;
+-- Status "Em negociação" ('andamento'), espelho do status da aba Abordagens — ver atualizar_marcas_historico_e_status.sql.
 alter table public.painel_marcas add constraint painel_marcas_status_check
-  check (status in ('a_enviar', 'enviado', 'follow_up', 'respondeu', 'contato_futuro', 'proposta', 'fechado', 'sem_interesse'));
+  check (status in ('a_enviar', 'enviado', 'follow_up', 'respondeu', 'contato_futuro', 'proposta', 'andamento', 'fechado', 'sem_interesse'));
 
 alter table public.painel_marcas enable row level security;
 
@@ -2271,3 +2272,26 @@ create policy "Usuaria autenticada gerencia notas de abordagens"
 
 grant select, insert, update, delete on public.painel_abordagens_notas to authenticated;
 
+-- Histórico de atualizações datadas por Marca (aba Marcas) — mesmo modelo do histórico
+--    de Clientes e de Abordagens.
+create table if not exists public.painel_marcas_notas (
+  id uuid primary key default gen_random_uuid(),
+  marca_id uuid not null references public.painel_marcas(id) on delete cascade,
+  texto text not null,
+  data date not null default current_date, -- data da atualização (editável), não a data de cadastro
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_painel_marcas_notas_marca on public.painel_marcas_notas (marca_id);
+
+alter table public.painel_marcas_notas enable row level security;
+
+drop policy if exists "Usuaria autenticada gerencia notas de marcas" on public.painel_marcas_notas;
+create policy "Usuaria autenticada gerencia notas de marcas"
+  on public.painel_marcas_notas
+  for all
+  to authenticated
+  using (true)
+  with check (true);
+
+grant select, insert, update, delete on public.painel_marcas_notas to authenticated;
