@@ -2034,6 +2034,11 @@
   .abordagem-filtro-lista{ max-height: 180px; overflow-y: auto; }
   .abordagem-bloco .rotulo{ font-size: .78rem; font-weight: 600; color: var(--texto-suave); }
   .abordagem-bloco p{ margin: 0; font-size: .85rem; color: var(--grafite); white-space: pre-wrap; }
+  .abordagem-historico{ margin-top: 6px; }
+  /* Campo de texto do Histórico (Clientes e Abordagens): nasce com a mesma altura do campo
+     de Data ao lado; continua dando pra puxar pra baixo se o texto for maior. */
+  .ugc-campo .historico-texto-compacto{ line-height: 1.2; height: 40px; min-height: 40px; }
+  .abordagem-historico-form{ display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin-bottom: 6px; }
 
   .ugc-detalhe{ padding: 6px 20px 18px; display: flex; flex-direction: column; gap: 12px; background: var(--creme); }
   .ugc-detalhe-linha{ display: flex; justify-content: space-between; gap: 10px; font-size: .85rem; }
@@ -3739,11 +3744,11 @@
         <div style="display:flex; gap:8px; align-items:flex-end; margin-bottom:12px;">
           <div class="ugc-campo" style="margin-bottom:0;">
             <label>Data</label>
-            <input type="date" id="clienteHistoricoCampoData">
+            <input type="date" id="clienteHistoricoCampoData" class="historico-texto-compacto">
           </div>
           <div class="ugc-campo" style="margin-bottom:0; flex:1;">
             <label>Observação</label>
-            <textarea id="clienteHistoricoCampoTexto" rows="2" placeholder="Ex: Abordei pra Black Friday, retorno foi..."></textarea>
+            <textarea id="clienteHistoricoCampoTexto" class="historico-texto-compacto" rows="1" placeholder="Ex: Abordei pra Black Friday, retorno foi..."></textarea>
           </div>
           <button type="button" class="botao-add-tarefa" id="clienteHistoricoBotaoAdicionar">+ Adicionar</button>
         </div>
@@ -6356,6 +6361,7 @@
 
   // Estado da aba Abordagem: registros de abordagens a marcas, linhas abertas/em edição e status selecionado no formulário
   let abordagensCache = [];
+  let abordagensNotasCache = []; // histórico de atualizações datadas por abordagem (painel_abordagens_notas)
   const abordagemAbertos = new Set();
   const abordagemEditando = new Set();
   let abordagemStatusSelecionado = "rascunho";
@@ -7050,6 +7056,13 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         renderizarPrecificacaoIara();
       } catch (erroPrecif) {
         console.error("Erro ao carregar/renderizar Precificação da Iara:", erroPrecif);
+      }
+      try {
+        // Isolado do carregamento principal: painel_abordagens_notas (histórico de
+        // atualizações) só existe depois que adicionar_historico_abordagens.sql for rodado.
+        abordagensNotasCache = await comRetry(() => buscarTudo("painel_abordagens_notas"));
+      } catch (erroAbordagensNotas) {
+        console.error("Erro ao carregar histórico de Abordagens:", erroAbordagensNotas);
       }
       try {
         // Isolado do carregamento principal: a tabela painel_abordagens só existe depois
@@ -15451,6 +15464,7 @@ ${MODELO_PROPOSTA_HTML}`;
       ${item.arquivado ? `<div class="ugc-detalhe-linha"><span class="rotulo">Motivo do arquivamento</span><span class="selo-motivo-arquivado ${item.arquivado_automaticamente ? "automatico" : ""}">${item.arquivado_automaticamente ? "🤖 " : ""}${item.motivo_arquivamento ? nomeMotivoArquivamento(item.motivo_arquivamento) : "Não informado"}</span></div>` : ""}
       ${item.abordagem ? `<div class="abordagem-bloco"><span class="rotulo">Abordagem</span><p>${item.abordagem}</p></div>` : ""}
       ${item.observacao ? `<div class="abordagem-bloco"><span class="rotulo">Observação</span><p>${item.observacao}</p></div>` : ""}
+      ${renderHistoricoAbordagemHtml(item)}
       ${precisaFollowupAbordagem(item.status) ? `
       <div class="ugc-status-aprovacao">
         <span class="ugc-badge ${badgeFollowup}">${textoFollowup}</span>
@@ -15471,6 +15485,77 @@ ${MODELO_PROPOSTA_HTML}`;
       </div>`;
       })() : ""}
     `;
+  }
+
+  function renderHistoricoAbordagemHtml(item){
+    const notas = abordagensNotasCache
+      .filter(n => n.abordagem_id === item.id)
+      .sort((a, b) => (b.data || "").localeCompare(a.data || "") || (b.created_at || "").localeCompare(a.created_at || ""));
+    const hoje = new Date().toISOString().slice(0, 10);
+
+    return `
+      <div class="abordagem-bloco abordagem-historico">
+        <span class="rotulo">Histórico</span>
+        <div class="abordagem-historico-form">
+          <div class="ugc-campo" style="margin-bottom:0;">
+            <label>Data</label>
+            <input type="date" id="abordagemHistoricoData-${item.id}" class="historico-texto-compacto" value="${hoje}">
+          </div>
+          <div class="ugc-campo" style="margin-bottom:0; flex:1; min-width:200px;">
+            <label>Atualização</label>
+            <textarea id="abordagemHistoricoTexto-${item.id}" class="historico-texto-compacto" rows="1" placeholder="Ex: Pediu proposta, enviei."></textarea>
+          </div>
+          <button type="button" class="botao-add-tarefa" data-acao="abordagem-historico-adicionar" data-id="${item.id}">+ Adicionar</button>
+        </div>
+        ${notas.length
+          ? notas.map(n => `
+            <div class="cliente-historico-item">
+              <div class="cliente-historico-data">
+                <span>${n.data ? formatarDataCurta(n.data) : "—"}</span>
+                <button type="button" class="cliente-historico-remover" data-acao="abordagem-historico-remover" data-id="${n.id}" aria-label="Excluir atualização">×</button>
+              </div>
+              <p>${escaparHtmlMarcas(n.texto)}</p>
+            </div>
+          `).join("")
+          : `<p class="ugc-vazio">Nenhuma atualização ainda.</p>`}
+      </div>
+    `;
+  }
+
+  async function adicionarNotaAbordagem(abordagemId, botao){
+    const campo = document.getElementById(`abordagemHistoricoTexto-${abordagemId}`);
+    const campoData = document.getElementById(`abordagemHistoricoData-${abordagemId}`);
+    const texto = campo.value.trim();
+    if (!texto) return;
+    const data = campoData.value || new Date().toISOString().slice(0, 10);
+
+    botao.disabled = true;
+    try {
+      const { data: inserido, error } = await Auth.client
+        .from("painel_abordagens_notas")
+        .insert({ abordagem_id: abordagemId, texto, data })
+        .select();
+      if (error) throw error;
+      abordagensNotasCache = abordagensNotasCache.concat(inserido);
+      renderizarAbordagens();
+    } catch (erro) {
+      console.error("Erro ao adicionar atualização da abordagem:", erro);
+      alert("Não deu pra salvar a atualização. Tenta de novo.");
+      botao.disabled = false;
+    }
+  }
+
+  async function removerNotaAbordagem(id){
+    if (!confirm("Excluir essa atualização? Não dá pra desfazer.")) return;
+    try {
+      const { error } = await Auth.client.from("painel_abordagens_notas").delete().eq("id", id);
+      if (error) throw error;
+      abordagensNotasCache = abordagensNotasCache.filter(n => n.id !== id);
+      renderizarAbordagens();
+    } catch (erro) {
+      console.error("Erro ao excluir atualização da abordagem:", erro);
+      alert("Não deu pra excluir. Tenta de novo.");
+    }
   }
 
   function renderLinhaAbordagemHtml(item){
@@ -15530,6 +15615,12 @@ ${MODELO_PROPOSTA_HTML}`;
     });
     container.querySelectorAll("[data-acao='abordagem-cancelar-edicao']").forEach(btn => {
       btn.addEventListener("click", () => cancelarEdicaoAbordagem(btn.dataset.id));
+    });
+    container.querySelectorAll("[data-acao='abordagem-historico-adicionar']").forEach(btn => {
+      btn.addEventListener("click", () => adicionarNotaAbordagem(btn.dataset.id, btn));
+    });
+    container.querySelectorAll("[data-acao='abordagem-historico-remover']").forEach(btn => {
+      btn.addEventListener("click", () => removerNotaAbordagem(btn.dataset.id));
     });
     container.querySelectorAll("[data-acao='abordagem-toggle-followup']").forEach(btn => {
       btn.addEventListener("click", () => alternarFollowupFeitoAbordagem(btn.dataset.id));
