@@ -13580,13 +13580,38 @@ ${MODELO_PROPOSTA_HTML}`;
       const diasParaVencer = item.vencimento - diaAtual;
       if (diasParaVencer < 0){
         alertas.push({ ...item, status: "atrasado", diasParaVencer });
-      } else if (diasParaVencer === 3 || diasParaVencer === 1 || diasParaVencer === 0){
+      } else if (diasParaVencer === 0){
         alertas.push({ ...item, status: "proximo", diasParaVencer });
+      } else if (diasParaVencer === 3 || diasParaVencer === 1){
+        // Aviso antecipado aparece uma vez só: depois do "Ok" fica quieto até o dia do
+        // vencimento (aí volta e insiste até ser marcada como paga).
+        const chaveOk = chaveAvisoAntecipadoConta(item, anoAtual, mesAtual);
+        const silenciado = !!(lembretesSnoozeCache[chaveOk] && Date.now() < lembretesSnoozeCache[chaveOk]);
+        alertas.push({ ...item, status: "proximo", diasParaVencer, chaveOk, silenciado });
       }
     });
 
     alertas.sort((a, b) => a.diasParaVencer - b.diasParaVencer);
     return { alertas, anoAtual, mesAtual };
+  }
+
+  // Chave do "Ok" do aviso antecipado de UMA conta num mês (guardada em painel_lembretes_snooze,
+  // a mesma tabela do "Lembrar em 1h" — vale em qualquer aparelho e sobrevive a F5).
+  function chaveAvisoAntecipadoConta(item, ano, mes){
+    return `conta-ok:${item.tipo}:${item.nome}:${ano}-${mes + 1}`;
+  }
+
+  // "Ok" nos avisos antecipados: cada conta fica silenciada até 00h do dia do vencimento.
+  async function confirmarAvisosAntecipadosContas(itens){
+    const hoje = new Date();
+    const linhas = itens.filter(i => i.chaveOk).map(i => {
+      const vence = new Date(hoje.getFullYear(), hoje.getMonth(), i.vencimento);
+      lembretesSnoozeCache[i.chaveOk] = vence.getTime();
+      return { grupo: i.chaveOk, adiado_ate: vence.toISOString(), updated_at: new Date().toISOString() };
+    });
+    if (!linhas.length) return;
+    const { error } = await Auth.client.from("painel_lembretes_snooze").upsert(linhas, { onConflict: "grupo" });
+    if (error) console.error("Erro ao confirmar aviso de conta:", error);
   }
 
   function mensagemAlertaConta(item){
@@ -13757,7 +13782,8 @@ ${MODELO_PROPOSTA_HTML}`;
     },
     {
       grupo: "financas",
-      obter: () => obterAlertasContas().alertas,
+      // Avisos antecipados já confirmados com "Ok" saem só do pop-up (continuam no Menu Principal).
+      obter: () => obterAlertasContas().alertas.filter(a => !a.silenciado),
       rotulo: (n) => n === 1 ? "conta a pagar" : "contas a pagar"
     },
     {
@@ -13891,8 +13917,16 @@ ${MODELO_PROPOSTA_HTML}`;
     // o botão certo aqui é confirmar de vez (marca como visto neste aparelho,
     // some da fila pra sempre, diferente do X que só esconde até recarregar)
     const ehPixGustavo = config.grupo === "pix-gustavo";
+    // Contas que ainda vão vencer (3 dias / 1 dia antes): avisa uma vez e pronto — "Ok" em
+    // vez de "Lembrar em 1h". No dia do vencimento (ou atrasada) volta o comportamento normal.
+    const ehAvisoAntecipadoContas = config.grupo === "financas" && itens.every(i => i.chaveOk);
     const acoesHtml = ehPixGustavo
       ? `<button type="button" class="notificacao-popup-botao-pago" data-acao="confirmar-pix-notificacao">Confirmar</button>`
+      : ehAvisoAntecipadoContas
+      ? `
+        <button type="button" class="notificacao-popup-botao-pago" data-acao="ver-grupo-notificacao">Ver ${LABEL_ABA_LEMBRETE[config.grupo]}</button>
+        <button type="button" class="notificacao-popup-botao-adiar" data-acao="ok-contas-notificacao">Ok</button>
+      `
       : `
         <button type="button" class="notificacao-popup-botao-pago" data-acao="ver-grupo-notificacao">Ver ${LABEL_ABA_LEMBRETE[config.grupo]}</button>
         <button type="button" class="notificacao-popup-botao-adiar" data-acao="adiar-notificacao">Lembrar em 1h</button>
@@ -13923,10 +13957,18 @@ ${MODELO_PROPOSTA_HTML}`;
       return;
     }
 
-    container.querySelector("[data-acao='adiar-notificacao']").addEventListener("click", () => {
-      adiarGrupoLembrete(config.grupo);
-      renderizarNotificacoesPopup();
-    });
+    if (ehAvisoAntecipadoContas){
+      container.querySelector("[data-acao='ok-contas-notificacao']").addEventListener("click", async () => {
+        await confirmarAvisosAntecipadosContas(itens);
+        renderizarNotificacoesPopup();
+        renderizarAlertasContas();
+      });
+    } else {
+      container.querySelector("[data-acao='adiar-notificacao']").addEventListener("click", () => {
+        adiarGrupoLembrete(config.grupo);
+        renderizarNotificacoesPopup();
+      });
+    }
 
     container.querySelector("[data-acao='ver-grupo-notificacao']").addEventListener("click", () => {
       // "Ver X" leva pra aba do grupo — ela vai resolver por lá, então esse
@@ -13934,6 +13976,8 @@ ${MODELO_PROPOSTA_HTML}`;
       // aviso reapareceria assim que ela voltasse). Igual ao "Fechar", mas com
       // navegação: o próximo aviso pendente (se tiver) já sobe em seguida,
       // nenhum fica "engolido" pelo anterior.
+      // Ver as contas que ainda vão vencer já conta como "Ok" (não volta a avisar antes do dia).
+      if (ehAvisoAntecipadoContas) confirmarAvisosAntecipadosContas(itens);
       gruposFechadosSessao.add(config.grupo);
       renderizarNotificacoesPopup();
       navegarParaGrupoLembrete(config.grupo, itemMaisUrgente);
