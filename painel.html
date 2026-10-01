@@ -4715,7 +4715,6 @@
         <button type="button" class="sub-aba-btn ativo" data-subaba="marcas">Marcas</button>
         <button type="button" class="sub-aba-btn" data-subaba="ativas">Abordagens</button>
         <button type="button" class="sub-aba-btn" data-subaba="rascunhos">Rascunhos</button>
-        <button type="button" class="sub-aba-btn" data-subaba="arquivados">Arquivadas</button>
       </div>
 
       <!-- ---------- Sub-aba: Abordagens ativas ---------- -->
@@ -4845,17 +4844,6 @@
           </div>
           <div id="abordagemRascunhoCorpo"></div>
         </div>
-      </div>
-
-      <!-- ---------- Sub-aba: Arquivados (agrupado mês a mês) ---------- -->
-      <div id="abordagemArquivados" class="oculto">
-        <div class="cartao">
-          <div class="ugc-campo largo">
-            <label>Buscar por nome da marca</label>
-            <input type="text" id="abordagemArquivoBusca" placeholder="Digite o nome da marca">
-          </div>
-        </div>
-        <div id="abordagemArquivoCorpo"></div>
       </div>
 
       <!-- ---------- Sub-aba: Marcas (base de prospecção) ---------- -->
@@ -7112,7 +7100,6 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         // Isolado do carregamento principal: a tabela painel_abordagens só existe depois
         // que o SQL da aba Abordagem for rodado no Supabase, então essa busca pode falhar sem travar o resto do painel.
         abordagensCache = await comRetry(() => buscarTudo("painel_abordagens"));
-        await arquivarAbordagensMesAnterior();
         renderizarAbordagens();
       } catch (erroAbordagem) {
         console.error("Erro ao carregar/renderizar Abordagem:", erroAbordagem);
@@ -9315,7 +9302,6 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
     document.getElementById("abordagemBusca").addEventListener("input", renderListaAbordagens);
     document.getElementById("abordagemRascunhoBusca").addEventListener("input", renderRascunhosAbordagens);
-    document.getElementById("abordagemArquivoBusca").addEventListener("input", renderArquivoAbordagens);
 
     document.querySelectorAll(".abordagem-filtro-btn").forEach(btn => {
       btn.addEventListener("click", (e) => {
@@ -9752,7 +9738,6 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.querySelectorAll("#subAbasAbordagem .sub-aba-btn").forEach(b => b.classList.toggle("ativo", b.dataset.subaba === sub));
     document.getElementById("abordagemAtivas").classList.toggle("oculto", sub !== "ativas");
     document.getElementById("abordagemRascunhos").classList.toggle("oculto", sub !== "rascunhos");
-    document.getElementById("abordagemArquivados").classList.toggle("oculto", sub !== "arquivados");
     document.getElementById("abordagemMarcas").classList.toggle("oculto", sub !== "marcas");
   }
 
@@ -15313,7 +15298,6 @@ ${MODELO_PROPOSTA_HTML}`;
     const vistos = new Map(); // chave -> rótulo
     abordagensCache
       .filter(a =>
-        !a.arquivado &&
         a.status !== "rascunho" &&
         (!termo || (a.marca || "").toLowerCase().includes(termo)) &&
         passaFiltrosColunaAbordagem(a, campo) &&
@@ -15723,7 +15707,7 @@ ${MODELO_PROPOSTA_HTML}`;
     const vencendo = atrasado || rascunhoVencendo;
 
     return `
-      <details class="ugc-linha" data-id="${item.id}"${aberta}>
+      <details class="ugc-linha${item.arquivado ? " arquivado" : ""}" data-id="${item.id}"${aberta}>
         <summary class="ugc-linha-resumo abordagem-grade-lista">
           <span class="ugc-data-abordagem">${dataAbordagemTexto}</span>
           <span class="ugc-marca">${item.marca}</span>
@@ -15833,13 +15817,13 @@ ${MODELO_PROPOSTA_HTML}`;
 
     const ordenados = abordagensCache
       .filter(a =>
-        !a.arquivado &&
         a.status !== "rascunho" && // Rascunho tem aba própria agora, não entra mais aqui
         (!termo || (a.marca || "").toLowerCase().includes(termo)) &&
         passaFiltrosColunaAbordagem(a) &&
         passaPeriodoAbordagem(a.data_abordagem)
       )
-      .sort((a, b) => (b.data_abordagem || "").localeCompare(a.data_abordagem || ""));
+      // Arquivadas (só na mão) ficam no fim da lista, apagadinhas — não existe mais aba própria.
+      .sort((a, b) => (a.arquivado ? 1 : 0) - (b.arquivado ? 1 : 0) || (b.data_abordagem || "").localeCompare(a.data_abordagem || ""));
 
     corpo.innerHTML = ordenados.length
       ? ordenados.map(item => renderLinhaAbordagemHtml(item)).join("")
@@ -15858,7 +15842,7 @@ ${MODELO_PROPOSTA_HTML}`;
     const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
 
     const ordenados = abordagensCache
-      .filter(a => !a.arquivado && a.status === "rascunho" && (!termo || (a.marca || "").toLowerCase().includes(termo)))
+      .filter(a => a.status === "rascunho" && (!termo || (a.marca || "").toLowerCase().includes(termo)))
       .sort((a, b) => (a.data_rascunho || "").localeCompare(b.data_rascunho || ""));
 
     corpo.innerHTML = ordenados.length
@@ -15875,51 +15859,10 @@ ${MODELO_PROPOSTA_HTML}`;
     return `${MESES_ABORDAGEM[mes - 1]} de ${ano}`;
   }
 
-  // Aba Arquivados: agrupa mês a mês (pela data da abordagem) e filtra por nome da marca
-  function renderArquivoAbordagens(){
-    const corpo = document.getElementById("abordagemArquivoCorpo");
-    if (!corpo) return;
-
-    const campoBusca = document.getElementById("abordagemArquivoBusca");
-    const termo = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
-
-    const arquivados = abordagensCache.filter(a =>
-      a.arquivado && (!termo || (a.marca || "").toLowerCase().includes(termo))
-    );
-
-    if (arquivados.length === 0){
-      corpo.innerHTML = `<p class="ugc-vazio">${termo ? "Nenhuma marca arquivada encontrada com esse nome." : "Nenhuma abordagem arquivada ainda."}</p>`;
-      return;
-    }
-
-    const grupos = {};
-    arquivados.forEach(item => {
-      const dataRef = item.data_abordagem || (item.created_at ? item.created_at.slice(0, 10) : null);
-      const chave = dataRef ? dataRef.slice(0, 7) : "0000-00";
-      (grupos[chave] = grupos[chave] || []).push(item);
-    });
-
-    const chavesOrdenadas = Object.keys(grupos).sort((a, b) => b.localeCompare(a));
-
-    corpo.innerHTML = chavesOrdenadas.map(chave => {
-      const itens = grupos[chave].sort((a, b) => (b.data_abordagem || "").localeCompare(a.data_abordagem || ""));
-      return `
-        <div class="cartao ugc-lista-cartao" style="margin-top:14px;">
-          <div class="ugc-cabecalho-lista abordagem-grade-lista">
-            <span>${chave === "0000-00" ? "Sem data" : nomeMesAnoAbordagem(chave)}</span><span>Marca</span><span>Nicho</span><span>Follow up</span><span>Status</span><span></span>
-          </div>
-          <div>${itens.map(item => renderLinhaAbordagemHtml(item)).join("")}</div>
-        </div>
-      `;
-    }).join("");
-
-    reatarEventosLinhasAbordagem(corpo);
-  }
 
   function renderizarAbordagens(){
     renderListaAbordagens();
     renderRascunhosAbordagens();
-    renderArquivoAbordagens();
     calcularMetricasAbordagem();
   }
 
@@ -15991,33 +15934,6 @@ ${MODELO_PROPOSTA_HTML}`;
     await atualizarAbordagem(id, { arquivado: true, motivo_arquivamento: motivo, arquivado_automaticamente: false });
   }
 
-  // Roda uma vez a cada carregamento do painel: qualquer abordagem cuja data seja de um
-  // mês anterior ao atual é arquivada sozinha, sem precisar clicar em "Arquivar". Como não
-  // existe um cron no servidor, isso é o mais perto de "vira o mês, arquiva" que dá pra
-  // fazer aqui — funciona toda vez que o painel é aberto depois da virada do mês. Motivo
-  // sempre "prazo_expirado" e marcado como automático, pra distinguir do arquivamento manual
-  // na aba Arquivados.
-  async function arquivarAbordagensMesAnterior(){
-    const hoje = new Date();
-    const chaveAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
-
-    const paraArquivar = abordagensCache.filter(item =>
-      !item.arquivado && item.data_abordagem && item.data_abordagem.slice(0, 7) < chaveAtual
-    );
-    if (paraArquivar.length === 0) return;
-
-    const { error } = await Auth.client
-      .from("painel_abordagens")
-      .update({ arquivado: true, motivo_arquivamento: "prazo_expirado", arquivado_automaticamente: true })
-      .in("id", paraArquivar.map(item => item.id));
-
-    if (!error) paraArquivar.forEach(item => {
-      item.arquivado = true;
-      item.motivo_arquivamento = "prazo_expirado";
-      item.arquivado_automaticamente = true;
-    });
-  }
-
   // Chamado ao clicar no lembrete de follow up: troca pra aba Abordagem, abre
   // a anotação daquela marca e rola/realça a linha até ela ficar visível.
   // Chamada só a partir do lembrete de abordagem (rascunho parado, follow up vencendo ou
@@ -16030,7 +15946,7 @@ ${MODELO_PROPOSTA_HTML}`;
     // abordagemArquivoCorpo) — sem trocar de sub-aba, a linha nunca aparece na tela
     // (fica escondida atrás de "oculto"), mesmo com o id certo.
     const item = abordagensCache.find(a => a.id === id);
-    const subAba = item && item.arquivado ? "arquivados" : item && item.status === "rascunho" ? "rascunhos" : "ativas";
+    const subAba = item && item.status === "rascunho" ? "rascunhos" : "ativas";
 
     // Zera período/filtro de coluna/busca que possam estar escondendo o item — um lembrete
     // de follow-up costuma apontar pra uma abordagem de dias atrás, que sumiria da lista se
@@ -16044,14 +15960,14 @@ ${MODELO_PROPOSTA_HTML}`;
         document.querySelectorAll(".abordagem-periodo-btn").forEach(b => b.classList.toggle("ativo", b.dataset.periodo === "tudo"));
       }
     }
-    const idBuscaSubAba = subAba === "rascunhos" ? "abordagemRascunhoBusca" : subAba === "arquivados" ? "abordagemArquivoBusca" : "abordagemBusca";
+    const idBuscaSubAba = subAba === "rascunhos" ? "abordagemRascunhoBusca" : "abordagemBusca";
     const campoBuscaSubAba = document.getElementById(idBuscaSubAba);
     if (campoBuscaSubAba) campoBuscaSubAba.value = "";
 
     renderizarAbordagens();
     atualizarIndicadoresFiltroAbordagem();
 
-    const containerId = subAba === "rascunhos" ? "abordagemRascunhoCorpo" : subAba === "arquivados" ? "abordagemArquivoCorpo" : "abordagemListaCorpo";
+    const containerId = subAba === "rascunhos" ? "abordagemRascunhoCorpo" : "abordagemListaCorpo";
     trocarSubAbaAbordagem(subAba);
 
     requestAnimationFrame(() => {
