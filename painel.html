@@ -13583,9 +13583,10 @@ ${MODELO_PROPOSTA_HTML}`;
       } else if (diasParaVencer === 0){
         alertas.push({ ...item, status: "proximo", diasParaVencer });
       } else if (diasParaVencer === 3 || diasParaVencer === 1){
-        // Aviso antecipado aparece uma vez só: depois do "Ok" fica quieto até o dia do
-        // vencimento (aí volta e insiste até ser marcada como paga).
-        const chaveOk = chaveAvisoAntecipadoConta(item, anoAtual, mesAtual);
+        // Cada aviso antecipado (3 dias antes e 1 dia antes) aparece uma vez só: depois do
+        // "Ok" fica quieto até o próximo aviso; no dia do vencimento volta e insiste até
+        // ser marcada como paga.
+        const chaveOk = chaveAvisoAntecipadoConta(item, anoAtual, mesAtual, diasParaVencer);
         const silenciado = !!(lembretesSnoozeCache[chaveOk] && Date.now() < lembretesSnoozeCache[chaveOk]);
         alertas.push({ ...item, status: "proximo", diasParaVencer, chaveOk, silenciado });
       }
@@ -13597,8 +13598,8 @@ ${MODELO_PROPOSTA_HTML}`;
 
   // Chave do "Ok" do aviso antecipado de UMA conta num mês (guardada em painel_lembretes_snooze,
   // a mesma tabela do "Lembrar em 1h" — vale em qualquer aparelho e sobrevive a F5).
-  function chaveAvisoAntecipadoConta(item, ano, mes){
-    return `conta-ok:${item.tipo}:${item.nome}:${ano}-${mes + 1}`;
+  function chaveAvisoAntecipadoConta(item, ano, mes, diasParaVencer){
+    return `conta-ok:${item.tipo}:${item.nome}:${ano}-${mes + 1}:${diasParaVencer}d`;
   }
 
   // "Ok" nos avisos antecipados: cada conta fica silenciada até 00h do dia do vencimento.
@@ -13612,6 +13613,38 @@ ${MODELO_PROPOSTA_HTML}`;
     if (!linhas.length) return;
     const { error } = await Auth.client.from("painel_lembretes_snooze").upsert(linhas, { onConflict: "grupo" });
     if (error) console.error("Erro ao confirmar aviso de conta:", error);
+  }
+
+  // Título do pop-up de contas: fala da situação mais urgente (vencida > vence hoje > vai vencer)
+  // e conta só as contas que estão nessa situação.
+  function tituloAvisoContas(itens){
+    const vencidas = itens.filter(i => i.diasParaVencer < 0);
+    if (vencidas.length) return vencidas.length === 1 ? "Você tem conta vencida" : "Você tem contas vencidas";
+    const hoje = itens.filter(i => i.diasParaVencer === 0);
+    if (hoje.length) return hoje.length === 1 ? "Você tem conta vencendo hoje" : "Você tem contas vencendo hoje";
+    const menorPrazo = Math.min(...itens.map(i => i.diasParaVencer));
+    const proximas = itens.filter(i => i.diasParaVencer === menorPrazo);
+    const quando = menorPrazo === 1 ? "amanhã" : `em ${menorPrazo} dias`;
+    return proximas.length === 1 ? `Você tem conta que vence ${quando}` : `Você tem contas que vencem ${quando}`;
+  }
+
+  // Leva direto pra linha da conta na aba Finanças (mês atual), com o mesmo destaque
+  // piscando usado ao abrir uma abordagem pelo lembrete.
+  function irParaConta(item){
+    const hoje = new Date();
+    mesFinancasVisivel = hoje.getMonth();
+    anoFinancasVisivel = hoje.getFullYear();
+    definirMesFaturaPadrao();
+    trocarAba("financas");
+    renderizarFinancas();
+    requestAnimationFrame(() => {
+      const el = document.querySelector(`#listaCartoesPagar tr[data-tipo="${item.tipo}"][data-nome="${CSS.escape(item.nome)}"]`);
+      if (el){
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ugc-linha-flash-atrasado");
+        setTimeout(() => el.classList.remove("ugc-linha-flash-atrasado"), 2200);
+      }
+    });
   }
 
   function mensagemAlertaConta(item){
@@ -13784,7 +13817,8 @@ ${MODELO_PROPOSTA_HTML}`;
       grupo: "financas",
       // Avisos antecipados já confirmados com "Ok" saem só do pop-up (continuam no Menu Principal).
       obter: () => obterAlertasContas().alertas.filter(a => !a.silenciado),
-      rotulo: (n) => n === 1 ? "conta a pagar" : "contas a pagar"
+      rotulo: (n) => n === 1 ? "conta a pagar" : "contas a pagar",
+      tituloCustom: tituloAvisoContas
     },
     {
       grupo: "agenda",
@@ -13843,6 +13877,7 @@ ${MODELO_PROPOSTA_HTML}`;
   // senão só troca de aba mesmo.
   function navegarParaGrupoLembrete(grupo, itemMaisUrgente){
     if (grupo === "abordagem") return irParaAbordagem(itemMaisUrgente.id);
+    if (grupo === "financas") return irParaConta(itemMaisUrgente);
     if (grupo === "clientes") return irParaCliente(itemMaisUrgente.id);
     if (grupo === "marcas-followup") return irParaMarcaFollowUp(itemMaisUrgente.id);
     if (grupo === "ugc-creator") return irParaTrabalhoUgc(itemMaisUrgente.id);
@@ -13924,16 +13959,16 @@ ${MODELO_PROPOSTA_HTML}`;
       ? `<button type="button" class="notificacao-popup-botao-pago" data-acao="confirmar-pix-notificacao">Confirmar</button>`
       : ehAvisoAntecipadoContas
       ? `
-        <button type="button" class="notificacao-popup-botao-pago" data-acao="ver-grupo-notificacao">Ver ${LABEL_ABA_LEMBRETE[config.grupo]}</button>
+        <button type="button" class="notificacao-popup-botao-pago" data-acao="ver-grupo-notificacao">Ver conta</button>
         <button type="button" class="notificacao-popup-botao-adiar" data-acao="ok-contas-notificacao">Ok</button>
       `
       : `
-        <button type="button" class="notificacao-popup-botao-pago" data-acao="ver-grupo-notificacao">Ver ${LABEL_ABA_LEMBRETE[config.grupo]}</button>
+        <button type="button" class="notificacao-popup-botao-pago" data-acao="ver-grupo-notificacao">${config.grupo === "financas" ? "Ver conta" : `Ver ${LABEL_ABA_LEMBRETE[config.grupo]}`}</button>
         <button type="button" class="notificacao-popup-botao-adiar" data-acao="adiar-notificacao">Lembrar em 1h</button>
       `;
 
     container.innerHTML = `
-      <div class="notificacao-popup" data-grupo="${config.grupo}">
+      <div class="notificacao-popup${config.grupo === "financas" && itens.some(i => i.diasParaVencer < 0) ? " atrasado" : ""}" data-grupo="${config.grupo}">
         <button type="button" class="notificacao-popup-fechar" data-acao="fechar-notificacao" aria-label="Fechar aviso">&times;</button>
         <div class="notificacao-popup-corpo">
           <p class="notificacao-popup-nome dado-sensivel">${titulo}</p>
