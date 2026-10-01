@@ -6930,6 +6930,10 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
     document.getElementById("usuarioEmail").textContent = usuario.email;
 
+    // Marca este navegador como "da Edi": o biosite e os portfólios (mesmo domínio, mesmo
+    // localStorage) param de registrar visitas/cliques daqui, pra não inflar as métricas.
+    try { localStorage.setItem("edi_nao_rastrear", "1"); } catch (erro) {}
+
     // Volta pra aba em que a pessoa estava antes de atualizar a página (F5) ou puxar pra
     // atualizar, em vez de sempre mostrar o Menu Principal — mas só dentro da mesma sessão
     // (sessionStorage some sozinho quando o app é fechado de verdade, então reabrir do zero
