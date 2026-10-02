@@ -11192,13 +11192,20 @@ ${MODELO_PROPOSTA_HTML}`;
     document.getElementById("linksBotaoAddCategoria").textContent = ehReferencias ? "Adicionar formato" : "Adicionar categoria";
     document.getElementById("linksCampoNovaCategoria").placeholder = ehReferencias ? "Ex: Storytelling" : "Ex: Estudo";
 
-    const ordenadas = linksCategoriasCache
-      .filter(c => grupoLink(c) === linksSubAbaAtiva)
-      .slice()
-      .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    // Junta as categorias cadastradas com as que já estão em uso nos links dessa sub-aba —
+    // senão uma categoria usada nos links mas sem linha em painel_links_categorias (ex:
+    // apagada/renomeada direto no banco) sumia do dropdown, mesmo aparecendo na lista.
+    const porNome = new Map();
+    linksCategoriasCache
+      .filter(c => grupoLink(c) === linksSubAbaAtiva && c.nome)
+      .forEach(c => porNome.set(c.nome.toLowerCase(), { nome: c.nome }));
+    linksCache
+      .filter(l => grupoLink(l) === linksSubAbaAtiva && l.categoria)
+      .forEach(l => { if (!porNome.has(l.categoria.toLowerCase())) porNome.set(l.categoria.toLowerCase(), { nome: l.categoria }); });
+    const ordenadas = [...porNome.values()].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
     select.innerHTML = `<option value="">Sem ${rotulo}</option>` +
       ordenadas.map(c => `<option value="${escaparHtmlMarcas(c.nome)}">${escaparHtmlMarcas(c.nome)}</option>`).join("") +
-      `<option value="${VALOR_NOVA_CATEGORIA_LINK}">+ Adicionar novo${ehReferencias ? "" : "a"} ${rotulo}</option>`;
+      `<option value="${VALOR_NOVA_CATEGORIA_LINK}">+ Adicionar nov${ehReferencias ? "o" : "a"} ${rotulo}</option>`;
     select.value = valorAtual && ordenadas.some(c => c.nome === valorAtual) ? valorAtual : "";
     document.getElementById("linksNovaCategoriaWrap").classList.add("oculto");
     document.getElementById("linksCampoNovaCategoria").value = "";
