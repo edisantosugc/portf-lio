@@ -114,7 +114,7 @@ const CONFIG_PT = {
   destaques: {
     fixo: {
       tipo: "imagem",
-      imagem: "/portfolio/imagens/destaque-feedback-1.jpg",
+      imagem: "/portfolio/imagens/destaque-feedback-3.jpg",
       estatistica: "Atualizadíssima ao que funciona em tráfego pago",
       legenda: "12 vendas em curto prazo",
       legendaDestacada: true
@@ -415,7 +415,7 @@ const CONFIG_EN = {
   destaques: {
     fixo: {
       tipo: "imagem",
-      imagem: "/portfolio/imagens/destaque-feedback-1.jpg",
+      imagem: "/portfolio/imagens/destaque-feedback-3.jpg",
       estatistica: "Always up to date with what works in paid traffic",
       legenda: "12 sales in a short time",
       legendaDestacada: true
