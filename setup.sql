@@ -1364,7 +1364,7 @@ select cron.schedule(
   '* * * * *',
   $$
   select net.http_post(
-    url := 'https://SEU_PROJETO.supabase.co/functions/v1/ig-scheduler',
+    url := 'https://dqtoxxngjqyoibdgmrjr.supabase.co/functions/v1/ig-scheduler',
     headers := jsonb_build_object('x-sched-key', (select valor from public.app_config where nome = 'sched_secret'), 'Content-Type', 'application/json'),
     body := '{}'::jsonb
   );
