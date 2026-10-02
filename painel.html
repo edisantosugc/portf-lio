@@ -7523,8 +7523,11 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     const { data, error } = await Auth.client.from("ig_comments").select("username").gte("created_at", desde).limit(2000);
     if (error) throw error;
 
+    // Os próprios comentários dela (respostas no próprio post) não entram no ranking.
+    const meuPerfil = PERFIL_INSTAGRAM_EDILAINE.replace(/^@/, "").toLowerCase();
     const contagem = {};
     (data || []).forEach(c => {
+      if ((c.username || "").replace(/^@/, "").toLowerCase() === meuPerfil) return;
       const nome = c.username || "(desconhecido)";
       contagem[nome] = (contagem[nome] || 0) + 1;
     });
