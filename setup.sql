@@ -1376,7 +1376,7 @@ select cron.schedule(
   '0 3 * * 1',
   $$
   select net.http_post(
-    url := 'https://SEU_PROJETO.supabase.co/functions/v1/ig-token-refresh',
+    url := 'https://dqtoxxngjqyoibdgmrjr.supabase.co/functions/v1/ig-token-refresh',
     headers := jsonb_build_object('x-sched-key', (select valor from public.app_config where nome = 'sched_secret'), 'Content-Type', 'application/json'),
     body := '{}'::jsonb
   );
