@@ -20604,10 +20604,16 @@ ${corpo}
   }
 
   async function adicionarDocumentoAvulso(){
-    const nome = document.getElementById("docAvulsoNomeNovo").value.trim();
-    if (!nome) return;
     const arquivoInput = document.getElementById("docAvulsoArquivoNovo");
     const arquivo = arquivoInput.files[0] || null;
+    // Sem nome digitado, usa o nome do próprio arquivo (sem a extensão) — antes o botão
+    // simplesmente não fazia nada nesse caso, sem avisar.
+    const nome = document.getElementById("docAvulsoNomeNovo").value.trim()
+      || (arquivo ? arquivo.name.replace(/\.[^.]+$/, "") : "");
+    if (!nome){
+      alert("Escolha um arquivo ou digite o nome do documento.");
+      return;
+    }
 
     let enviado = null;
     if (arquivo){
