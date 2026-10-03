@@ -437,6 +437,8 @@ function obterSessionId(){
 function registrarEvento(eventType, eventName, metadata){
   // Navegador onde a Edi já entrou no painel: as visitas/cliques dela não contam nas métricas.
   try { if (localStorage.getItem("edi_nao_rastrear") === "1") return; } catch (erro) {}
+  // Prévia local (localhost) ou navegador controlado por automação (testes do Claude): não conta.
+  if (location.hostname !== "edilainesantos.com" || navigator.webdriver) return;
   try {
     fetch(SUPABASE_URL + "/rest/v1/portfolio_events", {
       method: "POST",

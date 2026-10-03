@@ -1761,6 +1761,8 @@ function obterSessionId(){
 function registrarEvento(eventType, eventName, metadata){
   // Navegador onde a Edi já entrou no painel: as visitas/cliques dela não contam nas métricas.
   try { if (localStorage.getItem("edi_nao_rastrear") === "1") return; } catch (erro) {}
+  // Prévia local (localhost) ou navegador controlado por automação (testes do Claude): não conta.
+  if (location.hostname !== "edilainesantos.com" || navigator.webdriver) return;
   try {
     fetch(SUPABASE_URL + "/rest/v1/portfolio_events", {
       method: "POST",
@@ -2378,12 +2380,11 @@ function definirIdioma(idioma){
   renderizarConteudo(false);
 }
 
-// Origem de quem chegou ao Portfólio: "direto" é usado no link
-// edilainesantos.com/ugcportfolio (abordagem direta a marcas) e também cobre quem cai
-// direto em edilainesantos.com/portfolio sem vir de busca ou rede social (e-mail de
-// prospecção, link digitado, link salvo etc.); "plataforma" é usado no link
-// edilainesantos.com/plataforma (cadastros em plataformas de creator/UGC). Só fica como
-// "outro" quem vem claramente de busca ou rede social.
+// Origem de quem chegou ao Portfólio: "plataforma" é quem veio pelo link
+// edilainesantos.com/ugcportfolio (cadastros em plataformas de creator/UGC); "direto" é
+// quem cai em edilainesantos.com/portfolio sem vir de busca ou rede social (abordagem
+// direta a marcas: e-mail de prospecção, link enviado, digitado, salvo etc.). Só fica
+// como "outro" quem vem claramente de busca ou rede social.
 const REFERRER_BUSCA_OU_REDE_SOCIAL = [
   "google.", "bing.", "yahoo.", "duckduckgo.", "baidu.",
   "instagram.com", "facebook.com", "tiktok.com", "linkedin.com",

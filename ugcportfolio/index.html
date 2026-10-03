@@ -7,11 +7,12 @@
 <title>Portfólio | Edilaine Santos</title>
 <meta http-equiv="refresh" content="0; url=/portfolio/">
 <script>
-  // Link limpo usado em abordagens e cadastros de plataforma. Marca a
-  // origem na sessão do navegador (em vez de na URL, pra não deixar
-  // "?origem=direto" visível na barra de endereço) e encaminha direto
+  // Link limpo usado nos cadastros em plataformas de creator/UGC (conta como
+  // "Via plataformas" no painel). Abordagem direta usa o /portfolio puro.
+  // Marca a origem na sessão do navegador (em vez de na URL, pra não deixar
+  // "?origem=plataforma" visível na barra de endereço) e encaminha direto
   // pro portfólio de verdade, já na página normal e limpa.
-  try { sessionStorage.setItem("origem_portfolio", "direto"); } catch (erro) {}
+  try { sessionStorage.setItem("origem_portfolio", "plataforma"); } catch (erro) {}
   location.replace("/portfolio/");
 </script>
 </head>
