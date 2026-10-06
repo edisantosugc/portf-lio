@@ -1962,7 +1962,9 @@
   }
   .ugc-campo input:focus, .ugc-campo select:focus, .ugc-campo textarea:focus{ outline: none; border-color: var(--coral); }
   .ugc-campo input:disabled{ opacity: .65; cursor: not-allowed; }
-  .ugc-origem-toggle{ display: flex; gap: 6px; }
+  .ugc-origem-toggle{ display: flex; gap: 6px; flex-wrap: wrap; }
+  /* Status de Abordagens (10 opções): quebra em várias linhas em vez de espremer numa só */
+  #abordagemStatusToggle span, [id^="abordagemEdicaoStatus-"] span{ flex: 1 1 150px; }
   .ugc-origem-toggle span{
     flex: 1; text-align: center; font-size: .82rem; font-weight: 600; padding: 9px; border-radius: 10px;
     background: var(--creme); border: 1px solid var(--borda); color: var(--texto-suave); cursor: pointer;
@@ -2608,10 +2610,13 @@
   .followups-historico .cliente-historico-item{ border-color: var(--borda); }
   .followups-vazio{ text-align: center; padding: 40px 10px; color: var(--texto-suave); }
   .followups-vazio strong{ display: block; font-size: 1.05rem; color: var(--verde); margin-bottom: 4px; }
-  @media (max-width: 860px){
+  @media (max-width: 1100px){
     .followups-cabecalho{ display: none; }
     .followups-item .followups-grade{ grid-template-columns: 1fr 1fr; gap: 10px 12px; }
     .followups-item .followups-grade > :nth-child(1), .followups-item .followups-grade > :nth-child(2){ grid-column: 1 / -1; }
+    .followups-item .followups-grade > :nth-child(5){ grid-column: 1 / -1; }
+  }
+  @media (max-width: 860px){
     .followups-explica, .followups-lista{ padding-left: 16px; padding-right: 16px; }
   }
   .marca-detalhe-dados .valor{ overflow-wrap: anywhere; }
