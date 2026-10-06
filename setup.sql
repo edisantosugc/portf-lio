@@ -573,7 +573,7 @@ alter table public.painel_abordagens add column if not exists nicho_detalhe text
 -- adicionar_status_contato_futuro.sql pro histórico de quando cada valor foi somado.
 alter table public.painel_abordagens drop constraint if exists painel_abordagens_status_check;
 alter table public.painel_abordagens add constraint painel_abordagens_status_check
-  check (status in ('rascunho', 'realizada', 'follow_up', 'respondeu', 'andamento', 'contato_futuro', 'fechada', 'sem_retorno'));
+  check (status in ('rascunho', 'realizada', 'follow_up', 'respondeu', 'proposta', 'andamento', 'contato_futuro', 'fechada', 'sem_retorno', 'sem_interesse'));
 alter table public.painel_abordagens alter column status set default 'rascunho';
 alter table public.painel_abordagens add column if not exists data_rascunho date;
 
@@ -627,7 +627,7 @@ create index if not exists idx_painel_marcas_produto on public.painel_marcas (pr
 alter table public.painel_marcas drop constraint if exists painel_marcas_status_check;
 -- Status "Em negociação" ('andamento'), espelho do status da aba Abordagens — ver atualizar_marcas_historico_e_status.sql.
 alter table public.painel_marcas add constraint painel_marcas_status_check
-  check (status in ('a_enviar', 'enviado', 'follow_up', 'respondeu', 'contato_futuro', 'proposta', 'andamento', 'fechado', 'sem_interesse'));
+  check (status in ('a_enviar', 'enviado', 'follow_up', 'respondeu', 'contato_futuro', 'proposta', 'andamento', 'fechado', 'sem_retorno', 'sem_interesse'));
 
 alter table public.painel_marcas enable row level security;
 

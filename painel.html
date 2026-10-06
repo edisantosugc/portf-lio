@@ -2001,7 +2001,9 @@
   .ugc-etapa-pill.pago{ background: rgba(45,122,79,.12); border-color: var(--verde); color: var(--verde); }
   .ugc-etapa-pill.vencida{ background: rgba(196,69,60,.1); border-color: var(--vermelho); color: var(--vermelho); }
   .ugc-etapa-pill.andamento{ background: rgba(201,166,107,.15); border-color: var(--dourado); color: var(--dourado); }
-  .ugc-etapa-pill.sem-retorno{ background: rgba(196,69,60,.1); border-color: var(--vermelho); color: var(--vermelho); }
+  .ugc-etapa-pill.proposta{ background: rgba(201,166,107,.3); border-color: var(--dourado); color: #6b5326; }
+  .ugc-etapa-pill.sem-interesse{ background: rgba(196,69,60,.1); border-color: var(--vermelho); color: var(--vermelho); }
+  .ugc-etapa-pill.sem-retorno{ background: rgba(138,59,52,.08); border-color: #8a3b34; color: #8a3b34; }
   .ugc-etapa-pill.realizada{ background: rgba(0,0,128,.08); border-color: var(--coral); color: var(--coral); }
   .ugc-etapa-pill.rascunho{ background: rgba(107,100,92,.1); border-color: var(--texto-suave); color: var(--texto-suave); }
   .ugc-etapa-pill.respondeu{ background: rgba(201,166,107,.18); border-color: var(--dourado); color: #8a6d34; }
@@ -3141,6 +3143,10 @@
   }
   .chk-flutuante:hover{ background: var(--coral-escuro); }
   .chk-flutuante.oculto{ display: none; }
+  /* Card "Follow ups de hoje" minimizado: fica à esquerda do botão do Checklist Diário */
+  .chk-flutuante.followups-minimizado{ right: 210px; background: var(--branco); color: var(--coral); border: 2px solid var(--coral); }
+  .chk-flutuante.followups-minimizado:hover{ background: var(--creme); }
+  .chk-flutuante.followups-minimizado .followups-contador{ margin-left: 0; }
 
   .chk-painel{
     position: fixed; bottom: 20px; right: 20px; z-index: 70;
@@ -3237,6 +3243,7 @@
   @media (max-width: 480px){
     .chk-painel{ width: calc(100vw - 24px); right: 12px; bottom: 12px; }
     .chk-flutuante{ right: 12px; bottom: 12px; }
+    .chk-flutuante.followups-minimizado{ right: 12px; bottom: 66px; }
   }
 
   /* ===================== ABA MARCAS (base de prospecção, dentro de Abordagens) ===================== */
@@ -3266,7 +3273,7 @@
     font-family:'Outfit',sans-serif; font-size:.78rem; color:var(--texto-suave); background:var(--creme); resize:vertical;
   }
 
-  .marcas-contadores{ display:grid; grid-template-columns: repeat(5,1fr); gap:12px; margin-bottom:16px; }
+  .marcas-contadores{ display:grid; grid-template-columns: repeat(6,1fr); gap:12px; margin-bottom:16px; }
   .marcas-contador-card{
     background:var(--branco); border:1px solid var(--borda); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:6px;
     font-family:inherit; text-align:left; cursor:pointer; transition:border-color .15s ease, box-shadow .15s ease;
@@ -3321,6 +3328,12 @@
 
   .marcas-col-marca{ display:flex; flex-direction:column; gap:2px; min-width:0; }
   .marcas-col-marca .nome{ font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .marcas-contador-card.marcas-contador-duplicadas{ border-color: var(--vermelho); }
+  .marcas-contador-card.marcas-contador-duplicadas .rotulo, .marcas-contador-card.marcas-contador-duplicadas .valor{ color: var(--vermelho); }
+  .marcas-contador-card.marcas-contador-duplicadas.ativo{ background: var(--vermelho); }
+  .marcas-contador-card.marcas-contador-duplicadas.ativo .rotulo, .marcas-contador-card.marcas-contador-duplicadas.ativo .valor{ color: var(--branco); }
+  .marcas-contador-card.oculto{ display: none; }
+  .marcas-selo-duplicada{ display:inline-block; width:fit-content; font-size:.66rem; font-weight:700; color:var(--vermelho); background:rgba(196,69,60,.1); border-radius:50px; padding:1px 8px; margin-top:2px; }
   .marcas-col-marca .nome.cliente-nome-abrir{ display:block; max-width:100%; font-weight:600; }
   .marcas-col-marca .sub{ font-size:.74rem; color:var(--texto-suave); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .marcas-col-seguidores{ font-variant-numeric:tabular-nums; color:var(--texto-suave); font-size:.82rem; }
@@ -3342,6 +3355,7 @@
   .marcas-pill-status.andamento{ background:rgba(107,83,38,.14); border-color:#6b5326; color:#6b5326; }
   .marcas-pill-status.proposta{ background:rgba(201,166,107,.3); border-color:var(--dourado); color:#6b5326; }
   .marcas-pill-status.fechado{ background:rgba(45,122,79,.12); border-color:var(--verde); color:var(--verde); }
+  .marcas-pill-status.sem_retorno{ background:rgba(138,59,52,.08); border-color:#8a3b34; color:#8a3b34; }
   .marcas-pill-status.sem_interesse{ background:rgba(196,69,60,.1); border-color:var(--vermelho); color:var(--vermelho); }
 
   .marcas-menu-status{
@@ -3734,7 +3748,10 @@
   <div class="cliente-modal-cartao followups-cartao">
     <div class="cliente-modal-topo">
       <h2 id="followUpsMarcasTitulo">📬 Follow ups de hoje <span class="followups-contador" id="followUpsMarcasContador">0</span></h2>
-      <button type="button" class="cliente-modal-fechar" id="followUpsMarcasFechar" aria-label="Fechar">&times;</button>
+      <div style="display:flex; gap:4px;">
+        <button type="button" class="cliente-modal-fechar" id="followUpsMarcasMinimizar" aria-label="Minimizar" title="Minimizar (fica ao lado do Checklist Diário)">&minus;</button>
+        <button type="button" class="cliente-modal-fechar" id="followUpsMarcasFechar" aria-label="Fechar">&times;</button>
+      </div>
     </div>
     <p class="followups-explica">Clique no nome da marca pra ver e anotar o histórico. Ao marcar como feito ou mudar o status, ela sai daqui e muda em <strong>Marcas</strong> e <strong>Abordagens</strong> juntos.</p>
     <div class="followups-lista">
@@ -4826,10 +4843,12 @@
                 <span data-status="realizada">Abordagem realizada</span>
                 <span data-status="follow_up">Follow up enviado</span>
                 <span data-status="respondeu">Respondeu</span>
+                <span data-status="proposta">Proposta</span>
                 <span data-status="andamento">Negociação em andamento</span>
                 <span data-status="contato_futuro">Contato futuro</span>
                 <span data-status="fechada">Negociação fechada</span>
                 <span data-status="sem_retorno">Sem retorno</span>
+                <span data-status="sem_interesse">Sem interesse</span>
               </div>
             </div>
             <div class="ugc-campo" id="abordagemCampoDataRascunhoWrap">
@@ -4931,7 +4950,9 @@
           <button type="button" class="marcas-contador-card" data-status-card="proposta"><span class="rotulo"><span class="bolinha" style="background:#8a6d34"></span>Proposta</span><span class="valor dado-sensivel" id="marcasContador-proposta">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="andamento"><span class="rotulo"><span class="bolinha" style="background:#6b5326"></span>Em negociação</span><span class="valor dado-sensivel" id="marcasContador-andamento">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="fechado"><span class="rotulo"><span class="bolinha" style="background:var(--verde)"></span>Fechado</span><span class="valor dado-sensivel" id="marcasContador-fechado">0</span></button>
+          <button type="button" class="marcas-contador-card" data-status-card="sem_retorno"><span class="rotulo"><span class="bolinha" style="background:#8a3b34"></span>Sem retorno</span><span class="valor dado-sensivel" id="marcasContador-sem_retorno">0</span></button>
           <button type="button" class="marcas-contador-card" data-status-card="sem_interesse"><span class="rotulo"><span class="bolinha" style="background:var(--vermelho)"></span>Sem interesse</span><span class="valor dado-sensivel" id="marcasContador-sem_interesse">0</span></button>
+          <button type="button" class="marcas-contador-card marcas-contador-duplicadas oculto" data-status-card="duplicadas" id="marcasCardDuplicadas"><span class="rotulo">⚠ Duplicadas</span><span class="valor dado-sensivel" id="marcasContador-duplicadas">0</span></button>
         </div>
 
         <div class="cartao ugc-form-novo oculto" id="marcasFormNovo">
@@ -5006,6 +5027,7 @@
                 <span data-status="proposta">Proposta</span>
                 <span data-status="andamento">Em negociação</span>
                 <span data-status="fechado">Fechado</span>
+                <span data-status="sem_retorno">Sem retorno</span>
                 <span data-status="sem_interesse">Sem interesse</span>
               </div>
             </div>
@@ -6316,6 +6338,7 @@
 </div>
 
 <!-- ===================== WIDGET: CHECKLIST DIÁRIO (fixo, aparece em qualquer aba) ===================== -->
+<button type="button" class="chk-flutuante followups-minimizado oculto" id="followUpsMinimizado">📬 Follow ups <span class="followups-contador" id="followUpsMinimizadoContador">0</span></button>
 <button type="button" class="chk-flutuante" id="chkBotaoFlutuante">📋 Checklist Diário</button>
 
 <div class="chk-painel oculto" id="chkPainel">
@@ -6463,10 +6486,12 @@
     { chave: "realizada", nome: "Abordagem realizada" },
     { chave: "follow_up", nome: "Follow up enviado" },
     { chave: "respondeu", nome: "Respondeu" },
+    { chave: "proposta", nome: "Proposta" },
     { chave: "andamento", nome: "Negociação em andamento" },
     { chave: "contato_futuro", nome: "Contato futuro" },
     { chave: "fechada", nome: "Negociação fechada" },
-    { chave: "sem_retorno", nome: "Sem retorno" }
+    { chave: "sem_retorno", nome: "Sem retorno" },
+    { chave: "sem_interesse", nome: "Sem interesse" }
   ];
 
   // Motivos possíveis de arquivamento. "prazo_expirado" é o único usado pelo arquivamento
@@ -6515,6 +6540,7 @@
     { chave: "proposta", nome: "Proposta" },
     { chave: "andamento", nome: "Em negociação" },
     { chave: "fechado", nome: "Fechado" },
+    { chave: "sem_retorno", nome: "Sem retorno" },
     { chave: "sem_interesse", nome: "Sem interesse" }
   ];
   // EDITE AQUI se quiser mudar depois de quantos dias sem resposta uma marca "Enviado"
@@ -9411,8 +9437,10 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("marcasHistoricoBotaoAdicionar").addEventListener("click", adicionarNotaMarca);
     document.getElementById("marcaDetalheFechar").addEventListener("click", fecharDetalheMarca);
     document.getElementById("followUpsMarcasFechar").addEventListener("click", fecharCardFollowUpsMarcas);
+    document.getElementById("followUpsMarcasMinimizar").addEventListener("click", minimizarCardFollowUpsMarcas);
+    document.getElementById("followUpsMinimizado").addEventListener("click", restaurarCardFollowUpsMarcas);
     document.getElementById("modalFollowUpsMarcas").addEventListener("click", (e) => {
-      if (e.target.id === "modalFollowUpsMarcas") fecharCardFollowUpsMarcas();
+      if (e.target.id === "modalFollowUpsMarcas") minimizarCardFollowUpsMarcas();
     });
     document.getElementById("modalMarcaDetalhe").addEventListener("click", (e) => {
       if (e.target.id === "modalMarcaDetalhe") fecharDetalheMarca();
@@ -14009,6 +14037,7 @@ ${MODELO_PROPOSTA_HTML}`;
     const grupos = CONFIG_GRUPOS_LEMBRETE.map(config => ({ config, itens: config.obter() }));
 
     grupos.forEach(({ config, itens }) => atualizarBadgeGrupo(config.grupo, itens.length));
+    atualizarFollowUpsMinimizado();
 
     const fila = grupos
       .filter(({ itens }) => itens.length > 0)
@@ -15500,7 +15529,7 @@ ${MODELO_PROPOSTA_HTML}`;
     const campos = { status: novoStatus };
     // Entrou em "Negociação em andamento": o follow up passa a contar a partir de hoje
     // (a atualização), não mais da data da abordagem original.
-    if (novoStatus === "andamento"){
+    if (novoStatus === "andamento" || novoStatus === "proposta"){
       campos.data_followup = somarDias(new Date().toISOString().slice(0, 10), DIAS_FOLLOWUP_ABORDAGEM);
       campos.followup_feito = false;
     }
@@ -15526,6 +15555,8 @@ ${MODELO_PROPOSTA_HTML}`;
   function classeStatusAbordagem(chave){
     if (chave === "fechada") return "pago";
     if (chave === "sem_retorno") return "sem-retorno";
+    if (chave === "sem_interesse") return "sem-interesse";
+    if (chave === "proposta") return "proposta";
     if (chave === "realizada") return "realizada";
     if (chave === "rascunho") return "rascunho";
     if (chave === "contato_futuro") return "contato-futuro";
@@ -15536,7 +15567,7 @@ ${MODELO_PROPOSTA_HTML}`;
   // Follow up faz sentido enquanto ainda não teve resposta ("realizada"/"follow_up") ou
   // enquanto a negociação está rolando ("andamento") — não depois de fechada ou sem retorno.
   function precisaFollowupAbordagem(status){
-    return status === "realizada" || status === "follow_up" || status === "andamento";
+    return status === "realizada" || status === "follow_up" || status === "proposta" || status === "andamento";
   }
 
   // Enquanto o status é "Rascunho" ainda não existe abordagem de verdade, então mostra
@@ -15712,10 +15743,52 @@ ${MODELO_PROPOSTA_HTML}`;
     `;
   }
 
-  function renderHistoricoAbordagemHtml(item){
-    const notas = abordagensNotasCache
-      .filter(n => n.abordagem_id === item.id)
+  // Histórico ÚNICO por marca: junta as anotações feitas pela aba Abordagens
+  // (painel_abordagens_notas) e pela aba Marcas / card de follow ups (painel_marcas_notas)
+  // da MESMA marca — antes cada aba via só as próprias anotações.
+  function historicoUnificado(abordagemId, marcaId){
+    const daAbordagem = abordagemId
+      ? abordagensNotasCache.filter(n => n.abordagem_id === abordagemId).map(n => ({ ...n, tabela: "painel_abordagens_notas" }))
+      : [];
+    const daMarca = marcaId
+      ? marcasNotasCache.filter(n => n.marca_id === marcaId).map(n => ({ ...n, tabela: "painel_marcas_notas" }))
+      : [];
+    return daAbordagem.concat(daMarca)
       .sort((a, b) => (b.data || "").localeCompare(a.data || "") || (b.created_at || "").localeCompare(a.created_at || ""));
+  }
+
+  function historicoDaMarca(marcaId){
+    return historicoUnificado(acharAbordagemDaMarca(marcaId)?.id || null, marcaId);
+  }
+
+  function historicoDaAbordagem(abordagem){
+    return historicoUnificado(abordagem.id, acharMarcaIdDaAbordagem(abordagem));
+  }
+
+  // Redesenha todo lugar que mostra histórico (lista de Abordagens, modal da marca, card de
+  // follow ups), pra uma anotação nova/excluída aparecer igual nos três.
+  function atualizarTodosHistoricos(){
+    renderizarAbordagens();
+    if (marcaDetalheId) renderizarHistoricoMarca(marcaDetalheId);
+    if (!document.getElementById("modalFollowUpsMarcas").classList.contains("oculto")) renderizarCardFollowUpsMarcas();
+  }
+
+  async function removerNotaHistorico(id, tabela){
+    if (!confirm("Excluir essa atualização? Não dá pra desfazer.")) return;
+    try {
+      const { error } = await Auth.client.from(tabela).delete().eq("id", id);
+      if (error) throw error;
+      if (tabela === "painel_abordagens_notas") abordagensNotasCache = abordagensNotasCache.filter(n => n.id !== id);
+      else marcasNotasCache = marcasNotasCache.filter(n => n.id !== id);
+      atualizarTodosHistoricos();
+    } catch (erro) {
+      console.error("Erro ao excluir atualização do histórico:", erro);
+      alert("Não deu pra excluir. Tenta de novo.");
+    }
+  }
+
+  function renderHistoricoAbordagemHtml(item){
+    const notas = historicoDaAbordagem(item);
     const hoje = new Date().toISOString().slice(0, 10);
 
     return `
@@ -15737,7 +15810,7 @@ ${MODELO_PROPOSTA_HTML}`;
             <div class="cliente-historico-item">
               <div class="cliente-historico-data">
                 <span>${n.data ? formatarDataCurta(n.data) : "—"}</span>
-                <button type="button" class="cliente-historico-remover" data-acao="abordagem-historico-remover" data-id="${n.id}" aria-label="Excluir atualização">×</button>
+                <button type="button" class="cliente-historico-remover" data-acao="abordagem-historico-remover" data-id="${n.id}" data-tabela="${n.tabela}" aria-label="Excluir atualização">×</button>
               </div>
               <p>${escaparHtmlMarcas(n.texto)}</p>
             </div>
@@ -15768,28 +15841,14 @@ ${MODELO_PROPOSTA_HTML}`;
       // puxa o follow up pra trás).
       const item = abordagensCache.find(a => a.id === abordagemId);
       const novoFollowup = somarDias(data, DIAS_FOLLOWUP_ABORDAGEM);
-      if (item && item.status === "andamento" && (!item.data_followup || novoFollowup > item.data_followup)){
+      if (item && (item.status === "andamento" || item.status === "proposta") && (!item.data_followup || novoFollowup > item.data_followup)){
         await atualizarAbordagem(abordagemId, { data_followup: novoFollowup, followup_feito: false });
-      } else {
-        renderizarAbordagens();
       }
+      atualizarTodosHistoricos();
     } catch (erro) {
       console.error("Erro ao adicionar atualização da abordagem:", erro);
       alert("Não deu pra salvar a atualização. Tenta de novo.");
       botao.disabled = false;
-    }
-  }
-
-  async function removerNotaAbordagem(id){
-    if (!confirm("Excluir essa atualização? Não dá pra desfazer.")) return;
-    try {
-      const { error } = await Auth.client.from("painel_abordagens_notas").delete().eq("id", id);
-      if (error) throw error;
-      abordagensNotasCache = abordagensNotasCache.filter(n => n.id !== id);
-      renderizarAbordagens();
-    } catch (erro) {
-      console.error("Erro ao excluir atualização da abordagem:", erro);
-      alert("Não deu pra excluir. Tenta de novo.");
     }
   }
 
@@ -15855,7 +15914,7 @@ ${MODELO_PROPOSTA_HTML}`;
       btn.addEventListener("click", () => adicionarNotaAbordagem(btn.dataset.id, btn));
     });
     container.querySelectorAll("[data-acao='abordagem-historico-remover']").forEach(btn => {
-      btn.addEventListener("click", () => removerNotaAbordagem(btn.dataset.id));
+      btn.addEventListener("click", () => removerNotaHistorico(btn.dataset.id, btn.dataset.tabela));
     });
     container.querySelectorAll("[data-acao='abordagem-toggle-followup']").forEach(btn => {
       btn.addEventListener("click", () => alternarFollowupFeitoAbordagem(btn.dataset.id));
@@ -16202,10 +16261,10 @@ ${MODELO_PROPOSTA_HTML}`;
         ? (statusAnterior === "contato_futuro" && registroAntes?.data_followup
             ? registroAntes.data_followup
             : somarDias(new Date().toISOString().slice(0, 10), DIAS_CONTATO_FUTURO))
-        : status === "andamento"
-          // Negociação em andamento: conta a partir da entrada nesse status (ou da última
-          // atualização do Histórico) — não reseta só por editar/salvar de novo o card.
-          ? (statusAnterior === "andamento" && registroAntes?.data_followup
+        : (status === "andamento" || status === "proposta")
+          // Negociação em andamento / Proposta: conta a partir da entrada nesse status (ou da
+          // última atualização do Histórico) — não reseta só por editar/salvar de novo o card.
+          ? (statusAnterior === status && registroAntes?.data_followup
               ? registroAntes.data_followup
               : somarDias(new Date().toISOString().slice(0, 10), DIAS_FOLLOWUP_ABORDAGEM))
           : (dataAbordagem ? somarDias(dataAbordagem, DIAS_FOLLOWUP_ABORDAGEM) : null);
@@ -16253,16 +16312,18 @@ ${MODELO_PROPOSTA_HTML}`;
   // como negociação em andamento do lado de Abordagens.
   const STATUS_ABORDAGEM_PARA_MARCA = {
     rascunho: "a_enviar", realizada: "enviado", follow_up: "follow_up", respondeu: "respondeu",
-    andamento: "andamento", contato_futuro: "contato_futuro", fechada: "fechado", sem_retorno: "sem_interesse"
+    proposta: "proposta", andamento: "andamento", contato_futuro: "contato_futuro", fechada: "fechado",
+    sem_retorno: "sem_retorno", sem_interesse: "sem_interesse"
   };
   const STATUS_MARCA_PARA_ABORDAGEM = {
     a_enviar: "rascunho", enviado: "realizada", follow_up: "follow_up", respondeu: "respondeu",
-    proposta: "andamento", andamento: "andamento", contato_futuro: "contato_futuro", fechado: "fechada", sem_interesse: "sem_retorno"
+    proposta: "proposta", andamento: "andamento", contato_futuro: "contato_futuro", fechado: "fechada",
+    sem_retorno: "sem_retorno", sem_interesse: "sem_interesse"
   };
 
   // Status "avançados" (a marca já respondeu/negocia/decidiu): nada automático (e-mail de
   // prospecção, follow up) pode rebaixar a abordagem pra "realizada"/"follow up".
-  const STATUS_ABORDAGEM_AVANCADOS = ["respondeu", "andamento", "contato_futuro", "sem_retorno", "fechada"];
+  const STATUS_ABORDAGEM_AVANCADOS = ["respondeu", "proposta", "andamento", "contato_futuro", "sem_retorno", "sem_interesse", "fechada"];
 
   function mesmoNomeMarca(a, b){
     return (a || "").trim().toLowerCase() === (b || "").trim().toLowerCase();
@@ -16561,6 +16622,37 @@ ${MODELO_PROPOSTA_HTML}`;
 
   function fecharCardFollowUpsMarcas(){
     document.getElementById("modalFollowUpsMarcas").classList.add("oculto");
+    try { sessionStorage.removeItem("followUpsMinimizado"); } catch (erro) {}
+    atualizarFollowUpsMinimizado();
+  }
+
+  // Minimizar: o card some e vira um botão ao lado do Checklist Diário (continua lá até
+  // ela fechar no X ou acabar os follow ups, inclusive depois de F5 nessa mesma sessão).
+  function minimizarCardFollowUpsMarcas(){
+    document.getElementById("modalFollowUpsMarcas").classList.add("oculto");
+    try { sessionStorage.setItem("followUpsMinimizado", "1"); } catch (erro) {}
+    atualizarFollowUpsMinimizado();
+  }
+
+  function restaurarCardFollowUpsMarcas(){
+    renderizarCardFollowUpsMarcas();
+    document.getElementById("modalFollowUpsMarcas").classList.remove("oculto");
+    atualizarFollowUpsMinimizado();
+  }
+
+  function atualizarFollowUpsMinimizado(){
+    const botao = document.getElementById("followUpsMinimizado");
+    if (!botao) return;
+    let minimizado = false;
+    try { minimizado = sessionStorage.getItem("followUpsMinimizado") === "1"; } catch (erro) {}
+    const cardAberto = !document.getElementById("modalFollowUpsMarcas").classList.contains("oculto");
+    const qtd = obterAlertasFollowUpMarcas().length;
+    if (minimizado && qtd === 0){
+      try { sessionStorage.removeItem("followUpsMinimizado"); } catch (erro) {}
+      minimizado = false;
+    }
+    document.getElementById("followUpsMinimizadoContador").textContent = qtd;
+    botao.classList.toggle("oculto", !minimizado || cardAberto);
   }
 
   function linkInstagramMarca(m){
@@ -16587,9 +16679,7 @@ ${MODELO_PROPOSTA_HTML}`;
     const hoje = new Date().toISOString().slice(0, 10);
 
     corpo.innerHTML = itens.map(m => {
-      const notas = marcasNotasCache
-        .filter(n => n.marca_id === m.id)
-        .sort((a, b) => (b.data || "").localeCompare(a.data || "") || (b.created_at || "").localeCompare(a.created_at || ""));
+      const notas = historicoDaMarca(m.id);
       const qtdNotas = notas.length ? `${notas.length} anotaç${notas.length > 1 ? "ões" : "ão"}` : "sem anotações";
       return `
         <div class="followups-item${followUpsMarcasAbertos.has(m.id) ? " aberto" : ""}" data-id="${m.id}">
@@ -16646,6 +16736,7 @@ ${MODELO_PROPOSTA_HTML}`;
     corpo.querySelectorAll("[data-acao='followups-feito']").forEach(btn => {
       btn.addEventListener("click", async () => {
         btn.disabled = true;
+        await salvarAnotacaoPendenteFollowUp(btn.dataset.id);
         await mudarStatusMarca(btn.dataset.id, "follow_up");
         renderizarCardFollowUpsMarcas();
       });
@@ -16654,6 +16745,7 @@ ${MODELO_PROPOSTA_HTML}`;
       select.addEventListener("change", async () => {
         if (!select.value) return;
         select.disabled = true;
+        await salvarAnotacaoPendenteFollowUp(select.dataset.id);
         await mudarStatusMarca(select.dataset.id, select.value);
         renderizarCardFollowUpsMarcas();
       });
@@ -16661,6 +16753,20 @@ ${MODELO_PROPOSTA_HTML}`;
     corpo.querySelectorAll("[data-acao='followups-anotar']").forEach(btn => {
       btn.addEventListener("click", () => anotarHistoricoFollowUp(btn.dataset.id, btn));
     });
+  }
+
+  // Texto escrito no histórico e ainda não salvo: salva antes de a marca sair do card
+  // (mudar status / marcar como feito redesenha o card e o texto se perdia).
+  async function salvarAnotacaoPendenteFollowUp(marcaId){
+    const campo = document.getElementById(`followUpsTexto-${marcaId}`);
+    if (!campo || !campo.value.trim()) return;
+    const data = document.getElementById(`followUpsData-${marcaId}`).value || new Date().toISOString().slice(0, 10);
+    const { data: inserido, error } = await Auth.client
+      .from("painel_marcas_notas")
+      .insert({ marca_id: marcaId, texto: campo.value.trim(), data })
+      .select();
+    if (error){ console.error("Erro ao salvar anotação pendente:", error); return; }
+    marcasNotasCache = marcasNotasCache.concat(inserido);
   }
 
   async function anotarHistoricoFollowUp(marcaId, botao){
@@ -16676,7 +16782,7 @@ ${MODELO_PROPOSTA_HTML}`;
         .select();
       if (error) throw error;
       marcasNotasCache = marcasNotasCache.concat(inserido);
-      renderizarCardFollowUpsMarcas();
+      atualizarTodosHistoricos();
     } catch (erro) {
       console.error("Erro ao anotar histórico no card de follow ups:", erro);
       alert("Não deu pra salvar a atualização. Tenta de novo.");
@@ -17520,6 +17626,30 @@ ${MODELO_PROPOSTA_HTML}`;
     marcasFiltroColunaAberta = null;
   }
 
+  // Marca repetida (mesmo nome ou mesmo e-mail de outra da lista): mostra um selo
+  // "duplicada" pra ela decidir qual excluir — evita e-mail em dobro e sincronia confusa.
+  function chavesMarca(item){
+    const nome = (item.nome || "").normalize("NFD").replace(/\p{Diacritic}/gu, "").trim().toLowerCase().replace(/\s+/g, " ");
+    const email = (item.email || "").trim().toLowerCase();
+    const insta = (item.instagram || "").trim().toLowerCase()
+      .replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/[\/?#].*$/, "");
+    return { nome, email, insta };
+  }
+
+  // Marca já existente na base que parece ser a mesma (mesmo nome, e-mail ou @ do Instagram).
+  function acharMarcaParecida(item, ignorarId){
+    const k = chavesMarca(item);
+    return marcasCache.find(m => {
+      if (m.id === ignorarId) return false;
+      const o = chavesMarca(m);
+      return (k.nome && o.nome === k.nome) || (k.email && o.email === k.email) || (k.insta && o.insta === k.insta);
+    }) || null;
+  }
+
+  function marcaEstaDuplicada(item){
+    return !!acharMarcaParecida(item, item.id);
+  }
+
   function renderLinhaMarcaHtml(item){
     return `
       <div class="marcas-linha" data-id="${item.id}">
@@ -17527,6 +17657,7 @@ ${MODELO_PROPOSTA_HTML}`;
         <button type="button" class="marcas-estrela ${item.prioridade ? "ativa" : ""}" data-acao="marcas-toggle-prioridade" data-id="${item.id}" title="${item.prioridade ? "Tirar prioridade" : "Marcar como prioridade"}">${item.prioridade ? "★" : "☆"}</button>
         <div class="marcas-col-marca dado-sensivel">
           <button type="button" class="nome cliente-nome-abrir" data-acao="marcas-abrir-detalhe" data-id="${item.id}" title="Ver dados e histórico">${escaparHtmlMarcas(item.nome)}</button>
+          ${marcaEstaDuplicada(item) ? `<span class="marcas-selo-duplicada" title="Existe outra marca com o mesmo nome ou e-mail. Exclua uma delas.">⚠ duplicada</span>` : ""}
           <span class="sub">${escaparHtmlMarcas(item.instagram || item.site || "")}</span>
         </div>
         <div class="marcas-col-seguidores">${item.seguidores ? Number(item.seguidores).toLocaleString("pt-BR") : "—"}</div>
@@ -17611,10 +17742,13 @@ ${MODELO_PROPOSTA_HTML}`;
     return marcasCache
       .filter(item =>
         (!termo || (item.nome || "").toLowerCase().includes(termo)) &&
-        passaFiltrosColunaMarcas(item)
+        passaFiltrosColunaMarcas(item) &&
+        (!marcasSoDuplicadas || marcaEstaDuplicada(item))
       )
       // Marcas com estrela (prioridade) sempre no topo; dentro de cada grupo, mais recente primeiro.
       .sort((a, b) => {
+        // Filtro "Duplicadas": repetidas lado a lado (ordem alfabética), pra comparar fácil.
+        if (marcasSoDuplicadas) return chavesMarca(a).nome.localeCompare(chavesMarca(b).nome, "pt-BR");
         const diferencaPrioridade = (b.prioridade ? 1 : 0) - (a.prioridade ? 1 : 0);
         if (diferencaPrioridade !== 0) return diferencaPrioridade;
         return (b.created_at || "").localeCompare(a.created_at || "");
@@ -17730,6 +17864,10 @@ ${MODELO_PROPOSTA_HTML}`;
     const elTotal = document.getElementById("marcasContadorTotal");
     if (!elTotal) return;
     elTotal.textContent = marcasCache.length;
+    const qtdDuplicadas = marcasCache.filter(marcaEstaDuplicada).length;
+    if (!qtdDuplicadas) marcasSoDuplicadas = false;
+    document.getElementById("marcasContador-duplicadas").textContent = qtdDuplicadas;
+    document.getElementById("marcasCardDuplicadas").classList.toggle("oculto", !qtdDuplicadas);
     MARCAS_STATUS.forEach(s => {
       const el = document.getElementById(`marcasContador-${s.chave}`);
       if (el) el.textContent = marcasCache.filter(m => m.status === s.chave).length;
@@ -17738,7 +17876,7 @@ ${MODELO_PROPOSTA_HTML}`;
     // Destaca o card do status que está filtrando a lista agora (ou "Total" quando não
     // tem nenhum filtro de status ativo).
     const filtroStatus = marcasFiltrosColuna.status;
-    const statusCardAtivo = !filtroStatus ? "todas" : (filtroStatus.size === 1 ? [...filtroStatus][0] : null);
+    const statusCardAtivo = marcasSoDuplicadas ? "duplicadas" : !filtroStatus ? "todas" : (filtroStatus.size === 1 ? [...filtroStatus][0] : null);
     document.querySelectorAll("#marcasContadores .marcas-contador-card").forEach(card => {
       card.classList.toggle("ativo", card.dataset.statusCard === statusCardAtivo);
     });
@@ -17747,7 +17885,16 @@ ${MODELO_PROPOSTA_HTML}`;
   // Clicar num card de status filtra a lista de Marcas por aquele status (mesmo filtro
   // usado no cabeçalho "estilo Excel" da coluna Status) — clicar de novo no mesmo card,
   // ou no "Total", limpa o filtro.
+  let marcasSoDuplicadas = false;
+
   function alternarFiltroCardStatusMarcas(statusCard){
+    if (statusCard === "duplicadas"){
+      marcasSoDuplicadas = !marcasSoDuplicadas;
+      if (marcasSoDuplicadas) marcasFiltrosColuna.status = null;
+      renderizarMarcas();
+      return;
+    }
+    marcasSoDuplicadas = false;
     const filtroAtual = marcasFiltrosColuna.status;
     const jaEstaFiltradoNesse = !!(filtroAtual && filtroAtual.size === 1 && filtroAtual.has(statusCard));
     marcasFiltrosColuna.status = (statusCard === "todas" || jaEstaFiltradoNesse) ? null : new Set([statusCard]);
@@ -17829,16 +17976,14 @@ ${MODELO_PROPOSTA_HTML}`;
   function renderizarHistoricoMarca(marcaId){
     const lista = document.getElementById("marcasHistoricoLista");
     if (!lista) return;
-    const notas = marcasNotasCache
-      .filter(n => n.marca_id === marcaId)
-      .sort((a, b) => (b.data || "").localeCompare(a.data || "") || (b.created_at || "").localeCompare(a.created_at || ""));
+    const notas = historicoDaMarca(marcaId);
 
     lista.innerHTML = notas.length
       ? notas.map(n => `
         <div class="cliente-historico-item">
           <div class="cliente-historico-data">
             <span>${n.data ? formatarDataCurta(n.data) : "—"}</span>
-            <button type="button" class="cliente-historico-remover" data-id="${n.id}" aria-label="Excluir atualização">×</button>
+            <button type="button" class="cliente-historico-remover" data-id="${n.id}" data-tabela="${n.tabela}" aria-label="Excluir atualização">×</button>
           </div>
           <p>${escaparHtmlMarcas(n.texto)}</p>
         </div>
@@ -17846,7 +17991,7 @@ ${MODELO_PROPOSTA_HTML}`;
       : `<p class="ugc-vazio">Nenhuma atualização ainda.</p>`;
 
     lista.querySelectorAll(".cliente-historico-remover").forEach(btn => {
-      btn.addEventListener("click", () => removerNotaMarca(btn.dataset.id, marcaId));
+      btn.addEventListener("click", () => removerNotaHistorico(btn.dataset.id, btn.dataset.tabela));
     });
   }
 
@@ -17870,25 +18015,12 @@ ${MODELO_PROPOSTA_HTML}`;
       marcasNotasCache = marcasNotasCache.concat(inserido);
       campo.value = "";
       campoData.value = new Date().toISOString().slice(0, 10);
-      renderizarHistoricoMarca(marcaId);
+      atualizarTodosHistoricos();
     } catch (erro) {
       console.error("Erro ao adicionar atualização da marca:", erro);
       alert("Não deu pra salvar a atualização. Tenta de novo.");
     } finally {
       botao.disabled = false;
-    }
-  }
-
-  async function removerNotaMarca(id, marcaId){
-    if (!confirm("Excluir essa atualização? Não dá pra desfazer.")) return;
-    try {
-      const { error } = await Auth.client.from("painel_marcas_notas").delete().eq("id", id);
-      if (error) throw error;
-      marcasNotasCache = marcasNotasCache.filter(n => n.id !== id);
-      renderizarHistoricoMarca(marcaId);
-    } catch (erro) {
-      console.error("Erro ao excluir atualização da marca:", erro);
-      alert("Não deu pra excluir. Tenta de novo.");
     }
   }
 
@@ -17950,6 +18082,16 @@ ${MODELO_PROPOSTA_HTML}`;
       observacao: document.getElementById("marcasCampoObs").value.trim() || null,
       data: document.getElementById("marcasCampoData").value || new Date().toISOString().slice(0, 10)
     };
+
+    if (!marcasEditandoId){
+      const parecida = acharMarcaParecida(payload, null);
+      if (parecida && !confirm(
+        `Essa marca parece já existir na sua base:\n\n` +
+        `"${parecida.nome}" — ${nomeStatusMarca(parecida.status)}` +
+        `${parecida.email ? `\n${parecida.email}` : ""}${parecida.instagram ? `\n${parecida.instagram}` : ""}\n\n` +
+        `É outra marca e você quer cadastrar mesmo assim?`
+      )) return;
+    }
 
     try {
       if (marcasEditandoId){
@@ -18014,7 +18156,7 @@ ${MODELO_PROPOSTA_HTML}`;
     // abordagem ligada e já passou da fase de envio, cria a abordagem primeiro.
     if (!["enviado", "follow_up", "contato_futuro"].includes(status)){
       let abordagemLigada = acharAbordagemDaMarca(id);
-      if (!abordagemLigada && !["a_enviar", "sem_interesse"].includes(status)){
+      if (!abordagemLigada && !["a_enviar", "sem_interesse", "sem_retorno"].includes(status)){
         await sincronizarAbordagemDaMarca(id, null, "manual");
         abordagemLigada = acharAbordagemDaMarca(id);
       }
@@ -18171,6 +18313,19 @@ ${MODELO_PROPOSTA_HTML}`;
       return;
     }
 
+    // Marca que já existe na base (ou repetida dentro do próprio arquivo) vem desmarcada e
+    // sinalizada — ela marca de volta só se for mesmo outra marca.
+    candidatos.forEach((c, i) => {
+      const naBase = acharMarcaParecida(c.dados, null);
+      const k = chavesMarca(c.dados);
+      const noArquivo = candidatos.slice(0, i).find(o => {
+        const ok = chavesMarca(o.dados);
+        return (k.nome && ok.nome === k.nome) || (k.email && ok.email === k.email) || (k.insta && ok.insta === k.insta);
+      });
+      if (naBase){ c.jaExiste = `Já existe na base: "${naBase.nome}" (${nomeStatusMarca(naBase.status)})`; c.incluir = false; }
+      else if (noArquivo){ c.jaExiste = `Repetida no arquivo: "${noArquivo.dados.nome}"`; c.incluir = false; }
+    });
+
     marcasImportacaoCandidatos = candidatos;
     if (ignoradas) marcasImportacaoCandidatos.ignoradas = ignoradas;
     abrirRevisaoImportacaoMarcas();
@@ -18190,8 +18345,10 @@ ${MODELO_PROPOSTA_HTML}`;
   function renderizarRevisaoImportacaoMarcas(){
     const selecionadas = marcasImportacaoCandidatos.filter(c => c.incluir).length;
     const ignoradas = marcasImportacaoCandidatos.ignoradas || 0;
+    const repetidas = marcasImportacaoCandidatos.filter(c => c.jaExiste).length;
     document.getElementById("marcasRevisaoResumo").textContent =
       `${selecionadas} de ${marcasImportacaoCandidatos.length} marca(s) serão importadas.` +
+      (repetidas ? ` ⚠ ${repetidas} parece(m) já existir e vieram desmarcadas — marque só se for outra marca.` : "") +
       (ignoradas ? ` ${ignoradas} linha(s) do arquivo foram ignoradas por não ter nome.` : "");
 
     document.getElementById("marcasRevisaoLista").innerHTML = marcasImportacaoCandidatos.map((c, indice) => {
@@ -18202,6 +18359,7 @@ ${MODELO_PROPOSTA_HTML}`;
           <div class="marcas-revisao-info">
             <div class="nome">${escaparHtmlMarcas(c.dados.nome)}</div>
             <div class="detalhe">${escaparHtmlMarcas(detalhe || "—")}</div>
+            ${c.jaExiste ? `<span class="marcas-selo-duplicada">⚠ ${escaparHtmlMarcas(c.jaExiste)}</span>` : ""}
           </div>
         </label>
       `;
