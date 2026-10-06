@@ -2574,6 +2574,43 @@
   .cliente-modal-fechar:hover{ background: var(--creme); }
   .cliente-modal-corpo{ padding: 20px 22px; display: flex; flex-direction: column; gap: 16px; }
   .marca-detalhe-dados{ display: flex; flex-direction: column; gap: 8px; }
+
+  /* Card "Follow ups de hoje" (Marcas) */
+  #modalFollowUpsMarcas .followups-cartao{ max-width: 1080px; }
+  .followups-contador{ background: var(--coral); color: var(--branco); border-radius: 50px; font-family: 'Outfit', sans-serif; font-size: .75rem; font-weight: 700; padding: 2px 9px; margin-left: 6px; vertical-align: middle; }
+  .followups-explica{ padding: 14px 22px 4px; font-size: .82rem; color: var(--texto-suave); }
+  .followups-lista{ padding: 4px 22px 22px; }
+  .followups-grade{ display: grid; grid-template-columns: minmax(170px,1.3fr) minmax(220px,1.6fr) 140px 170px 175px; gap: 16px; align-items: center; }
+  .followups-cabecalho{ font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--texto-suave); padding: 12px 0 8px; border-bottom: 1px solid var(--borda); }
+  .followups-item{ border-bottom: 1px solid var(--borda); }
+  .followups-item:last-child{ border-bottom: none; }
+  .followups-item .followups-grade{ padding: 14px 0; }
+  .followups-nome{ background: none; border: none; font: inherit; font-weight: 700; font-size: .95rem; color: var(--grafite); cursor: pointer; text-align: left; padding: 0; display: flex; align-items: center; gap: 6px; }
+  .followups-nome:hover{ color: var(--coral); text-decoration: underline; }
+  .followups-nome .seta{ font-size: .7rem; color: var(--texto-suave); transition: transform .2s; }
+  .followups-item.aberto .followups-nome .seta{ transform: rotate(90deg); }
+  .followups-insta{ font-size: .78rem; color: var(--coral); text-decoration: none; display: block; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .followups-contato{ font-size: .82rem; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .followups-email{ display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .followups-email span{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .followups-copiar{ background: none; border: 1px solid var(--borda); border-radius: 6px; font: inherit; font-size: .7rem; padding: 1px 7px; cursor: pointer; color: var(--grafite); flex-shrink: 0; }
+  .followups-sub{ font-size: .72rem; color: var(--texto-suave); }
+  .followups-enviado{ font-size: .82rem; }
+  .followups-enviado small{ display: block; font-size: .74rem; color: var(--texto-suave); }
+  .followups-enviado.atraso small{ color: var(--vermelho); font-weight: 600; }
+  .followups-item select{ width: 100%; font-family: inherit; font-size: .8rem; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--borda); background: var(--creme); color: var(--grafite); }
+  .followups-item .botao-add-tarefa{ width: 100%; white-space: nowrap; }
+  .followups-historico{ display: none; background: var(--creme); border-radius: 12px; padding: 14px 16px; margin: 0 0 14px; }
+  .followups-item.aberto .followups-historico{ display: block; }
+  .followups-historico .cliente-historico-item{ border-color: var(--borda); }
+  .followups-vazio{ text-align: center; padding: 40px 10px; color: var(--texto-suave); }
+  .followups-vazio strong{ display: block; font-size: 1.05rem; color: var(--verde); margin-bottom: 4px; }
+  @media (max-width: 860px){
+    .followups-cabecalho{ display: none; }
+    .followups-item .followups-grade{ grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+    .followups-item .followups-grade > :nth-child(1), .followups-item .followups-grade > :nth-child(2){ grid-column: 1 / -1; }
+    .followups-explica, .followups-lista{ padding-left: 16px; padding-right: 16px; }
+  }
   .marca-detalhe-dados .valor{ overflow-wrap: anywhere; }
   .marca-detalhe-dados .abordagem-bloco{ margin-top: 4px; }
   .cliente-modal-rodape{ display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--borda); }
@@ -3689,6 +3726,21 @@
     <div id="ugcModalPrazoLista"></div>
     <button type="button" class="ugc-btn ugc-modal-fechar" id="ugcBotaoFecharModal">Fechar por agora</button>
     <p class="ugc-modal-nota">Isso aparece de novo toda vez que você abrir o painel, até a entrega ser marcada como concluída.</p>
+  </div>
+</div>
+
+<!-- ===== Modal: Follow ups de hoje (aberto pelo "Ver Marcas" do aviso de follow up) ===== -->
+<div class="ugc-modal-overlay oculto" id="modalFollowUpsMarcas" role="dialog" aria-modal="true" aria-labelledby="followUpsMarcasTitulo">
+  <div class="cliente-modal-cartao followups-cartao">
+    <div class="cliente-modal-topo">
+      <h2 id="followUpsMarcasTitulo">📬 Follow ups de hoje <span class="followups-contador" id="followUpsMarcasContador">0</span></h2>
+      <button type="button" class="cliente-modal-fechar" id="followUpsMarcasFechar" aria-label="Fechar">&times;</button>
+    </div>
+    <p class="followups-explica">Clique no nome da marca pra ver e anotar o histórico. Ao marcar como feito ou mudar o status, ela sai daqui e muda em <strong>Marcas</strong> e <strong>Abordagens</strong> juntos.</p>
+    <div class="followups-lista">
+      <div class="followups-grade followups-cabecalho"><span>Marca</span><span>Contato</span><span>E-mail enviado</span><span>Status</span><span></span></div>
+      <div id="followUpsMarcasCorpo" class="dado-sensivel"></div>
+    </div>
   </div>
 </div>
 
@@ -9358,6 +9410,10 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("marcasBotaoAdicionar").addEventListener("click", salvarMarca);
     document.getElementById("marcasHistoricoBotaoAdicionar").addEventListener("click", adicionarNotaMarca);
     document.getElementById("marcaDetalheFechar").addEventListener("click", fecharDetalheMarca);
+    document.getElementById("followUpsMarcasFechar").addEventListener("click", fecharCardFollowUpsMarcas);
+    document.getElementById("modalFollowUpsMarcas").addEventListener("click", (e) => {
+      if (e.target.id === "modalFollowUpsMarcas") fecharCardFollowUpsMarcas();
+    });
     document.getElementById("modalMarcaDetalhe").addEventListener("click", (e) => {
       if (e.target.id === "modalMarcaDetalhe") fecharDetalheMarca();
     });
@@ -13911,7 +13967,7 @@ ${MODELO_PROPOSTA_HTML}`;
     if (grupo === "abordagem") return irParaAbordagem(itemMaisUrgente.id);
     if (grupo === "financas") return irParaConta(itemMaisUrgente);
     if (grupo === "clientes") return irParaCliente(itemMaisUrgente.id);
-    if (grupo === "marcas-followup") return irParaMarcaFollowUp(itemMaisUrgente.id);
+    if (grupo === "marcas-followup") return abrirCardFollowUpsMarcas();
     if (grupo === "ugc-creator") return irParaTrabalhoUgc(itemMaisUrgente.id);
     if (grupo === "portfolio"){
       trocarAba("mensagens");
@@ -16489,6 +16545,143 @@ ${MODELO_PROPOSTA_HTML}`;
         setTimeout(() => el.classList.remove("ugc-linha-flash-atrasado"), 2200);
       }
     });
+  }
+
+  // ---------- Card "Follow ups de hoje" (Marcas) ----------
+  // Lista só as marcas com follow up pendente (mesma regra do aviso: "Enviado" há
+  // DIAS_FOLLOWUP_MARCA dias ou mais, sem follow up feito). Cada ação usa mudarStatusMarca,
+  // que já sincroniza a abordagem ligada — por isso a marca some do card e muda nas duas abas.
+  const followUpsMarcasAbertos = new Set();
+
+  function abrirCardFollowUpsMarcas(){
+    followUpsMarcasAbertos.clear();
+    renderizarCardFollowUpsMarcas();
+    document.getElementById("modalFollowUpsMarcas").classList.remove("oculto");
+  }
+
+  function fecharCardFollowUpsMarcas(){
+    document.getElementById("modalFollowUpsMarcas").classList.add("oculto");
+  }
+
+  function linkInstagramMarca(m){
+    if (!m.instagram) return "";
+    const usuario = m.instagram.replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/\/.*$/, "");
+    if (!usuario) return "";
+    return `<a class="followups-insta" href="https://instagram.com/${encodeURIComponent(usuario)}" target="_blank" rel="noopener">@${escaparHtmlMarcas(usuario)}</a>`;
+  }
+
+  function renderizarCardFollowUpsMarcas(){
+    const corpo = document.getElementById("followUpsMarcasCorpo");
+    if (!corpo) return;
+    const itens = obterAlertasFollowUpMarcas().sort((a, b) => b.diasSemRetorno - a.diasSemRetorno);
+    document.getElementById("followUpsMarcasContador").textContent = itens.length;
+
+    if (!itens.length){
+      corpo.innerHTML = `<div class="followups-vazio"><strong>Tudo em dia! 🎉</strong>Nenhum follow up pendente hoje.</div>`;
+      return;
+    }
+
+    const opcoesStatus = `<option value="">Mudar status…</option>` + MARCAS_STATUS
+      .filter(s => !["a_enviar", "enviado", "follow_up"].includes(s.chave))
+      .map(s => `<option value="${s.chave}">${s.nome}</option>`).join("");
+    const hoje = new Date().toISOString().slice(0, 10);
+
+    corpo.innerHTML = itens.map(m => {
+      const notas = marcasNotasCache
+        .filter(n => n.marca_id === m.id)
+        .sort((a, b) => (b.data || "").localeCompare(a.data || "") || (b.created_at || "").localeCompare(a.created_at || ""));
+      const qtdNotas = notas.length ? `${notas.length} anotaç${notas.length > 1 ? "ões" : "ão"}` : "sem anotações";
+      return `
+        <div class="followups-item${followUpsMarcasAbertos.has(m.id) ? " aberto" : ""}" data-id="${m.id}">
+          <div class="followups-grade">
+            <div style="min-width:0;">
+              <button type="button" class="followups-nome" data-acao="followups-abrir" data-id="${m.id}"><span class="seta">▶</span>${escaparHtmlMarcas(m.nome)}</button>
+              ${linkInstagramMarca(m)}
+            </div>
+            <div class="followups-contato">
+              <div class="followups-email"><span>${escaparHtmlMarcas(m.email || "—")}</span>${m.email ? `<button type="button" class="followups-copiar" data-acao="followups-copiar" data-id="${m.id}">copiar</button>` : ""}</div>
+              <span class="followups-sub">${m.contato ? escaparHtmlMarcas(m.contato) + " · " : ""}${qtdNotas}</span>
+            </div>
+            <div class="followups-enviado${m.diasSemRetorno > DIAS_FOLLOWUP_MARCA ? " atraso" : ""}">${m.data ? formatarDataCurta(m.data) : "—"}<small>há ${m.diasSemRetorno} dias</small></div>
+            <div><select data-acao="followups-status" data-id="${m.id}" aria-label="Mudar status de ${escaparHtmlMarcas(m.nome)}">${opcoesStatus}</select></div>
+            <div><button type="button" class="botao-add-tarefa" data-acao="followups-feito" data-id="${m.id}">✓ Marcar como feito</button></div>
+          </div>
+          <div class="followups-historico">
+            <span class="cliente-secao-rotulo">Histórico</span>
+            <div class="abordagem-historico-form" style="margin-top:8px;">
+              <div class="ugc-campo" style="margin-bottom:0;">
+                <label>Data</label>
+                <input type="date" id="followUpsData-${m.id}" class="historico-texto-compacto" value="${hoje}">
+              </div>
+              <div class="ugc-campo" style="margin-bottom:0; flex:1; min-width:200px;">
+                <label>Atualização</label>
+                <textarea id="followUpsTexto-${m.id}" class="historico-texto-compacto" rows="1" placeholder="Ex: Pediu mídia kit."></textarea>
+              </div>
+              <button type="button" class="botao-add-tarefa" data-acao="followups-anotar" data-id="${m.id}">+ Adicionar</button>
+            </div>
+            ${notas.length ? notas.map(n => `
+              <div class="cliente-historico-item">
+                <div class="cliente-historico-data"><span>${n.data ? formatarDataCurta(n.data) : "—"}</span></div>
+                <p>${escaparHtmlMarcas(n.texto)}</p>
+              </div>`).join("") : `<p class="ugc-vazio">Nenhuma atualização ainda.</p>`}
+          </div>
+        </div>`;
+    }).join("");
+
+    corpo.querySelectorAll("[data-acao='followups-abrir']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        if (followUpsMarcasAbertos.has(id)) followUpsMarcasAbertos.delete(id); else followUpsMarcasAbertos.add(id);
+        btn.closest(".followups-item").classList.toggle("aberto", followUpsMarcasAbertos.has(id));
+      });
+    });
+    corpo.querySelectorAll("[data-acao='followups-copiar']").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const marca = marcasCache.find(x => x.id === btn.dataset.id);
+        try { await navigator.clipboard.writeText(marca.email); btn.textContent = "copiado ✓"; }
+        catch (erro) { btn.textContent = "não deu"; }
+        setTimeout(() => { btn.textContent = "copiar"; }, 1500);
+      });
+    });
+    corpo.querySelectorAll("[data-acao='followups-feito']").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        btn.disabled = true;
+        await mudarStatusMarca(btn.dataset.id, "follow_up");
+        renderizarCardFollowUpsMarcas();
+      });
+    });
+    corpo.querySelectorAll("[data-acao='followups-status']").forEach(select => {
+      select.addEventListener("change", async () => {
+        if (!select.value) return;
+        select.disabled = true;
+        await mudarStatusMarca(select.dataset.id, select.value);
+        renderizarCardFollowUpsMarcas();
+      });
+    });
+    corpo.querySelectorAll("[data-acao='followups-anotar']").forEach(btn => {
+      btn.addEventListener("click", () => anotarHistoricoFollowUp(btn.dataset.id, btn));
+    });
+  }
+
+  async function anotarHistoricoFollowUp(marcaId, botao){
+    const campo = document.getElementById(`followUpsTexto-${marcaId}`);
+    const texto = campo.value.trim();
+    if (!texto) return;
+    const data = document.getElementById(`followUpsData-${marcaId}`).value || new Date().toISOString().slice(0, 10);
+    botao.disabled = true;
+    try {
+      const { data: inserido, error } = await Auth.client
+        .from("painel_marcas_notas")
+        .insert({ marca_id: marcaId, texto, data })
+        .select();
+      if (error) throw error;
+      marcasNotasCache = marcasNotasCache.concat(inserido);
+      renderizarCardFollowUpsMarcas();
+    } catch (erro) {
+      console.error("Erro ao anotar histórico no card de follow ups:", erro);
+      alert("Não deu pra salvar a atualização. Tenta de novo.");
+      botao.disabled = false;
+    }
   }
 
   function mensagemAlertaReengajamento(item){
