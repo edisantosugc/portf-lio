@@ -16073,9 +16073,8 @@ ${MODELO_PROPOSTA_HTML}`;
       renderizarNotificacoesPopup();
       // Qualquer troca de status aqui (menu rápido, edição, follow up, contato futuro...)
       // também vai pra marca de origem na aba Marcas.
-      if (campos.status && registro?.marca_origem_id){
-        await sincronizarStatusMarcaDaAbordagem(registro.marca_origem_id, campos.status);
-      }
+      const marcaId = campos.status ? acharMarcaIdDaAbordagem(registro) : null;
+      if (marcaId) await sincronizarStatusMarcaDaAbordagem(marcaId, campos.status);
     }
     return !error;
   }
@@ -16173,6 +16172,33 @@ ${MODELO_PROPOSTA_HTML}`;
     a_enviar: "rascunho", enviado: "realizada", follow_up: "follow_up", respondeu: "respondeu",
     proposta: "andamento", andamento: "andamento", contato_futuro: "contato_futuro", fechado: "fechada", sem_interesse: "sem_retorno"
   };
+
+  // Status "avançados" (a marca já respondeu/negocia/decidiu): nada automático (e-mail de
+  // prospecção, follow up) pode rebaixar a abordagem pra "realizada"/"follow up".
+  const STATUS_ABORDAGEM_AVANCADOS = ["respondeu", "andamento", "contato_futuro", "sem_retorno", "fechada"];
+
+  function mesmoNomeMarca(a, b){
+    return (a || "").trim().toLowerCase() === (b || "").trim().toLowerCase();
+  }
+
+  // Abordagem ligada a uma marca: pelo marca_origem_id; se não tiver, pela abordagem de
+  // mesmo nome criada à mão (sem ligação), desde que só exista uma — senão as criadas
+  // direto na aba Abordagens nunca sincronizavam.
+  function acharAbordagemDaMarca(marcaId){
+    const ligada = abordagensCache.find(a => a.marca_origem_id === marcaId);
+    if (ligada) return ligada;
+    const marca = marcasCache.find(m => m.id === marcaId);
+    if (!marca) return null;
+    const mesmoNome = abordagensCache.filter(a => !a.marca_origem_id && mesmoNomeMarca(a.marca, marca.nome));
+    return mesmoNome.length === 1 ? mesmoNome[0] : null;
+  }
+
+  function acharMarcaIdDaAbordagem(abordagem){
+    if (!abordagem) return null;
+    if (abordagem.marca_origem_id) return abordagem.marca_origem_id;
+    const mesmoNome = marcasCache.filter(m => mesmoNomeMarca(m.nome, abordagem.marca));
+    return mesmoNome.length === 1 ? mesmoNome[0].id : null;
+  }
 
   // Recebe o status da ABORDAGEM e leva o equivalente pra marca de origem. Se a marca já
   // está num status equivalente (ex: "Proposta" enquanto a abordagem é "andamento"), não
@@ -16410,7 +16436,7 @@ ${MODELO_PROPOSTA_HTML}`;
     const alertas = [];
     marcasCache.forEach(marca => {
       if (marca.status !== "enviado" || !marca.email || !marca.data) return;
-      const abordagemLigada = abordagensCache.find(a => a.marca_origem_id === marca.id);
+      const abordagemLigada = acharAbordagemDaMarca(marca.id);
       if (abordagemLigada && abordagemLigada.followup_feito) return;
       const dias = diasDesde(marca.data);
       if (dias >= DIAS_FOLLOWUP_MARCA){
@@ -17751,22 +17777,22 @@ ${MODELO_PROPOSTA_HTML}`;
     // senão o lembrete de Abordagens (que olha followup_feito, não o status da marca)
     // continuava aparecendo mesmo depois de marcar aqui.
     if (status === "follow_up"){
-      const abordagemLigada = abordagensCache.find(a => a.marca_origem_id === id);
+      const abordagemLigada = acharAbordagemDaMarca(id);
       if (abordagemLigada) await marcarFollowupFeitoAbordagem(abordagemLigada.id);
     }
     // Muda pra "Contato futuro" agenda o mesmo lembrete de 3 meses do lado de Abordagens.
     if (status === "contato_futuro"){
-      const abordagemLigada = abordagensCache.find(a => a.marca_origem_id === id);
+      const abordagemLigada = acharAbordagemDaMarca(id);
       if (abordagemLigada) await definirContatoFuturoAbordagem(abordagemLigada.id);
     }
     // Qualquer outro status (Respondeu, Proposta, Em negociação, Fechado, Sem interesse,
     // A enviar) leva o equivalente pra aba Abordagens. Se a marca ainda não tinha
     // abordagem ligada e já passou da fase de envio, cria a abordagem primeiro.
     if (!["enviado", "follow_up", "contato_futuro"].includes(status)){
-      let abordagemLigada = abordagensCache.find(a => a.marca_origem_id === id);
+      let abordagemLigada = acharAbordagemDaMarca(id);
       if (!abordagemLigada && !["a_enviar", "sem_interesse"].includes(status)){
         await sincronizarAbordagemDaMarca(id, null, "manual");
-        abordagemLigada = abordagensCache.find(a => a.marca_origem_id === id);
+        abordagemLigada = acharAbordagemDaMarca(id);
       }
       const statusAbordagem = STATUS_MARCA_PARA_ABORDAGEM[status];
       if (abordagemLigada && statusAbordagem && abordagemLigada.status !== statusAbordagem){
@@ -18643,15 +18669,42 @@ ${corpoHtml}
     if (!marca) return;
 
     const hoje = new Date().toISOString().slice(0, 10);
-    const existente = abordagensCache.find(a => a.marca_origem_id === marcaId);
+    const existente = acharAbordagemDaMarca(marcaId);
+    // Se a marca já está mais avançada no funil (ex: "Contato futuro", "Respondeu"), a
+    // abordagem nasce/continua nesse status — um e-mail novo não pode rebaixar ela pra
+    // "Abordagem realizada"/"Follow up" (foi o que aconteceu com a Dmfit).
+    const statusPelaMarca = STATUS_MARCA_PARA_ABORDAGEM[marca.status];
+    const marcaAvancada = STATUS_ABORDAGEM_AVANCADOS.includes(statusPelaMarca);
 
-    if (existente){
+    // Só pro envio automático (e-mail de prospecção): quando ela mesma volta a marca pra
+    // "Enviado" na mão, a escolha dela vale e a abordagem acompanha.
+    if (existente && origem !== "manual" && (marcaAvancada || STATUS_ABORDAGEM_AVANCADOS.includes(existente.status))){
+      const dados = {
+        observacao: origem === "manual" ? existente.observacao : `${existente.observacao ? existente.observacao + "\n" : ""}E-mail enviado em ${formatarDataCurta(hoje)}: ${contexto}`,
+        marca_origem_id: marcaId
+      };
+      if (marcaAvancada && existente.status !== statusPelaMarca){
+        dados.status = statusPelaMarca;
+        if (statusPelaMarca === "contato_futuro"){
+          dados.data_followup = somarDias(hoje, DIAS_CONTATO_FUTURO);
+          dados.followup_feito = false;
+        }
+      }
+      const { error } = await Auth.client.from("painel_abordagens").update(dados).eq("id", existente.id);
+      if (error){
+        console.error("Erro ao atualizar abordagem a partir de Marcas:", error);
+        alert(`Não deu pra atualizar a abordagem dessa marca.\n\nMotivo: ${error.message}`);
+        return;
+      }
+      Object.assign(existente, dados);
+    } else if (existente){
       const dados = {
         status: "follow_up",
         data_abordagem: hoje,
         data_followup: somarDias(hoje, DIAS_FOLLOWUP_ABORDAGEM),
         followup_feito: false,
-        observacao: origem === "manual" ? "Marcada como enviada de novo, na mão, na aba Marcas." : `Follow up por e-mail: ${contexto}`
+        observacao: origem === "manual" ? "Marcada como enviada de novo, na mão, na aba Marcas." : `Follow up por e-mail: ${contexto}`,
+        marca_origem_id: marcaId
       };
       const { error } = await Auth.client.from("painel_abordagens").update(dados).eq("id", existente.id);
       if (error){
@@ -18666,9 +18719,9 @@ ${corpoHtml}
         nicho: marca.nicho || null,
         canal: origem === "manual" ? null : "email",
         canal_detalhe: origem === "manual" ? null : (marca.email || null),
-        status: "realizada",
+        status: marcaAvancada ? statusPelaMarca : "realizada",
         data_abordagem: hoje,
-        data_followup: somarDias(hoje, DIAS_FOLLOWUP_ABORDAGEM),
+        data_followup: somarDias(hoje, statusPelaMarca === "contato_futuro" ? DIAS_CONTATO_FUTURO : DIAS_FOLLOWUP_ABORDAGEM),
         followup_feito: false,
         observacao: origem === "manual" ? "Marcada como enviada na mão, na aba Marcas." : `E-mail de prospecção: ${contexto}`,
         marca_origem_id: marcaId
