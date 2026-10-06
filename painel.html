@@ -2602,6 +2602,7 @@
   .followups-enviado.atraso small{ color: var(--vermelho); font-weight: 600; }
   .followups-item select{ width: 100%; font-family: inherit; font-size: .8rem; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--borda); background: var(--creme); color: var(--grafite); }
   .followups-item .botao-add-tarefa{ width: 100%; white-space: nowrap; }
+  .followups-item .botao-add-tarefa.encerrar{ background: #8a3b34; }
   .followups-historico{ display: none; background: var(--creme); border-radius: 12px; padding: 14px 16px; margin: 0 0 14px; }
   .followups-item.aberto .followups-historico{ display: block; }
   .followups-historico .cliente-historico-item{ border-color: var(--borda); }
@@ -3747,15 +3748,15 @@
 <div class="ugc-modal-overlay oculto" id="modalFollowUpsMarcas" role="dialog" aria-modal="true" aria-labelledby="followUpsMarcasTitulo">
   <div class="cliente-modal-cartao followups-cartao">
     <div class="cliente-modal-topo">
-      <h2 id="followUpsMarcasTitulo">📬 Follow ups de hoje <span class="followups-contador" id="followUpsMarcasContador">0</span></h2>
+      <h2><span id="followUpsMarcasTitulo">📬 1º follow up</span> <span class="followups-contador" id="followUpsMarcasContador">0</span></h2>
       <div style="display:flex; gap:4px;">
         <button type="button" class="cliente-modal-fechar" id="followUpsMarcasMinimizar" aria-label="Minimizar" title="Minimizar (fica ao lado do Checklist Diário)">&minus;</button>
         <button type="button" class="cliente-modal-fechar" id="followUpsMarcasFechar" aria-label="Fechar">&times;</button>
       </div>
     </div>
-    <p class="followups-explica">Clique no nome da marca pra ver e anotar o histórico. Ao marcar como feito ou mudar o status, ela sai daqui e muda em <strong>Marcas</strong> e <strong>Abordagens</strong> juntos.</p>
+    <p class="followups-explica" id="followUpsMarcasExplica"></p>
     <div class="followups-lista">
-      <div class="followups-grade followups-cabecalho"><span>Marca</span><span>Contato</span><span>E-mail enviado</span><span>Status</span><span></span></div>
+      <div class="followups-grade followups-cabecalho"><span>Marca</span><span>Contato</span><span>Último contato</span><span>Status</span><span></span></div>
       <div id="followUpsMarcasCorpo" class="dado-sensivel"></div>
     </div>
   </div>
@@ -6338,7 +6339,7 @@
 </div>
 
 <!-- ===================== WIDGET: CHECKLIST DIÁRIO (fixo, aparece em qualquer aba) ===================== -->
-<button type="button" class="chk-flutuante followups-minimizado oculto" id="followUpsMinimizado">📬 Follow ups <span class="followups-contador" id="followUpsMinimizadoContador">0</span></button>
+<button type="button" class="chk-flutuante followups-minimizado oculto" id="followUpsMinimizado">📬 <span id="followUpsMinimizadoRotulo">1º follow up</span> <span class="followups-contador" id="followUpsMinimizadoContador">0</span></button>
 <button type="button" class="chk-flutuante" id="chkBotaoFlutuante">📋 Checklist Diário</button>
 
 <div class="chk-painel oculto" id="chkPainel">
@@ -13897,7 +13898,8 @@ ${MODELO_PROPOSTA_HTML}`;
     clientes: "Clientes",
     "ugc-creator": "Trabalhos",
     negocio: "Financeiro UGC",
-    "marcas-followup": "Marcas"
+    "marcas-followup": "Marcas",
+    "marcas-followup-2": "Marcas"
   };
 
   // Id do badge de cada grupo na barra lateral. "portfolio" e "briefing" ficam de
@@ -13964,7 +13966,12 @@ ${MODELO_PROPOSTA_HTML}`;
     {
       grupo: "marcas-followup",
       obter: obterAlertasFollowUpMarcas,
-      rotulo: (n) => n === 1 ? "marca esperando follow up" : "marcas esperando follow up"
+      rotulo: (n) => n === 1 ? "marca esperando o 1º follow up" : "marcas esperando o 1º follow up"
+    },
+    {
+      grupo: "marcas-followup-2",
+      obter: obterAlertas2FollowUpMarcas,
+      rotulo: (n) => n === 1 ? "marca esperando o 2º follow up" : "marcas esperando o 2º follow up"
     },
     {
       grupo: "ugc-creator",
@@ -13995,7 +14002,8 @@ ${MODELO_PROPOSTA_HTML}`;
     if (grupo === "abordagem") return irParaAbordagem(itemMaisUrgente.id);
     if (grupo === "financas") return irParaConta(itemMaisUrgente);
     if (grupo === "clientes") return irParaCliente(itemMaisUrgente.id);
-    if (grupo === "marcas-followup") return abrirCardFollowUpsMarcas();
+    if (grupo === "marcas-followup") return abrirCardFollowUpsMarcas(1);
+    if (grupo === "marcas-followup-2") return abrirCardFollowUpsMarcas(2);
     if (grupo === "ugc-creator") return irParaTrabalhoUgc(itemMaisUrgente.id);
     if (grupo === "portfolio"){
       trocarAba("mensagens");
@@ -16367,7 +16375,8 @@ ${MODELO_PROPOSTA_HTML}`;
   // feito + trocar o status), agora 1 ação só cobre as duas. O Status continua livre pra ela
   // trocar à mão depois, pra "Respondeu"/"Em negociação" etc quando a marca responder.
   async function marcarFollowupFeitoAbordagem(id){
-    await atualizarAbordagem(id, { followup_feito: true, status: "follow_up" });
+    const hoje = new Date().toISOString().slice(0, 10);
+    await atualizarAbordagem(id, { status: "follow_up", followup_feito: false, data_followup: somarDias(hoje, DIAS_SEGUNDO_FOLLOWUP) });
   }
 
   // Usado quando a marca é marcada "Contato futuro" pela aba Marcas: põe a abordagem
@@ -16384,9 +16393,11 @@ ${MODELO_PROPOSTA_HTML}`;
     const item = abordagensCache.find(a => a.id === id);
     if (!item) return;
     const novoFeito = !item.followup_feito;
-    const campos = { followup_feito: novoFeito };
-    if (novoFeito) campos.status = "follow_up";
-    await atualizarAbordagem(id, campos);
+    // Mesmo fluxo do card: 1º follow up feito → espera o 2º; 2º feito → "Sem retorno".
+    // Em negociação/proposta só marca feito/pendente (sem rebaixar o status).
+    if (novoFeito && item.status === "follow_up") return atualizarAbordagem(id, { status: "sem_retorno", followup_feito: true });
+    if (novoFeito && item.status === "realizada") return marcarFollowupFeitoAbordagem(id);
+    await atualizarAbordagem(id, { followup_feito: novoFeito });
   }
 
   async function removerAbordagem(id){
@@ -16426,6 +16437,7 @@ ${MODELO_PROPOSTA_HTML}`;
     const alertas = [];
     abordagensCache.forEach(item => {
       if (!precisaFollowupAbordagem(item.status) || item.followup_feito || item.arquivado) return;
+      if (item.status === "follow_up" && acharMarcaIdDaAbordagem(item)) return; // vai pro card do 2º follow up
       const diasParaVencer = diasParaFollowupAbordagem(item);
       if (diasParaVencer === null) return;
 
@@ -16608,13 +16620,45 @@ ${MODELO_PROPOSTA_HTML}`;
     });
   }
 
+  // ---------- 2º follow up ("porta aberta") ----------
+  // Fluxo: abordagem → 7 dias → 1º follow up → 7 dias → 2º follow up → "Sem retorno".
+  // Ao fazer o 1º, a abordagem fica "Follow up enviado" com followup_feito = false e
+  // data_followup = dia do 2º. Marcas que já estavam em "Follow up" antes dessa regra
+  // (followup_feito = true) contam 7 dias a partir da data_followup antiga (≈ dia do 1º).
+  const DIAS_SEGUNDO_FOLLOWUP = 7;
+
+  function obterAlertas2FollowUpMarcas(){
+    const hoje = new Date().toISOString().slice(0, 10);
+    const alertas = [];
+    marcasCache.forEach(m => {
+      if (m.status !== "follow_up") return;
+      const ab = acharAbordagemDaMarca(m.id);
+      if (ab && ab.status !== "follow_up") return;
+      let vence;
+      if (ab) vence = ab.followup_feito
+        ? (ab.data_followup ? somarDias(ab.data_followup, DIAS_SEGUNDO_FOLLOWUP) : hoje)
+        : (ab.data_followup || hoje);
+      else vence = m.data ? somarDias(m.data, DIAS_FOLLOWUP_MARCA + DIAS_SEGUNDO_FOLLOWUP) : hoje;
+      if (vence > hoje) return;
+      const primeiro = somarDias(vence, -DIAS_SEGUNDO_FOLLOWUP);
+      alertas.push({ ...m, ultimoContato: primeiro, diasSemRetorno: diasDesde(primeiro), diasParaVencer: -diasDesde(vence) });
+    });
+    return alertas;
+  }
+
   // ---------- Card "Follow ups de hoje" (Marcas) ----------
   // Lista só as marcas com follow up pendente (mesma regra do aviso: "Enviado" há
   // DIAS_FOLLOWUP_MARCA dias ou mais, sem follow up feito). Cada ação usa mudarStatusMarca,
   // que já sincroniza a abordagem ligada — por isso a marca some do card e muda nas duas abas.
   const followUpsMarcasAbertos = new Set();
+  let followUpsEtapa = 1; // 1 = 1º follow up, 2 = 2º follow up (porta aberta)
 
-  function abrirCardFollowUpsMarcas(){
+  function itensFollowUpsEtapa(etapa){
+    return etapa === 2 ? obterAlertas2FollowUpMarcas() : obterAlertasFollowUpMarcas();
+  }
+
+  function abrirCardFollowUpsMarcas(etapa = 1){
+    followUpsEtapa = etapa;
     followUpsMarcasAbertos.clear();
     renderizarCardFollowUpsMarcas();
     document.getElementById("modalFollowUpsMarcas").classList.remove("oculto");
@@ -16630,7 +16674,7 @@ ${MODELO_PROPOSTA_HTML}`;
   // ela fechar no X ou acabar os follow ups, inclusive depois de F5 nessa mesma sessão).
   function minimizarCardFollowUpsMarcas(){
     document.getElementById("modalFollowUpsMarcas").classList.add("oculto");
-    try { sessionStorage.setItem("followUpsMinimizado", "1"); } catch (erro) {}
+    try { sessionStorage.setItem("followUpsMinimizado", String(followUpsEtapa)); } catch (erro) {}
     atualizarFollowUpsMinimizado();
   }
 
@@ -16644,9 +16688,16 @@ ${MODELO_PROPOSTA_HTML}`;
     const botao = document.getElementById("followUpsMinimizado");
     if (!botao) return;
     let minimizado = false;
-    try { minimizado = sessionStorage.getItem("followUpsMinimizado") === "1"; } catch (erro) {}
+    let etapaMin = 1;
+    try {
+      const v = sessionStorage.getItem("followUpsMinimizado");
+      minimizado = v === "1" || v === "2";
+      etapaMin = v === "2" ? 2 : 1;
+    } catch (erro) {}
+    if (minimizado) followUpsEtapa = etapaMin;
     const cardAberto = !document.getElementById("modalFollowUpsMarcas").classList.contains("oculto");
-    const qtd = obterAlertasFollowUpMarcas().length;
+    const qtd = itensFollowUpsEtapa(etapaMin).length;
+    document.getElementById("followUpsMinimizadoRotulo").textContent = etapaMin === 2 ? "2º follow up" : "1º follow up";
     if (minimizado && qtd === 0){
       try { sessionStorage.removeItem("followUpsMinimizado"); } catch (erro) {}
       minimizado = false;
@@ -16665,11 +16716,16 @@ ${MODELO_PROPOSTA_HTML}`;
   function renderizarCardFollowUpsMarcas(){
     const corpo = document.getElementById("followUpsMarcasCorpo");
     if (!corpo) return;
-    const itens = obterAlertasFollowUpMarcas().sort((a, b) => b.diasSemRetorno - a.diasSemRetorno);
+    const segundo = followUpsEtapa === 2;
+    const itens = itensFollowUpsEtapa(followUpsEtapa).sort((a, b) => b.diasSemRetorno - a.diasSemRetorno);
     document.getElementById("followUpsMarcasContador").textContent = itens.length;
+    document.getElementById("followUpsMarcasTitulo").textContent = segundo ? "📬 2º follow up · porta aberta" : "📬 1º follow up";
+    document.getElementById("followUpsMarcasExplica").innerHTML = segundo
+      ? `Marcas que receberam o 1º follow up há ${DIAS_SEGUNDO_FOLLOWUP} dias ou mais e não responderam. Mande o 2º (deixando as portas abertas) e clique em <strong>"Feito → Sem retorno"</strong>. Se a marca responder, use "Mudar status". Tudo muda em <strong>Marcas</strong> e <strong>Abordagens</strong> juntos.`
+      : `Marcas abordadas há ${DIAS_FOLLOWUP_MARCA} dias ou mais, sem resposta. Ao marcar como feito, ela volta no card do <strong>2º follow up</strong> em ${DIAS_SEGUNDO_FOLLOWUP} dias, se não responder. Clique no nome pra ver e anotar o histórico. Tudo muda em <strong>Marcas</strong> e <strong>Abordagens</strong> juntos.`;
 
     if (!itens.length){
-      corpo.innerHTML = `<div class="followups-vazio"><strong>Tudo em dia! 🎉</strong>Nenhum follow up pendente hoje.</div>`;
+      corpo.innerHTML = `<div class="followups-vazio"><strong>Tudo em dia! 🎉</strong>Nenhum ${segundo ? "2º" : "1º"} follow up pendente hoje.</div>`;
       return;
     }
 
@@ -16692,9 +16748,9 @@ ${MODELO_PROPOSTA_HTML}`;
               <div class="followups-email"><span>${escaparHtmlMarcas(m.email || "—")}</span>${m.email ? `<button type="button" class="followups-copiar" data-acao="followups-copiar" data-id="${m.id}">copiar</button>` : ""}</div>
               <span class="followups-sub">${m.contato ? escaparHtmlMarcas(m.contato) + " · " : ""}${qtdNotas}</span>
             </div>
-            <div class="followups-enviado${m.diasSemRetorno > DIAS_FOLLOWUP_MARCA ? " atraso" : ""}">${m.data ? formatarDataCurta(m.data) : "—"}<small>há ${m.diasSemRetorno} dias</small></div>
+            <div class="followups-enviado${m.diasSemRetorno > (segundo ? DIAS_SEGUNDO_FOLLOWUP : DIAS_FOLLOWUP_MARCA) ? " atraso" : ""}">${segundo ? formatarDataCurta(m.ultimoContato) : (m.data ? formatarDataCurta(m.data) : "—")}<small>${segundo ? "1º follow up" : "abordagem"} há ${m.diasSemRetorno} dias</small></div>
             <div><select data-acao="followups-status" data-id="${m.id}" aria-label="Mudar status de ${escaparHtmlMarcas(m.nome)}">${opcoesStatus}</select></div>
-            <div><button type="button" class="botao-add-tarefa" data-acao="followups-feito" data-id="${m.id}">✓ Marcar como feito</button></div>
+            <div><button type="button" class="botao-add-tarefa${segundo ? " encerrar" : ""}" data-acao="followups-feito" data-id="${m.id}">${segundo ? "✓ Feito → Sem retorno" : "✓ Marcar como feito"}</button></div>
           </div>
           <div class="followups-historico">
             <span class="cliente-secao-rotulo">Histórico</span>
@@ -16737,7 +16793,7 @@ ${MODELO_PROPOSTA_HTML}`;
       btn.addEventListener("click", async () => {
         btn.disabled = true;
         await salvarAnotacaoPendenteFollowUp(btn.dataset.id);
-        await mudarStatusMarca(btn.dataset.id, "follow_up");
+        await mudarStatusMarca(btn.dataset.id, segundo ? "sem_retorno" : "follow_up");
         renderizarCardFollowUpsMarcas();
       });
     });
