@@ -6998,6 +6998,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         lembretesSnooze.forEach(l => {
           if (l.adiado_ate) lembretesSnoozeCache[l.grupo] = new Date(l.adiado_ate).getTime();
         });
+        enviarPixConfirmadosLocaisProBanco();
       } catch (erroLembretes) {
         console.error("Erro ao carregar adiamentos de lembrete:", erroLembretes);
       }
@@ -12423,12 +12424,44 @@ ${MODELO_PROPOSTA_HTML}`;
       .subscribe();
   }
 
-  // Pix ainda não confirmados por ela (lembrado neste aparelho)
+  // Pix ainda não confirmados por ela. A confirmação fica no banco (painel_lembretes_snooze,
+  // chave "pix-ok:<id>") pra valer em todos os aparelhos — antes ficava só no localStorage
+  // do aparelho onde ela clicou, e o celular/notebook/prévia pediam de novo.
+  function chavePixConfirmado(id){
+    return `pix-ok:${id}`;
+  }
+
+  function pixConfirmadosNesteAparelho(){
+    try { return new Set(JSON.parse(localStorage.getItem("painelPixGustavoConfirmados") || "[]")); }
+    catch (erro) { return new Set(); }
+  }
+
   function obterPixGustavoPendentes(){
-    const confirmados = new Set(JSON.parse(localStorage.getItem("painelPixGustavoConfirmados") || "[]"));
+    const locais = pixConfirmadosNesteAparelho();
     return pixGustavoCache
-      .filter(p => !confirmados.has(p.id))
+      .filter(p => !lembretesSnoozeCache[chavePixConfirmado(p.id)] && !locais.has(p.id))
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  }
+
+  async function confirmarPixGustavo(ids){
+    if (!ids.length) return;
+    const nunca = new Date("2100-01-01T00:00:00Z");
+    ids.forEach(id => { lembretesSnoozeCache[chavePixConfirmado(id)] = nunca.getTime(); });
+    try {
+      const locais = pixConfirmadosNesteAparelho();
+      ids.forEach(id => locais.add(id));
+      localStorage.setItem("painelPixGustavoConfirmados", JSON.stringify([...locais]));
+    } catch (erro) {}
+    const linhas = ids.map(id => ({ grupo: chavePixConfirmado(id), adiado_ate: nunca.toISOString(), updated_at: new Date().toISOString() }));
+    const { error } = await Auth.client.from("painel_lembretes_snooze").upsert(linhas, { onConflict: "grupo" });
+    if (error) console.error("Erro ao confirmar Pix do Gustavo:", error);
+  }
+
+  // Pix confirmados antes dessa mudança (só no localStorage deste aparelho): manda pro banco
+  // uma vez, pra os outros aparelhos também pararem de pedir.
+  async function enviarPixConfirmadosLocaisProBanco(){
+    const pendentesNoBanco = [...pixConfirmadosNesteAparelho()].filter(id => !lembretesSnoozeCache[chavePixConfirmado(id)]);
+    if (pendentesNoBanco.length) await confirmarPixGustavo(pendentesNoBanco);
   }
 
   function abrirModalFecharMes(){
@@ -13983,9 +14016,7 @@ ${MODELO_PROPOSTA_HTML}`;
 
     if (ehPixGustavo){
       container.querySelector("[data-acao='confirmar-pix-notificacao']").addEventListener("click", () => {
-        const confirmados = new Set(JSON.parse(localStorage.getItem("painelPixGustavoConfirmados") || "[]"));
-        itens.forEach(p => confirmados.add(p.id));
-        localStorage.setItem("painelPixGustavoConfirmados", JSON.stringify([...confirmados]));
+        confirmarPixGustavo(itens.map(p => p.id));
         renderizarNotificacoesPopup();
       });
       return;
