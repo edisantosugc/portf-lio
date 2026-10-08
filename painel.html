@@ -2605,6 +2605,8 @@
   .followups-item select{ width: 100%; font-family: inherit; font-size: .8rem; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--borda); background: var(--creme); color: var(--grafite); }
   .followups-item .botao-add-tarefa{ width: 100%; white-space: nowrap; }
   .followups-item .botao-add-tarefa.encerrar{ background: #8a3b34; }
+  .followups-reenvio{ display: flex; align-items: flex-start; gap: 8px; font-size: .8rem; color: var(--grafite); margin: 2px 0 10px; cursor: pointer; }
+  .followups-reenvio input{ margin-top: 2px; accent-color: var(--coral); }
   .followups-historico{ display: none; background: var(--creme); border-radius: 12px; padding: 14px 16px; margin: 0 0 14px; }
   .followups-item.aberto .followups-historico{ display: block; }
   .followups-historico .cliente-historico-item{ border-color: var(--borda); }
@@ -16770,6 +16772,10 @@ ${MODELO_PROPOSTA_HTML}`;
               </div>
               <button type="button" class="botao-add-tarefa" data-acao="followups-anotar" data-id="${m.id}">+ Adicionar</button>
             </div>
+            <label class="followups-reenvio">
+              <input type="checkbox" id="followUpsReenvio-${m.id}">
+              Reenviei a abordagem nessa data (recomeçar a contagem: 1º follow up 7 dias depois)
+            </label>
             ${notas.length ? notas.map(n => `
               <div class="cliente-historico-item">
                 <div class="cliente-historico-data"><span>${n.data ? formatarDataCurta(n.data) : "—"}</span></div>
@@ -16830,6 +16836,34 @@ ${MODELO_PROPOSTA_HTML}`;
     marcasNotasCache = marcasNotasCache.concat(inserido);
   }
 
+  // Reenvio da abordagem (ex: a marca passou um e-mail novo): a data informada vira a nova
+  // data de abordagem e a contagem recomeça do 1º follow up (7 dias depois), nas duas abas.
+  // Atualiza marca e abordagem direto — mudarStatusMarca("enviado") trataria como follow up.
+  async function reiniciarContagemFollowUp(marcaId, data){
+    const marca = marcasCache.find(m => m.id === marcaId);
+    if (!marca) return;
+    const { error } = await Auth.client.from("painel_marcas").update({ status: "enviado", data }).eq("id", marcaId);
+    if (error){
+      console.error("Erro ao reiniciar contagem da marca:", error);
+      alert("A anotação foi salva, mas não deu pra recomeçar a contagem. Tenta de novo.");
+      return;
+    }
+    marca.status = "enviado";
+    marca.data = data;
+    const abordagem = acharAbordagemDaMarca(marcaId);
+    if (abordagem){
+      await atualizarAbordagem(abordagem.id, {
+        status: "realizada",
+        data_abordagem: data,
+        data_followup: somarDias(data, DIAS_FOLLOWUP_ABORDAGEM),
+        followup_feito: false,
+        marca_origem_id: marcaId
+      });
+    }
+    renderizarMarcas();
+    renderizarNotificacoesPopup();
+  }
+
   async function anotarHistoricoFollowUp(marcaId, botao){
     const campo = document.getElementById(`followUpsTexto-${marcaId}`);
     const texto = campo.value.trim();
@@ -16843,6 +16877,9 @@ ${MODELO_PROPOSTA_HTML}`;
         .select();
       if (error) throw error;
       marcasNotasCache = marcasNotasCache.concat(inserido);
+      if (document.getElementById(`followUpsReenvio-${marcaId}`)?.checked){
+        await reiniciarContagemFollowUp(marcaId, data);
+      }
       atualizarTodosHistoricos();
     } catch (erro) {
       console.error("Erro ao anotar histórico no card de follow ups:", erro);
