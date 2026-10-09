@@ -3791,6 +3791,7 @@
         </div>
         <button type="button" class="botao-add-tarefa" id="marcasHistoricoBotaoAdicionar">+ Adicionar</button>
       </div>
+      <label class="followups-reenvio"><input type="checkbox" id="marcasHistoricoReenvio"> Reenviei a abordagem nessa data (recomeçar a contagem: 1º follow up 7 dias depois)</label>
       <div id="marcasHistoricoLista"></div>
     </div>
     <div class="cliente-modal-rodape">
@@ -15820,6 +15821,7 @@ ${MODELO_PROPOSTA_HTML}`;
           </div>
           <button type="button" class="botao-add-tarefa" data-acao="abordagem-historico-adicionar" data-id="${item.id}">+ Adicionar</button>
         </div>
+        <label class="followups-reenvio"><input type="checkbox" id="abordagemHistoricoReenvio-${item.id}"> Reenviei a abordagem nessa data (recomeçar a contagem: 1º follow up 7 dias depois)</label>
         ${notas.length
           ? notas.map(n => `
             <div class="cliente-historico-item">
@@ -15856,7 +15858,13 @@ ${MODELO_PROPOSTA_HTML}`;
       // puxa o follow up pra trás).
       const item = abordagensCache.find(a => a.id === abordagemId);
       const novoFollowup = somarDias(data, DIAS_FOLLOWUP_ABORDAGEM);
-      if (item && (item.status === "andamento" || item.status === "proposta") && (!item.data_followup || novoFollowup > item.data_followup)){
+      const reenviou = document.getElementById(`abordagemHistoricoReenvio-${abordagemId}`)?.checked;
+      if (reenviou){
+        // Mesmo efeito do card/Marcas: a data vira a nova abordagem e recomeça o 1º follow up.
+        const marcaId = item ? acharMarcaIdDaAbordagem(item) : null;
+        if (marcaId) await reiniciarContagemFollowUp(marcaId, data);
+        else await atualizarAbordagem(abordagemId, { status: "realizada", data_abordagem: data, data_followup: novoFollowup, followup_feito: false });
+      } else if (item && (item.status === "andamento" || item.status === "proposta") && (!item.data_followup || novoFollowup > item.data_followup)){
         await atualizarAbordagem(abordagemId, { data_followup: novoFollowup, followup_feito: false });
       }
       atualizarTodosHistoricos();
@@ -18062,6 +18070,7 @@ ${MODELO_PROPOSTA_HTML}`;
 
     document.getElementById("marcasHistoricoCampoTexto").value = "";
     document.getElementById("marcasHistoricoCampoData").value = new Date().toISOString().slice(0, 10);
+    document.getElementById("marcasHistoricoReenvio").checked = false;
     renderizarHistoricoMarca(id);
     document.getElementById("modalMarcaDetalhe").classList.remove("oculto");
   }
@@ -18113,6 +18122,12 @@ ${MODELO_PROPOSTA_HTML}`;
       marcasNotasCache = marcasNotasCache.concat(inserido);
       campo.value = "";
       campoData.value = new Date().toISOString().slice(0, 10);
+      const reenvio = document.getElementById("marcasHistoricoReenvio");
+      if (reenvio.checked){
+        reenvio.checked = false;
+        await reiniciarContagemFollowUp(marcaId, data);
+        abrirDetalheMarca(marcaId); // status no topo do modal já aparece atualizado
+      }
       atualizarTodosHistoricos();
     } catch (erro) {
       console.error("Erro ao adicionar atualização da marca:", erro);
