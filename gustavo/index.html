@@ -121,6 +121,8 @@
   .botao-mes-sidebar.ativo{ background: var(--coral); color: #fff; font-weight: 600; }
 
   .conteudo{ flex: 1; min-width: 0; padding: 22px 16px 40px; display: flex; flex-direction: column; gap: 22px; }
+  .estado-carregamento{ text-align: center; padding: 60px 16px; color: var(--texto-suave); font-size: .95rem; }
+  .estado-carregamento button{ margin-top: 14px; background: var(--coral); color: #fff; border: none; border-radius: 10px; padding: 11px 20px; font: inherit; font-weight: 600; cursor: pointer; }
   .carregando{ text-align: center; color: var(--texto-suave); font-size: .85rem; padding: 40px 0; }
 
   .overlay-mobile{ display: none; position: fixed; inset: 0; background: rgba(26,24,22,.4); z-index: 900; }
@@ -541,14 +543,64 @@
   // esconde só a LINHA nova, não avisa que o dono mudou. Ver setup.sql.
   let nomesFixosPermitidos = new Set();
 
-  async function carregarTudo(){
-    const [{ data: lancamentos }, { data: gastosFixos }, { data: pix }, { data: nomesPermitidos }, { data: mesesFechados }] = await Promise.all([
+  // Antes: a página buscava os dados com a sessão que estivesse guardada, mesmo vencida
+  // (o login do Supabase "expira" a cada ~1h e, com o app parado em segundo plano no
+  // celular, não se renova sozinho). O banco recusava, o erro era ignorado e a tela
+  // mostrava tudo R$ 0,00 até ele recarregar a página. Agora: renova a sessão antes,
+  // confere o erro de cada busca, tenta de novo 1x e, se falhar, mostra "Tentar novamente"
+  // — nunca zero. Enquanto busca pela 1ª vez, mostra "Carregando...".
+  let dadosCarregados = false;
+  let carregamentoEmAndamento = null;
+
+  async function garantirSessaoValida(){
+    const { data } = await sb.auth.getSession();
+    const sessao = data?.session;
+    if (!sessao) return false;
+    const expiraEmMs = (sessao.expires_at || 0) * 1000;
+    if (expiraEmMs - Date.now() < 2 * 60 * 1000){
+      const { data: renovada, error } = await sb.auth.refreshSession();
+      if (error || !renovada?.session) return false;
+    }
+    return true;
+  }
+
+  function mostrarCarregando(){
+    document.getElementById("conteudoPortal").innerHTML = `<div class="estado-carregamento">Carregando...</div>`;
+  }
+
+  function mostrarErroCarregamento(){
+    document.getElementById("conteudoPortal").innerHTML = `
+      <div class="estado-carregamento">
+        Não deu pra carregar os valores agora. Confere a internet e tenta de novo.
+        <br><button type="button" id="btnTentarNovamente">Tentar novamente</button>
+      </div>`;
+    document.getElementById("btnTentarNovamente").addEventListener("click", () => carregarTudo());
+  }
+
+  function voltarParaLogin(){
+    portal.classList.remove("visivel");
+    telaLogin.classList.remove("escondida");
+  }
+
+  async function buscarDados(podeTentarDeNovo){
+    if (!(await garantirSessaoValida())) throw { semSessao: true };
+
+    const respostas = await Promise.all([
       sb.from("financas_lancamentos").select("*"),
       sb.from("financas_gastos_fixos").select("*"),
       sb.from("portal_gustavo_pix").select("*").order("data", { ascending: false }),
       sb.rpc("gustavo_nomes_fixos_atuais"),
       sb.from("financas_meses_fechados").select("*").order("fechado_em", { ascending: false })
     ]);
+    const erro = respostas.find(r => r.error)?.error;
+    if (erro){
+      if (podeTentarDeNovo){
+        await sb.auth.refreshSession();
+        return buscarDados(false);
+      }
+      throw erro;
+    }
+    const [{ data: lancamentos }, { data: gastosFixos }, { data: pix }, { data: nomesPermitidos }, { data: mesesFechados }] = respostas;
 
     lancamentosCache = apenasGuOuCompartilhado(lancamentos);
     gastosFixosCache = apenasGuOuCompartilhado(gastosFixos);
@@ -557,9 +609,45 @@
     mesesFechadosCache = mesesFechados || [];
 
     await carregarOuCriarPensao();
-    renderizarConteudo();
-    verificarBannerFechamento();
   }
+
+  // Uma busca por vez: se já tem uma em andamento (ex: voltou do segundo plano e o
+  // realtime também disparou), as outras chamadas esperam a mesma.
+  function carregarTudo(){
+    if (carregamentoEmAndamento) return carregamentoEmAndamento;
+    carregamentoEmAndamento = (async () => {
+      if (!dadosCarregados) mostrarCarregando();
+      try {
+        await buscarDados(true);
+        dadosCarregados = true;
+        renderizarConteudo();
+        verificarBannerFechamento();
+      } catch (erro) {
+        console.error("Erro ao carregar os dados do portal:", erro);
+        if (erro && erro.semSessao) voltarParaLogin();
+        // Se já tinha valores na tela (atualização em segundo plano), deixa eles lá em vez
+        // de trocar pela mensagem de erro; só mostra o erro quando não há nada pra mostrar.
+        else if (!dadosCarregados) mostrarErroCarregamento();
+      } finally {
+        carregamentoEmAndamento = null;
+      }
+    })();
+    return carregamentoEmAndamento;
+  }
+
+  // Voltou pro app (do segundo plano, de outra aba, ou a página foi restaurada do
+  // histórico): busca de novo, já com a sessão renovada.
+  function atualizarAoVoltar(){
+    if (!portal.classList.contains("visivel")) return;
+    sb.auth.startAutoRefresh();
+    carregarTudo();
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") atualizarAoVoltar();
+    else sb.auth.stopAutoRefresh();
+  });
+  window.addEventListener("pageshow", (e) => { if (e.persisted) atualizarAoVoltar(); });
+  window.addEventListener("online", atualizarAoVoltar);
 
   // Mostra um aviso quando a Edi fecha um mês, até ele clicar "OK, entendi" —
   // não some sozinho, pra não passar despercebido. Lembra o que já foi visto
@@ -592,16 +680,20 @@
   // fixas do painel principal). Assim, navegar pra Dezembro mostra 15/12 (se o
   // dia configurado for 15), não fica preso no mês em que foi criada.
   async function carregarOuCriarPensao(){
-    const { data: doMes } = await sb.from("portal_gustavo_pensao")
+    const { data: doMes, error: erroMes } = await sb.from("portal_gustavo_pensao")
       .select("*").eq("ano", anoVisivel).eq("mes", mesVisivel + 1).maybeSingle();
+    // Erro de conexão/sessão não é "não existe": sem essa checagem, um erro aqui fazia o
+    // código achar que o mês não tinha pensão e gravar uma nova vazia por cima.
+    if (erroMes) throw erroMes;
 
     if (doMes){
       pensaoAtual = doMes;
       return;
     }
 
-    const { data: todas } = await sb.from("portal_gustavo_pensao")
+    const { data: todas, error: erroTodas } = await sb.from("portal_gustavo_pensao")
       .select("*").order("ano", { ascending: false }).order("mes", { ascending: false });
+    if (erroTodas) throw erroTodas;
 
     const chaveAlvo = anoVisivel * 12 + (mesVisivel + 1);
     const base = (todas || []).find(p => (p.ano * 12 + p.mes) < chaveAlvo) || { valor: null, vencimento: null };
@@ -613,13 +705,14 @@
     const diaVencimento = base.vencimento ? Number(base.vencimento.split("-")[2]) : 20;
     const novoVencimento = new Date(anoVisivel, mesVisivel, diaVencimento);
 
-    const { data: criado } = await sb.from("portal_gustavo_pensao")
+    const { data: criado, error: erroCriar } = await sb.from("portal_gustavo_pensao")
       .upsert({
         ano: anoVisivel, mes: mesVisivel + 1,
         vencimento: formatarDataISO(novoVencimento),
         valor: base.valor, pago: false
       }, { onConflict: "ano,mes" })
       .select().single();
+    if (erroCriar) throw erroCriar;
 
     pensaoAtual = criado;
   }
@@ -799,9 +892,15 @@
         // calculado com a pensão do mês ANTERIOR (essa busca ainda não tinha
         // voltado), o que deixava "Total com a Pensão" preso sem contar a
         // pensão certa do mês pra onde você acabou de navegar.
-        await carregarOuCriarPensao();
-        renderizarPensao();
-        atualizarTotais();
+        try {
+          await carregarOuCriarPensao();
+          renderizarPensao();
+          atualizarTotais();
+        } catch (erro) {
+          console.error("Erro ao buscar a pensão do mês:", erro);
+        }
+        // Busca tudo de novo (com a sessão renovada), pra nunca mostrar valor velho/zerado
+        carregarTudo();
       });
     });
   }
