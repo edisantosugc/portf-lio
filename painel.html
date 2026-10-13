@@ -13197,6 +13197,32 @@ ${MODELO_PROPOSTA_HTML}`;
       );
     }
 
+    // Valor da parcela mudou (ex: consórcio corrigido todo ano): vale também pra todas as
+    // parcelas FUTURAS do mesmo grupo — as anteriores ficam com o valor que foi pago. Compara
+    // com as futuras (e não só com o valor antigo dessa) pra também funcionar quando ela já
+    // tinha corrigido essa parcela antes e só salva de novo.
+    if (lancamento && lancamento.grupo_parcela){
+      const parcelaRef = dados.parcela_atual || lancamento.parcela_atual;
+      const futurasDiferentes = lancamentosCache.filter(l =>
+        l.grupo_parcela === lancamento.grupo_parcela && l.id !== id &&
+        l.parcela_atual > parcelaRef && Number(l.valor) !== Number(dados.valor)
+      );
+      if (futurasDiferentes.length){
+        const { error: erroFuturas } = await Auth.client
+          .from("financas_lancamentos")
+          .update({ valor: dados.valor })
+          .eq("grupo_parcela", lancamento.grupo_parcela)
+          .gt("parcela_atual", parcelaRef);
+        if (erroFuturas){
+          alert("Não deu pra atualizar o valor das próximas parcelas. Tenta de novo.");
+          return;
+        }
+        lancamentosCache = lancamentosCache.map(l =>
+          l.grupo_parcela === lancamento.grupo_parcela && l.parcela_atual > parcelaRef ? { ...l, valor: dados.valor } : l
+        );
+      }
+    }
+
     const { error } = await Auth.client
       .from("financas_lancamentos")
       .update(dados)
