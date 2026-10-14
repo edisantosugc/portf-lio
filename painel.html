@@ -2600,6 +2600,8 @@
   .followups-copiar{ background: none; border: 1px solid var(--borda); border-radius: 6px; font: inherit; font-size: .7rem; padding: 1px 7px; cursor: pointer; color: var(--grafite); flex-shrink: 0; }
   .followups-sub{ font-size: .72rem; color: var(--texto-suave); }
   .followups-enviado{ font-size: .82rem; }
+  .followups-motivo{ font-size: .84rem; }
+  .followups-motivo small{ display: block; font-size: .74rem; color: var(--texto-suave); margin-top: 2px; }
   .followups-enviado small{ display: block; font-size: .74rem; color: var(--texto-suave); }
   .followups-enviado.atraso small{ color: var(--vermelho); font-weight: 600; }
   .followups-item select{ width: 100%; font-family: inherit; font-size: .8rem; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--borda); background: var(--creme); color: var(--grafite); }
@@ -3152,7 +3154,8 @@
   .chk-flutuante:hover{ background: var(--coral-escuro); }
   .chk-flutuante.oculto{ display: none; }
   /* Card "Follow ups de hoje" minimizado: fica à esquerda do botão do Checklist Diário */
-  .chk-flutuante.followups-minimizado{ right: 210px; background: var(--branco); color: var(--coral); border: 2px solid var(--coral); }
+  .followups-minimizados{ position: fixed; bottom: 20px; right: 210px; z-index: 70; display: flex; gap: 10px; align-items: center; }
+  .chk-flutuante.followups-minimizado{ position: static; background: var(--branco); color: var(--coral); border: 2px solid var(--coral); }
   .chk-flutuante.followups-minimizado:hover{ background: var(--creme); }
   .chk-flutuante.followups-minimizado .followups-contador{ margin-left: 0; }
 
@@ -3251,7 +3254,7 @@
   @media (max-width: 480px){
     .chk-painel{ width: calc(100vw - 24px); right: 12px; bottom: 12px; }
     .chk-flutuante{ right: 12px; bottom: 12px; }
-    .chk-flutuante.followups-minimizado{ right: 12px; bottom: 66px; }
+    .followups-minimizados{ right: 12px; bottom: 66px; flex-direction: column; align-items: flex-end; }
   }
 
   /* ===================== ABA MARCAS (base de prospecção, dentro de Abordagens) ===================== */
@@ -3763,7 +3766,7 @@
     </div>
     <p class="followups-explica" id="followUpsMarcasExplica"></p>
     <div class="followups-lista">
-      <div class="followups-grade followups-cabecalho"><span>Marca</span><span>Contato</span><span>Último contato</span><span>Status</span><span></span></div>
+      <div class="followups-grade followups-cabecalho" id="followUpsMarcasCabecalho"><span>Marca</span><span>Contato</span><span>Último contato</span><span>Status</span><span></span></div>
       <div id="followUpsMarcasCorpo" class="dado-sensivel"></div>
     </div>
   </div>
@@ -6347,7 +6350,11 @@
 </div>
 
 <!-- ===================== WIDGET: CHECKLIST DIÁRIO (fixo, aparece em qualquer aba) ===================== -->
-<button type="button" class="chk-flutuante followups-minimizado oculto" id="followUpsMinimizado">📬 <span id="followUpsMinimizadoRotulo">1º follow up</span> <span class="followups-contador" id="followUpsMinimizadoContador">0</span></button>
+<div class="followups-minimizados">
+  <button type="button" class="chk-flutuante followups-minimizado oculto" id="followUpsMinimizado1" data-etapa="1">📬 1º follow up <span class="followups-contador" id="followUpsMinimizadoContador1">0</span></button>
+  <button type="button" class="chk-flutuante followups-minimizado oculto" id="followUpsMinimizado2" data-etapa="2">📬 2º follow up <span class="followups-contador" id="followUpsMinimizadoContador2">0</span></button>
+  <button type="button" class="chk-flutuante followups-minimizado oculto" id="followUpsMinimizado3" data-etapa="3">🔔 Lembretes <span class="followups-contador" id="followUpsMinimizadoContador3">0</span></button>
+</div>
 <button type="button" class="chk-flutuante" id="chkBotaoFlutuante">📋 Checklist Diário</button>
 
 <div class="chk-painel oculto" id="chkPainel">
@@ -6905,6 +6912,23 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     if (error) console.error("Erro ao adiar lembrete:", error);
     setTimeout(renderizarNotificacoesPopup, NOTIFICACAO_ADIAR_MS + 500);
   }
+
+  // O setTimeout acima se perde fácil (celular congela a página em segundo plano, F5,
+  // outro aparelho) — e aí o aviso adiado nunca voltava sozinho. Reforço: a cada minuto e
+  // sempre que ela volta pra aba/app, confere se algum adiamento venceu desde a última
+  // conferência e, se sim, mostra os avisos de novo.
+  let ultimaConferenciaAdiamentos = Date.now();
+  function conferirAdiamentosVencidos(){
+    const agora = Date.now();
+    const algumVenceu = Object.values(lembretesSnoozeCache).some(ate => ate <= agora && ate > ultimaConferenciaAdiamentos);
+    ultimaConferenciaAdiamentos = agora;
+    if (algumVenceu) renderizarNotificacoesPopup();
+  }
+  setInterval(conferirAdiamentosVencidos, 60 * 1000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") conferirAdiamentosVencidos();
+  });
+  window.addEventListener("focus", conferirAdiamentosVencidos);
 
   // Guarda quais anos estão com o detalhe expandido na aba Finanças UGC > Anual
   let anosNegocioExpandidos = new Set();
@@ -9447,7 +9471,9 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("marcaDetalheFechar").addEventListener("click", fecharDetalheMarca);
     document.getElementById("followUpsMarcasFechar").addEventListener("click", fecharCardFollowUpsMarcas);
     document.getElementById("followUpsMarcasMinimizar").addEventListener("click", minimizarCardFollowUpsMarcas);
-    document.getElementById("followUpsMinimizado").addEventListener("click", restaurarCardFollowUpsMarcas);
+    document.querySelectorAll(".followups-minimizado").forEach(btn => {
+      btn.addEventListener("click", () => restaurarCardFollowUpsMarcas(Number(btn.dataset.etapa)));
+    });
     document.getElementById("modalFollowUpsMarcas").addEventListener("click", (e) => {
       if (e.target.id === "modalFollowUpsMarcas") minimizarCardFollowUpsMarcas();
     });
@@ -13924,7 +13950,7 @@ ${MODELO_PROPOSTA_HTML}`;
   // Rótulo do botão "Ver X" e do badge de cada grupo de lembrete, igual ao texto do
   // menu lateral.
   const LABEL_ABA_LEMBRETE = {
-    abordagem: "Marcas",
+    abordagem: "lembretes",
     financas: "Financeiro",
     agenda: "Agenda",
     portfolio: "Portfólio",
@@ -13932,8 +13958,8 @@ ${MODELO_PROPOSTA_HTML}`;
     clientes: "Clientes",
     "ugc-creator": "Trabalhos",
     negocio: "Financeiro UGC",
-    "marcas-followup": "Marcas",
-    "marcas-followup-2": "Marcas"
+    "marcas-followup": "follow ups",
+    "marcas-followup-2": "follow ups"
   };
 
   // Id do badge de cada grupo na barra lateral. "portfolio" e "briefing" ficam de
@@ -13999,12 +14025,12 @@ ${MODELO_PROPOSTA_HTML}`;
     },
     {
       grupo: "marcas-followup",
-      obter: obterAlertasFollowUpMarcas,
+      obter: () => itensFollowUpsEtapa(1),
       rotulo: (n) => n === 1 ? "marca esperando o 1º follow up" : "marcas esperando o 1º follow up"
     },
     {
       grupo: "marcas-followup-2",
-      obter: obterAlertas2FollowUpMarcas,
+      obter: () => itensFollowUpsEtapa(2),
       rotulo: (n) => n === 1 ? "marca esperando o 2º follow up" : "marcas esperando o 2º follow up"
     },
     {
@@ -14033,7 +14059,7 @@ ${MODELO_PROPOSTA_HTML}`;
   // mais urgente (abordagem/clientes/ugc-creator já tinham esse helper), reaproveita —
   // senão só troca de aba mesmo.
   function navegarParaGrupoLembrete(grupo, itemMaisUrgente){
-    if (grupo === "abordagem") return irParaAbordagem(itemMaisUrgente.id);
+    if (grupo === "abordagem") return abrirCardFollowUpsMarcas(3);
     if (grupo === "financas") return irParaConta(itemMaisUrgente);
     if (grupo === "clientes") return irParaCliente(itemMaisUrgente.id);
     if (grupo === "marcas-followup") return abrirCardFollowUpsMarcas(1);
@@ -15890,8 +15916,8 @@ ${MODELO_PROPOSTA_HTML}`;
         const marcaId = item ? acharMarcaIdDaAbordagem(item) : null;
         if (marcaId) await reiniciarContagemFollowUp(marcaId, data);
         else await atualizarAbordagem(abordagemId, { status: "realizada", data_abordagem: data, data_followup: novoFollowup, followup_feito: false });
-      } else if (item && (item.status === "andamento" || item.status === "proposta") && (!item.data_followup || novoFollowup > item.data_followup)){
-        await atualizarAbordagem(abordagemId, { data_followup: novoFollowup, followup_feito: false });
+      } else {
+        await reagendarFollowupNegociacao(abordagemId, data);
       }
       atualizarTodosHistoricos();
     } catch (erro) {
@@ -16438,6 +16464,10 @@ ${MODELO_PROPOSTA_HTML}`;
     // Em negociação/proposta só marca feito/pendente (sem rebaixar o status).
     if (novoFeito && item.status === "follow_up") return atualizarAbordagem(id, { status: "sem_retorno", followup_feito: true });
     if (novoFeito && item.status === "realizada") return marcarFollowupFeitoAbordagem(id);
+    if (novoFeito && (item.status === "andamento" || item.status === "proposta")){
+      const hoje = new Date().toISOString().slice(0, 10);
+      return atualizarAbordagem(id, { data_followup: somarDias(hoje, DIAS_FOLLOWUP_ABORDAGEM), followup_feito: false });
+    }
     await atualizarAbordagem(id, { followup_feito: novoFeito });
   }
 
@@ -16478,7 +16508,7 @@ ${MODELO_PROPOSTA_HTML}`;
     const alertas = [];
     abordagensCache.forEach(item => {
       if (!precisaFollowupAbordagem(item.status) || item.followup_feito || item.arquivado) return;
-      if (item.status === "follow_up" && acharMarcaIdDaAbordagem(item)) return; // vai pro card do 2º follow up
+      if (item.status === "realizada" || item.status === "follow_up") return; // estão nos cards de 1º/2º follow up
       const diasParaVencer = diasParaFollowupAbordagem(item);
       if (diasParaVencer === null) return;
 
@@ -16691,60 +16721,147 @@ ${MODELO_PROPOSTA_HTML}`;
   // Lista só as marcas com follow up pendente (mesma regra do aviso: "Enviado" há
   // DIAS_FOLLOWUP_MARCA dias ou mais, sem follow up feito). Cada ação usa mudarStatusMarca,
   // que já sincroniza a abordagem ligada — por isso a marca some do card e muda nas duas abas.
-  const followUpsMarcasAbertos = new Set();
-  let followUpsEtapa = 1; // 1 = 1º follow up, 2 = 2º follow up (porta aberta)
-
+  // Itens dos cards: 1 = 1º follow up, 2 = 2º follow up, 3 = lembretes de abordagem.
+  // Cada item aponta pra marca e/ou abordagem — os follow ups incluem também abordagens
+  // criadas direto na aba Abordagens (sem marca, ou com a marca fora da lista), senão elas
+  // caíam num aviso separado e ficavam fora do card (foi o caso da Emma Colchões).
   function itensFollowUpsEtapa(etapa){
-    return etapa === 2 ? obterAlertas2FollowUpMarcas() : obterAlertasFollowUpMarcas();
+    if (etapa === 3) return itensLembretesAbordagem();
+    const hoje = new Date().toISOString().slice(0, 10);
+    const doMarcas = (etapa === 2 ? obterAlertas2FollowUpMarcas() : obterAlertasFollowUpMarcas()).map(m => ({
+      chave: "m" + m.id,
+      marcaId: m.id,
+      abordagemId: acharAbordagemDaMarca(m.id)?.id || null,
+      nome: m.nome, instagram: m.instagram, email: m.email, contato: m.contato,
+      ultimoContato: etapa === 2 ? m.ultimoContato : m.data,
+      diasSemRetorno: m.diasSemRetorno
+    }));
+    const marcasNoCard = new Set(doMarcas.map(i => i.marcaId));
+    const abordagensNoCard = new Set(doMarcas.map(i => i.abordagemId).filter(Boolean));
+
+    const doAbordagens = abordagensCache.map(a => {
+      if (a.arquivado || abordagensNoCard.has(a.id)) return null;
+      const marcaId = acharMarcaIdDaAbordagem(a);
+      if (marcaId && marcasNoCard.has(marcaId)) return null;
+      let vence, ultimo;
+      if (etapa === 1){
+        if (a.status !== "realizada" || a.followup_feito || !a.data_followup) return null;
+        vence = a.data_followup;
+        ultimo = a.data_abordagem || somarDias(vence, -DIAS_FOLLOWUP_ABORDAGEM);
+      } else {
+        if (a.status !== "follow_up") return null;
+        vence = a.followup_feito ? (a.data_followup ? somarDias(a.data_followup, DIAS_SEGUNDO_FOLLOWUP) : hoje) : (a.data_followup || hoje);
+        ultimo = somarDias(vence, -DIAS_SEGUNDO_FOLLOWUP);
+      }
+      if (vence > hoje) return null;
+      const marca = marcaId ? marcasCache.find(m => m.id === marcaId) : null;
+      return {
+        chave: "a" + a.id, marcaId, abordagemId: a.id, nome: a.marca,
+        instagram: marca?.instagram || (a.canal === "instagram" ? a.canal_detalhe : null),
+        email: marca?.email || (a.canal === "email" ? a.canal_detalhe : null),
+        contato: marca?.contato || null,
+        ultimoContato: ultimo, diasSemRetorno: diasDesde(ultimo)
+      };
+    }).filter(Boolean);
+
+    return doMarcas.concat(doAbordagens);
   }
 
+  // Lembretes de abordagem (rascunho parado, follow up de negociação/proposta, contato
+  // futuro vencido, cadastro de cliente pendente) — agora num card, com a ação certa de
+  // cada um, em vez de mandar pra lista de Abordagens.
+  function itensLembretesAbordagem(){
+    const comMarca = (a, tipo, motivo) => {
+      const marcaId = acharMarcaIdDaAbordagem(a);
+      const marca = marcaId ? marcasCache.find(m => m.id === marcaId) : null;
+      return {
+        chave: tipo.slice(0, 1) + a.id, tipo, motivo, marcaId, abordagemId: a.id, nome: a.marca, status: a.status,
+        instagram: marca?.instagram || (a.canal === "instagram" ? a.canal_detalhe : null),
+        email: marca?.email || (a.canal === "email" ? a.canal_detalhe : null),
+        contato: marca?.contato || null
+      };
+    };
+    return []
+      .concat(obterAlertasCompletarCadastroCliente().map(a => comMarca(a, "cadastro", mensagemPendenciaCadastroCliente(a))))
+      .concat(obterAlertasFollowupAbordagem().map(a => comMarca(a, "negociacao", mensagemAlertaFollowupAbordagem(a))))
+      .concat(obterAlertasContatoFuturo().map(a => comMarca(a, "contato_futuro", mensagemAlertaContatoFuturo(a))))
+      .concat(obterAlertasRascunho().map(a => comMarca(a, "rascunho", mensagemAlertaRascunho(a))));
+  }
+
+  // Negociação/proposta: anotação nova no histórico (em QUALQUER lugar — Abordagens, modal
+  // da marca ou cards) empurra o próximo follow up pra 7 dias depois da data dela.
+  async function reagendarFollowupNegociacao(abordagemId, data){
+    const item = abordagensCache.find(a => a.id === abordagemId);
+    if (!item || !["andamento", "proposta"].includes(item.status)) return;
+    const novoFollowup = somarDias(data, DIAS_FOLLOWUP_ABORDAGEM);
+    if (!item.data_followup || novoFollowup > item.data_followup || item.followup_feito){
+      await atualizarAbordagem(abordagemId, { data_followup: novoFollowup, followup_feito: false });
+    }
+  }
+
+  const followUpsMarcasAbertos = new Set();
+  let followUpsEtapa = 1;
+  let followUpsItensAtuais = new Map();
+
   function abrirCardFollowUpsMarcas(etapa = 1){
+    if (cardFollowUpsAberto() && followUpsEtapa !== etapa){
+      const min = lerFollowUpsMinimizados();
+      min.add(followUpsEtapa);
+      salvarFollowUpsMinimizados(min);
+    }
     followUpsEtapa = etapa;
     followUpsMarcasAbertos.clear();
     renderizarCardFollowUpsMarcas();
     document.getElementById("modalFollowUpsMarcas").classList.remove("oculto");
+    atualizarFollowUpsMinimizado();
+  }
+
+  // Cada card (1º, 2º follow up e lembretes) minimiza no SEU próprio botão — antes era um
+  // botão só, e minimizar um fazia o outro sumir. Fica salvo na sessão (sobrevive a F5).
+  function lerFollowUpsMinimizados(){
+    try { return new Set(JSON.parse(sessionStorage.getItem("followUpsMinimizados") || "[]")); }
+    catch (erro) { return new Set(); }
+  }
+  function salvarFollowUpsMinimizados(conjunto){
+    try { sessionStorage.setItem("followUpsMinimizados", JSON.stringify([...conjunto])); } catch (erro) {}
+  }
+  function cardFollowUpsAberto(){
+    return !document.getElementById("modalFollowUpsMarcas").classList.contains("oculto");
   }
 
   function fecharCardFollowUpsMarcas(){
     document.getElementById("modalFollowUpsMarcas").classList.add("oculto");
-    try { sessionStorage.removeItem("followUpsMinimizado"); } catch (erro) {}
+    const min = lerFollowUpsMinimizados();
+    min.delete(followUpsEtapa);
+    salvarFollowUpsMinimizados(min);
     atualizarFollowUpsMinimizado();
   }
 
-  // Minimizar: o card some e vira um botão ao lado do Checklist Diário (continua lá até
-  // ela fechar no X ou acabar os follow ups, inclusive depois de F5 nessa mesma sessão).
   function minimizarCardFollowUpsMarcas(){
     document.getElementById("modalFollowUpsMarcas").classList.add("oculto");
-    try { sessionStorage.setItem("followUpsMinimizado", String(followUpsEtapa)); } catch (erro) {}
+    const min = lerFollowUpsMinimizados();
+    min.add(followUpsEtapa);
+    salvarFollowUpsMinimizados(min);
     atualizarFollowUpsMinimizado();
   }
 
-  function restaurarCardFollowUpsMarcas(){
-    renderizarCardFollowUpsMarcas();
-    document.getElementById("modalFollowUpsMarcas").classList.remove("oculto");
-    atualizarFollowUpsMinimizado();
+  function restaurarCardFollowUpsMarcas(etapa){
+    abrirCardFollowUpsMarcas(etapa);
   }
 
   function atualizarFollowUpsMinimizado(){
-    const botao = document.getElementById("followUpsMinimizado");
-    if (!botao) return;
-    let minimizado = false;
-    let etapaMin = 1;
-    try {
-      const v = sessionStorage.getItem("followUpsMinimizado");
-      minimizado = v === "1" || v === "2";
-      etapaMin = v === "2" ? 2 : 1;
-    } catch (erro) {}
-    if (minimizado) followUpsEtapa = etapaMin;
-    const cardAberto = !document.getElementById("modalFollowUpsMarcas").classList.contains("oculto");
-    const qtd = itensFollowUpsEtapa(etapaMin).length;
-    document.getElementById("followUpsMinimizadoRotulo").textContent = etapaMin === 2 ? "2º follow up" : "1º follow up";
-    if (minimizado && qtd === 0){
-      try { sessionStorage.removeItem("followUpsMinimizado"); } catch (erro) {}
-      minimizado = false;
-    }
-    document.getElementById("followUpsMinimizadoContador").textContent = qtd;
-    botao.classList.toggle("oculto", !minimizado || cardAberto);
+    const min = lerFollowUpsMinimizados();
+    let mudou = false;
+    [1, 2, 3].forEach(etapa => {
+      const botao = document.getElementById(`followUpsMinimizado${etapa}`);
+      if (!botao) return;
+      const qtd = itensFollowUpsEtapa(etapa).length;
+      if (min.has(etapa) && qtd === 0){ min.delete(etapa); mudou = true; }
+      document.getElementById(`followUpsMinimizadoContador${etapa}`).textContent = qtd;
+      const abertoNesseCard = cardFollowUpsAberto() && followUpsEtapa === etapa;
+      botao.classList.toggle("oculto", !min.has(etapa) || abertoNesseCard);
+    });
+    if (mudou) salvarFollowUpsMinimizados(min);
   }
 
   function linkInstagramMarca(m){
@@ -16754,60 +16871,103 @@ ${MODELO_PROPOSTA_HTML}`;
     return `<a class="followups-insta" href="https://instagram.com/${encodeURIComponent(usuario)}" target="_blank" rel="noopener">@${escaparHtmlMarcas(usuario)}</a>`;
   }
 
+  const TEXTO_CARDS = {
+    1: {
+      titulo: "📬 1º follow up",
+      explica: () => `Abordagens de ${DIAS_FOLLOWUP_MARCA} dias atrás ou mais, sem resposta (de Marcas e de Abordagens). Ao marcar como feito, ela volta no card do <strong>2º follow up</strong> em ${DIAS_SEGUNDO_FOLLOWUP} dias, se não responder. Clique no nome pra ver e anotar o histórico. Tudo muda em <strong>Marcas</strong> e <strong>Abordagens</strong> juntos.`,
+      cabecalho: "<span>Marca</span><span>Contato</span><span>Último contato</span><span>Status</span><span></span>",
+      vazio: "Nenhum 1º follow up pendente hoje."
+    },
+    2: {
+      titulo: "📬 2º follow up · porta aberta",
+      explica: () => `Receberam o 1º follow up há ${DIAS_SEGUNDO_FOLLOWUP} dias ou mais e não responderam. Mande o 2º (deixando as portas abertas) e clique em <strong>"Feito → Sem retorno"</strong>. Se a marca responder, use "Mudar status". Tudo muda em <strong>Marcas</strong> e <strong>Abordagens</strong> juntos.`,
+      cabecalho: "<span>Marca</span><span>Contato</span><span>Último contato</span><span>Status</span><span></span>",
+      vazio: "Nenhum 2º follow up pendente hoje."
+    },
+    3: {
+      titulo: "🔔 Lembretes de abordagem",
+      explica: () => `Negociações e propostas esperando retorno, rascunhos parados, contatos futuros pra retomar e cadastros de cliente pendentes. Clique no nome pra ver e anotar o histórico. Tudo muda em <strong>Marcas</strong> e <strong>Abordagens</strong> juntos.`,
+      cabecalho: "<span>Marca</span><span>Lembrete</span><span></span><span>Status</span><span></span>",
+      vazio: "Nenhum lembrete de abordagem agora."
+    }
+  };
+
+  const ACAO_LEMBRETE = {
+    negociacao: "✓ Follow up feito (próximo em 7 dias)",
+    contato_futuro: "Retomei — lembrar em 3 meses",
+    rascunho: "✓ Abordei hoje",
+    cadastro: "Completar cadastro"
+  };
+
   function renderizarCardFollowUpsMarcas(){
     const corpo = document.getElementById("followUpsMarcasCorpo");
     if (!corpo) return;
-    const segundo = followUpsEtapa === 2;
-    const itens = itensFollowUpsEtapa(followUpsEtapa).sort((a, b) => b.diasSemRetorno - a.diasSemRetorno);
+    const etapa = followUpsEtapa;
+    const lembretes = etapa === 3;
+    const segundo = etapa === 2;
+    const textos = TEXTO_CARDS[etapa];
+    let itens = itensFollowUpsEtapa(etapa);
+    if (!lembretes) itens = itens.sort((a, b) => b.diasSemRetorno - a.diasSemRetorno);
+    followUpsItensAtuais = new Map(itens.map(i => [i.chave, i]));
+
     document.getElementById("followUpsMarcasContador").textContent = itens.length;
-    document.getElementById("followUpsMarcasTitulo").textContent = segundo ? "📬 2º follow up · porta aberta" : "📬 1º follow up";
-    document.getElementById("followUpsMarcasExplica").innerHTML = segundo
-      ? `Marcas que receberam o 1º follow up há ${DIAS_SEGUNDO_FOLLOWUP} dias ou mais e não responderam. Mande o 2º (deixando as portas abertas) e clique em <strong>"Feito → Sem retorno"</strong>. Se a marca responder, use "Mudar status". Tudo muda em <strong>Marcas</strong> e <strong>Abordagens</strong> juntos.`
-      : `Marcas abordadas há ${DIAS_FOLLOWUP_MARCA} dias ou mais, sem resposta. Ao marcar como feito, ela volta no card do <strong>2º follow up</strong> em ${DIAS_SEGUNDO_FOLLOWUP} dias, se não responder. Clique no nome pra ver e anotar o histórico. Tudo muda em <strong>Marcas</strong> e <strong>Abordagens</strong> juntos.`;
+    document.getElementById("followUpsMarcasTitulo").textContent = textos.titulo;
+    document.getElementById("followUpsMarcasExplica").innerHTML = textos.explica();
+    document.getElementById("followUpsMarcasCabecalho").innerHTML = textos.cabecalho;
 
     if (!itens.length){
-      corpo.innerHTML = `<div class="followups-vazio"><strong>Tudo em dia! 🎉</strong>Nenhum ${segundo ? "2º" : "1º"} follow up pendente hoje.</div>`;
+      corpo.innerHTML = `<div class="followups-vazio"><strong>Tudo em dia! 🎉</strong>${textos.vazio}</div>`;
       return;
     }
 
-    const opcoesStatus = `<option value="">Mudar status…</option>` + MARCAS_STATUS
+    const opcoesStatusMarca = `<option value="">Mudar status…</option>` + MARCAS_STATUS
       .filter(s => !["a_enviar", "enviado", "follow_up"].includes(s.chave))
+      .map(s => `<option value="${s.chave}">${s.nome}</option>`).join("");
+    const opcoesStatusAbordagem = (atual) => `<option value="">Mudar status…</option>` + ABORDAGEM_STATUS
+      .filter(s => s.chave !== atual)
       .map(s => `<option value="${s.chave}">${s.nome}</option>`).join("");
     const hoje = new Date().toISOString().slice(0, 10);
 
-    corpo.innerHTML = itens.map(m => {
-      const notas = historicoDaMarca(m.id);
+    corpo.innerHTML = itens.map(it => {
+      const notas = historicoUnificado(it.abordagemId, it.marcaId);
       const qtdNotas = notas.length ? `${notas.length} anotaç${notas.length > 1 ? "ões" : "ão"}` : "sem anotações";
+      const k = it.chave;
+      const colunasMeio = lembretes
+        ? `<div class="followups-motivo" style="grid-column: span 2;">${escaparHtmlMarcas(it.motivo)}<small>${nomeStatusAbordagem(it.status)} · ${qtdNotas}</small></div>`
+        : `<div class="followups-contato">
+              <div class="followups-email"><span>${escaparHtmlMarcas(it.email || "—")}</span>${it.email ? `<button type="button" class="followups-copiar" data-acao="followups-copiar" data-id="${k}">copiar</button>` : ""}</div>
+              <span class="followups-sub">${it.contato ? escaparHtmlMarcas(it.contato) + " · " : ""}${qtdNotas}</span>
+            </div>
+            <div class="followups-enviado${it.diasSemRetorno > (segundo ? DIAS_SEGUNDO_FOLLOWUP : DIAS_FOLLOWUP_MARCA) ? " atraso" : ""}">${it.ultimoContato ? formatarDataCurta(it.ultimoContato) : "—"}<small>${segundo ? "1º follow up" : "abordagem"} há ${it.diasSemRetorno} dias</small></div>`;
+      const botaoAcao = lembretes
+        ? `<button type="button" class="botao-add-tarefa" data-acao="followups-feito" data-id="${k}">${ACAO_LEMBRETE[it.tipo]}</button>`
+        : `<button type="button" class="botao-add-tarefa${segundo ? " encerrar" : ""}" data-acao="followups-feito" data-id="${k}">${segundo ? "✓ Feito → Sem retorno" : "✓ Marcar como feito"}</button>`;
       return `
-        <div class="followups-item${followUpsMarcasAbertos.has(m.id) ? " aberto" : ""}" data-id="${m.id}">
+        <div class="followups-item${followUpsMarcasAbertos.has(k) ? " aberto" : ""}" data-id="${k}">
           <div class="followups-grade">
             <div style="min-width:0;">
-              <button type="button" class="followups-nome" data-acao="followups-abrir" data-id="${m.id}"><span class="seta">▶</span>${escaparHtmlMarcas(m.nome)}</button>
-              ${linkInstagramMarca(m)}
+              <button type="button" class="followups-nome" data-acao="followups-abrir" data-id="${k}"><span class="seta">▶</span>${escaparHtmlMarcas(it.nome)}</button>
+              ${linkInstagramMarca(it)}
             </div>
-            <div class="followups-contato">
-              <div class="followups-email"><span>${escaparHtmlMarcas(m.email || "—")}</span>${m.email ? `<button type="button" class="followups-copiar" data-acao="followups-copiar" data-id="${m.id}">copiar</button>` : ""}</div>
-              <span class="followups-sub">${m.contato ? escaparHtmlMarcas(m.contato) + " · " : ""}${qtdNotas}</span>
-            </div>
-            <div class="followups-enviado${m.diasSemRetorno > (segundo ? DIAS_SEGUNDO_FOLLOWUP : DIAS_FOLLOWUP_MARCA) ? " atraso" : ""}">${segundo ? formatarDataCurta(m.ultimoContato) : (m.data ? formatarDataCurta(m.data) : "—")}<small>${segundo ? "1º follow up" : "abordagem"} há ${m.diasSemRetorno} dias</small></div>
-            <div><select data-acao="followups-status" data-id="${m.id}" aria-label="Mudar status de ${escaparHtmlMarcas(m.nome)}">${opcoesStatus}</select></div>
-            <div><button type="button" class="botao-add-tarefa${segundo ? " encerrar" : ""}" data-acao="followups-feito" data-id="${m.id}">${segundo ? "✓ Feito → Sem retorno" : "✓ Marcar como feito"}</button></div>
+            ${colunasMeio}
+            <div><select data-acao="followups-status" data-id="${k}" aria-label="Mudar status de ${escaparHtmlMarcas(it.nome)}">${lembretes ? opcoesStatusAbordagem(it.status) : opcoesStatusMarca}</select></div>
+            <div>${botaoAcao}</div>
           </div>
           <div class="followups-historico">
             <span class="cliente-secao-rotulo">Histórico</span>
             <div class="abordagem-historico-form" style="margin-top:8px;">
               <div class="ugc-campo" style="margin-bottom:0;">
                 <label>Data</label>
-                <input type="date" id="followUpsData-${m.id}" class="historico-texto-compacto" value="${hoje}">
+                <input type="date" id="followUpsData-${k}" class="historico-texto-compacto" value="${hoje}">
               </div>
               <div class="ugc-campo" style="margin-bottom:0; flex:1; min-width:200px;">
                 <label>Atualização</label>
-                <textarea id="followUpsTexto-${m.id}" class="historico-texto-compacto" rows="1" placeholder="Ex: Pediu mídia kit."></textarea>
+                <textarea id="followUpsTexto-${k}" class="historico-texto-compacto" rows="1" placeholder="Ex: Pediu mídia kit."></textarea>
               </div>
-              <button type="button" class="botao-add-tarefa" data-acao="followups-anotar" data-id="${m.id}">+ Adicionar</button>
+              <button type="button" class="botao-add-tarefa" data-acao="followups-anotar" data-id="${k}">+ Adicionar</button>
             </div>
             <label class="followups-reenvio">
-              <input type="checkbox" id="followUpsReenvio-${m.id}">
+              <input type="checkbox" id="followUpsReenvio-${k}">
               Reenviei a abordagem nessa data (recomeçar a contagem: 1º follow up 7 dias depois)
             </label>
             ${notas.length ? notas.map(n => `
@@ -16821,53 +16981,95 @@ ${MODELO_PROPOSTA_HTML}`;
 
     corpo.querySelectorAll("[data-acao='followups-abrir']").forEach(btn => {
       btn.addEventListener("click", () => {
-        const id = btn.dataset.id;
-        if (followUpsMarcasAbertos.has(id)) followUpsMarcasAbertos.delete(id); else followUpsMarcasAbertos.add(id);
-        btn.closest(".followups-item").classList.toggle("aberto", followUpsMarcasAbertos.has(id));
+        const k = btn.dataset.id;
+        if (followUpsMarcasAbertos.has(k)) followUpsMarcasAbertos.delete(k); else followUpsMarcasAbertos.add(k);
+        btn.closest(".followups-item").classList.toggle("aberto", followUpsMarcasAbertos.has(k));
       });
     });
     corpo.querySelectorAll("[data-acao='followups-copiar']").forEach(btn => {
       btn.addEventListener("click", async () => {
-        const marca = marcasCache.find(x => x.id === btn.dataset.id);
-        try { await navigator.clipboard.writeText(marca.email); btn.textContent = "copiado ✓"; }
+        const it = followUpsItensAtuais.get(btn.dataset.id);
+        try { await navigator.clipboard.writeText(it.email); btn.textContent = "copiado ✓"; }
         catch (erro) { btn.textContent = "não deu"; }
         setTimeout(() => { btn.textContent = "copiar"; }, 1500);
       });
     });
     corpo.querySelectorAll("[data-acao='followups-feito']").forEach(btn => {
       btn.addEventListener("click", async () => {
+        const it = followUpsItensAtuais.get(btn.dataset.id);
+        if (!it) return;
         btn.disabled = true;
-        await salvarAnotacaoPendenteFollowUp(btn.dataset.id);
-        await mudarStatusMarca(btn.dataset.id, segundo ? "sem_retorno" : "follow_up");
+        await salvarAnotacaoPendenteFollowUp(it);
+        await executarAcaoPrincipalCard(it, etapa);
         renderizarCardFollowUpsMarcas();
+        atualizarFollowUpsMinimizado();
       });
     });
     corpo.querySelectorAll("[data-acao='followups-status']").forEach(select => {
       select.addEventListener("change", async () => {
-        if (!select.value) return;
+        const it = followUpsItensAtuais.get(select.dataset.id);
+        if (!select.value || !it) return;
         select.disabled = true;
-        await salvarAnotacaoPendenteFollowUp(select.dataset.id);
-        await mudarStatusMarca(select.dataset.id, select.value);
+        await salvarAnotacaoPendenteFollowUp(it);
+        if (lembretes) await mudarStatusAbordagemRapido(it.abordagemId, select.value);
+        else await aplicarStatusMarcaNoItem(it, select.value);
         renderizarCardFollowUpsMarcas();
+        atualizarFollowUpsMinimizado();
       });
     });
     corpo.querySelectorAll("[data-acao='followups-anotar']").forEach(btn => {
-      btn.addEventListener("click", () => anotarHistoricoFollowUp(btn.dataset.id, btn));
+      btn.addEventListener("click", () => anotarHistoricoFollowUp(followUpsItensAtuais.get(btn.dataset.id), btn));
     });
   }
 
-  // Texto escrito no histórico e ainda não salvo: salva antes de a marca sair do card
+  // Muda o status (chave de Marcas) de um item do card, sincronizando as duas abas. Se o
+  // item tem marca e ela ainda não está nesse status, vai pela marca (que já sincroniza a
+  // abordagem); senão vai direto pela abordagem (abordagens criadas à mão).
+  async function aplicarStatusMarcaNoItem(it, statusMarca){
+    if (it.marcaId){
+      const marca = marcasCache.find(m => m.id === it.marcaId);
+      if (marca && marca.status !== statusMarca){ await mudarStatusMarca(it.marcaId, statusMarca); return; }
+    }
+    if (!it.abordagemId) return;
+    if (statusMarca === "follow_up") await marcarFollowupFeitoAbordagem(it.abordagemId);
+    else await mudarStatusAbordagemRapido(it.abordagemId, STATUS_MARCA_PARA_ABORDAGEM[statusMarca]);
+  }
+
+  async function executarAcaoPrincipalCard(it, etapa){
+    const hoje = new Date().toISOString().slice(0, 10);
+    if (etapa === 1) return aplicarStatusMarcaNoItem(it, "follow_up");
+    if (etapa === 2) return aplicarStatusMarcaNoItem(it, "sem_retorno");
+    if (it.tipo === "negociacao"){
+      return atualizarAbordagem(it.abordagemId, { data_followup: somarDias(hoje, DIAS_FOLLOWUP_ABORDAGEM), followup_feito: false });
+    }
+    if (it.tipo === "contato_futuro") return definirContatoFuturoAbordagem(it.abordagemId);
+    if (it.tipo === "rascunho") return reiniciarContagemItem(it, hoje);
+    if (it.tipo === "cadastro"){
+      minimizarCardFollowUpsMarcas();
+      return abrirModalClienteApartirDeAbordagem(it.abordagemId);
+    }
+  }
+
+  // Grava a anotação do card na tabela certa (marca, se tiver; senão abordagem) e aplica
+  // as regras que dependem dela (negociação reagenda o follow up; reenvio recomeça a contagem).
+  async function gravarAnotacaoItem(it, texto, data){
+    const tabela = it.marcaId ? "painel_marcas_notas" : "painel_abordagens_notas";
+    const registro = it.marcaId ? { marca_id: it.marcaId, texto, data } : { abordagem_id: it.abordagemId, texto, data };
+    const { data: inserido, error } = await Auth.client.from(tabela).insert(registro).select();
+    if (error) throw error;
+    if (it.marcaId) marcasNotasCache = marcasNotasCache.concat(inserido);
+    else abordagensNotasCache = abordagensNotasCache.concat(inserido);
+    if (it.abordagemId) await reagendarFollowupNegociacao(it.abordagemId, data);
+  }
+
+  // Texto escrito no histórico e ainda não salvo: salva antes de o item sair do card
   // (mudar status / marcar como feito redesenha o card e o texto se perdia).
-  async function salvarAnotacaoPendenteFollowUp(marcaId){
-    const campo = document.getElementById(`followUpsTexto-${marcaId}`);
+  async function salvarAnotacaoPendenteFollowUp(it){
+    const campo = document.getElementById(`followUpsTexto-${it.chave}`);
     if (!campo || !campo.value.trim()) return;
-    const data = document.getElementById(`followUpsData-${marcaId}`).value || new Date().toISOString().slice(0, 10);
-    const { data: inserido, error } = await Auth.client
-      .from("painel_marcas_notas")
-      .insert({ marca_id: marcaId, texto: campo.value.trim(), data })
-      .select();
-    if (error){ console.error("Erro ao salvar anotação pendente:", error); return; }
-    marcasNotasCache = marcasNotasCache.concat(inserido);
+    const data = document.getElementById(`followUpsData-${it.chave}`).value || new Date().toISOString().slice(0, 10);
+    try { await gravarAnotacaoItem(it, campo.value.trim(), data); }
+    catch (erro) { console.error("Erro ao salvar anotação pendente:", erro); }
   }
 
   // Reenvio da abordagem (ex: a marca passou um e-mail novo): a data informada vira a nova
@@ -16898,25 +17100,32 @@ ${MODELO_PROPOSTA_HTML}`;
     renderizarNotificacoesPopup();
   }
 
-  async function anotarHistoricoFollowUp(marcaId, botao){
-    const campo = document.getElementById(`followUpsTexto-${marcaId}`);
+  // Mesmo reinício, pra um item de card (pode ser só abordagem, sem marca).
+  async function reiniciarContagemItem(it, data){
+    if (it.marcaId) return reiniciarContagemFollowUp(it.marcaId, data);
+    if (!it.abordagemId) return;
+    await atualizarAbordagem(it.abordagemId, {
+      status: "realizada", data_abordagem: data,
+      data_followup: somarDias(data, DIAS_FOLLOWUP_ABORDAGEM), followup_feito: false
+    });
+  }
+
+  async function anotarHistoricoFollowUp(it, botao){
+    if (!it) return;
+    const campo = document.getElementById(`followUpsTexto-${it.chave}`);
     const texto = campo.value.trim();
     if (!texto) return;
-    const data = document.getElementById(`followUpsData-${marcaId}`).value || new Date().toISOString().slice(0, 10);
+    const data = document.getElementById(`followUpsData-${it.chave}`).value || new Date().toISOString().slice(0, 10);
     botao.disabled = true;
     try {
-      const { data: inserido, error } = await Auth.client
-        .from("painel_marcas_notas")
-        .insert({ marca_id: marcaId, texto, data })
-        .select();
-      if (error) throw error;
-      marcasNotasCache = marcasNotasCache.concat(inserido);
-      if (document.getElementById(`followUpsReenvio-${marcaId}`)?.checked){
-        await reiniciarContagemFollowUp(marcaId, data);
+      await gravarAnotacaoItem(it, texto, data);
+      if (document.getElementById(`followUpsReenvio-${it.chave}`)?.checked){
+        await reiniciarContagemItem(it, data);
       }
       atualizarTodosHistoricos();
+      atualizarFollowUpsMinimizado();
     } catch (erro) {
-      console.error("Erro ao anotar histórico no card de follow ups:", erro);
+      console.error("Erro ao anotar histórico no card:", erro);
       alert("Não deu pra salvar a atualização. Tenta de novo.");
       botao.disabled = false;
     }
@@ -18148,6 +18357,8 @@ ${MODELO_PROPOSTA_HTML}`;
       marcasNotasCache = marcasNotasCache.concat(inserido);
       campo.value = "";
       campoData.value = new Date().toISOString().slice(0, 10);
+      const abordagemDaMarca = acharAbordagemDaMarca(marcaId);
+      if (abordagemDaMarca) await reagendarFollowupNegociacao(abordagemDaMarca.id, data);
       const reenvio = document.getElementById("marcasHistoricoReenvio");
       if (reenvio.checked){
         reenvio.checked = false;
