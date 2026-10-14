@@ -17013,7 +17013,7 @@ ${MODELO_PROPOSTA_HTML}`;
             </label>
             ${notas.length ? notas.map(n => `
               <div class="cliente-historico-item">
-                <div class="cliente-historico-data"><span>${n.data ? formatarDataCurta(n.data) : "—"}</span></div>
+                <div class="cliente-historico-data"><span>${n.data ? formatarDataCurta(n.data) : "—"}</span><button type="button" class="cliente-historico-remover" data-acao="followups-remover-nota" data-id="${n.id}" data-tabela="${n.tabela}" aria-label="Excluir anotação">×</button></div>
                 <p>${escaparHtmlMarcas(n.texto)}</p>
               </div>`).join("") : `<p class="ugc-vazio">Nenhuma atualização ainda.</p>`}
           </div>
@@ -17055,6 +17055,12 @@ ${MODELO_PROPOSTA_HTML}`;
         if (lembretes) await mudarStatusAbordagemRapido(it.abordagemId, select.value);
         else await aplicarStatusMarcaNoItem(it, select.value);
         renderizarCardFollowUpsMarcas();
+        atualizarFollowUpsMinimizado();
+      });
+    });
+    corpo.querySelectorAll("[data-acao='followups-remover-nota']").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        await removerNotaHistorico(btn.dataset.id, btn.dataset.tabela);
         atualizarFollowUpsMinimizado();
       });
     });
