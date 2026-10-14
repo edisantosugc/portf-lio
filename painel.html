@@ -418,6 +418,8 @@
   .notificacao-popup-corpo.clicavel{ cursor: pointer; border-radius: 8px; margin: -4px; padding: 4px; }
   .notificacao-popup-corpo.clicavel:hover{ background: var(--creme); }
   .notificacao-popup-nome{ font-weight: 600; font-size: .9rem; padding-right: 10px; }
+  .notificacao-popup-lista{ margin: 6px 0 0 18px; font-weight: 500; font-size: .85rem; }
+  .notificacao-popup-lista li{ margin: 2px 0; }
   .notificacao-popup.atrasado .notificacao-popup-nome{ color: var(--vermelho); }
   .notificacao-popup-mensagem{ font-size: .8rem; color: var(--texto-suave); margin-top: 3px; }
   .notificacao-popup.atrasado .notificacao-popup-mensagem{ color: var(--vermelho); }
@@ -13989,7 +13991,8 @@ ${MODELO_PROPOSTA_HTML}`;
     {
       grupo: "abordagem",
       obter: () => obterAlertasRascunho().concat(obterAlertasFollowupAbordagem()).concat(obterAlertasContatoFuturo()).concat(obterAlertasCompletarCadastroCliente()),
-      rotulo: (n) => n === 1 ? "lembrete de abordagem" : "lembretes de abordagem"
+      rotulo: (n) => n === 1 ? "lembrete de abordagem" : "lembretes de abordagem",
+      tituloCustom: tituloAvisoLembretesAbordagem
     },
     {
       grupo: "financas",
@@ -15766,16 +15769,19 @@ ${MODELO_PROPOSTA_HTML}`;
     const diasFollowup = diasParaFollowupAbordagem(item);
     const atrasado = precisaFollowupAbordagem(item.status) && !item.followup_feito && diasFollowup !== null && diasFollowup < 0;
     const badgeFollowup = item.followup_feito ? "aprovado" : (atrasado ? "atrasado" : "aguardando");
-    const textoFollowup = item.followup_feito
-      ? "Follow up feito"
-      : atrasado
-        ? `Follow up atrasado há ${Math.abs(diasFollowup)} dia${Math.abs(diasFollowup) === 1 ? "" : "s"}`
-        : "Follow up pendente";
+    const negociacao = ehNegociacaoAbordagem(item.status);
+    const textoFollowup = negociacao
+      ? (atrasado ? `Há ${diasSemMovimentarNegociacao(item)} dias sem movimentar` : `Próxima movimentação até ${item.data_followup ? formatarDataCurta(item.data_followup) : "—"}`)
+      : item.followup_feito
+        ? "Follow up feito"
+        : atrasado
+          ? `Follow up atrasado há ${Math.abs(diasFollowup)} dia${Math.abs(diasFollowup) === 1 ? "" : "s"}`
+          : "Follow up pendente";
 
     const linhasData = ehRascunho
       ? `<div class="ugc-detalhe-linha"><span class="rotulo">Data de cadastro</span><span class="valor">${item.data_rascunho ? formatarDataCurta(item.data_rascunho) : "—"}</span></div>`
       : `<div class="ugc-detalhe-linha"><span class="rotulo">Data da abordagem</span><span class="valor">${item.data_abordagem ? formatarDataCurta(item.data_abordagem) : "—"}</span></div>
-         <div class="ugc-detalhe-linha"><span class="rotulo">Follow up</span><span class="valor">${item.data_followup ? formatarDataCurta(item.data_followup) : "—"}</span></div>`;
+         <div class="ugc-detalhe-linha"><span class="rotulo">${ehNegociacaoAbordagem(item.status) ? "Movimentar até" : "Follow up"}</span><span class="valor">${item.data_followup ? formatarDataCurta(item.data_followup) : "—"}</span></div>`;
 
     return gerenciarHtml + `
       <div class="ugc-detalhe-linha"><span class="rotulo">Produto</span><span class="valor">${item.produto || "—"}</span></div>
@@ -15792,7 +15798,7 @@ ${MODELO_PROPOSTA_HTML}`;
       ${precisaFollowupAbordagem(item.status) ? `
       <div class="ugc-status-aprovacao">
         <span class="ugc-badge ${badgeFollowup}">${textoFollowup}</span>
-        <button type="button" class="ugc-btn" data-acao="abordagem-toggle-followup" data-id="${item.id}">${item.followup_feito ? "Marcar como pendente" : "Marcar como feito"}</button>
+        <button type="button" class="ugc-btn" data-acao="abordagem-toggle-followup" data-id="${item.id}">${negociacao ? "✓ Movimentei (lembrar em 7 dias)" : item.followup_feito ? "Marcar como pendente" : "Marcar como feito"}</button>
       </div>` : ""}
       ${item.status === "contato_futuro" ? (() => {
         const dias = diasParaFollowupAbordagem(item);
@@ -15950,7 +15956,7 @@ ${MODELO_PROPOSTA_HTML}`;
           <span class="ugc-data ${atrasado ? "vencida" : ""}">${dataTexto}</span>
           ${item.arquivado
             ? `<span class="selo-motivo-arquivado ${item.arquivado_automaticamente ? "automatico" : ""}">${item.arquivado_automaticamente ? "🤖 " : ""}${item.motivo_arquivamento ? nomeMotivoArquivamento(item.motivo_arquivamento) : "Arquivado"}</span>`
-            : `<span class="ugc-etapa-pill ${vencendo ? "vencida" : classeStatusAbordagem(item.status)}">${atrasado ? "Follow up atrasado" : rascunhoVencendo ? "Rascunho parado" : nomeStatusAbordagem(item.status)}</span>`}
+            : `<span class="ugc-etapa-pill ${vencendo ? "vencida" : classeStatusAbordagem(item.status)}">${atrasado ? (ehNegociacaoAbordagem(item.status) ? "Sem movimentar" : "Follow up atrasado") : rascunhoVencendo ? "Rascunho parado" : nomeStatusAbordagem(item.status)}</span>`}
           <span class="ugc-seta">›</span>
         </summary>
         <div class="ugc-detalhe">${renderDetalheAbordagemHtml(item)}</div>
@@ -16523,7 +16529,42 @@ ${MODELO_PROPOSTA_HTML}`;
     return alertas;
   }
 
+  // Texto do aviso de lembretes: um tipo só vira uma frase; tipos misturados viram lista
+  // (um tipo por linha), pra sempre dizer O QUE é — nunca só "N lembretes".
+  function tituloAvisoLembretesAbordagem(itens){
+    const tipo = (a) => (a.status === "fechada" && !a.cliente_id) ? "cadastro"
+      : a.status === "rascunho" ? "rascunho"
+      : a.status === "contato_futuro" ? "contato_futuro" : "negociacao";
+    const qtd = {};
+    itens.forEach(a => { const t = tipo(a); qtd[t] = (qtd[t] || 0) + 1; });
+    const plural = (n, s, p) => n > 1 ? p : s;
+    const frases = {
+      negociacao: (n) => `${n} ${plural(n, "marca", "marcas")} em negociação há mais de ${DIAS_FOLLOWUP_ABORDAGEM} dias sem movimentar`,
+      rascunho: (n) => `${n} ${plural(n, "rascunho parado", "rascunhos parados")} há mais de ${DIAS_LEMBRETE_RASCUNHO} dias`,
+      contato_futuro: (n) => `${n} ${plural(n, "marca", "marcas")} pra retomar o contato`,
+      cadastro: (n) => `${n} ${plural(n, "cliente", "clientes")} pra completar o cadastro`
+    };
+    const ordem = ["negociacao", "rascunho", "contato_futuro", "cadastro"].filter(t => qtd[t]);
+    if (ordem.length === 1) return `Você tem ${frases[ordem[0]](qtd[ordem[0]])}`;
+    return `Você tem ${itens.length} lembretes de abordagem:<ul class="notificacao-popup-lista">${ordem.map(t => `<li>${frases[t](qtd[t])}</li>`).join("")}</ul>`;
+  }
+
+  function ehNegociacaoAbordagem(status){
+    return status === "andamento" || status === "proposta";
+  }
+
+  // Dias desde a última movimentação de uma negociação/proposta (o "próximo follow up" é
+  // sempre 7 dias depois da última movimentação, então dá pra calcular a partir dele).
+  function diasSemMovimentarNegociacao(item){
+    if (!item.data_followup) return null;
+    return diasDesde(somarDias(item.data_followup, -DIAS_FOLLOWUP_ABORDAGEM));
+  }
+
   function mensagemAlertaFollowupAbordagem(item){
+    if (ehNegociacaoAbordagem(item.status)){
+      const dias = diasSemMovimentarNegociacao(item);
+      return `${item.status === "proposta" ? "Proposta" : "Em negociação"} há ${dias} dias sem movimentar`;
+    }
     if (item.statusAlerta === "atrasado"){
       const diasAtraso = Math.abs(item.diasParaVencer);
       return `Follow up atrasado há ${diasAtraso} dia${diasAtraso === 1 ? "" : "s"}`;
@@ -16886,14 +16927,14 @@ ${MODELO_PROPOSTA_HTML}`;
     },
     3: {
       titulo: "🔔 Lembretes de abordagem",
-      explica: () => `Negociações e propostas esperando retorno, rascunhos parados, contatos futuros pra retomar e cadastros de cliente pendentes. Clique no nome pra ver e anotar o histórico. Tudo muda em <strong>Marcas</strong> e <strong>Abordagens</strong> juntos.`,
+      explica: () => `Negociações e propostas há ${DIAS_FOLLOWUP_ABORDAGEM} dias ou mais sem movimentar, rascunhos parados, contatos futuros pra retomar e cadastros de cliente pendentes. Clique no nome pra ver e anotar o histórico. Tudo muda em <strong>Marcas</strong> e <strong>Abordagens</strong> juntos.`,
       cabecalho: "<span>Marca</span><span>Lembrete</span><span></span><span>Status</span><span></span>",
       vazio: "Nenhum lembrete de abordagem agora."
     }
   };
 
   const ACAO_LEMBRETE = {
-    negociacao: "✓ Follow up feito (próximo em 7 dias)",
+    negociacao: "✓ Movimentei (lembrar em 7 dias)",
     contato_futuro: "Retomei — lembrar em 3 meses",
     rascunho: "✓ Abordei hoje",
     cadastro: "Completar cadastro"
