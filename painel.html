@@ -18846,7 +18846,7 @@ ${MODELO_PROPOSTA_HTML}`;
     // acha a linha que começa com "Att" (a assinatura) e encaixa o botão bem antes dela.
     // Se não achar esse padrão, cai no comportamento antigo (botão no final do texto).
     const linhas = (corpoTexto || "").split("\n");
-    const indiceAssinatura = linhas.findIndex(l => /^\s*att[,.:]?\s/i.test(l) || /^\s*atenciosamente/i.test(l));
+    const indiceAssinatura = linhas.findIndex(l => /^\s*att[,.:]?(\s|$)/i.test(l) || /^\s*atenciosamente/i.test(l));
 
     let corpoHtml;
     if (botaoHtml && indiceAssinatura !== -1){
@@ -18873,7 +18873,7 @@ ${corpoHtml}
     const linha = `${botaoTexto}: ${normalizarLinkBotaoProspeccao(botaoLink)}`;
 
     const linhas = (corpoTexto || "").split("\n");
-    const indiceAssinatura = linhas.findIndex(l => /^\s*att[,.:]?\s/i.test(l) || /^\s*atenciosamente/i.test(l));
+    const indiceAssinatura = linhas.findIndex(l => /^\s*att[,.:]?(\s|$)/i.test(l) || /^\s*atenciosamente/i.test(l));
     if (indiceAssinatura === -1) return `${corpoTexto || ""}\n\n${linha}`;
 
     const antes = linhas.slice(0, indiceAssinatura).join("\n");
