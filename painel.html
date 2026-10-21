@@ -8976,6 +8976,9 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         const itens = configGrupo ? configGrupo.obter() : [];
         if (itens.length){
           const itemMaisUrgente = itens.slice().sort((a, b) => (a.diasParaVencer ?? 0) - (b.diasParaVencer ?? 0))[0];
+          // Menu "Marcas" entra na aba normalmente (como sempre foi) — o card de lembretes só
+          // abre pelo "Ver lembretes" do aviso, nunca pelo menu.
+          if (tab === "abordagem") return irParaAbordagem(itemMaisUrgente.id);
           navegarParaGrupoLembrete(tab, itemMaisUrgente);
           return;
         }
