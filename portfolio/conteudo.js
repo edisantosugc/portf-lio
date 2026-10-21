@@ -136,6 +136,82 @@ const CONFIG_PT = {
         videoId: "sldWgcR84co",
         legenda: "Depoimento – Esponja limpeza extrema"
       }
+    ],
+
+    // EDITE AQUI: cases do carrossel "Conteúdos em Destaque" do /portfolio/.
+    // Cada case tem o SEU vídeo, o SEU texto e as SUAS provas — tudo muda
+    // junto quando a pessoa passa de um pro outro. Pra adicionar um case
+    // novo, copie um bloco { ... } inteiro e troque os campos. A ordem aqui
+    // é a ordem do carrossel. Campo vazio ("" ou []) simplesmente não aparece.
+    //
+    //   etiqueta    -> linha pequena acima do título (marca, campanha, tipo)
+    //   videoId     -> código do vídeo no YouTube (o que vem depois de "shorts/")
+    //   linkPerfil  -> link do post no Instagram; aparece o botão "Ver no meu
+    //                  perfil ↗" embaixo do vídeo. Vazio = botão some.
+    //   titulo      -> título em letra cursiva
+    //   texto       -> textinho do case; o que estiver entre **asteriscos** fica em negrito
+    //   resultados  -> frases em destaque (aparecem em MAIÚSCULAS e negrito)
+    //   metricas    -> números escritos em caixinhas com ícone. Ícones:
+    //                  "visualizacoes", "curtidas", "compartilhamentos",
+    //                  "salvamentos", "comentarios", "republicacoes", "alcance".
+    //                  Caixinha com numero "" não aparece.
+    //   print       -> print de feedback (abre inteiro ao clicar):
+    //                  imagem            = caminho do arquivo do print
+    //                  legenda           = descrição do print (lida por leitores de tela, não aparece)
+    //                  textoBotao        = texto do botão azul embaixo do print, que abre o print inteiro
+    //                  mostrarAPartirDe  = de 0 a 100: em que altura do print o
+    //                                      card fechado começa a mostrar.
+    //                                      0 = do topo; quanto MAIOR o número,
+    //                                      mais pra BAIXO do print ele começa.
+    //   depoimento  -> frase de uma marca/cliente, escrita em texto:
+    //                  texto = a frase; autor = quem disse. Vazio = não aparece.
+    cases: [
+      {
+        etiqueta: "Natuka · Palitinho interativo · Orgânico",
+        videoId: "C5vleYWynVM",
+        linkPerfil: "https://www.instagram.com/p/DVgcE_nEWJs/",
+        titulo: "Alta Performance no Orgânico",
+        texto: "Vídeo **100% orgânico**, sem anúncio pago. Quase **1 em cada 30 pessoas** que assistiram **compartilhou o vídeo**.",
+        resultados: ["4,5 mil compartilhamentos", "130 mil visualizações", "109 mil contas alcançadas"],
+        metricas: [
+          { icone: "visualizacoes", numero: "130.682", rotulo: "visualizações" },
+          { icone: "alcance", numero: "109.086", rotulo: "contas alcançadas" },
+          { icone: "compartilhamentos", numero: "4,5 mil", rotulo: "compartilhamentos" },
+          { icone: "curtidas", numero: "2,7 mil", rotulo: "curtidas" },
+          { icone: "salvamentos", numero: "312", rotulo: "salvamentos" },
+          { icone: "comentarios", numero: "118", rotulo: "comentários" },
+          { icone: "republicacoes", numero: "114", rotulo: "republicações" }
+        ],
+        print: null,
+        depoimento: { texto: "", autor: "" }
+      },
+      {
+        etiqueta: "Yool Sublimados · Festa Junina · ADS",
+        videoId: "6GuW7LC-6yE",
+        linkPerfil: "",
+        titulo: "Alta Performance em ADS",
+        texto: "Vídeo usado como **criativo no tráfego pago** da marca. Teve uma **retenção absurda** e **vendeu muito bem**.",
+        resultados: ["12 vendas em curto prazo"],
+        metricas: [],
+        print: {
+          imagem: "/portfolio/imagens/destaque-feedback-3.jpg",
+          legenda: "Feedback da Yool Sublimados",
+          textoBotao: "Toque para ampliar o feedback da Yool Sublimados",
+          mostrarAPartirDe: 69
+        },
+        depoimento: { texto: "", autor: "" }
+      },
+      {
+        etiqueta: "Condor · Esponja Limpeza Extrema",
+        videoId: "sldWgcR84co",
+        linkPerfil: "https://www.instagram.com/p/DbBNcrWhktg/",
+        titulo: "Um dos Meus Favoritos",
+        texto: "Criativo para a Condor, uma das marcas mais conhecidas de produtos de limpeza do Brasil. No vídeo, eu esfrego a panela com uma esponja comum e a sujeira não sai; cansada, pego a Esponja Limpeza Extrema e a sujeira sai muito mais rápido.",
+        resultados: ["Problema x solução na prática"],
+        metricas: [],
+        print: null,
+        depoimento: { texto: "", autor: "" }
+      }
     ]
   },
 
@@ -436,6 +512,56 @@ const CONFIG_EN = {
         tipo: "video",
         videoId: "sldWgcR84co",
         legenda: "Testimonial – Extreme-clean sponge"
+      }
+    ],
+
+    // Versão em inglês dos cases (mesma ordem e mesmos campos da versão PT).
+    cases: [
+      {
+        etiqueta: "Natuka · Interactive chew stick · Organic",
+        videoId: "C5vleYWynVM",
+        linkPerfil: "https://www.instagram.com/p/DVgcE_nEWJs/",
+        titulo: "High Organic Performance",
+        texto: "**100% organic** video, no paid ads. Almost **1 in every 30 people** who watched it **shared the video**.",
+        resultados: ["4.5K shares", "130K views", "109K accounts reached"],
+        metricas: [
+          { icone: "visualizacoes", numero: "130,682", rotulo: "views" },
+          { icone: "alcance", numero: "109,086", rotulo: "accounts reached" },
+          { icone: "compartilhamentos", numero: "4.5K", rotulo: "shares" },
+          { icone: "curtidas", numero: "2.7K", rotulo: "likes" },
+          { icone: "salvamentos", numero: "312", rotulo: "saves" },
+          { icone: "comentarios", numero: "118", rotulo: "comments" },
+          { icone: "republicacoes", numero: "114", rotulo: "reposts" }
+        ],
+        print: null,
+        depoimento: { texto: "", autor: "" }
+      },
+      {
+        etiqueta: "Yool Sublimados · June Festival · Ads",
+        videoId: "6GuW7LC-6yE",
+        linkPerfil: "",
+        titulo: "High Performance in Ads",
+        texto: "Video used as a **paid traffic creative** for the brand. It had **outstanding retention** and **sold really well**.",
+        resultados: ["12 sales in a short time"],
+        metricas: [],
+        print: {
+          imagem: "/portfolio/imagens/destaque-feedback-3.jpg",
+          legenda: "Feedback from Yool Sublimados (in Portuguese)",
+          textoBotao: "Tap to enlarge the feedback from Yool Sublimados",
+          mostrarAPartirDe: 69
+        },
+        depoimento: { texto: "", autor: "" }
+      },
+      {
+        etiqueta: "Condor · Extreme Clean Sponge",
+        videoId: "sldWgcR84co",
+        linkPerfil: "https://www.instagram.com/p/DbBNcrWhktg/",
+        titulo: "One of My Favorites",
+        texto: "Creative for Condor, one of the best-known cleaning product brands in Brazil. In the video, I scrub the pan with a regular sponge and the grime won't come off; tired, I grab the Extreme Clean Sponge and the grime comes off much faster.",
+        resultados: ["Problem x solution in practice"],
+        metricas: [],
+        print: null,
+        depoimento: { texto: "", autor: "" }
       }
     ]
   },
