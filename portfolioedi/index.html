@@ -556,217 +556,202 @@
   }
 
   /* ===================== CONTEÚDOS EM DESTAQUE =====================
-     Grid de 2 colunas fixas: a coluna ESQUERDA é sempre o card de feedback
-     (nunca muda de lugar); a coluna DIREITA mostra um vídeo por vez, e as
-     setas/pontinhos alternam entre os vídeos disponíveis, sem afetar o card
-     da esquerda. EDITE OS CONTEÚDOS lá embaixo, em CONFIG.destaques
-     (campos "fixo" e "videos"). */
+     Carrossel de CASES: um case por vez. Cada case tem o SEU vídeo (coluna
+     esquerda, com uma "pilha" dos outros vídeos atrás) e o SEU texto e a SUA
+     prova (coluna direita) — tudo troca junto nas setas, nas bolinhas e no
+     arrastar do dedo. EDITE OS CASES em portfolio/conteudo.js, no campo
+     "cases" dentro de "destaques". */
   .destaques-conteudo{ background: var(--branco); overflow: hidden; }
-  .destaques-carrossel{ position: relative; margin-top: 40px; }
-  .destaques-carrossel .seta-btn{
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 3;
-    background: var(--branco);
-    box-shadow: var(--sombra-dura-sm);
-  }
-  .destaques-carrossel .seta-esq{ left: -8px; }
-  .destaques-carrossel .seta-dir{ right: -8px; }
-  .destaques-pista{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-    gap: 24px;
-    padding: 10px 54px;
-  }
-  .card-destaque{
-    justify-self: center;
-    width: 100%;
-    max-width: 300px;
-    border: 4px solid var(--tinta);
-    border-radius: 24px;
-    background: var(--branco);
-    box-shadow: var(--sombra-dura);
-    overflow: hidden;
-    opacity: .55;
-    transform: scale(.92);
-    transition: opacity .4s ease, transform .4s ease, box-shadow .4s ease;
-    cursor: pointer;
-  }
-  .card-destaque.ativo{ opacity: 1; transform: scale(1); box-shadow: 9px 9px 0 var(--vermelho); cursor: default; }
-  .card-destaque[data-tipo="video"]{ cursor: pointer; }
-  .destaque-midia{ position: relative; aspect-ratio: 4 / 5; display: flex; align-items: center; justify-content: center; }
-  /* Placeholder do print de feedback: mesmo tracejado dourado das tags da
-     seção (".tag-secao"), pra ficar claramente "no estilo do site" mesmo
-     sem o arquivo final. */
-  .destaque-midia.midia-feedback{
-    background: var(--creme);
-    border: 3px dashed var(--rosa);
-    margin: 12px;
-    border-radius: 16px;
-  }
-  /* Quando já existe o print real, o card deixa de ter altura fixa (o print
-     é um texto vertical — cortar como se fosse foto perderia linhas do
-     depoimento). Mesmo tratamento do print inteiro, sem corte, que já é
-     usado na seção de Depoimentos (".card-depoimento img"). */
-  .destaque-midia.midia-feedback.tem-foto{ aspect-ratio: auto; display: block; }
-  .destaque-print{ display: block; width: 100%; height: auto; border-radius: 13px; }
-  .destaque-midia.midia-feedback .destaque-placeholder{ color: var(--tinta); }
-  .destaque-icone-placeholder{ width: 34px; height: 34px; margin-bottom: 10px; fill: var(--rosa); }
-  .midia-feedback .destaque-icone-placeholder{ fill: var(--vermelho); }
-  /* Placeholder do vídeo do Théo: fundo azul royal sólido (cor de destaque
-     do site) com o mesmo botão de play redondo usado nos vídeos reais do
-     Portfólio (".play-botao"), em vez de um gradiente genérico. */
-  /* Mesma proporção vertical (9:16) dos vídeos do Portfólio, pra miniatura
-     do YouTube encaixar sem sobra nem corte estranho. */
-  .destaque-midia.midia-video{ background: var(--vermelho); aspect-ratio: 9 / 16; }
-  .destaque-midia.midia-video .play-botao{ position: static; transform: none; margin-bottom: 12px; }
-  .destaque-midia.midia-video .destaque-placeholder{ color: var(--branco); }
-
-  /* ===================== "GOSTINHO" DE CARROSSEL NO CARD DE VÍDEO =====================
-     Atrás do vídeo em foco, uma fatia desfocada e escurecida do outro vídeo
-     espia dos dois lados — dá a sensação de que tem mais conteúdo pra
-     navegar, sem precisar de um carrossel de verdade (só 2 vídeos). */
-  .destaque-video-slot{
-    position: relative;
+  .dc-carrossel{ position: relative; margin: 40px auto 0; max-width: 1000px; }
+  .dc-topo{
     display: flex;
     align-items: center;
-    justify-content: center;
-    min-width: 0;
+    justify-content: space-between;
+    margin-bottom: 18px;
   }
-  .destaque-video-slot .card-destaque{ position: relative; z-index: 1; }
-  .destaque-peek{
-    position: absolute;
-    top: 6%;
-    bottom: 6%;
-    width: 42px;
-    border-radius: 16px;
-    overflow: hidden;
-    filter: blur(3px);
-    opacity: .5;
-    z-index: 0;
-    pointer-events: none;
-  }
-  .destaque-peek::after{
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(42,38,34,.4);
-  }
-  .destaque-peek .peek-img{
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-  }
-  .destaque-peek-esq{ left: 0; }
-  .destaque-peek-dir{ right: 0; }
-  @media (max-width: 900px){
-    .destaque-peek{ width: 22px; }
-  }
-  @media (max-width: 480px){
-    .destaque-peek{ display: none; }
-  }
-  .destaque-placeholder{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  .dc-contador{
     font-family: 'Oswald', sans-serif;
     font-weight: 700;
     font-size: .85rem;
-    letter-spacing: .03em;
-    text-align: center;
-    padding: 0 22px;
+    letter-spacing: .14em;
+    color: #8a8279;
   }
-  .destaque-legenda{ padding: 16px 18px; text-align: center; }
-  .destaque-legenda strong{
+  .dc-setas{ display: flex; gap: 10px; }
+  .dc-setas .seta-btn{ background: var(--branco); box-shadow: var(--sombra-dura-sm); }
+  .dc-case{
+    display: grid;
+    grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+    gap: 56px;
+    align-items: center;
+    transition: opacity .3s ease, transform .3s ease;
+  }
+  .dc-case.trocando{ opacity: 0; transform: translateY(10px); }
+  @media (prefers-reduced-motion: reduce){
+    .dc-case{ transition: none; }
+  }
+
+  /* ---------- coluna do vídeo: card 9:16 + pilha de cards atrás ---------- */
+  .dc-video-col{ display: flex; flex-direction: column; align-items: center; min-width: 0; }
+  .dc-pilha{ position: relative; width: 100%; max-width: 290px; aspect-ratio: 9 / 16; }
+  .dc-pilha-fundo{
+    position: absolute;
+    inset: 0;
+    border: 3px solid var(--tinta);
+    border-radius: 24px;
+    background-color: var(--creme-escuro);
+    background-size: cover;
+    background-position: center;
+    opacity: .6;
+    filter: blur(1px) saturate(.8);
+    pointer-events: none;
+  }
+  .dc-pilha-fundo.f1{ transform: translateX(-34px) rotate(-6deg) scale(.93); }
+  .dc-pilha-fundo.f2{ transform: translateX(34px) rotate(5deg) scale(.93); }
+  .dc-video{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 0;
+    border: 4px solid var(--tinta);
+    border-radius: 24px;
+    overflow: hidden;
+    background: var(--vermelho);
+    box-shadow: 9px 9px 0 var(--vermelho);
+    cursor: pointer;
+    appearance: none;
+  }
+  .dc-video:hover .play-botao, .dc-video:focus-visible .play-botao{ transform: translate(-50%, -50%) scale(1.1); }
+  /* ---------- coluna do texto ---------- */
+  .dc-texto-col{ min-width: 0; }
+  .dc-etiqueta{
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: .78rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #8a8279;
+    margin-bottom: 4px;
+  }
+  .dc-titulo{
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: clamp(2rem, 3.4vw, 2.6rem);
+    line-height: 1.1;
+    color: var(--vermelho);
+    margin-bottom: 14px;
+  }
+  .dc-texto{ font-size: 1.1rem; color: #4a453e; margin-bottom: 14px; max-width: 520px; }
+  .dc-texto strong{ color: var(--tinta); }
+  .dc-resultados{ margin-bottom: 22px; }
+  .dc-resultados li{
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 1.55rem;
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: var(--tinta);
+  }
+
+  /* Botão "Ver no meu perfil ↗" embaixo do vídeo (só aparece com link). */
+  .dc-ver-perfil{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 24px;
+    padding: 8px 18px;
+    border: 2px solid var(--tinta);
+    border-radius: 999px;
+    background: var(--branco);
+    box-shadow: var(--sombra-dura-sm);
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: .85rem;
+    letter-spacing: .06em;
+    color: var(--tinta);
+    transition: background .2s ease, color .2s ease, transform .15s ease;
+  }
+  .dc-ver-perfil:hover{ background: var(--vermelho); color: var(--branco); transform: translateY(-2px); }
+
+  /* Print de feedback: o card fechado mostra o print a partir da altura
+     escolhida em "mostrarAPartirDe" (o JS sobe a imagem até esse ponto).
+     A altura do card acompanha o que sobra do print, até no máximo 280px. */
+  .dc-prova-print{
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 440px;
+    max-height: 280px;
+    padding: 0;
+    border: 3px solid var(--tinta);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--creme);
+    box-shadow: var(--sombra-dura-sm);
+    cursor: zoom-in;
+    appearance: none;
+    transition: transform .2s ease;
+  }
+  .dc-prova-print:hover{ transform: translateY(-3px); }
+  .dc-prova-print img{ display: block; width: 100%; height: auto; }
+  /* Botão "Toque para ampliar o feedback..." centralizado embaixo do print
+     (mesma largura máxima do card do print, pra centralizar em relação a ele). */
+  .dc-prova-rodape{
+    display: flex;
+    justify-content: center;
+    max-width: 440px;
+    margin-top: 12px;
+  }
+  .dc-prova-ampliar{
+    border: 0;
+    text-align: center;
+    line-height: 1.3;
+    cursor: zoom-in;
+    background: var(--vermelho);
+    color: var(--branco);
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    font-size: .88rem;
+    border-radius: 999px;
+    padding: 9px 20px;
+  }
+  .dc-prova-ampliar:hover{ background: var(--tinta); }
+
+  /* Métricas escritas: grade de caixinhas do mesmo tamanho, que se ajusta
+     sozinha à largura (4 por linha no computador, 2 no celular). O rótulo
+     pode quebrar em 2 linhas (ex.: "contas alcançadas"), nunca sai da caixa. */
+  .dc-metricas{ display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 10px; max-width: 580px; }
+  .dc-metrica{
+    min-width: 0;
+    background: var(--creme);
+    border: 2px solid var(--tinta);
+    border-radius: 14px;
+    padding: 10px 12px;
+  }
+  .dc-metrica svg{ width: 18px; height: 18px; fill: var(--vermelho); margin-bottom: 4px; }
+  .dc-metrica strong{
     display: block;
     font-family: 'Oswald', sans-serif;
     font-weight: 700;
-    font-size: 1.05rem;
-    color: var(--vermelho);
+    font-size: 1.2rem;
+    line-height: 1.15;
+    color: var(--tinta);
   }
-  .destaque-legenda span{ display: block; font-size: .88rem; color: #4a453e; margin-top: 4px; }
-  /* Print real das métricas do vídeo (o mesmo arquivo enviado, sem recriar
-     os ícones) — só limita a largura pra não estourar o card. */
-  .destaque-metricas-img{ display: block; width: 100%; max-width: 260px; height: auto; margin: 0 auto; }
-  /* Legenda com uma mãozinha branca (estilo cursor "hand pointer") desenhando
-     um traço azul fino embaixo, do exato tamanho do texto — da esquerda pra
-     direita. Em loop: desenha indo, some o traço e volta só reposicionando,
-     pra desenhar de novo. O traço é uma barra de CSS (não SVG esticado), pra
-     nunca ficar mais larga nem mais grossa do que o texto. */
-  span.destaque-legenda-riscada{
-    position: relative;
-    display: inline-block;
-    /* padding-top afasta a frase do texto de cima; padding-bottom foi
-       reduzido na mesma medida (46px → 36px) pra compensar, então a altura
-       total da caixa não muda — e por isso o traço e a mãozinha (que usam
-       "bottom" contando a partir do fim dessa caixa) continuam exatamente
-       no mesmo lugar de antes, só a frase "sobe" o traço fica mais perto. */
-    padding-top: 10px;
-    padding-bottom: 36px;
+  .dc-metrica span{ display: block; font-size: .74rem; line-height: 1.3; color: #6b655d; hyphens: auto; overflow-wrap: break-word; }
+
+  /* Depoimento escrito (opcional): frase da marca com aspas e autor. */
+  .dc-depoimento{
+    max-width: 520px;
+    margin-top: 18px;
+    padding: 14px 18px;
+    border-left: 4px solid var(--vermelho);
+    background: var(--creme);
+    border-radius: 0 14px 14px 0;
   }
-  .destaque-risco-traco{
-    position: absolute;
-    left: 0;
-    bottom: 30px;
-    width: 100%;
-    height: .08em;
-    min-height: 1.5px;
-    background: var(--vermelho);
-    border-radius: 2px;
-    transform-origin: left center;
-    transform: scaleX(0);
-    animation: destaque-riscar 3.2s ease-in-out infinite;
-  }
-  /* Ícone da mãozinha — posição calibrada à mão na ferramenta de arrastar
-     (você mesma arrastou até a ponta do dedo encostar no traço e me passou
-     a coordenada exata: left/bottom abaixo são literalmente esse valor,
-     sem conversão — por isso o "padding-bottom" da legenda e o "bottom" do
-     traço acima usam os mesmos números da ferramenta de teste, pra evitar
-     erro de tradução entre as duas escalas). Tamanho fixo de verdade
-     (12x14px), não um "wrapper" de largura zero — a regra global do site
-     "svg{ max-width:100% }" (lá no topo do arquivo) encolhe qualquer svg
-     dentro de um contêiner de largura zero pra zero também, e foi isso que
-     fez a mão sumir numa versão anterior. O preenchimento é sólido (sem
-     filtro de contorno): testado à mão que um filtro tipo feMorphology
-     rasteriza com pouca resolução nesse tamanho e fica esmaecido — aqui o
-     contorno preto vem de uma cópia do próprio desenho, preenchida e um
-     pouco maior, atrás da mão branca. Essa cópia maior estoura um pouco o
-     viewBox original do ícone, então o "overflow: visible" abaixo é
-     essencial — sem ele, o navegador corta a ponta do dedo e a lateral da
-     mão bem no canto do desenho. A posição "left" é deslocada pra alinhar
-     a PONTA DO DEDO indicador com o início/fim do traço (30% da largura de
-     12px = 3,6px), não o canto da caixinha do ícone. */
-  .destaque-risco-mao{
-    position: absolute;
-    bottom: 17px;
-    left: -3.6px;
-    width: 12px;
-    height: 14px;
-    overflow: visible;
-    animation: destaque-mao-mover 3.2s ease-in-out infinite;
-  }
-  @keyframes destaque-riscar{
-    0%{ transform: scaleX(0); }
-    42%{ transform: scaleX(1); }
-    52%{ transform: scaleX(1); }
-    54%{ transform: scaleX(0); }
-    100%{ transform: scaleX(0); }
-  }
-  @keyframes destaque-mao-mover{
-    0%{ left: -3.6px; }
-    42%{ left: calc(100% - 3.6px); }
-    52%{ left: calc(100% - 3.6px); }
-    100%{ left: -3.6px; }
-  }
-  @media (prefers-reduced-motion: reduce){
-    .destaque-risco-traco{ animation: none; transform: scaleX(1); }
-    .destaque-risco-mao{ animation: none; left: calc(100% - 3.6px); }
-  }
-  .destaques-pontos{ display: flex; justify-content: center; gap: 10px; margin-top: 22px; }
+  .dc-depoimento p{ font-style: italic; color: var(--tinta); }
+  .dc-depoimento span{ display: block; margin-top: 6px; font-size: .85rem; font-weight: 700; color: #6b655d; }
+
+  .destaques-pontos{ display: flex; justify-content: center; gap: 10px; margin-top: 30px; }
   .ponto-destaque{
     width: 10px; height: 10px;
     border-radius: 50%;
@@ -777,66 +762,44 @@
   }
   .ponto-destaque.ativo{ background: var(--vermelho); border-color: var(--vermelho); }
 
-  /* ===================== CONTEÚDOS EM DESTAQUE NO MOBILE =====================
-     Na tela estreita não cabe o grid de 2 colunas do desktop, então essa
-     fileira separada substitui ele por completo: rolagem lateral nativa
-     (funciona com o dedo, arrastando — mesma técnica já usada em
-     ".linha-scroll" e nas outras fileiras do site), com scroll-snap pra
-     cada item "encaixar" centralizado. O item ainda não centralizado fica
-     desfocado/menor (dá o "gostinho" do próximo conteúdo) — quem controla
-     isso é a classe ".card-mobile-ativo", ligada via IntersectionObserver
-     no JS conforme a rolagem. Escondida no desktop; some ".destaques-carrossel"
-     e ".destaques-pontos" (feitos pro desktop) só aparecem a partir de 761px. */
-  .destaques-carrossel-mobile{ display: none; }
-  .destaques-pista-mobile{ display: none; }
+  /* Print ampliado (tela cheia escura, fecha no X, no fundo ou no Esc). */
+  .dc-lightbox{
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(20,18,16,.88);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .dc-lightbox.aberto{ display: flex; }
+  .dc-lightbox img{ max-width: 100%; max-height: 92vh; width: auto; border-radius: 14px; }
+  .dc-lightbox-fechar{
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--branco);
+    background: var(--tinta);
+    color: var(--branco);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  /* ---------- celular: vídeo em cima, texto embaixo ---------- */
   @media (max-width: 760px){
-    .destaques-carrossel{ display: none; }
-    .destaques-pontos{ display: none; }
-    .destaques-carrossel-mobile{
-      position: relative;
-      display: block;
-    }
-    .destaques-carrossel-mobile .seta-btn{
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 3;
-      background: var(--branco);
-      box-shadow: var(--sombra-dura-sm);
-    }
-    .destaques-carrossel-mobile .seta-esq{ left: 2px; }
-    .destaques-carrossel-mobile .seta-dir{ right: 2px; }
-    .destaques-carrossel-mobile .seta-btn:hover:not(:disabled){
-      transform: translateY(calc(-50% - 2px));
-    }
-    .destaques-pista-mobile{
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      scroll-behavior: smooth;
-      -webkit-overflow-scrolling: touch;
-      padding: 30px 9vw 12px;
-      margin-top: 10px;
-      scrollbar-width: none;
-    }
-    .destaques-pista-mobile::-webkit-scrollbar{ display: none; }
-    .destaques-pista-mobile .card-destaque{
-      flex: 0 0 82vw;
-      max-width: 300px;
-      scroll-snap-align: center;
-      opacity: .5;
-      transform: scale(.92);
-      filter: blur(1.5px);
-      transition: opacity .3s ease, transform .3s ease, filter .3s ease;
-      cursor: pointer;
-    }
-    .destaques-pista-mobile .card-destaque.card-mobile-ativo{
-      opacity: 1;
-      transform: scale(1);
-      filter: none;
-    }
+    .dc-carrossel{ margin-top: 28px; }
+    .dc-case{ grid-template-columns: minmax(0, 1fr); gap: 30px; }
+    .dc-pilha{ max-width: 230px; }
+    .dc-pilha-fundo.f1{ transform: translateX(-20px) rotate(-5deg) scale(.93); }
+    .dc-pilha-fundo.f2{ transform: translateX(20px) rotate(4deg) scale(.93); }
+    .dc-titulo{ font-size: 1.9rem; }
+    .dc-texto{ font-size: 1rem; }
+    .dc-resultados li{ font-size: 1.25rem; }
+    .dc-prova-print{ max-width: none; }
   }
 
   /* ===================== PORTFÓLIO ===================== */
@@ -911,8 +874,7 @@
      parar (o "tremor" reportado). Aqui soma as duas: mantém centralizada e
      ainda sobe um pouquinho. */
   .servicos-carrossel .seta-btn:hover:not(:disabled),
-  .depoimentos-carrossel .seta-btn:hover:not(:disabled),
-  .destaques-carrossel .seta-btn:hover:not(:disabled){
+  .depoimentos-carrossel .seta-btn:hover:not(:disabled){
     transform: translateY(calc(-50% - 2px));
   }
   .linha-scroll{
@@ -1636,8 +1598,6 @@
     .sobre .container{ grid-template-columns: minmax(0, 1fr); }
     .sobre-foto{ width: 100%; max-width: 340px; margin: 0 auto; }
     .sobre-texto{ min-width: 0; }
-    .destaques-pista{ padding: 10px 42px; gap: 16px; }
-    .card-destaque{ width: 220px; }
 
     /* A sobreposição negativa (margin-left/top) usada no título "Sobre mim"
        depende de medir com precisão a largura exata da letra "s" na fonte
@@ -1723,10 +1683,6 @@
     .hero-botoes .pill-btn{ justify-content: center; }
     .portfolio-card{ flex-basis: 165px; }
     .campo-linha{ grid-template-columns: 1fr; }
-    .destaques-pista{ padding: 8px 34px; gap: 12px; }
-    .card-destaque{ width: 78vw; max-width: 260px; }
-    .destaques-carrossel .seta-esq{ left: -4px; }
-    .destaques-carrossel .seta-dir{ right: -4px; }
   }
 </style>
 </head>
@@ -1845,37 +1801,34 @@
   </section>
 
   <!-- ===================== 4.5 CONTEÚDOS EM DESTAQUE =====================
-       Coluna esquerda fixa (feedback) + coluna direita com um vídeo por vez
-       (as setas trocam qual vídeo aparece). Para editar os itens, veja
-       CONFIG.destaques mais abaixo no arquivo. -->
+       Carrossel de cases: um por vez, cada um com o seu vídeo, texto e prova.
+       Os cases ficam em portfolio/conteudo.js (campo "cases" dentro de
+       "destaques"); o JS lá embaixo monta o case atual dentro de #dcCase. -->
   <section class="destaques-conteudo" id="destaques">
     <div class="container">
       <p class="tag-secao reveal" id="destaquesTag"></p>
       <h2 class="titulo-secao reveal" id="destaquesTitulo"></h2>
       <p class="sub-secao reveal" id="destaquesSubtitulo"></p>
 
-      <div class="destaques-carrossel reveal">
-        <button type="button" class="seta-btn seta-esq" id="destaquesSetaEsq" aria-label="Ver conteúdo anterior">‹</button>
-        <div class="destaques-pista" id="destaquesPista"></div>
-        <button type="button" class="seta-btn seta-dir" id="destaquesSetaDir" aria-label="Ver próximo conteúdo">›</button>
+      <div class="dc-carrossel reveal" aria-roledescription="carrossel">
+        <div class="dc-topo">
+          <span class="dc-contador" id="dcContador" aria-live="polite"></span>
+          <div class="dc-setas">
+            <button type="button" class="seta-btn" id="destaquesSetaEsq" aria-label="Ver case anterior">‹</button>
+            <button type="button" class="seta-btn" id="destaquesSetaDir" aria-label="Ver próximo case">›</button>
+          </div>
+        </div>
+        <div class="dc-case" id="dcCase"></div>
       </div>
       <div class="destaques-pontos" id="destaquesPontos"></div>
-
-      <!-- Versão mobile: em vez do grid de 2 colunas fixas do desktop, uma
-           fileira que desliza com o dedo (rolagem nativa com "scroll-snap",
-           já usada em outras fileiras do site) — cabe só uma coluna na tela
-           estreita, então aqui os conteúdos ficam em sequência, um de cada
-           vez, começando pelo vídeo em foco. Só aparece em telas pequenas
-           (ver CSS "@media (max-width: 760px)"). As setinhas são só um
-           reforço visual de que dá pra passar pro lado (o gesto de arrastar
-           já funciona sem elas) — clicar rola um cartão inteiro. -->
-      <div class="destaques-carrossel-mobile">
-        <button type="button" class="seta-btn seta-esq" id="destaquesSetaEsqMobile" aria-label="Ver conteúdo anterior">‹</button>
-        <div class="destaques-pista-mobile" id="destaquesPistaMobile"></div>
-        <button type="button" class="seta-btn seta-dir" id="destaquesSetaDirMobile" aria-label="Ver próximo conteúdo">›</button>
-      </div>
     </div>
   </section>
+
+  <!-- Print de feedback ampliado (abre ao clicar no print de um case). -->
+  <div class="dc-lightbox" id="dcLightbox" role="dialog" aria-modal="true" aria-label="Print ampliado">
+    <button type="button" class="dc-lightbox-fechar" id="dcLightboxFechar" aria-label="Fechar">×</button>
+    <img id="dcLightboxImg" src="" alt="">
+  </div>
 
   <!-- ===================== 5. PORTFÓLIO COM FILTRO ===================== -->
   <section class="portfolio" id="portfolio">
@@ -2264,174 +2217,176 @@ function renderizarConteudo(inicial){
   document.getElementById("sobreLista").innerHTML = CONFIG.sobre.destaques
     .map((item, i) => `<li class="chip-sobre${i === 0 ? " chip-azul" : ""}">${item}</li>`).join("");
 
-  // ---------- Conteúdos em Destaque ----------
+  // ---------- Conteúdos em Destaque (carrossel de cases) ----------
   document.getElementById("destaquesTag").textContent = CONFIG.destaquesTextos.tag;
   document.getElementById("destaquesTitulo").textContent = CONFIG.destaquesTextos.titulo;
   document.getElementById("destaquesSubtitulo").textContent = CONFIG.destaquesTextos.subtitulo;
-  if (destaqueAtivo >= CONFIG.destaques.videos.length) destaqueAtivo = 0;
+  const casesDestaque = CONFIG.destaques.cases || [];
+  if (destaqueAtivo >= casesDestaque.length) destaqueAtivo = 0;
 
-  // Ícone simples de "aspas" pra representar o print de feedback enquanto o
-  // arquivo real não chega (mesmo estilo de ícone usado no rodapé/contato).
-  const ICONE_ASPAS_SVG = '<svg class="destaque-icone-placeholder" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11H6a1 1 0 0 1-1-1V7a3 3 0 0 1 3-3h1v2H8a1 1 0 0 0-1 1v1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H9zm9 0h-3a1 1 0 0 1-1-1V7a3 3 0 0 1 3-3h1v2h-1a1 1 0 0 0-1 1v1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1z"/></svg>';
+  // Ícones das métricas escritas (mesmos nomes usados em "icone" no conteudo.js).
+  const ICONES_METRICA = {
+    visualizacoes: '<path d="M12 5C6.5 5 2.2 9.1 1 12c1.2 2.9 5.5 7 11 7s9.8-4.1 11-7c-1.2-2.9-5.5-7-11-7zm0 11.5A4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 0 1 0 9zm0-7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/>',
+    curtidas: '<path d="M12 21.3l-1.4-1.3C5.4 15.4 2 12.3 2 8.5 2 5.4 4.4 3 7.5 3c1.7 0 3.4.8 4.5 2.1C13.1 3.8 14.8 3 16.5 3 19.6 3 22 5.4 22 8.5c0 3.8-3.4 6.9-8.6 11.5L12 21.3z"/>',
+    compartilhamentos: '<path d="M2 21l21-9L2 3v7l15 2-15 2z"/>',
+    salvamentos: '<path d="M6 2h12a1 1 0 0 1 1 1v19l-7-4.5L5 22V3a1 1 0 0 1 1-1z"/>',
+    comentarios: '<path d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 1-2z"/>',
+    alcance: '<path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.3 0-7 1.7-7 4.5V20h14v-2.5C16 14.7 12.3 13 9 13zm8-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm1.2 2.1c1.6.9 2.8 2.3 2.8 4.4V20h3v-2.5c0-2.2-2.6-3.8-5.8-4.4z"/>',
+    republicacoes: '<path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>'
+  };
 
-  // Mãozinha branca (estilo cursor "hand pointer", com contorno escuro pra
-  // aparecer em qualquer fundo) que desliza sobre o traço azul embaixo da
-  // legenda em destaque (ex.: "12 vendas em curto prazo").
-  // Ícone real "hand-pointer" (o clássico cursor que aparece ao passar o
-  // mouse sobre um link — dorso da mão, dedo indicador em riste). O contorno
-  // preto é feito com um filtro (dilata uma cópia preta atrás, cobre com a
-  // mão branca na frente) — testado visualmente antes de aplicar, porque um
-  // "stroke" comum quebra esse tipo de ícone em pedaços soltos.
-  const SVG_MAO_DESTAQUE = '<svg class="destaque-risco-mao" viewBox="0 0 448 512" aria-hidden="true"><g transform="translate(224,256) scale(1.22) translate(-224,-256)"><path fill="var(--tinta)" d="M128 40c0-22.1 17.9-40 40-40s40 17.9 40 40v148.2c8.5-7.6 19.7-12.2 32-12.2c20.6 0 38.2 13 45 31.2c8.8-9.3 21.2-15.2 35-15.2c25.3 0 46 19.5 47.9 44.3c8.5-7.7 19.8-12.3 32.1-12.3c26.5 0 48 21.5 48 48v112c0 70.7-57.3 128-128 128h-85.3c-5 0-9.9-.3-14.7-1c-55.3-5.6-106.2-34-140-79L8 336c-13.3-17.7-9.7-42.7 8-56s42.7-9.7 56 8l56 74.7zm112 264c0-8.8-7.2-16-16-16s-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16zm48-16c-8.8 0-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16v-96c0-8.8-7.2-16-16-16m80 16c0-8.8-7.2-16-16-16s-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16z"/></g><path fill="var(--branco)" d="M128 40c0-22.1 17.9-40 40-40s40 17.9 40 40v148.2c8.5-7.6 19.7-12.2 32-12.2c20.6 0 38.2 13 45 31.2c8.8-9.3 21.2-15.2 35-15.2c25.3 0 46 19.5 47.9 44.3c8.5-7.7 19.8-12.3 32.1-12.3c26.5 0 48 21.5 48 48v112c0 70.7-57.3 128-128 128h-85.3c-5 0-9.9-.3-14.7-1c-55.3-5.6-106.2-34-140-79L8 336c-13.3-17.7-9.7-42.7 8-56s42.7-9.7 56 8l56 74.7zm112 264c0-8.8-7.2-16-16-16s-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16zm48-16c-8.8 0-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16v-96c0-8.8-7.2-16-16-16m80 16c0-8.8-7.2-16-16-16s-16 7.2-16 16v96c0 8.8 7.2 16 16 16s16-7.2 16-16z"/></svg>';
+  const escDestaque = (t) => String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  // **texto** no conteudo.js vira negrito.
+  const negritoDestaque = (t) => escDestaque(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  const miniaturaYoutube = (id) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
-  // Monta o HTML de um card (usado tanto pro card fixo do feedback quanto
-  // pro card de vídeo atual). Os dois ficam sempre "ativo" (cheios, nítidos)
-  // porque agora só um card de cada tipo aparece por vez em cada coluna.
-  function construirCardDestaque(d, ehVideo){
-    let conteudoMidia;
-    let legendaHtml;
-    if (ehVideo) {
-      // Miniatura real do vídeo, igual ao esquema usado nos cards do
-      // Portfólio (puxa direto da própria miniatura do YouTube).
-      conteudoMidia = d.videoId
-        ? `<div class="foto-real" style="background-image:url('https://i.ytimg.com/vi/${d.videoId}/hqdefault.jpg');"></div><span class="play-botao" aria-hidden="true"></span>`
-        : `<span class="destaque-placeholder"><span class="play-botao" aria-hidden="true"></span>${d.legenda}</span>`;
-      if (d.metricasImagem) {
-        // Print real das métricas (o mesmo arquivo do documento, sem
-        // recriar os ícones — pediu pra não alterar nada nele).
-        legendaHtml = `<img class="destaque-metricas-img" src="${d.metricasImagem}" alt="Métricas do vídeo: ${d.legenda}" loading="lazy">`;
-      } else if (d.estatistica) {
-        legendaHtml = `<strong>${d.estatistica}</strong><span>${d.legenda}</span>`;
-      } else {
-        legendaHtml = `<span>${d.legenda}</span>`;
-      }
-    } else {
-      // Print de texto: mostra a imagem inteira, sem cortar (mesmo
-      // tratamento da seção de Depoimentos), diferente do vídeo que usa
-      // um recorte fixo.
-      conteudoMidia = d.imagem
-        ? `<img class="destaque-print" src="${d.imagem}" alt="${d.legenda}" loading="lazy">`
-        : `<span class="destaque-placeholder">${ICONE_ASPAS_SVG}${d.legenda}</span>`;
-      // Legenda com o traço + mãozinha desenhando embaixo, pra chamar
-      // atenção (liga/desliga com "legendaDestacada" no CONFIG.destaques.fixo).
-      const legendaSpan = d.legendaDestacada
-        ? `<span class="destaque-legenda-riscada">${d.legenda}<span class="destaque-risco-traco" aria-hidden="true"></span>${SVG_MAO_DESTAQUE}</span>`
-        : `<span>${d.legenda}</span>`;
-      legendaHtml = `<strong>${d.estatistica || ""}</strong>${legendaSpan}`;
+  // Provas do case: métricas, print e depoimento — cada uma só aparece se
+  // estiver preenchida no conteudo.js (vazio não deixa buraco no layout).
+  function construirProvasDestaque(c){
+    let html = "";
+    const metricas = (c.metricas || []).filter(m => m.numero);
+    if (metricas.length) {
+      html += `<div class="dc-metricas">${metricas.map(m => `
+        <div class="dc-metrica">
+          <svg viewBox="0 0 24 24" aria-hidden="true">${ICONES_METRICA[m.icone] || ""}</svg>
+          <strong>${escDestaque(m.numero)}</strong>
+          <span>${escDestaque(m.rotulo)}</span>
+        </div>`).join("")}</div>`;
     }
+    const p = c.print;
+    if (p && p.imagem) {
+      const inicio = Math.min(100, Math.max(0, Number(p.mostrarAPartirDe) || 0));
+      html += `
+        <button type="button" class="dc-prova-print" data-ampliar="${escDestaque(p.imagem)}" aria-label="Ampliar: ${escDestaque(p.legenda)}">
+          <img src="${escDestaque(p.imagem)}" alt="${escDestaque(p.legenda)}" data-inicio="${inicio}">
+        </button>
+        <div class="dc-prova-rodape">
+          <button type="button" class="dc-prova-ampliar" data-ampliar="${escDestaque(p.imagem)}" data-alt="${escDestaque(p.legenda)}">${escDestaque(p.textoBotao || (idiomaAtual === "en" ? "Tap to enlarge" : "Toque para ampliar"))}</button>
+        </div>`;
+    }
+    const d = c.depoimento;
+    if (d && d.texto) {
+      html += `<blockquote class="dc-depoimento"><p>“${escDestaque(d.texto)}”</p>${d.autor ? `<span>— ${escDestaque(d.autor)}</span>` : ""}</blockquote>`;
+    }
+    return html;
+  }
+
+  // Sobe o print dentro do card até a altura escolhida em "mostrarAPartirDe".
+  // margin-top em % é medida pela LARGURA, por isso converte usando a
+  // proporção real do print (altura ÷ largura), que só se sabe após carregar.
+  function posicionarPrintDestaque(img){
+    const ajustar = () => {
+      if (!img.naturalWidth) return;
+      const inicio = Number(img.dataset.inicio) / 100;
+      img.style.marginTop = `-${(inicio * img.naturalHeight / img.naturalWidth * 100).toFixed(3)}%`;
+    };
+    if (img.complete) ajustar(); else img.addEventListener("load", ajustar, { once: true });
+  }
+
+  function construirCaseDestaque(c, i){
+    const total = casesDestaque.length;
+    // Pilha atrás do vídeo: miniaturas dos cases vizinhos, levemente giradas.
+    const vizinhoA = total > 1 ? casesDestaque[(i + 1) % total] : null;
+    const vizinhoB = total > 2 ? casesDestaque[(i - 1 + total) % total] : vizinhoA;
+    const fundo = (v, cls) => v && v.videoId
+      ? `<div class="dc-pilha-fundo ${cls}" style="background-image:url('${miniaturaYoutube(v.videoId)}');" aria-hidden="true"></div>` : "";
+    const textoPerfil = idiomaAtual === "en" ? "See it on my profile" : "Ver no meu perfil";
     return `
-      <button type="button" class="card-destaque ativo" data-tipo="${ehVideo ? "video" : "imagem"}" data-video-id="${d.videoId || ""}" aria-label="${d.legenda}">
-        <div class="destaque-midia ${ehVideo ? "midia-video" : "midia-feedback"}${!ehVideo && d.imagem ? " tem-foto" : ""}">
-          ${conteudoMidia}
+      <div class="dc-video-col">
+        <div class="dc-pilha">
+          ${fundo(vizinhoB, "f1")}${fundo(vizinhoA, "f2")}
+          <button type="button" class="dc-video" data-video-id="${escDestaque(c.videoId)}" aria-label="${idiomaAtual === "en" ? "Play video" : "Assistir vídeo"}: ${escDestaque(c.titulo)}">
+            ${c.videoId ? `<div class="foto-real" style="background-image:url('${miniaturaYoutube(c.videoId)}');"></div>` : ""}
+            <span class="play-botao" aria-hidden="true"></span>
+          </button>
         </div>
-        <div class="destaque-legenda">
-          ${legendaHtml}
-        </div>
-      </button>
-    `;
+        ${c.linkPerfil ? `<a class="dc-ver-perfil" href="${escDestaque(c.linkPerfil)}" target="_blank" rel="noopener">${textoPerfil} ↗</a>` : ""}
+      </div>
+      <div class="dc-texto-col">
+        ${c.etiqueta ? `<p class="dc-etiqueta">${escDestaque(c.etiqueta)}</p>` : ""}
+        <h3 class="dc-titulo">${escDestaque(c.titulo)}</h3>
+        ${c.texto ? `<p class="dc-texto">${negritoDestaque(c.texto)}</p>` : ""}
+        ${(c.resultados || []).length ? `<ul class="dc-resultados">${c.resultados.map(r => `<li>${escDestaque(r)}</li>`).join("")}</ul>` : ""}
+        ${construirProvasDestaque(c)}
+      </div>`;
   }
 
-  // "Gostinho" desfocado do outro vídeo, espiando atrás do card em foco —
-  // só decorativo (não recebe clique), pra dar a sensação de carrossel com
-  // mais conteúdo, tipo a referência que a Edi mandou.
-  function construirPeek(v){
-    if (!v || !v.videoId) return "";
-    return `<div class="peek-img" style="background-image:url('https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg');"></div>`;
-  }
-
+  const caixaCase = document.getElementById("dcCase");
   function renderizarDestaques(){
-    const pista = document.getElementById("destaquesPista");
-    const videos = CONFIG.destaques.videos;
-    const videoAtivo = videos[destaqueAtivo];
-    const videoAnterior = videos.length > 1 ? videos[(destaqueAtivo - 1 + videos.length) % videos.length] : null;
-    const videoProximo = videos.length > 1 ? videos[(destaqueAtivo + 1) % videos.length] : null;
-    // Coluna esquerda: sempre o card fixo (feedback), nunca muda.
-    // Coluna direita: o vídeo atual (índice "destaqueAtivo") num "slot" com
-    // as bordas desfocadas do vídeo anterior/próximo espiando de cada lado
-    // (com só 2 vídeos, os dois lados mostram o mesmo; com 3 ou mais, cada
-    // lado mostra um vizinho diferente) — as setas/pontinhos trocam só esse
-    // card, sem mexer no da esquerda.
-    const peekHtml = videoAnterior ? `
-      <div class="destaque-peek destaque-peek-esq" aria-hidden="true">${construirPeek(videoAnterior)}</div>
-      <div class="destaque-peek destaque-peek-dir" aria-hidden="true">${construirPeek(videoProximo)}</div>
-    ` : "";
-    pista.innerHTML = construirCardDestaque(CONFIG.destaques.fixo, false)
-      + `<div class="destaque-video-slot">${peekHtml}${construirCardDestaque(videoAtivo, true)}</div>`;
-
-    document.getElementById("destaquesPontos").innerHTML = videos.map((v, i) => `
-      <button type="button" class="ponto-destaque${i === destaqueAtivo ? " ativo" : ""}" data-indice="${i}" aria-label="Ver vídeo ${i + 1} de ${videos.length}"></button>
+    const total = casesDestaque.length;
+    if (!total) return;
+    caixaCase.innerHTML = construirCaseDestaque(casesDestaque[destaqueAtivo], destaqueAtivo);
+    caixaCase.querySelectorAll(".dc-prova-print img").forEach(posicionarPrintDestaque);
+    const dois = n => String(n).padStart(2, "0");
+    document.getElementById("dcContador").textContent = `${dois(destaqueAtivo + 1)} / ${dois(total)}`;
+    document.getElementById("destaquesPontos").innerHTML = casesDestaque.map((c, i) => `
+      <button type="button" class="ponto-destaque${i === destaqueAtivo ? " ativo" : ""}" data-indice="${i}" aria-label="Ver case ${i + 1} de ${total}"></button>
     `).join("");
-
-    // Clicar no card de vídeo abre o mesmo modal usado no Portfólio. O card
-    // do feedback é só imagem, não faz nada ao clicar.
-    pista.onclick = (e) => {
-      const card = e.target.closest(".card-destaque");
-      if (!card || card.dataset.tipo !== "video" || !card.dataset.videoId) return;
-      abrirModalVideo(card.dataset.videoId, card);
-    };
-    document.getElementById("destaquesPontos").onclick = (e) => {
-      const ponto = e.target.closest(".ponto-destaque");
-      if (!ponto) return;
-      destaqueAtivo = Number(ponto.dataset.indice);
-      renderizarDestaques();
-    };
-
-    renderizarDestaquesMobile(videoAtivo, videos);
   }
 
-  // Fileira separada só pro mobile: vídeo em foco primeiro, depois o
-  // depoimento, depois os demais vídeos — uma coluna só, deslizando com o
-  // dedo (ver CSS "@media (max-width: 760px)"). Usa os mesmos cards
-  // (construirCardDestaque) do desktop, só numa ordem e visual diferentes.
-  function renderizarDestaquesMobile(videoAtivo, videos){
-    const pistaMobile = document.getElementById("destaquesPistaMobile");
-    if (!pistaMobile) return;
-    const outrosVideos = videos.filter(v => v !== videoAtivo);
-    const itens = [
-      { dado: videoAtivo, ehVideo: true },
-      { dado: CONFIG.destaques.fixo, ehVideo: false },
-      ...outrosVideos.map(v => ({ dado: v, ehVideo: true }))
-    ];
-    pistaMobile.innerHTML = itens.map(it => construirCardDestaque(it.dado, it.ehVideo)).join("");
-
-    pistaMobile.onclick = (e) => {
-      const card = e.target.closest(".card-destaque");
-      if (!card || card.dataset.tipo !== "video" || !card.dataset.videoId) return;
-      abrirModalVideo(card.dataset.videoId, card);
-    };
-
-    // Marca como "em foco" (nítido, tamanho normal) o card mais visível no
-    // meio da tela conforme a pessoa arrasta o dedo pros lados.
-    if (window._observadorDestaquesMobile) window._observadorDestaquesMobile.disconnect();
-    const observador = new IntersectionObserver((entradas) => {
-      entradas.forEach((entrada) => {
-        entrada.target.classList.toggle("card-mobile-ativo", entrada.intersectionRatio > 0.6);
-      });
-    }, { root: pistaMobile, threshold: [0, 0.6, 1] });
-    pistaMobile.querySelectorAll(".card-destaque").forEach((card) => observador.observe(card));
-    window._observadorDestaquesMobile = observador;
-
-    // Setinhas do mobile: só reforçam visualmente que dá pra passar pro
-    // lado — clicar rola um cartão inteiro (o arrastar com o dedo já
-    // funciona sozinho, por causa do scroll-snap nativo acima).
-    const setaEsqMobile = document.getElementById("destaquesSetaEsqMobile");
-    const setaDirMobile = document.getElementById("destaquesSetaDirMobile");
-    if (setaEsqMobile && setaDirMobile) {
-      setaEsqMobile.onclick = () => pistaMobile.scrollBy({ left: -pistaMobile.clientWidth * 0.85, behavior: "smooth" });
-      setaDirMobile.onclick = () => pistaMobile.scrollBy({ left: pistaMobile.clientWidth * 0.85, behavior: "smooth" });
-    }
+  // Troca de case com um fade curtinho (tudo muda junto: vídeo, texto e prova).
+  let trocaDestaqueTimer = null;
+  function irParaDestaque(indice){
+    const total = casesDestaque.length;
+    if (total < 2) return;
+    destaqueAtivo = (indice + total) % total;
+    clearTimeout(trocaDestaqueTimer);
+    caixaCase.classList.add("trocando");
+    trocaDestaqueTimer = setTimeout(() => {
+      renderizarDestaques();
+      caixaCase.classList.remove("trocando");
+    }, 180);
   }
   renderizarDestaques();
+  window._irParaDestaque = irParaDestaque;
 
-  document.getElementById("destaquesSetaEsq").onclick = () => {
-    const total = CONFIG.destaques.videos.length;
-    destaqueAtivo = (destaqueAtivo - 1 + total) % total;
-    renderizarDestaques();
+  document.getElementById("destaquesSetaEsq").onclick = () => irParaDestaque(destaqueAtivo - 1);
+  document.getElementById("destaquesSetaDir").onclick = () => irParaDestaque(destaqueAtivo + 1);
+  document.getElementById("destaquesPontos").onclick = (e) => {
+    const ponto = e.target.closest(".ponto-destaque");
+    if (ponto) irParaDestaque(Number(ponto.dataset.indice));
   };
-  document.getElementById("destaquesSetaDir").onclick = () => {
-    destaqueAtivo = (destaqueAtivo + 1) % CONFIG.destaques.videos.length;
-    renderizarDestaques();
+
+  // Clique no vídeo abre o modal de vídeo; clique no print amplia o print.
+  const lightboxDestaque = document.getElementById("dcLightbox");
+  let gatilhoLightbox = null;
+  function fecharLightboxDestaque(){
+    lightboxDestaque.classList.remove("aberto");
+    document.body.style.overflow = "";
+    if (gatilhoLightbox) gatilhoLightbox.focus();
+  }
+  caixaCase.onclick = (e) => {
+    const video = e.target.closest(".dc-video");
+    if (video && video.dataset.videoId) { abrirModalVideo(video.dataset.videoId, video); return; }
+    // Tanto o print quanto o botão "Toque para ampliar" abrem o print inteiro.
+    const print = e.target.closest("[data-ampliar]");
+    if (print) {
+      gatilhoLightbox = print;
+      const img = document.getElementById("dcLightboxImg");
+      img.src = print.dataset.ampliar;
+      img.alt = print.dataset.alt || (print.querySelector("img") || {}).alt || "";
+      lightboxDestaque.classList.add("aberto");
+      document.body.style.overflow = "hidden";
+      document.getElementById("dcLightboxFechar").focus();
+    }
   };
+  if (!lightboxDestaque.dataset.ligado) {
+    lightboxDestaque.dataset.ligado = "1";
+    lightboxDestaque.addEventListener("click", (e) => { if (e.target !== document.getElementById("dcLightboxImg")) fecharLightboxDestaque(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && lightboxDestaque.classList.contains("aberto")) fecharLightboxDestaque(); });
+
+    // Arrastar o dedo pro lado (celular) troca de case. Só conta gesto
+    // mais horizontal que vertical, pra não atrapalhar a rolagem da página.
+    let toqueX = null, toqueY = null;
+    caixaCase.addEventListener("touchstart", (e) => { toqueX = e.touches[0].clientX; toqueY = e.touches[0].clientY; }, { passive: true });
+    caixaCase.addEventListener("touchend", (e) => {
+      if (toqueX === null) return;
+      const dx = e.changedTouches[0].clientX - toqueX;
+      const dy = e.changedTouches[0].clientY - toqueY;
+      toqueX = toqueY = null;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) window._irParaDestaque(destaqueAtivo + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+  }
 
   // ---------- Portfólio: uma fileira por nicho, com setas estilo Netflix ----------
   document.getElementById("portfolioTag").textContent = CONFIG.portfolioTextos.tag;
