@@ -324,6 +324,8 @@ create table if not exists public.painel_ugc_trabalhos (
   etapa text not null default 'novo_lead',
   -- 'novo_lead' | 'briefing_recebido' | 'roteiro' | 'gravar' | 'editar' | 'entregue' | 'pago' | 'arquivado'
   briefing_url text,                    -- link do briefing (Drive, etc.)
+  briefing_texto text,                  -- texto do briefing colado direto (ver adicionar_briefing_texto_arquivos.sql)
+  briefing_arquivos jsonb not null default '[]'::jsonb, -- [{ url, nome }] no bucket documentos-juridicos/briefings
   roteiro_texto text,
   roteiro_aprovado boolean not null default false,
   edicao_aprovada boolean not null default false,

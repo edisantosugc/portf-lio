@@ -2081,6 +2081,22 @@
     flex: 1; font-family: 'Outfit', sans-serif; font-size: .82rem; padding: 8px 10px; border-radius: 9px;
     border: 1px solid var(--borda); background: var(--branco); color: var(--grafite);
   }
+  .ugc-briefing{ border: 1px solid var(--borda); border-radius: 12px; padding: 12px 14px; background: #faf8f6; display: flex; flex-direction: column; gap: 10px; }
+  .ugc-briefing .rotulo-briefing{ font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--texto-suave); }
+  .ugc-briefing-abas{ display: flex; gap: 6px; flex-wrap: wrap; }
+  .ugc-briefing-abas button{ flex: 1 1 120px; font-family: 'Outfit', sans-serif; font-size: .8rem; font-weight: 600; padding: 8px; border-radius: 10px; border: 1px solid var(--borda); background: var(--creme); color: var(--texto-suave); cursor: pointer; }
+  .ugc-briefing-abas button.ativo{ background: var(--coral); color: var(--branco); border-color: var(--coral); }
+  .ugc-briefing-coluna{ flex-direction: column; }
+  .ugc-briefing textarea{ width: 100%; min-height: 110px; resize: vertical; font-family: 'Outfit', sans-serif; font-size: .82rem; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--borda); background: var(--branco); color: var(--grafite); }
+  .ugc-briefing input[type="file"]{ flex: 1; min-width: 0; font-family: 'Outfit', sans-serif; font-size: .8rem; }
+  .ugc-briefing-salvos{ display: flex; flex-direction: column; gap: 8px; }
+  .ugc-briefing-salvo{ display: flex; align-items: center; gap: 10px; background: var(--branco); border: 1px solid var(--borda); border-radius: 10px; padding: 8px 12px; font-size: .82rem; }
+  .ugc-briefing-salvo .txt{ flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ugc-briefing-salvo.aberto{ align-items: flex-start; }
+  .ugc-briefing-salvo.aberto .txt{ white-space: pre-wrap; overflow: visible; }
+  .ugc-briefing-salvo a, .ugc-briefing-link{ color: var(--coral); font-weight: 600; text-decoration: none; font-size: .78rem; background: none; border: none; cursor: pointer; font-family: inherit; padding: 0; white-space: nowrap; }
+  .ugc-briefing-x{ background: none; border: none; color: var(--texto-suave); cursor: pointer; font-size: 1rem; line-height: 1; padding: 2px 4px; }
+  .ugc-briefing-x:hover{ color: var(--vermelho); }
   .ugc-chip-anexo{
     display: inline-flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--grafite);
     background: var(--branco); border: 1px solid var(--borda); border-radius: 9px; padding: 8px 12px; width: fit-content;
@@ -14846,9 +14862,7 @@ ${MODELO_PROPOSTA_HTML}`;
         return `
           <div class="ugc-detalhe-linha"><span class="rotulo">Origem</span><span class="ugc-chip-origem">${item.origem || "—"}</span></div>
           ${prazoLinha}
-          ${item.briefing_url
-            ? `<span class="ugc-chip-anexo">📎 <a href="${item.briefing_url}" target="_blank" rel="noopener">Ver briefing</a></span>`
-            : `<div class="ugc-input-briefing"><input type="text" placeholder="Cole o link do briefing" data-ugc-briefing-input="${item.id}"><button type="button" class="ugc-btn" data-acao="ugc-salvar-briefing" data-id="${item.id}">Salvar</button></div>`}
+          ${renderBriefingUgcHtml(item)}
           <button type="button" class="ugc-btn" data-acao="ugc-avancar" data-id="${item.id}">Avançar para Roteiro</button>
         `;
       case "roteiro":
@@ -14949,6 +14963,7 @@ ${MODELO_PROPOSTA_HTML}`;
         if (input && input.value.trim()) salvarBriefingUgc(btn.dataset.id, input.value.trim());
       });
     });
+    reatarEventosBriefingUgc(container);
     container.querySelectorAll("[data-ugc-roteiro]").forEach(area => {
       area.addEventListener("blur", () => salvarRoteiroUgc(area.dataset.ugcRoteiro, area.value));
     });
@@ -15340,6 +15355,109 @@ ${MODELO_PROPOSTA_HTML}`;
   async function salvarBriefingUgc(id, url){
     ugcAbertos.add(id);
     await atualizarTrabalhoUgc(id, { briefing_url: url });
+  }
+
+  // ---------- Briefing do trabalho: link, texto colado e arquivos anexados ----------
+  // Os três podem existir juntos. Arquivos vão pro bucket privado "documentos-juridicos"
+  // (pasta briefings/) e ficam listados em briefing_arquivos ([{ url, nome }]).
+  const ugcBriefingAba = new Map();      // id do trabalho -> "link" | "texto" | "arquivo"
+  const ugcBriefingTextoAberto = new Set();
+
+  function renderBriefingUgcHtml(item){
+    const aba = ugcBriefingAba.get(item.id) || "link";
+    const arquivos = Array.isArray(item.briefing_arquivos) ? item.briefing_arquivos : [];
+    const textoAberto = ugcBriefingTextoAberto.has(item.id);
+    const salvos = [];
+    if (item.briefing_url){
+      const href = /^https?:\/\//i.test(item.briefing_url) ? item.briefing_url : `https://${item.briefing_url}`;
+      salvos.push(`<div class="ugc-briefing-salvo"><span>🔗</span><span class="txt">${escaparHtmlMarcas(item.briefing_url)}</span><a href="${escaparHtmlMarcas(href).replace(/"/g, "&quot;")}" target="_blank" rel="noopener">abrir</a><button type="button" class="ugc-briefing-x" data-acao="ugc-briefing-remover" data-tipo="link" data-id="${item.id}" aria-label="Remover link">×</button></div>`);
+    }
+    if (item.briefing_texto){
+      salvos.push(`<div class="ugc-briefing-salvo${textoAberto ? " aberto" : ""}"><span>📝</span><span class="txt">${escaparHtmlMarcas(item.briefing_texto)}</span><button type="button" class="ugc-briefing-link" data-acao="ugc-briefing-ver-texto" data-id="${item.id}">${textoAberto ? "recolher" : "ver tudo"}</button><button type="button" class="ugc-briefing-x" data-acao="ugc-briefing-remover" data-tipo="texto" data-id="${item.id}" aria-label="Remover texto">×</button></div>`);
+    }
+    arquivos.forEach((a, i) => {
+      salvos.push(`<div class="ugc-briefing-salvo"><span>📎</span><span class="txt">${escaparHtmlMarcas(a.nome || "arquivo")}</span><button type="button" class="ugc-briefing-link" data-acao="ugc-briefing-abrir-arquivo" data-id="${item.id}" data-indice="${i}">abrir</button><button type="button" class="ugc-briefing-x" data-acao="ugc-briefing-remover" data-tipo="arquivo" data-indice="${i}" data-id="${item.id}" aria-label="Remover arquivo">×</button></div>`);
+    });
+
+    return `
+      <div class="ugc-briefing">
+        <span class="rotulo-briefing">Briefing</span>
+        <div class="ugc-briefing-abas">
+          <button type="button" class="${aba === "link" ? "ativo" : ""}" data-acao="ugc-briefing-aba" data-aba="link" data-id="${item.id}">🔗 Link</button>
+          <button type="button" class="${aba === "texto" ? "ativo" : ""}" data-acao="ugc-briefing-aba" data-aba="texto" data-id="${item.id}">📝 Colar texto</button>
+          <button type="button" class="${aba === "arquivo" ? "ativo" : ""}" data-acao="ugc-briefing-aba" data-aba="arquivo" data-id="${item.id}">📎 Anexar arquivo</button>
+        </div>
+        ${aba === "link" ? `
+          <div class="ugc-input-briefing"><input type="text" placeholder="Cole o link do briefing" data-ugc-briefing-input="${item.id}" value="${escaparHtmlMarcas(item.briefing_url || "").replace(/"/g, "&quot;")}"><button type="button" class="ugc-btn" data-acao="ugc-salvar-briefing" data-id="${item.id}">Salvar</button></div>` : ""}
+        ${aba === "texto" ? `
+          <div class="ugc-input-briefing ugc-briefing-coluna"><textarea placeholder="Cole aqui o texto do briefing que a marca mandou (e-mail, WhatsApp, documento...)" data-ugc-briefing-texto="${item.id}">${escaparHtmlMarcas(item.briefing_texto || "")}</textarea><button type="button" class="ugc-btn" data-acao="ugc-briefing-salvar-texto" data-id="${item.id}">Salvar texto</button></div>` : ""}
+        ${aba === "arquivo" ? `
+          <div class="ugc-input-briefing"><input type="file" data-ugc-briefing-arquivo="${item.id}"><button type="button" class="ugc-btn" data-acao="ugc-briefing-anexar" data-id="${item.id}">Anexar</button></div>` : ""}
+        ${salvos.length ? `<div class="ugc-briefing-salvos">${salvos.join("")}</div>` : ""}
+      </div>`;
+  }
+
+  function reatarEventosBriefingUgc(container){
+    container.querySelectorAll("[data-acao='ugc-briefing-aba']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        ugcBriefingAba.set(btn.dataset.id, btn.dataset.aba);
+        ugcAbertos.add(btn.dataset.id);
+        renderizarUgcCreator();
+      });
+    });
+    container.querySelectorAll("[data-acao='ugc-briefing-ver-texto']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        if (ugcBriefingTextoAberto.has(id)) ugcBriefingTextoAberto.delete(id); else ugcBriefingTextoAberto.add(id);
+        ugcAbertos.add(id);
+        renderizarUgcCreator();
+      });
+    });
+    container.querySelectorAll("[data-acao='ugc-briefing-salvar-texto']").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const area = container.querySelector(`[data-ugc-briefing-texto="${btn.dataset.id}"]`);
+        ugcAbertos.add(btn.dataset.id);
+        await atualizarTrabalhoUgc(btn.dataset.id, { briefing_texto: area.value.trim() || null });
+      });
+    });
+    container.querySelectorAll("[data-acao='ugc-briefing-anexar']").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const input = container.querySelector(`[data-ugc-briefing-arquivo="${btn.dataset.id}"]`);
+        const arquivo = input?.files?.[0];
+        if (!arquivo){ alert("Escolha um arquivo primeiro."); return; }
+        btn.disabled = true;
+        btn.textContent = "Enviando...";
+        const enviado = await enviarArquivoJuridico(arquivo, "briefings");
+        if (!enviado){ btn.disabled = false; btn.textContent = "Anexar"; return; }
+        const item = ugcCache.find(t => t.id === btn.dataset.id);
+        const lista = (Array.isArray(item?.briefing_arquivos) ? item.briefing_arquivos : []).concat([{ url: enviado.url, nome: enviado.nome }]);
+        ugcAbertos.add(btn.dataset.id);
+        await atualizarTrabalhoUgc(btn.dataset.id, { briefing_arquivos: lista });
+      });
+    });
+    container.querySelectorAll("[data-acao='ugc-briefing-abrir-arquivo']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const item = ugcCache.find(t => t.id === btn.dataset.id);
+        const arq = (item?.briefing_arquivos || [])[Number(btn.dataset.indice)];
+        if (arq) abrirArquivoJuridico(arq.url);
+      });
+    });
+    container.querySelectorAll("[data-acao='ugc-briefing-remover']").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        const item = ugcCache.find(t => t.id === id);
+        if (!item) return;
+        const nomes = { link: "o link do briefing", texto: "o texto do briefing", arquivo: "esse arquivo" };
+        if (!confirm(`Remover ${nomes[btn.dataset.tipo]}?`)) return;
+        ugcAbertos.add(id);
+        if (btn.dataset.tipo === "link") return atualizarTrabalhoUgc(id, { briefing_url: null });
+        if (btn.dataset.tipo === "texto") return atualizarTrabalhoUgc(id, { briefing_texto: null });
+        const lista = (item.briefing_arquivos || []).slice();
+        const [removido] = lista.splice(Number(btn.dataset.indice), 1);
+        const ok = await atualizarTrabalhoUgc(id, { briefing_arquivos: lista });
+        if (ok && removido?.url) Auth.client.storage.from("documentos-juridicos").remove([removido.url]);
+      });
+    });
   }
 
   // Garante que existe (ou atualiza) UM lançamento em negocio_lancamentos pra esse trabalho,
