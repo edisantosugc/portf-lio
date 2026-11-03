@@ -1511,6 +1511,26 @@
   .financas-total-cartao.pago .financas-total-toggle-pago{ color: var(--verde); text-transform: uppercase; letter-spacing: .03em; }
 
   .tabela-lancamentos{ width: 100%; border-collapse: collapse; font-size: .85rem; }
+  .conferencia-topo{ display: flex; justify-content: flex-end; margin: 4px 0 10px; }
+  .botao-conferir-fatura{ font-family: 'Outfit', sans-serif; font-size: .82rem; font-weight: 700; padding: 8px 16px; border-radius: 10px; border: 2px solid var(--coral); background: var(--branco); color: var(--coral); cursor: pointer; }
+  .botao-conferir-fatura.ativo{ background: var(--coral); color: var(--branco); }
+  .conferencia-barra{ display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; background: var(--creme); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; font-size: .84rem; }
+  .conferencia-progresso{ flex: 1 1 240px; }
+  .conferencia-trilho{ height: 8px; background: #e4ddd6; border-radius: 50px; overflow: hidden; margin-top: 6px; }
+  .conferencia-enche{ height: 100%; background: var(--verde); transition: width .3s; }
+  .conferencia-banco{ display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .conferencia-banco input{ width: 110px; font-family: 'Outfit', sans-serif; font-size: .84rem; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--borda); background: var(--branco); }
+  .conferencia-dif{ font-weight: 700; }
+  .conferencia-dif.ok{ color: var(--verde); }
+  .conferencia-dif.nao{ color: var(--vermelho); }
+  .conferencia-acoes{ display: flex; gap: 8px; }
+  .botao-conferencia-sec, .botao-conferencia-pri{ font-family: 'Outfit', sans-serif; font-size: .78rem; font-weight: 600; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--coral); cursor: pointer; }
+  .botao-conferencia-sec{ background: var(--branco); color: var(--coral); }
+  .botao-conferencia-pri{ background: var(--coral); color: var(--branco); }
+  .valor-com-conferencia{ display: inline-flex; align-items: center; gap: 10px; }
+  .botao-conferido{ width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%; border: 2px solid var(--borda); background: var(--branco); color: var(--branco); font-size: .75rem; font-weight: 700; cursor: pointer; padding: 0; line-height: 1; }
+  .botao-conferido.ok{ background: var(--verde); border-color: var(--verde); }
+  .tabela-lancamentos tr.linha-conferida td{ background: rgba(45,122,79,.06); }
   .tabela-lancamentos th{
     text-align: left;
     padding: 8px 10px;
@@ -12993,12 +13013,12 @@ ${MODELO_PROPOSTA_HTML}`;
   function htmlCorpoTabelaExtrato(lista){
     if (lista.length === 0) return `<tr><td colspan="6" class="texto-vazio" style="text-align:center;">Nenhum lançamento para esse filtro.</td></tr>`;
     return lista.map(l => `
-      <tr data-id="${l.id}">
+      <tr data-id="${l.id}" class="${conferenciaFaturaAtiva && l.conferido ? "linha-conferida" : ""}">
         <td>${formatarDataCurta(l.data_compra || l.data)}</td>
         <td class="dado-sensivel">${igEscaparHtml(l.descricao)}${l.parcela_atual ? ` <span style="color:var(--texto-suave);">(${l.parcela_atual}/${l.parcela_total})</span>` : ""}</td>
         <td>${l.cartao || "-"}</td>
         <td><span class="selo-pessoa">${l.pessoa || "-"}</span></td>
-        <td class="dado-sensivel">${formatarMoeda(l.valor)}</td>
+        <td class="dado-sensivel"><span class="valor-com-conferencia">${conferenciaFaturaAtiva ? `<button type="button" class="botao-conferido ${l.conferido ? "ok" : ""}" data-acao="conferir" aria-label="${l.conferido ? "Desmarcar conferido" : "Marcar como conferido"}">${l.conferido ? "✓" : ""}</button>` : ""}${formatarMoeda(l.valor)}</span></td>
         <td>
           <button type="button" class="lancamento-editar" data-acao="editar" aria-label="Editar lançamento">&#9998;</button>
           <button type="button" class="lancamento-excluir" data-acao="excluir" aria-label="Excluir lançamento">&times;</button>
@@ -13008,6 +13028,9 @@ ${MODELO_PROPOSTA_HTML}`;
   }
 
   function conectarLinhasTabelaExtrato(areaTabela){
+    areaTabela.querySelectorAll("[data-acao='conferir']").forEach(btn => {
+      btn.addEventListener("click", () => alternarConferidoLancamento(btn.closest("tr").dataset.id, areaTabela));
+    });
     areaTabela.querySelectorAll("[data-acao='excluir']").forEach(btn => {
       btn.addEventListener("click", () => {
         const id = btn.closest("tr").dataset.id;
@@ -13044,6 +13067,8 @@ ${MODELO_PROPOSTA_HTML}`;
     else if (novasPilulas) areaTabela.insertAdjacentHTML("afterbegin", novasPilulas);
 
     areaTabela.querySelector("tbody").innerHTML = htmlCorpoTabelaExtrato(lista);
+    listaConferenciaAtual = lista;
+    atualizarBarraConferencia(areaTabela);
     areaTabela.querySelector(".resumo-linha.destaque").innerHTML = `
       <span>Total do extrato (${lista.length} lançamento${lista.length === 1 ? "" : "s"})</span>
       <strong>${formatarMoeda(lista.reduce((soma, l) => soma + Number(l.valor), 0))}</strong>
@@ -13053,6 +13078,117 @@ ${MODELO_PROPOSTA_HTML}`;
     conectarPilulasExtrato(areaTabela, listaBase);
   }
 
+  // ---------- Conferência da fatura ----------
+  // Modo em que cada lançamento ganha um ✓ ao lado do valor, pra ela conferir linha por
+  // linha com o app do banco. O ✓ fica salvo no lançamento (coluna "conferido"), então dá
+  // pra parar no meio e continuar em outro aparelho. O total do banco é só pra comparar
+  // na hora (não é salvo).
+  let conferenciaFaturaAtiva = false;
+  let listaConferenciaAtual = [];
+  const totalBancoConferencia = new Map(); // "cartão-ano-mês" -> texto digitado
+
+  function chaveConferenciaAtual(){
+    return `${listaConferenciaAtual[0]?.cartao || ""}-${anoFinancasVisivel}-${mesFinancasVisivel}`;
+  }
+
+  function htmlBarraConferencia(lista){
+    listaConferenciaAtual = lista;
+    const botao = `<div class="conferencia-topo"><button type="button" class="botao-conferir-fatura ${conferenciaFaturaAtiva ? "ativo" : ""}" id="btnConferirFatura">✓ Conferir fatura</button></div>`;
+    if (!conferenciaFaturaAtiva) return botao;
+    return botao + `<div class="conferencia-barra" id="barraConferencia">${htmlConteudoBarraConferencia()}</div>`;
+  }
+
+  function htmlConteudoBarraConferencia(){
+    const lista = listaConferenciaAtual;
+    const conferidos = lista.filter(l => l.conferido);
+    const total = lista.reduce((soma, l) => soma + Number(l.valor || 0), 0);
+    const totalConferido = conferidos.reduce((soma, l) => soma + Number(l.valor || 0), 0);
+    const pct = lista.length ? Math.round(conferidos.length / lista.length * 100) : 0;
+    const textoBanco = totalBancoConferencia.get(chaveConferenciaAtual()) || "";
+    const valorBanco = desformatarValorCampo(textoBanco);
+    let diferenca = "";
+    if (!isNaN(valorBanco)){
+      const dif = Math.round((valorBanco - total) * 100) / 100;
+      diferenca = dif === 0
+        ? `<span class="conferencia-dif ok">✓ bate!</span>`
+        : `<span class="conferencia-dif nao">diferença de ${formatarMoeda(Math.abs(dif))} (${dif > 0 ? "banco maior" : "painel maior"})</span>`;
+    }
+    return `
+      <div class="conferencia-progresso">
+        <b>${conferidos.length} de ${lista.length} conferido${lista.length === 1 ? "" : "s"}</b> · <span class="dado-sensivel">${formatarMoeda(totalConferido)} de ${formatarMoeda(total)}</span>
+        <div class="conferencia-trilho"><div class="conferencia-enche" style="width:${pct}%"></div></div>
+      </div>
+      <label class="conferencia-banco">Total no app do banco:
+        <input type="text" inputmode="decimal" id="conferenciaTotalBanco" placeholder="0,00" value="${igEscaparHtml(textoBanco)}">
+        <span id="conferenciaDiferenca">${diferenca}</span>
+      </label>
+      <div class="conferencia-acoes">
+        <button type="button" class="botao-conferencia-sec" id="btnDesmarcarConferencia">Desmarcar tudo</button>
+        <button type="button" class="botao-conferencia-pri" id="btnTerminarConferencia">Terminar conferência</button>
+      </div>`;
+  }
+
+  function atualizarBarraConferencia(areaTabela){
+    const barra = areaTabela.querySelector("#barraConferencia");
+    if (!barra) return;
+    barra.innerHTML = htmlConteudoBarraConferencia();
+    conectarBarraConferencia(areaTabela);
+  }
+
+  function conectarBarraConferencia(areaTabela){
+    areaTabela.querySelector("#btnConferirFatura")?.addEventListener("click", () => {
+      conferenciaFaturaAtiva = !conferenciaFaturaAtiva;
+      renderizarFinancas();
+    });
+    const campoBanco = areaTabela.querySelector("#conferenciaTotalBanco");
+    if (campoBanco){
+      campoBanco.addEventListener("input", () => {
+        totalBancoConferencia.set(chaveConferenciaAtual(), campoBanco.value);
+        const total = listaConferenciaAtual.reduce((soma, l) => soma + Number(l.valor || 0), 0);
+        const valorBanco = desformatarValorCampo(campoBanco.value);
+        const alvo = areaTabela.querySelector("#conferenciaDiferenca");
+        if (isNaN(valorBanco)){ alvo.innerHTML = ""; return; }
+        const dif = Math.round((valorBanco - total) * 100) / 100;
+        alvo.innerHTML = dif === 0
+          ? `<span class="conferencia-dif ok">✓ bate!</span>`
+          : `<span class="conferencia-dif nao">diferença de ${formatarMoeda(Math.abs(dif))} (${dif > 0 ? "banco maior" : "painel maior"})</span>`;
+      });
+    }
+    areaTabela.querySelector("#btnTerminarConferencia")?.addEventListener("click", () => {
+      conferenciaFaturaAtiva = false;
+      renderizarFinancas();
+    });
+    areaTabela.querySelector("#btnDesmarcarConferencia")?.addEventListener("click", async () => {
+      const ids = listaConferenciaAtual.filter(l => l.conferido).map(l => l.id);
+      if (!ids.length) return;
+      if (!confirm(`Desmarcar os ${ids.length} lançamentos conferidos desta lista?`)) return;
+      const { error } = await Auth.client.from("financas_lancamentos").update({ conferido: false }).in("id", ids);
+      if (error){ alert("Não deu pra desmarcar agora. Tenta de novo."); return; }
+      lancamentosCache.forEach(l => { if (ids.includes(l.id)) l.conferido = false; });
+      renderizarFinancas();
+    });
+  }
+
+  async function alternarConferidoLancamento(id, areaTabela){
+    const lancamento = lancamentosCache.find(l => l.id === id);
+    if (!lancamento) return;
+    const novo = !lancamento.conferido;
+    lancamento.conferido = novo; // otimista: marca na hora
+    const linha = areaTabela.querySelector(`tr[data-id="${id}"]`);
+    const botao = linha?.querySelector("[data-acao='conferir']");
+    if (linha) linha.classList.toggle("linha-conferida", novo);
+    if (botao){ botao.classList.toggle("ok", novo); botao.textContent = novo ? "✓" : ""; }
+    atualizarBarraConferencia(areaTabela);
+    const { error } = await Auth.client.from("financas_lancamentos").update({ conferido: novo }).eq("id", id);
+    if (error){
+      lancamento.conferido = !novo;
+      if (linha) linha.classList.toggle("linha-conferida", !novo);
+      if (botao){ botao.classList.toggle("ok", !novo); botao.textContent = !novo ? "✓" : ""; }
+      atualizarBarraConferencia(areaTabela);
+      alert("Não deu pra salvar o ✓ agora. Tenta de novo.");
+    }
+  }
+
   function renderizarTabelaLancamentos(listaBase){
     const areaTabela = document.getElementById("areaTabelaLancamentos");
     const lista = calcularListaExtrato(listaBase);
@@ -13060,6 +13196,7 @@ ${MODELO_PROPOSTA_HTML}`;
     popoverExtratoAberto = null;
 
     areaTabela.innerHTML = `
+      ${htmlBarraConferencia(lista)}
       ${htmlPilulasExtrato()}
       <table class="tabela-lancamentos">
         <thead>
@@ -13082,6 +13219,7 @@ ${MODELO_PROPOSTA_HTML}`;
 
     conectarLinhasTabelaExtrato(areaTabela);
     conectarPilulasExtrato(areaTabela, listaBase);
+    conectarBarraConferencia(areaTabela);
 
     areaTabela.querySelectorAll(".abrir-filtro-extrato").forEach(btn => {
       btn.addEventListener("click", (ev) => {
