@@ -299,7 +299,7 @@
   // 4. Banco de mentira (substitui o Supabase)
   // ---------------------------------------------------------------------------
   const CHAVE_BANCO = "banco";
-  const VERSAO_DADOS = "3";
+  const VERSAO_DADOS = "4";
   const hojeISO = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; })();
   let banco = null;
 
@@ -560,6 +560,50 @@
       caixa.textContent = (erros.length ? erros.join("\n") : "SEM ERROS") + `\nsessão real dentro da demo: ${sessaoReal} | sessão real guardada: ${realIntacta}`;
       document.body.appendChild(caixa);
     }, Number(parametros.get("debug")) || 6000);
+  }
+
+  // Avisos do painel: na demo NÃO aparecem sozinhos ao abrir (atrapalha a apresentação).
+  // Ficam guardados num sininho ao lado do olho; ela clica quando quiser mostrar.
+  {
+    const estiloSino = document.createElement("style");
+    estiloSino.textContent = `
+      body:not(.demo-ver-avisos) #areaNotificacoesPopup{ display: none !important; }
+      .demo-sino{ position: relative; margin-left: auto; margin-right: 8px; }
+      .demo-sino svg{ width: 18px; height: 18px; }
+      .demo-sino .demo-sino-ponto{ position: absolute; top: 4px; right: 5px; width: 9px; height: 9px; border-radius: 50%; background: #C4453C; border: 2px solid #fff; display: none; }
+      .demo-sino.tem-aviso .demo-sino-ponto{ display: block; }
+      .sidebar-topo .sidebar-marca + .demo-sino{ margin-left: auto; }
+    `;
+    (document.head || document.documentElement).appendChild(estiloSino);
+    const SVG_SINO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="demo-sino-ponto"></span>';
+    document.addEventListener("DOMContentLoaded", () => {
+      const area = document.getElementById("areaNotificacoesPopup");
+      if (!area) return;
+      const sinos = [];
+      [document.getElementById("botaoModoOculto"), document.getElementById("botaoModoOcultoMobile")].forEach(olho => {
+        if (!olho) return;
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = olho.className + " demo-sino";
+        b.title = "Ver notificações";
+        b.setAttribute("aria-label", "Ver notificações");
+        b.innerHTML = SVG_SINO;
+        b.addEventListener("click", () => document.body.classList.add("demo-ver-avisos"));
+        olho.parentNode.insertBefore(b, olho);
+        sinos.push(b);
+      });
+      const atualizar = () => {
+        const tem = area.children.length > 0;
+        sinos.forEach(b => b.classList.toggle("tem-aviso", tem));
+        if (!tem) document.body.classList.remove("demo-ver-avisos");
+      };
+      new MutationObserver(atualizar).observe(area, { childList: true });
+      // Depois de responder um aviso, o próximo fica guardado no sininho (não pula na tela)
+      area.addEventListener("click", (ev) => {
+        if (ev.target.closest("button")) setTimeout(() => document.body.classList.remove("demo-ver-avisos"), 0);
+      });
+      atualizar();
+    });
   }
 
   // Testes: ?aba=financas (abre direto uma aba do painel) e ?clicar=seletor (clica em algo)

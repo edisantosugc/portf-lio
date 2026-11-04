@@ -85,6 +85,13 @@
     height: 100vh;
     overflow-y: auto;
   }
+  /* Pedido dela: no computador o painel fica em 80% (como o zoom 80% do navegador).
+     Com zoom, "100vh" encolhe junto — por isso a altura cheia vira 100vh / 0.8. */
+  @media (min-width: 900px){
+    html{ zoom: .8; }
+    .app{ min-height: 125vh; }
+    .sidebar{ height: 125vh; }
+  }
   .sidebar-topo{
     display: flex;
     align-items: center;
@@ -419,6 +426,12 @@
     padding: 4px;
   }
   .notificacao-popup-fechar:hover{ color: var(--grafite); }
+  /* Faixa azul no topo dizendo de onde veio o aviso (ex.: Pix → Portal do Colaborador) */
+  .notificacao-popup-origem{
+    margin: -14px -34px 10px -16px; padding: 7px 34px 7px 16px; border-radius: 0 11px 0 0;
+    background: var(--coral); color: #fff; font-size: .74rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  }
+  .notificacao-popup-origem + .notificacao-popup-fechar{ color: #fff; top: 3px; }
   .notificacao-popup-corpo.clicavel{ cursor: pointer; border-radius: 8px; margin: -4px; padding: 4px; }
   .notificacao-popup-corpo.clicavel:hover{ background: var(--creme); }
   .notificacao-popup-nome{ font-weight: 600; font-size: .9rem; padding-right: 10px; }
@@ -11591,15 +11604,19 @@ ${MODELO_PROPOSTA_HTML}`;
   // couber embaixo (botão perto do fim da tela), abre pra CIMA em vez de embaixo, pra
   // sempre aparecer inteiro, mesmo numa página curta sem espaço pra rolar até ele.
   function posicionarDropdownFiltro(painel, botaoEl){
-    const rectBotao = botaoEl.getBoundingClientRect();
+    // Com o zoom de 80% do computador, a posição medida na tela precisa ser convertida.
+    const z = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+    const r = botaoEl.getBoundingClientRect();
+    const rectBotao = { top: r.top / z, bottom: r.bottom / z, right: r.right / z };
+    const alturaTela = window.innerHeight / z, larguraTela = window.innerWidth / z;
     const larguraPainel = painel.offsetWidth || 220;
     const alturaPainel = painel.offsetHeight || 260;
-    const espacoAbaixo = window.innerHeight - rectBotao.bottom;
+    const espacoAbaixo = alturaTela - rectBotao.bottom;
 
     painel.style.top = espacoAbaixo >= alturaPainel + 8
       ? (rectBotao.bottom + 4) + "px"
       : Math.max(8, rectBotao.top - alturaPainel - 4) + "px";
-    painel.style.left = Math.max(8, Math.min(rectBotao.right - larguraPainel, window.innerWidth - larguraPainel - 8)) + "px";
+    painel.style.left = Math.max(8, Math.min(rectBotao.right - larguraPainel, larguraTela - larguraPainel - 8)) + "px";
   }
 
   function abrirFiltroColunaLinks(campo, botaoEl){
@@ -14209,6 +14226,7 @@ ${MODELO_PROPOSTA_HTML}`;
     },
     {
       grupo: "pix-gustavo",
+      origem: "Portal do Colaborador",
       obter: obterPixGustavoPendentes,
       rotulo: (n) => n === 1 ? "Pix registrado pelo Gustavo" : "Pix registrados pelo Gustavo",
       // Mostra valor e data direto no título — só uma contagem genérica não ajuda
@@ -14327,6 +14345,7 @@ ${MODELO_PROPOSTA_HTML}`;
 
     container.innerHTML = `
       <div class="notificacao-popup${config.grupo === "financas" && itens.some(i => i.diasParaVencer < 0) ? " atrasado" : ""}" data-grupo="${config.grupo}">
+        ${config.origem ? `<div class="notificacao-popup-origem">${config.origem}</div>` : ""}
         <button type="button" class="notificacao-popup-fechar" data-acao="fechar-notificacao" aria-label="Fechar aviso">&times;</button>
         <div class="notificacao-popup-corpo">
           <p class="notificacao-popup-nome dado-sensivel">${titulo}</p>

@@ -254,7 +254,7 @@
      ["Pedro Sales", "Garra Pet", "Até R$ 1.000", "Adoramos o vídeo com o cachorrinho! Queremos algo parecido."],
      ["Aline Freitas", "Bossa Bags", "R$ 1.000 a R$ 2.000", "Oi! Tem disponibilidade pra gravar ainda esse mês?"]].forEach(([name, brand, budget, message], i) => add("portfolio_leads", {
       id: uuid(), name, email: `${slug(name.split(" ")[0])}@${slug(brand)}.com.br`, phone: `(11) 9${7100 + i * 91}-${2200 + i * 77}`, brand, budget, message,
-      source: "portfolio", lida: i > 1, created_at: momento(-i * 3, 11 + i, 20)
+      source: "portfolio", lida: true, created_at: momento(-i * 3, 11 + i, 20)
     }));
     [["Juliana Prado", "juliana@auroraskin.com.br"], ["Thiago Mendes", "(11) 99812-3344"], ["Larissa Gomes", "larissa@leveFitness.com.br"]].forEach(([nome, contato], i) => add("painel_briefing_respostas", {
       id: uuid(), nome, contato, lida: i > 0, created_at: momento(-i * 4 - 1, 14),
