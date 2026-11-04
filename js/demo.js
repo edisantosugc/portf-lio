@@ -79,7 +79,7 @@
   // 2. Identidade fictícia
   // ---------------------------------------------------------------------------
   const PERFIL = {
-    nome: "Bia Valença", nomeCurto: "Bia", usuario: "bia.valenca", arroba: "@biavalenca.ugc",
+    nome: "Bia Valença", nomeCurto: "Bia", usuario: "seu.nome", arroba: "@biavalenca.ugc",
     email: "contato@biavalenca.com.br", site: "biavalenca.com.br",
     colaborador: "example70", colaboradorCompleto: "example70"
   };
@@ -94,6 +94,7 @@
     [/Edilaine Santos/g, PERFIL.nome],
     [/EDILAINE SANTOS/g, PERFIL.nome.toUpperCase()],
     [/EDILAINE/g, "BIA"],
+    [/Oiee Edi!!/g, "Oiee (SEU NOME AQUI)!!"],   // pedido dela: saudação da demo sem nome
     [/Edilaine/g, PERFIL.nomeCurto],
     [/(?<![\wÀ-ÿ])Diih(?![\wÀ-ÿ])/g, PERFIL.nomeCurto],
     [/(?<![\wÀ-ÿ])Edi(?![\wÀ-ÿ])/g, PERFIL.nomeCurto],
@@ -161,7 +162,7 @@
     base.querySelectorAll(".logo, .marca-logo, h1, h2, .nome").forEach(el => {
       if (el.children.length > 3) return;
       const t = (el.textContent || "").trim();
-      if (/^edi\.santos$/i.test(t)) el.innerHTML = 'bia<span class="ponto">.</span>valenca';
+      if (/^edi\.santos$/i.test(t)) el.innerHTML = 'seu<span class="ponto">.</span>nome';
     });
   }
 
