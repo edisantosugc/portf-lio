@@ -266,6 +266,10 @@
   .secao-gaveta.aberta .cursor-clique svg{ animation: none; opacity: .55; }
   .secao-gaveta.aberta .cursor-clique .onda{ display: none; }
 </style>
+<!-- Modo demonstração (/demo): só liga dentro da demo; fora dela não faz nada. Ver js/demo.js -->
+<script src="/js/demo.js"></script>
+<script src="/js/demo-dados.js"></script>
+<script src="/js/demo-sites.js"></script>
 </head>
 <body>
 
@@ -356,6 +360,8 @@ const SECOES_BIOSITE = [
     ]
   }
 ];
+// Demonstração (edilainesantos.com/demo): troca por conteúdo fictício. Fora da demo não faz nada.
+if (window.EDI_DEMO && window.EDI_DEMO.ajustarBiosite) window.EDI_DEMO.ajustarBiosite(PERFIL_BIOSITE, SECOES_BIOSITE);
 
 const ICONES_SVG = {
   email: '<svg viewBox="0 0 16 16"><path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555ZM0 4.697v7.104l5.803-3.558L0 4.697ZM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.026L8 9.586l-1.239-.757Zm3.436-.586L16 11.801V4.697l-5.803 3.546Z"/></svg>',

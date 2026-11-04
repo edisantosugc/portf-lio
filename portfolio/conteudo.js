@@ -727,3 +727,6 @@ const CONFIG_EN = {
     copyrightTexto: "All rights reserved."
   }
 };
+
+// Demonstração (edilainesantos.com/demo): troca por conteúdo fictício. Fora da demo não faz nada.
+if (window.EDI_DEMO && window.EDI_DEMO.ajustarPortfolio) window.EDI_DEMO.ajustarPortfolio(CONFIG_PT, CONFIG_EN);
