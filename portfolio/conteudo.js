@@ -153,7 +153,8 @@ const CONFIG_PT = {
     //   resultados  -> frases em destaque (aparecem em MAIÚSCULAS e negrito)
     //   metricas    -> números escritos em caixinhas com ícone. Ícones:
     //                  "visualizacoes", "curtidas", "compartilhamentos",
-    //                  "salvamentos", "comentarios", "republicacoes", "alcance".
+    //                  "salvamentos", "comentarios", "republicacoes", "alcance",
+    //                  "seguidores".
     //                  Caixinha com numero "" não aparece.
     //   print       -> print de feedback (abre inteiro ao clicar):
     //                  imagem            = caminho do arquivo do print
@@ -202,13 +203,18 @@ const CONFIG_PT = {
         depoimento: { texto: "", autor: "" }
       },
       {
-        etiqueta: "Condor · Esponja Limpeza Extrema",
-        videoId: "sldWgcR84co",
-        linkPerfil: "https://www.instagram.com/p/DbBNcrWhktg/",
-        titulo: "Um dos Meus Favoritos",
-        texto: "Criativo para a Condor, uma das marcas mais conhecidas de produtos de limpeza do Brasil. No vídeo, eu esfrego a panela com uma esponja comum e a sujeira não sai; cansada, pego a Esponja Limpeza Extrema e a sujeira sai muito mais rápido.",
-        resultados: ["Problema x solução na prática"],
-        metricas: [],
+        etiqueta: "Condor · Mop e Rolo Tira Pelos · Anúncio",
+        videoId: "rjblZsgruDA",
+        linkPerfil: "https://www.instagram.com/p/Dbn1foGBojB/",
+        titulo: "Alta Performance em Anúncio",
+        texto: "Vídeo **veiculado como anúncio**, com o Theo como protagonista. Mais de **2 milhões de visualizações**, e **98% das interações vieram de pessoas novas**, fora da minha base de seguidores.",
+        resultados: ["2 milhões de visualizações", "1,7 milhão de contas alcançadas", "140 novos seguidores"],
+        metricas: [
+          { icone: "visualizacoes", numero: "2.015.880", rotulo: "visualizações" },
+          { icone: "alcance", numero: "1.738.591", rotulo: "contas alcançadas" },
+          { icone: "curtidas", numero: "891", rotulo: "interações" },
+          { icone: "seguidores", numero: "140", rotulo: "novos seguidores" }
+        ],
         print: null,
         depoimento: { texto: "", autor: "" }
       }
@@ -244,7 +250,7 @@ const CONFIG_PT = {
     // Rap 10 (Jme4EkWP1oY) retirado: não consta no VÍDEOS.docx
 
     // Casa e Decoração
-    { marca: "Condor", titulo: "Storytelling – Mop PVA e rolo de tirar pelo", categoria: "Casa e Decoração", gradiente: "grad-5", videoId: "rjblZsgruDA" },
+    { marca: "Condor", titulo: "Depoimento – Esponja limpeza extrema", categoria: "Casa e Decoração", gradiente: "grad-5", videoId: "sldWgcR84co" },
     { marca: "Eletrolux", titulo: "Educativo – Refil filtro purificador de água", categoria: "Casa e Decoração", gradiente: "grad-6", videoId: "e6SAuK22QwM" },
     { marca: "Shopee", titulo: "Marketplace – Capa de colchão impermeável", categoria: "Casa e Decoração", gradiente: "grad-1", videoId: "AbXbrKyfHcQ" },
     { marca: "Shein", titulo: "Marketplace – Jogo de cama", categoria: "Casa e Decoração", gradiente: "grad-2", videoId: "vSGOS-KIKUE" },
@@ -553,13 +559,18 @@ const CONFIG_EN = {
         depoimento: { texto: "", autor: "" }
       },
       {
-        etiqueta: "Condor · Extreme Clean Sponge",
-        videoId: "sldWgcR84co",
-        linkPerfil: "https://www.instagram.com/p/DbBNcrWhktg/",
-        titulo: "One of My Favorites",
-        texto: "Creative for Condor, one of the best-known cleaning product brands in Brazil. In the video, I scrub the pan with a regular sponge and the grime won't come off; tired, I grab the Extreme Clean Sponge and the grime comes off much faster.",
-        resultados: ["Problem x solution in practice"],
-        metricas: [],
+        etiqueta: "Condor · Mop and Lint Roller · Ad",
+        videoId: "rjblZsgruDA",
+        linkPerfil: "https://www.instagram.com/p/Dbn1foGBojB/",
+        titulo: "High Performance in Ads",
+        texto: "Video **run as an ad**, starring Theo. Over **2 million views**, and **98% of interactions came from new people**, outside my follower base.",
+        resultados: ["2 million views", "1.7 million accounts reached", "140 new followers"],
+        metricas: [
+          { icone: "visualizacoes", numero: "2,015,880", rotulo: "views" },
+          { icone: "alcance", numero: "1,738,591", rotulo: "accounts reached" },
+          { icone: "curtidas", numero: "891", rotulo: "interactions" },
+          { icone: "seguidores", numero: "140", rotulo: "new followers" }
+        ],
         print: null,
         depoimento: { texto: "", autor: "" }
       }
@@ -588,7 +599,7 @@ const CONFIG_EN = {
     { marca: "Max Titanium", titulo: "Testimonial – Whey drink", categoria: "Health & Wellness", gradiente: "grad-1", videoId: "KbJBIB5RHCI" },
 
     // Home & Decor
-    { marca: "Condor", titulo: "Storytelling – PVA mop and lint roller", categoria: "Home & Decor", gradiente: "grad-5", videoId: "rjblZsgruDA" },
+    { marca: "Condor", titulo: "Testimonial – Extreme clean sponge", categoria: "Home & Decor", gradiente: "grad-5", videoId: "sldWgcR84co" },
     { marca: "Eletrolux", titulo: "Educational – Water filter refill", categoria: "Home & Decor", gradiente: "grad-6", videoId: "e6SAuK22QwM" },
     { marca: "Shopee", titulo: "Marketplace – Waterproof mattress cover", categoria: "Home & Decor", gradiente: "grad-1", videoId: "AbXbrKyfHcQ" },
     { marca: "Shein", titulo: "Marketplace – Bedding set", categoria: "Home & Decor", gradiente: "grad-2", videoId: "vSGOS-KIKUE" },
