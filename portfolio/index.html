@@ -1852,7 +1852,25 @@ function renderizarConteudo(inicial){
   const escDestaque = (t) => String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   // **texto** no conteudo.js vira negrito.
   const negritoDestaque = (t) => escDestaque(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  const miniaturaYoutube = (id) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  // Mesma capa original das fileiras do Portfólio: tenta a maxresdefault (nítida) e, se o
+  // vídeo não tiver essa versão (o YouTube devolve uma imagem cinza de 120x90), fica a hqdefault.
+  const capasAltasDestaque = {};
+  const capaMaxres = (id) => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
+  const miniaturaYoutube = (id) => capasAltasDestaque[id] ? capaMaxres(id) : `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  function trocarCapasAltasDestaque(raiz){
+    raiz.querySelectorAll("[data-capa-id]").forEach(el => {
+      const id = el.dataset.capaId;
+      if (id in capasAltasDestaque) return;
+      capasAltasDestaque[id] = false;
+      const img = new Image();
+      img.onload = () => {
+        if (img.naturalWidth <= 120) return;
+        capasAltasDestaque[id] = true;
+        document.querySelectorAll(`#destaques [data-capa-id="${id}"]`).forEach(e => { e.style.backgroundImage = `url('${capaMaxres(id)}')`; });
+      };
+      img.src = capaMaxres(id);
+    });
+  }
 
   // Provas do case: métricas, print e depoimento — cada uma só aparece se
   // estiver preenchida no conteudo.js (vazio não deixa buraco no layout).
@@ -1903,14 +1921,14 @@ function renderizarConteudo(inicial){
     const vizinhoA = total > 1 ? casesDestaque[(i + 1) % total] : null;
     const vizinhoB = total > 2 ? casesDestaque[(i - 1 + total) % total] : vizinhoA;
     const fundo = (v, cls) => v && v.videoId
-      ? `<div class="dc-pilha-fundo ${cls}" style="background-image:url('${miniaturaYoutube(v.videoId)}');" aria-hidden="true"></div>` : "";
+      ? `<div class="dc-pilha-fundo ${cls}" data-capa-id="${escDestaque(v.videoId)}" style="background-image:url('${miniaturaYoutube(v.videoId)}');" aria-hidden="true"></div>` : "";
     const textoPerfil = idiomaAtual === "en" ? "See it on my profile" : "Ver no meu perfil";
     return `
       <div class="dc-video-col">
         <div class="dc-pilha">
           ${fundo(vizinhoB, "f1")}${fundo(vizinhoA, "f2")}
           <button type="button" class="dc-video" data-video-id="${escDestaque(c.videoId)}" aria-label="${idiomaAtual === "en" ? "Play video" : "Assistir vídeo"}: ${escDestaque(c.titulo)}">
-            ${c.videoId ? `<div class="foto-real" style="background-image:url('${miniaturaYoutube(c.videoId)}');"></div>` : ""}
+            ${c.videoId ? `<div class="foto-real" data-capa-id="${escDestaque(c.videoId)}" style="background-image:url('${miniaturaYoutube(c.videoId)}');"></div>` : ""}
             <span class="play-botao" aria-hidden="true"></span>
           </button>
         </div>
@@ -1931,6 +1949,7 @@ function renderizarConteudo(inicial){
     if (!total) return;
     caixaCase.innerHTML = construirCaseDestaque(casesDestaque[destaqueAtivo], destaqueAtivo);
     caixaCase.querySelectorAll(".dc-prova-print img").forEach(posicionarPrintDestaque);
+    trocarCapasAltasDestaque(caixaCase);
     const dois = n => String(n).padStart(2, "0");
     document.getElementById("dcContador").textContent = `${dois(destaqueAtivo + 1)} / ${dois(total)}`;
     document.getElementById("destaquesPontos").innerHTML = casesDestaque.map((c, i) => `
