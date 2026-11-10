@@ -191,8 +191,26 @@ async function enviarAvisosDiarios() {
     .eq("mes", mes0);
   const cartoesPagosSet = new Set((cartoesPagos ?? []).filter((c: any) => c.pago).map((c: any) => c.cartao));
 
+  // Valor da fatura de cada cartão NESTE mês = soma dos lançamentos do mês com esse
+  // cartão (mesma conta do painel, ver montarItensContasAPagar em painel.html).
+  // Cartão sem nada a pagar (zerado) não deve notificar.
+  const mesStr = String(mes0 + 1).padStart(2, "0");
+  const ultimoDiaMes = new Date(ano, mes0 + 1, 0).getDate();
+  const { data: lancamentosDoMes, error: erroLancamentos } = await supabase
+    .from("financas_lancamentos")
+    .select("cartao, valor")
+    .gte("data", `${ano}-${mesStr}-01`)
+    .lte("data", `${ano}-${mesStr}-${String(ultimoDiaMes).padStart(2, "0")}`);
+  if (erroLancamentos) console.error("Erro buscando lançamentos do mês:", erroLancamentos.message);
+  const totalPorCartao: Record<string, number> = {};
+  for (const l of lancamentosDoMes ?? []) {
+    const chave = l.cartao || "Outro";
+    totalPorCartao[chave] = (totalPorCartao[chave] || 0) + (Number(l.valor) || 0);
+  }
+
   for (const [cartao, vencimento] of Object.entries(VENCIMENTO_CARTOES)) {
     if (vencimento === null || cartoesPagosSet.has(cartao)) continue;
+    if ((totalPorCartao[cartao] || 0) <= 0) continue; // fatura zerada: nada a avisar
     const diasParaVencer = vencimento - dia;
     if ([3, 1, 0].includes(diasParaVencer)) {
       await mandarPraConta("di", `Fatura ${cartao} ${mensagemPrazo(diasParaVencer)}`, "Confere no painel.", "/painel.html?ir=financas");
