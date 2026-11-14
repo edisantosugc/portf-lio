@@ -3793,6 +3793,77 @@
     .links-linha{ flex-direction:column; align-items:flex-start; }
     .roteiro-linha-acoes{ align-self:flex-end; }
   }
+
+  /* ===================== ABA ASSISTENTE ===================== */
+  #assistenteSubAbas{ margin-bottom: 18px; overflow-x: auto; }
+  .assist-filtros{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; margin-bottom:14px; }
+  .assist-filtros label{ display:flex; flex-direction:column; gap:4px; font-size:.75rem; font-weight:600; color:var(--texto-suave); }
+  .assist-filtros select{
+    font-family:'Outfit', sans-serif; font-size:.85rem; padding:8px 10px; border-radius:10px;
+    border:1px solid var(--borda); background:var(--branco); color:var(--grafite);
+  }
+  .assist-filtros label.assist-check{ flex-direction:row; align-items:center; gap:6px; font-size:.82rem; padding-bottom:9px; cursor:pointer; }
+  .assist-lista{ display:flex; flex-direction:column; gap:10px; }
+  .assist-card{
+    background:var(--branco); border:1px solid var(--borda); border-radius:14px; padding:14px 16px;
+    display:flex; flex-direction:column; gap:8px; min-width:0;
+  }
+  .assist-card.feito{ opacity:.6; }
+  .assist-card.feito .assist-card-titulo{ text-decoration:line-through; }
+  .assist-card-topo{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+  .assist-card-titulo{ font-weight:600; font-size:.95rem; color:var(--grafite); overflow-wrap:anywhere; }
+  .assist-sub{ font-size:.8rem; color:var(--texto-suave); font-weight:400; }
+  .assist-prio{ font-size:.7rem; font-weight:700; padding:4px 10px; border-radius:999px; white-space:nowrap; }
+  .assist-prio.prio-1{ background:var(--coral); color:var(--branco); }
+  .assist-prio.prio-2{ background:rgba(0,0,128,.14); color:var(--coral); }
+  .assist-prio.prio-3{ background:rgba(0,0,128,.06); color:var(--coral); }
+  .assist-prio.prio-4{ background:var(--creme); color:var(--texto-suave); }
+  .assist-prazo{ font-size:.75rem; color:var(--texto-suave); white-space:nowrap; }
+  .assist-prazo.atrasado{ color:var(--vermelho); font-weight:700; }
+  .assist-ver-mais{ align-self:flex-start; background:none; border:none; padding:0; font-family:'Outfit', sans-serif; font-size:.8rem; font-weight:600; color:var(--coral); cursor:pointer; }
+  .assist-texto-longo{
+    white-space:pre-wrap; overflow-wrap:anywhere; font-size:.85rem; line-height:1.5; color:var(--grafite);
+    background:var(--creme); border-radius:10px; padding:10px 12px; max-height:420px; overflow-y:auto;
+  }
+  .assist-card-rodape{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .assist-status{
+    font-family:'Outfit', sans-serif; font-size:.82rem; font-weight:600; padding:7px 10px; border-radius:10px;
+    border:1px solid var(--borda); background:var(--creme); color:var(--grafite); cursor:pointer;
+  }
+  .assist-status:focus{ outline:none; border-color:var(--coral); }
+  .assist-link{ font-size:.82rem; color:var(--coral); text-decoration:none; align-self:flex-start; }
+  .assist-link:hover{ text-decoration:underline; }
+  .assist-vazio{ color:var(--texto-suave); font-size:.88rem; padding:18px 4px; }
+  .assist-grupo{ margin-bottom:12px; padding:18px 20px; }
+  .assist-grupo > summary.resumo-colapsavel{ margin-bottom:0; }
+  .assist-grupo[open] > summary.resumo-colapsavel{ margin-bottom:14px; }
+  .assist-contagem{ font-family:'Outfit', sans-serif; font-size:.78rem; font-weight:500; color:var(--texto-suave); margin-left:6px; }
+  .assist-passagem{ margin-bottom:14px; }
+  .assist-passagem-topo{ display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:6px 14px; margin-bottom:12px; }
+  .assist-passagem-topo h2{ margin-bottom:0; }
+  .assist-passagem-texto{
+    width:100%; min-height:55vh; resize:vertical; font-family:'Outfit', sans-serif; font-size:.88rem; line-height:1.55;
+    padding:14px; border-radius:12px; border:1px solid var(--borda); background:var(--creme); color:var(--grafite);
+  }
+  .assist-passagem-texto:focus{ outline:none; border-color:var(--coral); }
+  .assist-passagem-botoes{ display:flex; justify-content:flex-end; gap:10px; margin-top:12px; flex-wrap:wrap; }
+  .assist-passagem-botoes button:disabled{ opacity:.5; cursor:not-allowed; }
+  .assist-dica{ font-size:.78rem; color:var(--texto-suave); margin-top:8px; text-align:right; }
+  .assist-historico{ padding:18px 20px; }
+  .assist-historico > summary.resumo-colapsavel{ margin-bottom:0; }
+  .assist-historico[open] > summary.resumo-colapsavel{ margin-bottom:14px; }
+  .assist-versao{ border-top:1px solid var(--borda); padding:10px 0; }
+  .assist-versao > summary{ cursor:pointer; font-size:.85rem; font-weight:600; display:flex; flex-wrap:wrap; gap:4px 10px; }
+  .assist-versao > summary .assist-sub{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
+  .assist-versao[open] > summary{ margin-bottom:10px; }
+  @media (max-width: 640px){
+    .assist-filtros{ gap:10px; }
+    .assist-filtros label{ flex:1 1 140px; }
+    .assist-filtros select{ width:100%; }
+    .assist-card{ padding:12px 14px; }
+    .assist-grupo, .assist-historico{ padding:14px 16px; }
+    .assist-passagem-botoes button{ flex:1; }
+  }
 </style>
 </head>
 <body>
@@ -4171,6 +4242,11 @@
       <button class="menu-item ativo" data-tab="principal">
         <svg viewBox="0 0 16 16"><path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 6.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z"/></svg>
         Dashboard
+      </button>
+      <button class="menu-item" data-tab="assistente">
+        <svg viewBox="0 0 16 16"><path d="M2 2.5A1.5 1.5 0 0 1 3.5 1h9A1.5 1.5 0 0 1 14 2.5v11a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5v-11zM3.5 2a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-11a.5.5 0 0 0-.5-.5h-9zm1.646 2.646a.5.5 0 0 1 .708 0L6.5 5.293l1.646-1.647a.5.5 0 1 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-1-1a.5.5 0 0 1 0-.708zM9.5 5a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H10a.5.5 0 0 1-.5-.5zm-4.354 4.146a.5.5 0 0 1 .708 0L6.5 9.793l1.646-1.647a.5.5 0 1 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-1-1a.5.5 0 0 1 0-.708zM9.5 9.5A.5.5 0 0 1 10 9h1.5a.5.5 0 0 1 0 1H10a.5.5 0 0 1-.5-.5z"/></svg>
+        <!-- NOME DA ABA: trocar só aqui (o título lá em cima copia daqui) -->
+        <span id="menuNomeAssistente">Assistente</span>
       </button>
       <button class="menu-item" data-tab="agenda">
         <svg viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5ZM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1Z"/></svg>
@@ -5948,6 +6024,33 @@
          painel_ia_mensagens (ver comentário mais completo perto de
          renderizarListaSessoesIara/enviarMensagemSessaoIara, no
          <script>). ===================== -->
+    <!-- ===================== ABA ASSISTENTE (código em js/assistente.js) ===================== -->
+    <section id="painelAssistente" class="painel-tab oculto">
+      <div class="ig-subabas" id="assistenteSubAbas">
+        <button type="button" class="sub-aba-btn ativo" data-subaba-assist="pendencias">Pendências</button>
+        <button type="button" class="sub-aba-btn" data-subaba-assist="indicacoes">Compras e indicações</button>
+        <button type="button" class="sub-aba-btn" data-subaba-assist="lembretes">Lembretes</button>
+        <button type="button" class="sub-aba-btn" data-subaba-assist="passagem">Passagem</button>
+      </div>
+      <div id="assistenteConteudo"></div>
+    </section>
+
+    <div class="ugc-modal-overlay oculto" id="assistenteModal" role="dialog" aria-modal="true" aria-labelledby="assistenteModalTitulo">
+      <div class="cliente-modal-cartao largo">
+        <div class="cliente-modal-topo">
+          <h2 id="assistenteModalTitulo">Nova pendência</h2>
+          <button type="button" class="cliente-modal-fechar" id="assistenteModalFechar" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="cliente-modal-corpo">
+          <div id="assistenteModalCampos" class="assist-modal-campos"></div>
+          <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+            <button type="button" class="btn-fantasma" id="assistenteModalCancelar">Cancelar</button>
+            <button type="button" class="botao-add-tarefa" id="assistenteModalSalvar">Salvar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <section id="painelIara" class="painel-tab oculto">
       <div class="sub-abas-negocio" id="subAbasIara">
         <button type="button" class="sub-aba-btn ativo" data-subaba="estudo">Estudo de Marca</button>
@@ -9979,6 +10082,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("painelClientes").classList.toggle("oculto", aba !== "clientes");
     document.getElementById("painelProspeccao").classList.toggle("oculto", aba !== "prospeccao");
     document.getElementById("painelIara").classList.toggle("oculto", aba !== "iara");
+    document.getElementById("painelAssistente").classList.toggle("oculto", aba !== "assistente");
     document.getElementById("painelUgcCreator").classList.toggle("oculto", aba !== "ugc-creator");
     document.getElementById("painelProjetos").classList.toggle("oculto", aba !== "projetos");
     document.getElementById("painelBancoCriativo").classList.toggle("oculto", aba !== "banco-criativo");
@@ -9987,11 +10091,14 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     document.getElementById("painelRoteiros").classList.toggle("oculto", aba !== "roteiros");
     document.getElementById("painelLinks").classList.toggle("oculto", aba !== "links");
 
-    const titulos = { principal: "Dashboard", portfolio: "Portfólio", agenda: "Agenda", mensagens: "Mensagens", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Marcas", clientes: "Clientes", prospeccao: "Disparo de E-mails", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo", roteiros: "Roteiros", links: "Links" };
+    const titulos = { principal: "Dashboard", portfolio: "Portfólio", agenda: "Agenda", mensagens: "Mensagens", financas: "Financeiro", negocio: "Financeiro UGC", abordagem: "Marcas", clientes: "Clientes", prospeccao: "Disparo de E-mails", iara: '<span class="marca-iara">I</span>Ara', "ugc-creator": "Trabalhos", projetos: "Manager", "banco-criativo": "Ideias Criativas", instagram: "Instagram", administrativo: "Administrativo", roteiros: "Roteiros", links: "Links", assistente: escaparHtmlMarcas(document.getElementById("menuNomeAssistente").textContent) };
     document.getElementById("tituloTopo").innerHTML = titulos[aba];
 
+    // Aba Assistente carrega os próprios dados só quando é aberta (ver js/assistente.js)
+    if (aba === "assistente" && window.carregarAssistente) window.carregarAssistente();
+
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
-    const abasSemFiltroPeriodo = ["agenda", "mensagens", "financas", "negocio", "abordagem", "clientes", "prospeccao", "iara", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo", "roteiros", "links"];
+    const abasSemFiltroPeriodo = ["assistente", "agenda", "mensagens", "financas", "negocio", "abordagem", "clientes", "prospeccao", "iara", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo", "roteiros", "links"];
     document.getElementById("filtroPeriodo").classList.toggle("oculto", abasSemFiltroPeriodo.includes(aba));
     document.getElementById("ultimaAtualizacaoFinancas").classList.toggle("oculto", aba !== "financas");
 
@@ -11741,14 +11848,13 @@ ${MODELO_PROPOSTA_HTML}`;
     renderizarCliquesContato(cliques);
   }
 
-  // Quem chegou ao Portfólio via abordagem direta (edilainesantos.com/portfolio puro,
-  // caindo direto em edilainesantos.com/portfolio sem vir de busca/rede social — cobre
-  // e-mail de prospecção, link digitado, link salvo etc.) x quem chegou pelo link de
-  // plataforma (edilainesantos.com/ugcportfolio, usado em cadastros de plataformas de
-  // creator/UGC). Quem vem de busca ou rede social não entra em nenhum dos dois cards —
-  // por isso a soma dos dois pode ser menor que o total de visitas.
+  // Regra dela: só existem duas origens. Quem entrou pelo link edilainesantos.com/ugcportfolio
+  // (cadastros em plataformas de creator/UGC) = "Via plataformas"; QUALQUER outra entrada
+  // (link /portfolio mandado por e-mail, DM do Instagram, WhatsApp, digitado, busca...) =
+  // "Via abordagem direta". Antes, quem chegava vindo do Instagram/Google ficava de fora dos
+  // dois cartões e a soma não batia com o total de visitas.
   function renderizarOrigemPortfolio(visitas){
-    const viaDireto = visitas.filter(e => e.metadata && e.metadata.origem === "direto");
+    const viaDireto = visitas.filter(e => !(e.metadata && e.metadata.origem === "plataforma"));
     const viaPlataforma = visitas.filter(e => e.metadata && e.metadata.origem === "plataforma");
 
     const cartoes = [
@@ -13315,7 +13421,12 @@ ${MODELO_PROPOSTA_HTML}`;
     if (!linha) return;
 
     linha.innerHTML = `
-      <td><input type="date" id="edicaoData-${id}" value="${lancamento.data_compra || lancamento.data}" title="Data da compra — não muda em qual fatura o lançamento entra"></td>
+      <td>
+        <input type="date" id="edicaoData-${id}" value="${lancamento.data_compra || lancamento.data}" title="Data da compra — só registro, não muda em qual fatura o lançamento entra">
+        <label style="display:block; font-size:.7rem; font-weight:600; color:var(--texto-suave); margin-top:4px;">Fatura
+          <input type="month" id="edicaoMesFatura-${id}" value="${(lancamento.data || "").slice(0, 7)}" title="Mês da fatura em que entra${lancamento.grupo_parcela ? " — numa compra parcelada, move o parcelamento inteiro" : ""}" style="display:block; width:100%;">
+        </label>
+      </td>
       <td>
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:nowrap;">
           <input type="text" id="edicaoDescricao-${id}" value="${igEscaparHtml(lancamento.descricao)}" style="flex:1; min-width:90px;" class="dado-sensivel">
@@ -13364,8 +13475,8 @@ ${MODELO_PROPOSTA_HTML}`;
 
     if (!dados.descricao || isNaN(dados.valor)) return;
 
-    // Corrige o número da parcela atual/total desse lançamento específico (não mexe
-    // nas outras parcelas do mesmo grupo, só nesse lançamento)
+    // Número da parcela atual/total desse lançamento (as outras do grupo são renumeradas
+    // logo abaixo, junto com o mês da fatura)
     if (lancamento && lancamento.grupo_parcela){
       const campoAtual = document.getElementById(`edicaoParcelaAtual-${id}`);
       const campoTotal = document.getElementById(`edicaoParcelaTotal-${id}`);
@@ -13375,6 +13486,45 @@ ${MODELO_PROPOSTA_HTML}`;
         if (parcelaAtual > 0 && parcelaTotal > 0){
           dados.parcela_atual = parcelaAtual;
           dados.parcela_total = parcelaTotal;
+        }
+      }
+    }
+
+    // Mês da fatura e numeração: numa compra parcelada valem pro PARCELAMENTO INTEIRO, senão a
+    // sequência (1 parcela por mês) quebra — antes só dava pra mudar o número de UMA parcela
+    // e nem existia como corrigir o mês, então um parcelamento lançado 1 mês adiantado ficava
+    // assim pra sempre.
+    const mesNovo = document.getElementById(`edicaoMesFatura-${id}`)?.value || "";
+    const mesAntigo = (lancamento?.data || "").slice(0, 7);
+    const numMes = (ym) => Number(ym.slice(0, 4)) * 12 + Number(ym.slice(5, 7));
+    const deltaMeses = (mesNovo && mesAntigo) ? numMes(mesNovo) - numMes(mesAntigo) : 0;
+    if (deltaMeses) dados.data = somarMeses(lancamento.data, deltaMeses);
+
+    if (lancamento && lancamento.grupo_parcela){
+      const deltaParcela = dados.parcela_atual ? dados.parcela_atual - lancamento.parcela_atual : 0;
+      const totalMudou = !!dados.parcela_total && dados.parcela_total !== lancamento.parcela_total;
+      const outras = lancamentosCache.filter(l => l.grupo_parcela === lancamento.grupo_parcela && l.id !== id);
+      if (outras.length && (deltaMeses || deltaParcela || totalMudou)){
+        const acoes = [];
+        if (deltaMeses) acoes.push(`mover ${Math.abs(deltaMeses)} mês${Math.abs(deltaMeses) > 1 ? "es" : ""} pra ${deltaMeses > 0 ? "frente" : "trás"}`);
+        if (deltaParcela || totalMudou) acoes.push("ajustar a numeração de");
+        const confirmado = confirm(
+          `Essa compra é parcelada. Pra manter 1 parcela por mês, vou ${acoes.join(" e ")} ` +
+          `TODAS as ${outras.length + 1} parcelas desse parcelamento. Confirma?`
+        );
+        if (!confirmado) return;
+        for (const l of outras){
+          const campos = {};
+          if (deltaMeses) campos.data = somarMeses(l.data, deltaMeses);
+          if (deltaParcela) campos.parcela_atual = l.parcela_atual + deltaParcela;
+          if (totalMudou) campos.parcela_total = dados.parcela_total;
+          const { error: erroParcela } = await Auth.client.from("financas_lancamentos").update(campos).eq("id", l.id);
+          if (erroParcela){
+            alert("Não deu pra atualizar todas as parcelas. Tenta de novo — nada foi perdido.");
+            renderizarFinancas();
+            return;
+          }
+          Object.assign(l, campos);
         }
       }
     }
@@ -23381,5 +23531,6 @@ ${corpo}
 
   configurarEventosChecklistDiario();
 </script>
+<script src="js/assistente.js"></script>
 </body>
 </html>
