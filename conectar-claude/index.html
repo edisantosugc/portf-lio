@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Conectar o Claude</title>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  /* Mesmo visual da tela de login (login.html) */
+  :root{
+    --coral: #000080; --coral-escuro: #00004d; --creme: #F3EEE9; --branco: #FFFFFF;
+    --grafite: #2A2622; --texto-suave: #6B645C; --borda: #CCC2BC; --verde: #2D7A4F; --vermelho: #C4453C;
+  }
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+  body{
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: var(--creme); color: var(--grafite); font-family: 'Outfit', sans-serif; padding: 24px 16px;
+  }
+  .cartao{
+    width: 100%; max-width: 440px; background: var(--branco); border: 1px solid var(--borda);
+    border-radius: 24px; padding: 36px 28px; box-shadow: 0 20px 50px rgba(26,24,22,.08);
+  }
+  .logo{ font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 600; margin-bottom: 24px; }
+  .logo .ponto{ color: var(--coral); }
+  h1{ font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 600; margin-bottom: 8px; }
+  .subtitulo{ color: var(--texto-suave); font-size: .95rem; margin-bottom: 18px; line-height: 1.5; }
+  .lista{ list-style: none; margin-bottom: 18px; font-size: .9rem; line-height: 1.5; }
+  .lista li{ padding-left: 22px; position: relative; margin-bottom: 6px; }
+  .lista li::before{ content: "✓"; position: absolute; left: 0; color: var(--verde); font-weight: 700; }
+  .lista li.nao::before{ content: "✕"; color: var(--vermelho); }
+  .aviso{
+    background: rgba(0,0,128,.06); border: 1px solid var(--coral); color: var(--grafite);
+    border-radius: 12px; padding: 12px 14px; font-size: .85rem; line-height: 1.45; margin-bottom: 20px;
+  }
+  .campo{ margin-bottom: 16px; }
+  .campo label{ display: block; font-size: .85rem; font-weight: 500; margin-bottom: 6px; }
+  .campo input{
+    width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--borda);
+    font-family: 'Outfit', sans-serif; font-size: .95rem; background: var(--creme); color: var(--grafite);
+  }
+  .campo input:focus{ outline: none; border-color: var(--coral); }
+  .botoes{ display: flex; gap: 10px; }
+  .botao{
+    flex: 1; padding: 13px; border-radius: 12px; border: none; background: var(--coral); color: var(--branco);
+    font-family: 'Outfit', sans-serif; font-weight: 600; font-size: .95rem; cursor: pointer;
+  }
+  .botao:hover{ background: var(--coral-escuro); }
+  .botao.secundario{ background: var(--branco); color: var(--grafite); border: 1px solid var(--borda); }
+  .botao.secundario:hover{ border-color: var(--vermelho); color: var(--vermelho); }
+  .botao:disabled{ opacity: .6; cursor: not-allowed; }
+  .faixa{ padding: 12px 14px; border-radius: 12px; font-size: .88rem; margin-bottom: 18px; line-height: 1.45; }
+  .faixa.erro{ background: rgba(196,69,60,.1); color: var(--vermelho); }
+  .faixa.sucesso{ background: rgba(45,122,79,.1); color: var(--verde); }
+  .oculto{ display: none !important; }
+</style>
+</head>
+<body>
+  <div class="cartao">
+    <p class="logo">meu<span class="ponto">.</span>painel</p>
+
+    <div class="faixa oculto" id="faixa"></div>
+
+    <!-- Pedido de autorização vindo do claude.ai -->
+    <div id="telaAutorizar" class="oculto">
+      <h1>Conectar o Claude</h1>
+      <p class="subtitulo">O Claude (claude.ai) está pedindo acesso à aba <strong>Assistente</strong> do seu painel.</p>
+      <ul class="lista">
+        <li>Ler e escrever pendências, compras/indicações e lembretes</li>
+        <li>Ler e salvar o prompt de passagem</li>
+        <li class="nao">Nada do resto do painel (financeiro, clientes, marcas, e-mails…)</li>
+        <li class="nao">Apagar qualquer coisa</li>
+      </ul>
+      <p class="aviso">Só clique em <strong>Permitir</strong> se foi <strong>você</strong> que acabou de adicionar ou reconectar o conector no claude.ai. Se você recebeu este link de outra pessoa, clique em <strong>Negar</strong>.</p>
+      <form id="formAutorizar">
+        <div class="campo">
+          <label for="campoEmail">E-mail do painel</label>
+          <input type="email" id="campoEmail" required autocomplete="email">
+        </div>
+        <div class="campo">
+          <label for="campoSenha">Senha do painel</label>
+          <input type="password" id="campoSenha" required autocomplete="current-password">
+        </div>
+        <div class="botoes">
+          <button type="button" class="botao secundario" id="botaoNegar">Negar</button>
+          <button type="submit" class="botao" id="botaoPermitir">Permitir</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Aberta direto (sem pedido): opção de desconectar o Claude -->
+    <div id="telaGerenciar" class="oculto">
+      <h1>Conector do Claude</h1>
+      <p class="subtitulo">Para conectar, adicione o conector nas configurações do claude.ai: esta página abre sozinha na hora certa.</p>
+      <p class="subtitulo">Aqui você pode <strong>desconectar o Claude</strong>: todos os acessos dados até hoje param de funcionar na hora. Depois é só conectar de novo no claude.ai, se quiser.</p>
+      <form id="formRevogar">
+        <div class="campo">
+          <label for="campoEmail2">E-mail do painel</label>
+          <input type="email" id="campoEmail2" required autocomplete="email">
+        </div>
+        <div class="campo">
+          <label for="campoSenha2">Senha do painel</label>
+          <input type="password" id="campoSenha2" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="botao" id="botaoRevogar">Desconectar o Claude</button>
+      </form>
+    </div>
+  </div>
+
+<script src="/js/auth.js"></script>
+<script>
+  const BASE_CONECTOR = "https://dqtoxxngjqyoibdgmrjr.supabase.co/functions/v1/assistente-mcp";
+  // Cliente separado e sem guardar sessão: o login daqui serve só pra esta autorização
+  // e não mexe no login do painel.
+  const cliente = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+  });
+
+  const faixa = document.getElementById("faixa");
+  function mostrar(texto, tipo){ faixa.textContent = texto; faixa.className = "faixa " + tipo; }
+
+  const q = new URLSearchParams(location.search);
+  const pedido = {};
+  ["response_type", "client_id", "redirect_uri", "code_challenge", "code_challenge_method", "state", "scope", "resource"]
+    .forEach(k => { if (q.has(k)) pedido[k] = q.get(k); });
+
+  async function chamar(caminho, corpo, tokenLogin){
+    const resp = await fetch(BASE_CONECTOR + caminho, {
+      method: "POST",
+      headers: Object.assign({ "Content-Type": "application/json" }, tokenLogin ? { Authorization: "Bearer " + tokenLogin } : {}),
+      body: JSON.stringify(corpo)
+    });
+    const dados = await resp.json().catch(() => ({}));
+    if (!resp.ok || !dados.ok) throw new Error(dados.erro || "Não deu certo agora. Tente de novo.");
+    return dados;
+  }
+
+  async function entrar(email, senha){
+    const { data, error } = await cliente.auth.signInWithPassword({ email: email.trim(), password: senha });
+    if (error || !data.session) throw new Error(error && error.message === "Invalid login credentials" ? "E-mail ou senha incorretos." : "Não deu pra entrar agora.");
+    return data.session.access_token;
+  }
+
+  // Só volta pro Claude se o endereço for exatamente um dos oficiais
+  function irPara(url){
+    const ok = ["https://claude.ai/api/mcp/auth_callback", "https://claude.com/api/mcp/auth_callback"]
+      .some(base => url === base || url.startsWith(base + "?"));
+    if (!ok) { mostrar("Endereço de retorno inesperado. Nada foi autorizado.", "erro"); return; }
+    location.replace(url);
+  }
+
+  if (pedido.client_id) {
+    // Confere o pedido ANTES de mostrar o formulário
+    chamar("/validar", pedido).then(() => {
+      document.getElementById("telaAutorizar").classList.remove("oculto");
+      document.getElementById("campoEmail").focus();
+    }).catch(e => mostrar("Este pedido de conexão não é válido: " + e.message, "erro"));
+
+    document.getElementById("formAutorizar").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const botao = document.getElementById("botaoPermitir");
+      botao.disabled = true; botao.textContent = "Conferindo…";
+      try {
+        const tokenLogin = await entrar(document.getElementById("campoEmail").value, document.getElementById("campoSenha").value);
+        const r = await chamar("/aprovar", pedido, tokenLogin);
+        cliente.auth.signOut().catch(() => {});
+        mostrar("Autorizado! Voltando pro Claude…", "sucesso");
+        irPara(r.redirect);
+      } catch (erro) {
+        mostrar(erro.message, "erro");
+        botao.disabled = false; botao.textContent = "Permitir";
+      }
+    });
+
+    document.getElementById("botaoNegar").addEventListener("click", async () => {
+      try {
+        const r = await chamar("/negar", pedido);
+        irPara(r.redirect);
+      } catch (erro) { mostrar(erro.message, "erro"); }
+    });
+  } else {
+    document.getElementById("telaGerenciar").classList.remove("oculto");
+    document.getElementById("formRevogar").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const botao = document.getElementById("botaoRevogar");
+      botao.disabled = true; botao.textContent = "Desconectando…";
+      try {
+        const tokenLogin = await entrar(document.getElementById("campoEmail2").value, document.getElementById("campoSenha2").value);
+        await chamar("/revogar-tudo", {}, tokenLogin);
+        cliente.auth.signOut().catch(() => {});
+        mostrar("Pronto: o Claude foi desconectado. Pra usar de novo, reconecte no claude.ai.", "sucesso");
+        document.getElementById("formRevogar").classList.add("oculto");
+      } catch (erro) {
+        mostrar(erro.message, "erro");
+        botao.disabled = false; botao.textContent = "Desconectar o Claude";
+      }
+    });
+  }
+</script>
+</body>
+</html>
