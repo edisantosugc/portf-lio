@@ -140,9 +140,35 @@
     return dados;
   }
 
+  // Trava extra da página: depois de 5 senhas erradas, bloqueia por 15 minutos.
+  // (A trava principal é a do próprio Supabase, que limita tentativas de login por
+  // internet/aparelho em qualquer página — esta só soma uma camada a mais aqui.)
+  const MAX_ERROS = 5, BLOQUEIO_MS = 15 * 60 * 1000, CHAVE_ERROS = "conectarClaudeErros";
+  function lerErros(){
+    try { return JSON.parse(localStorage.getItem(CHAVE_ERROS)) || { n: 0, ate: 0 }; } catch (e) { return { n: 0, ate: 0 }; }
+  }
+  function gravarErros(v){ try { localStorage.setItem(CHAVE_ERROS, JSON.stringify(v)); } catch (e) {} }
+  function minutosBloqueado(){
+    const v = lerErros();
+    return v.ate > Date.now() ? Math.ceil((v.ate - Date.now()) / 60000) : 0;
+  }
+
   async function entrar(email, senha){
+    const espera = minutosBloqueado();
+    if (espera) throw new Error(`Muitas tentativas erradas. Tente de novo em ${espera} minuto${espera === 1 ? "" : "s"}.`);
     const { data, error } = await cliente.auth.signInWithPassword({ email: email.trim(), password: senha });
-    if (error || !data.session) throw new Error(error && error.message === "Invalid login credentials" ? "E-mail ou senha incorretos." : "Não deu pra entrar agora.");
+    if (error || !data.session) {
+      if (error && error.message === "Invalid login credentials") {
+        const v = lerErros();
+        const n = (v.ate && v.ate <= Date.now() ? 0 : v.n) + 1;
+        if (n >= MAX_ERROS) { gravarErros({ n: 0, ate: Date.now() + BLOQUEIO_MS }); throw new Error("Muitas tentativas erradas. A página ficou bloqueada por 15 minutos."); }
+        gravarErros({ n, ate: 0 });
+        throw new Error(`E-mail ou senha incorretos. Restam ${MAX_ERROS - n} tentativa${MAX_ERROS - n === 1 ? "" : "s"}.`);
+      }
+      if (error && /rate limit|too many/i.test(error.message)) throw new Error("Muitas tentativas. O sistema bloqueou por um tempo; tente mais tarde.");
+      throw new Error("Não deu pra entrar agora.");
+    }
+    gravarErros({ n: 0, ate: 0 });
     return data.session.access_token;
   }
 
