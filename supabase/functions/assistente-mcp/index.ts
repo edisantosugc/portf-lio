@@ -61,7 +61,12 @@ const SERVER_INFO = { name: "assistente-edi", version: "1.0.0" };
 const INSTRUCOES =
   "Conector da aba Assistente do painel da Edi: pendências, compras/indicações, lembretes e o prompt de passagem. " +
   "Não existe apagar: para tirar algo da lista, mude o status (ex.: Feito, Desisti). " +
-  "Prioridade das pendências: 1 = traz dinheiro, 2 = destrava postagens, 3 = conteúdo novo, 4 = pessoal/sem prioridade.";
+  "Prioridade das pendências: 1 = traz dinheiro, 2 = destrava postagens, 3 = conteúdo novo, 4 = pessoal/sem prioridade. " +
+  "As pendências ficam numa Matriz de Eisenhower (campo quadrante): " +
+  "\"Faça na hora\" = importante e urgente; \"Programe-se\" = importante mas não urgente (use data_agendada pra marcar quando fazer); " +
+  "\"Delegue\" = urgente mas não importante; \"Tempo livre ou elimine\" = não urgente e não importante. " +
+  "Pendência sem quadrante fica na faixa \"Sem quadrante\" até ser classificada — não classifique sozinho sem a Edi pedir ou aprovar. " +
+  "Para eliminar uma pendência, use o status Descartado (não existe apagar).";
 
 // ---------- Utilitários ----------
 function json(corpo: unknown, status = 200, extra: Record<string, string> = {}) {
@@ -307,7 +312,23 @@ async function tokenValido(req: Request) {
 // AS 11 AÇÕES
 // =========================================================================
 const CATEGORIAS = ["Roteiros", "Edição", "Estudos", "Projetos", "Pessoal", "Mudança", "Outros"];
-const STATUS_PEND = ["Pendente", "Em andamento", "Feito"];
+const STATUS_PEND = ["Pendente", "Em andamento", "Feito", "Descartado"];
+const STATUS_PEND_ESCONDIDOS = ["Feito", "Descartado"];
+const QUADRANTES = ["Faça na hora", "Programe-se", "Delegue", "Tempo livre ou elimine"];
+const SEM_QUADRANTE = "Sem quadrante";
+const EXPLICA_QUADRANTES =
+  "Quadrantes: \"Faça na hora\" = importante e urgente; \"Programe-se\" = importante mas não urgente; " +
+  "\"Delegue\" = urgente mas não importante; \"Tempo livre ou elimine\" = não urgente e não importante.";
+
+// Quadrante: texto vazio ou null = tirar do quadrante (volta pra "Sem quadrante")
+function quadrante(v: unknown): string | null | undefined {
+  if (v === undefined) return undefined;
+  if (v === null || v === "" || v === SEM_QUADRANTE) return null;
+  return opcao(v, "quadrante", QUADRANTES);
+}
+function dataMaisProxima(p: any) {
+  return [p.data_limite, p.data_agendada].filter(Boolean).sort()[0] ?? "9999-12-31";
+}
 const STATUS_IND = ["Quero comprar", "Comprado", "Desisti"];
 const STATUS_LEMB = ["Pendente", "Feito"];
 const LIMITE_LISTA = 300;
@@ -368,35 +389,46 @@ const FERRAMENTAS: { def: any; executar: (a: any) => Promise<unknown> }[] = [
   {
     def: {
       name: "listar_pendencias", title: "Listar pendências", annotations: ANOT_LEITURA,
-      description: "Lista as pendências, ordenadas por prioridade (1 primeiro) e depois por data limite. Sem filtro de status, devolve só as que NÃO estão Feito.",
+      description: "Lista as pendências (com quadrante e data_agendada), ordenadas por prioridade (1 primeiro) e depois pela data mais próxima entre data limite e data agendada. " +
+        "Sem filtro de status, devolve só as que NÃO estão Feito nem Descartado. Filtre por quadrante \"Sem quadrante\" pra ver as que ainda não foram classificadas. " + EXPLICA_QUADRANTES,
       inputSchema: { type: "object", additionalProperties: false, properties: {
         status: S("Filtrar por status", { enum: STATUS_PEND }),
         categoria: S("Filtrar por categoria", { enum: CATEGORIAS }),
         prioridade: { type: "integer", minimum: 1, maximum: 4, description: "1 traz dinheiro, 2 destrava postagens, 3 conteúdo novo, 4 pessoal/sem prioridade" },
+        quadrante: S("Filtrar por quadrante (ou \"Sem quadrante\")", { enum: [...QUADRANTES, SEM_QUADRANTE] }),
       } },
     },
     executar: async (a) => {
       let q = db.from("assistente_pendencias").select("*");
       const st = opcao(a.status, "status", STATUS_PEND);
-      q = st ? q.eq("status", st) : q.neq("status", "Feito");
+      q = st ? q.eq("status", st) : q.not("status", "in", `(${STATUS_PEND_ESCONDIDOS.join(",")})`);
       const cat = opcao(a.categoria, "categoria", CATEGORIAS); if (cat) q = q.eq("categoria", cat);
       const pr = prioridade(a.prioridade); if (pr) q = q.eq("prioridade", pr);
-      const { data: linhas, error } = await q.order("prioridade").order("data_limite", { ascending: true, nullsFirst: false }).limit(LIMITE_LISTA);
+      if (a.quadrante !== undefined) {
+        const qd = opcao(a.quadrante, "quadrante", [...QUADRANTES, SEM_QUADRANTE]);
+        q = qd === SEM_QUADRANTE ? q.is("quadrante", null) : q.eq("quadrante", qd!);
+      }
+      const { data: linhas, error } = await q.limit(LIMITE_LISTA);
       falha(error);
+      linhas!.sort((x: any, y: any) =>
+        (x.prioridade - y.prioridade) || dataMaisProxima(x).localeCompare(dataMaisProxima(y)) ||
+        String(y.created_at).localeCompare(String(x.created_at)));
       return { total: linhas!.length, pendencias: linhas };
     },
   },
   {
     def: {
       name: "adicionar_pendencia", title: "Adicionar pendência", annotations: ANOT_CRIAR,
-      description: "Cria uma pendência nova. Status começa como Pendente se não for informado.",
+      description: "Cria uma pendência nova. Status começa como Pendente se não for informado. Sem quadrante, ela vai pra faixa \"Sem quadrante\". " + EXPLICA_QUADRANTES,
       inputSchema: { type: "object", additionalProperties: false, required: ["titulo"], properties: {
         titulo: S("Título curto"),
         descricao: S("Descrição livre (pode ser longa)"),
         categoria: S("Categoria (padrão: Outros)", { enum: CATEGORIAS }),
         prioridade: { type: "integer", minimum: 1, maximum: 4, description: "1 traz dinheiro, 2 destrava postagens, 3 conteúdo novo, 4 pessoal/sem prioridade (padrão 4)" },
+        quadrante: S("Quadrante da matriz (opcional)", { enum: QUADRANTES }),
         status: S("Status inicial", { enum: STATUS_PEND }),
         data_limite: S("Data limite AAAA-MM-DD (opcional)"),
+        data_agendada: S("Data agendada AAAA-MM-DD (opcional; usada principalmente no Programe-se)"),
       } },
     },
     executar: async (a) => {
@@ -405,8 +437,10 @@ const FERRAMENTAS: { def: any; executar: (a: any) => Promise<unknown> }[] = [
         descricao: texto(a.descricao, "descricao", 20000),
         categoria: opcao(a.categoria, "categoria", CATEGORIAS),
         prioridade: prioridade(a.prioridade),
+        quadrante: quadrante(a.quadrante),
         status: opcao(a.status, "status", STATUS_PEND),
         data_limite: data(a.data_limite, "data_limite"),
+        data_agendada: data(a.data_agendada, "data_agendada"),
       });
       const { data: d, error } = await db.from("assistente_pendencias").insert(linha).select().single();
       falha(error);
@@ -416,15 +450,18 @@ const FERRAMENTAS: { def: any; executar: (a: any) => Promise<unknown> }[] = [
   {
     def: {
       name: "atualizar_pendencia", title: "Atualizar pendência", annotations: ANOT_EDITAR,
-      description: "Muda status, prioridade, texto, categoria ou data de uma pendência. Para tirar da lista, mude o status para Feito (não existe apagar). Para limpar a data limite, envie data_limite vazio.",
+      description: "Muda status, quadrante, prioridade, texto, categoria ou datas de uma pendência. Para tirar da lista, mude o status para Feito ou Descartado (não existe apagar). " +
+        "Para limpar data_limite ou data_agendada, envie vazio. Para tirar do quadrante (voltar pra \"Sem quadrante\"), envie quadrante vazio. " + EXPLICA_QUADRANTES,
       inputSchema: { type: "object", additionalProperties: false, required: ["id"], properties: {
         id: S("id da pendência"),
         titulo: S("Novo título"),
         descricao: S("Nova descrição"),
         categoria: S("Nova categoria", { enum: CATEGORIAS }),
         prioridade: { type: "integer", minimum: 1, maximum: 4 },
+        quadrante: S("Novo quadrante, ou vazio para voltar pra \"Sem quadrante\"", { enum: [...QUADRANTES, ""] }),
         status: S("Novo status", { enum: STATUS_PEND }),
         data_limite: S("Nova data limite AAAA-MM-DD, ou vazio para remover"),
+        data_agendada: S("Nova data agendada AAAA-MM-DD, ou vazio para remover"),
       } },
     },
     executar: async (a) => ({ atualizada: await atualizar("assistente_pendencias", idObrigatorio(a.id), {
@@ -432,8 +469,10 @@ const FERRAMENTAS: { def: any; executar: (a: any) => Promise<unknown> }[] = [
       descricao: texto(a.descricao, "descricao", 20000),
       categoria: opcao(a.categoria, "categoria", CATEGORIAS),
       prioridade: prioridade(a.prioridade),
+      quadrante: quadrante(a.quadrante),
       status: opcao(a.status, "status", STATUS_PEND),
       data_limite: data(a.data_limite, "data_limite"),
+      data_agendada: data(a.data_agendada, "data_agendada"),
     }) }),
   },
   {
