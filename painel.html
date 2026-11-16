@@ -3959,6 +3959,101 @@
     .assist-sem-quadrante-lista{ grid-template-columns:1fr; }
     .assist-card-pend{ cursor:default; }
   }
+
+  /* ===================== INSTAGRAM > CRONOGRAMA DE CONTEÚDOS ===================== */
+  .cron-topo{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+  .cron-listas{ margin:0; }
+  .cron-filtros{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 12px; margin-bottom:14px; }
+  .cron-filtros label{ display:flex; flex-direction:column; gap:4px; font-size:.75rem; font-weight:600; color:var(--texto-suave); }
+  .cron-filtros select, .cron-filtros input[type=search]{
+    font-family:'Outfit', sans-serif; font-size:.85rem; padding:8px 10px; border-radius:10px;
+    border:1px solid var(--borda); background:var(--branco); color:var(--grafite);
+  }
+  .cron-filtros .cron-busca{ flex:1 1 240px; }
+  .cron-filtros .cron-busca input{ width:100%; }
+  .cron-filtros label.cron-check{ flex-direction:row; align-items:center; gap:6px; font-size:.82rem; padding-bottom:9px; cursor:pointer; }
+  .cron-vazio{ color:var(--texto-suave); font-size:.88rem; padding:18px 4px; }
+  .cron-placeholder{ color:var(--texto-suave); opacity:.7; }
+  .cron-dica{ font-size:.78rem; color:var(--texto-suave); margin-top:10px; }
+  .cron-badge-pendente{
+    display:inline-block; font-size:.68rem; font-weight:700; padding:2px 8px; border-radius:999px; white-space:nowrap;
+    background:#FFF4D6; color:#8A5A00; border:1px solid #F1C232;
+  }
+
+  /* Computador: linhas finas */
+  .cron-tabela{ background:var(--branco); border:1px solid var(--borda); border-radius:14px; overflow:hidden; }
+  .cron-linha{
+    display:grid; grid-template-columns: 22px 118px minmax(0,.8fr) minmax(0,2fr) minmax(0,.9fr) 168px 128px;
+    align-items:center; gap:10px; padding:5px 12px; min-height:38px; font-size:.84rem;
+  }
+  .cron-tabela.postados .cron-linha{ grid-template-columns: 0 118px minmax(0,.8fr) minmax(0,2fr) minmax(0,.9fr) 168px 126px 128px; }
+  .cron-cabecalho{ font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--texto-suave); border-bottom:1px solid var(--borda); background:var(--creme); }
+  .cron-bloco{ border-bottom:1px solid var(--borda); }
+  .cron-bloco:last-child{ border-bottom:none; }
+  .cron-bloco:hover > .cron-linha{ background:rgba(0,0,128,.03); }
+  .cron-bloco.descartado > .cron-linha{ opacity:.55; }
+  .cron-bloco.arrastando{ opacity:.35; }
+  .cron-bloco.solta-antes{ box-shadow: inset 0 3px 0 var(--coral); }
+  .cron-bloco.solta-depois{ box-shadow: inset 0 -3px 0 var(--coral); }
+  .cron-alca{ cursor:grab; color:var(--texto-suave); font-size:.8rem; letter-spacing:-2px; user-select:none; text-align:center; }
+  .cron-texto{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:text; border-radius:6px; padding:3px 4px; min-width:0; }
+  .cron-texto:hover{ background:var(--creme); }
+  .cron-ideia{ font-weight:600; color:var(--grafite); }
+  .cron-input-inline{
+    width:100%; font-family:'Outfit', sans-serif; font-size:.84rem; padding:4px 6px; border-radius:6px;
+    border:1px solid var(--coral); background:var(--branco); color:var(--grafite);
+  }
+  .cron-pilula{
+    font-family:'Outfit', sans-serif; font-size:.72rem; font-weight:700; padding:4px 8px; border-radius:999px; border:none;
+    cursor:pointer; width:100%; min-width:0; text-overflow:ellipsis;
+  }
+  .cron-pilula option{ background:var(--branco); color:var(--grafite); }
+  .cron-pilula-fixa{ font-size:.68rem; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap; flex-shrink:0; }
+  .cron-data{ font-family:'Outfit', sans-serif; font-size:.78rem; padding:4px 6px; border-radius:8px; border:1px solid var(--borda); background:var(--branco); color:var(--grafite); width:100%; }
+  .cron-obs-celula{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; min-width:0; }
+  .cron-ver-mais{ background:none; border:none; padding:0; font-family:'Outfit', sans-serif; font-size:.78rem; font-weight:600; color:var(--coral); cursor:pointer; white-space:nowrap; }
+  .cron-detalhes{ padding:4px 16px 16px 44px; display:flex; flex-direction:column; gap:10px; }
+  .cron-detalhes-rotulo, .cron-metricas-titulo{ font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--texto-suave); }
+  .cron-obs-texto{
+    white-space:pre-wrap; overflow-wrap:anywhere; font-size:.88rem; line-height:1.6; color:var(--grafite);
+    background:var(--creme); border-radius:10px; padding:12px 14px; max-height:60vh; overflow-y:auto; user-select:text;
+  }
+  .cron-obs-editar{
+    width:100%; min-height:240px; resize:vertical; font-family:'Outfit', sans-serif; font-size:.88rem; line-height:1.55;
+    padding:12px; border-radius:10px; border:1px solid var(--coral); background:var(--branco); color:var(--grafite);
+  }
+  .cron-botoes{ display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:8px; }
+  .cron-status-salvo{ margin-right:auto; font-size:.8rem; color:var(--verde); }
+  .cron-metricas{ border-top:1px dashed var(--borda); padding-top:12px; display:flex; flex-direction:column; gap:10px; }
+  .cron-metricas-grade{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px 12px; }
+  .cron-metricas label, .cron-cartao-campos label{ display:flex; flex-direction:column; gap:4px; font-size:.74rem; font-weight:600; color:var(--texto-suave); }
+  .cron-metricas input, .cron-metricas textarea, .cron-cartao-campos input{
+    font-family:'Outfit', sans-serif; font-size:.86rem; padding:7px 9px; border-radius:9px; border:1px solid var(--borda);
+    background:var(--creme); color:var(--grafite); width:100%;
+  }
+  .cron-metricas input:focus, .cron-metricas textarea:focus, .cron-cartao-campos input:focus{ outline:none; border-color:var(--coral); }
+  .cron-metricas-anotacao textarea{ resize:vertical; }
+
+  /* Celular: cartões compactos */
+  .cron-cartao{ background:var(--branco); border:1px solid var(--borda); border-radius:12px; margin-bottom:8px; overflow:hidden; }
+  .cron-cartao.descartado .cron-cartao-topo{ opacity:.55; }
+  .cron-cartao-topo{ display:flex; align-items:stretch; }
+  .cron-cartao-resumo{
+    all:unset; flex:1; min-width:0; display:flex; align-items:center; gap:8px; padding:10px 12px; cursor:pointer; font-family:'Outfit', sans-serif;
+  }
+  .cron-cartao-ideia{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:.86rem; font-weight:600; color:var(--grafite); }
+  .cron-cartao-resumo .cron-pilula-fixa:last-of-type{ max-width:38%; overflow:hidden; text-overflow:ellipsis; }
+  .cron-setas{ display:flex; flex-direction:column; border-left:1px solid var(--borda); }
+  .cron-setas button{ flex:1; width:38px; border:none; background:var(--creme); color:var(--coral); font-size:.95rem; font-weight:700; cursor:pointer; }
+  .cron-setas button:first-child{ border-bottom:1px solid var(--borda); }
+  .cron-cartao-campos{ display:grid; grid-template-columns:1fr 1fr; gap:8px 10px; padding:4px 12px 0; }
+  .cron-cartao-campos label:nth-child(n+3){ grid-column:1 / -1; }
+  .cron-cartao .cron-detalhes{ padding:10px 12px 14px; }
+  @media (max-width: 700px){
+    .cron-topo .botao-add-tarefa{ flex:1 1 auto; }
+    .cron-filtros label{ flex:1 1 140px; }
+    .cron-filtros select{ width:100%; }
+  }
 </style>
 </head>
 <body>
@@ -4566,7 +4661,8 @@
     <!-- ===================== ABA: INSTAGRAM ===================== -->
     <section id="painelInstagram" class="painel-tab oculto">
       <div class="ig-subabas" id="subAbasInstagram">
-        <button type="button" class="sub-aba-btn ativo" data-subaba="visao-geral">Visão geral</button>
+        <button type="button" class="sub-aba-btn ativo" data-subaba="cronograma">Cronograma de Conteúdos</button>
+        <button type="button" class="sub-aba-btn" data-subaba="visao-geral">Visão geral</button>
         <button type="button" class="sub-aba-btn" data-subaba="automacoes">Automações</button>
         <button type="button" class="sub-aba-btn" data-subaba="leads">Leads</button>
         <button type="button" class="sub-aba-btn" data-subaba="analises">Análises</button>
@@ -4575,8 +4671,54 @@
         <button type="button" class="sub-aba-btn" data-subaba="sorteio">Sorteio</button>
       </div>
 
+      <!-- SUB-ABA: CRONOGRAMA DE CONTEÚDOS (código em js/cronograma.js) -->
+      <div id="igSubCronograma">
+        <div id="cronogramaRaiz"></div>
+
+        <div class="ugc-modal-overlay oculto" id="cronModalNova" role="dialog" aria-modal="true" aria-labelledby="cronNovaTitulo">
+          <div class="cliente-modal-cartao largo">
+            <div class="cliente-modal-topo">
+              <h2 id="cronNovaTitulo">Nova ideia</h2>
+              <button type="button" class="cliente-modal-fechar" id="cronNovaFechar" aria-label="Fechar">&times;</button>
+            </div>
+            <div class="cliente-modal-corpo">
+              <div class="ugc-form-grade">
+                <div class="ugc-campo"><label for="cronNovaDia">Dia</label><select id="cronNovaDia"></select></div>
+                <div class="ugc-campo"><label for="cronNovaStatus">Status</label><select id="cronNovaStatus"></select></div>
+                <div class="ugc-campo largo"><label for="cronNovaIdeia">Ideia</label><input type="text" id="cronNovaIdeia"></div>
+                <div class="ugc-campo"><label for="cronNovaTema">Tema</label><input type="text" id="cronNovaTema" placeholder="Ex: Organização"></div>
+                <div class="ugc-campo"><label for="cronNovaFormato">Formato</label><input type="text" id="cronNovaFormato" placeholder="Ex: Falado"></div>
+                <div class="ugc-campo largo"><label for="cronNovaObs">Observações</label><textarea id="cronNovaObs" rows="8" placeholder="Roteiro, legenda, decisões, o que falta…"></textarea></div>
+              </div>
+              <p class="cron-dica">Entra no fim do bloco do dia escolhido. Depois dá pra arrastar.</p>
+              <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
+                <button type="button" class="btn-fantasma" id="cronNovaCancelar">Cancelar</button>
+                <button type="button" class="botao-add-tarefa" id="cronNovaSalvar">Salvar ideia</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ugc-modal-overlay oculto" id="cronModalPostado" role="dialog" aria-modal="true" aria-labelledby="cronPostadoTitulo">
+          <div class="cliente-modal-cartao">
+            <div class="cliente-modal-topo">
+              <h2 id="cronPostadoTitulo">Quando foi postado?</h2>
+              <button type="button" class="cliente-modal-fechar" id="cronPostadoFechar" aria-label="Fechar">&times;</button>
+            </div>
+            <div class="cliente-modal-corpo">
+              <div class="ugc-campo"><label for="cronDataPostagemCampo">Data de postagem</label><input type="date" id="cronDataPostagemCampo"></div>
+              <p class="cron-dica">A ideia vai pra lista Postados. Daqui a 48h, lembre de preencher as métricas.</p>
+              <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
+                <button type="button" class="btn-fantasma" id="cronPostadoCancelar">Cancelar</button>
+                <button type="button" class="botao-add-tarefa" id="cronPostadoConfirmar">Confirmar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- SUB-ABA: VISÃO GERAL -->
-      <div id="igSubVisaoGeral">
+      <div id="igSubVisaoGeral" class="oculto">
         <div class="ig-estado-vazio" id="igMetricasVazio">
           <span class="ig-estado-vazio-icone">📸</span>
           <p class="ig-estado-vazio-titulo">Conecte seu Instagram pra ver as métricas</p>
@@ -7027,6 +7169,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
   // Mapa sub-aba -> id do conteúdo, usado pra trocar de aba dentro do Instagram
   const IG_SUBABAS = {
+    "cronograma": "igSubCronograma",
     "visao-geral": "igSubVisaoGeral",
     "automacoes": "igSubAutomacoes",
     "leads": "igSubLeads",
@@ -8871,6 +9014,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
         Object.entries(IG_SUBABAS).forEach(([chave, idConteudo]) => {
           document.getElementById(idConteudo).classList.toggle("oculto", chave !== btn.dataset.subaba);
         });
+        if (btn.dataset.subaba === "cronograma" && window.carregarCronograma) window.carregarCronograma();
         // Carregamento preguiçoso: Análises só busca dados na primeira vez que a
         // aba é aberta (evita gastar chamadas de API em quem nunca visita essa aba).
         if (btn.dataset.subaba === "analises" && !igAnalisesCarregada){
@@ -10191,6 +10335,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
     // Aba Assistente carrega os próprios dados só quando é aberta (ver js/assistente.js)
     if (aba === "assistente" && window.carregarAssistente) window.carregarAssistente();
+    // Cronograma de Conteúdos é a primeira sub-aba do Instagram: carrega quando ela estiver aberta
+    if (aba === "instagram" && window.carregarCronograma && !document.getElementById("igSubCronograma").classList.contains("oculto")) window.carregarCronograma();
 
     // O filtro de período (Tudo/7d/30d/90d) só faz sentido nas abas de estatísticas do site
     const abasSemFiltroPeriodo = ["assistente", "agenda", "mensagens", "financas", "negocio", "abordagem", "clientes", "prospeccao", "iara", "ugc-creator", "projetos", "banco-criativo", "instagram", "administrativo", "roteiros", "links"];
@@ -23627,5 +23773,6 @@ ${corpo}
   configurarEventosChecklistDiario();
 </script>
 <script src="js/assistente.js"></script>
+<script src="js/cronograma.js"></script>
 </body>
 </html>
