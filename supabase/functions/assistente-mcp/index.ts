@@ -337,12 +337,25 @@ const CRON_METRICAS = [...CRON_METRICAS_INT, ...CRON_METRICAS_PCT, "tempo_medio_
 const CRON_EXPLICA =
   "Cronograma de Conteúdos do Instagram da Edi. Duas listas: Grade (ideias em andamento, na ORDEM MANUAL que a Edi deixa — " +
   "ela sobe pro topo o que escolheu pra semana seguinte) e Postados (o que já foi postado, mais recente primeiro). " +
-  "Colunas: dia (" + CRON_DIAS.join(", ") + "), tema, ideia (título), formato, status, observacoes (texto longo: roteiro, legenda, decisões, o que falta — sempre salvo INTEIRO). " +
+  "Colunas: dia (" + CRON_DIAS.join(", ") + "), tema, ideia (título), formato, status, observacoes (texto longo: roteiro, legenda, decisões, o que falta — sempre salvo INTEIRO), " +
+  "link_roteiro (opcional: link do documento do roteiro, sempre começando com https://). " +
   "Status: " + CRON_STATUS.join(", ") + ". Regras automáticas: status Postado move pra Postados guardando data_postagem (hoje se não informada); " +
   "sair do Postado volta pra Grade no fim do bloco do dia; ideia nova entra no fim do bloco do dia dela; a ordem NUNCA muda fora isso " +
   "(não existe ação de reordenar: a Edi arrasta no painel). Não existe apagar: pra tirar uma ideia, status Descartado (fica escondida). " +
   "Em Postados há métricas preenchidas 48h depois de postar: visualizacoes, alcance, nao_seguidores_pct (%), tempo_medio_seg (segundos), " +
   "taxa_pulo_pct (%), curtidas, comentarios, compartilhamentos, salvamentos, seguidores_ganhos e anotacao_metricas.";
+
+// Link do roteiro: opcional, só https:// (vazio/null limpa)
+function linkRoteiro(v: unknown): string | null | undefined {
+  if (v === undefined) return undefined;
+  if (v === null || v === "") return null;
+  if (typeof v !== "string") throw new ErroUso(`"link_roteiro" precisa ser texto.`);
+  const u = v.trim();
+  let ok = /^https:\/\//i.test(u) && u.length <= 2000;
+  if (ok) { try { new URL(u); } catch { ok = false; } }
+  if (!ok) throw new ErroUso(`"link_roteiro" precisa ser um endereço completo que começa com https://`);
+  return u;
+}
 
 function numeroMetrica(v: unknown, campo: string) {
   if (v === undefined) return undefined;
@@ -705,6 +718,7 @@ FERRAMENTAS.push(
         formato: S("Formato (ex.: Falado, Carrossel com fotos reais, Dublagem)"),
         status: S("Status inicial", { enum: CRON_STATUS }),
         observacoes: S("Texto longo, com quebras de linha se precisar (roteiro, legenda, decisões, o que falta)"),
+        link_roteiro: S("Link do documento do roteiro (opcional; precisa começar com https://)"),
         data_postagem: S("Só se o status já for Postado: data AAAA-MM-DD (padrão hoje)"),
       } },
     },
@@ -716,6 +730,7 @@ FERRAMENTAS.push(
         formato: texto(a.formato, "formato", CAMPOS_TEXTO_CRON.formato),
         status: opcao(a.status, "status", CRON_STATUS),
         observacoes: texto(a.observacoes, "observacoes", CAMPOS_TEXTO_CRON.observacoes),
+        link_roteiro: linkRoteiro(a.link_roteiro),
         data_postagem: data(a.data_postagem, "data_postagem"),
       });
       const { data: d, error } = await db.from("assistente_cronograma").insert(linha).select().single();
@@ -737,6 +752,7 @@ FERRAMENTAS.push(
         formato: S("Novo formato"),
         status: S("Novo status", { enum: CRON_STATUS }),
         observacoes: S("Observações completas (substitui o texto anterior)"),
+        link_roteiro: S("Link do documento do roteiro (https://...), ou vazio para remover"),
         data_postagem: S("Data de postagem AAAA-MM-DD"),
         ...propsMetricas,
         anotacao_metricas: S("Anotação sobre as métricas"),
@@ -750,6 +766,7 @@ FERRAMENTAS.push(
         formato: texto(a.formato, "formato", CAMPOS_TEXTO_CRON.formato),
         status: opcao(a.status, "status", CRON_STATUS),
         observacoes: texto(a.observacoes, "observacoes", CAMPOS_TEXTO_CRON.observacoes),
+        link_roteiro: linkRoteiro(a.link_roteiro),
         data_postagem: data(a.data_postagem, "data_postagem"),
         anotacao_metricas: texto(a.anotacao_metricas, "anotacao_metricas", CAMPOS_TEXTO_CRON.anotacao_metricas),
       };

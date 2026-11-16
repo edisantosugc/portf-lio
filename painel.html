@@ -4010,7 +4010,18 @@
   .cron-pilula option{ background:var(--branco); color:var(--grafite); }
   .cron-pilula-fixa{ font-size:.68rem; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap; flex-shrink:0; }
   .cron-data{ font-family:'Outfit', sans-serif; font-size:.78rem; padding:4px 6px; border-radius:8px; border:1px solid var(--borda); background:var(--branco); color:var(--grafite); width:100%; }
-  .cron-obs-celula{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; min-width:0; }
+  .cron-obs-celula{ display:flex; flex-wrap:wrap; align-items:center; gap:2px 8px; min-width:0; }
+  .cron-link-roteiro{ text-decoration:none; font-size:.95rem; line-height:1; border-radius:6px; padding:2px 3px; }
+  .cron-link-roteiro:hover{ background:var(--creme); }
+  .cron-tem-link{ font-size:.85rem; flex-shrink:0; }
+  .cron-link-bloco{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px; }
+  .cron-link-bloco label{ flex:1 1 260px; display:flex; flex-direction:column; gap:4px; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--texto-suave); }
+  .cron-link-bloco input{
+    font-family:'Outfit', sans-serif; font-size:.86rem; padding:7px 9px; border-radius:9px; border:1px solid var(--borda);
+    background:var(--creme); color:var(--grafite); width:100%; text-transform:none; letter-spacing:normal; font-weight:400;
+  }
+  .cron-link-bloco input:focus{ outline:none; border-color:var(--coral); }
+  .cron-link-abrir{ text-decoration:none; white-space:nowrap; }
   .cron-ver-mais{ background:none; border:none; padding:0; font-family:'Outfit', sans-serif; font-size:.78rem; font-weight:600; color:var(--coral); cursor:pointer; white-space:nowrap; }
   .cron-detalhes{ padding:4px 16px 16px 44px; display:flex; flex-direction:column; gap:10px; }
   .cron-detalhes-rotulo, .cron-metricas-titulo{ font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--texto-suave); }
@@ -4688,6 +4699,7 @@
                 <div class="ugc-campo largo"><label for="cronNovaIdeia">Ideia</label><input type="text" id="cronNovaIdeia"></div>
                 <div class="ugc-campo"><label for="cronNovaTema">Tema</label><input type="text" id="cronNovaTema" placeholder="Ex: Organização"></div>
                 <div class="ugc-campo"><label for="cronNovaFormato">Formato</label><input type="text" id="cronNovaFormato" placeholder="Ex: Falado"></div>
+                <div class="ugc-campo largo"><label for="cronNovaLink">Link do roteiro (opcional)</label><input type="url" id="cronNovaLink" inputmode="url" placeholder="https://…"></div>
                 <div class="ugc-campo largo"><label for="cronNovaObs">Observações</label><textarea id="cronNovaObs" rows="8" placeholder="Roteiro, legenda, decisões, o que falta…"></textarea></div>
               </div>
               <p class="cron-dica">Entra no fim do bloco do dia escolhido. Depois dá pra arrastar.</p>

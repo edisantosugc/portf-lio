@@ -87,6 +87,17 @@
     const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
     return Math.round((hoje - new Date(a, m - 1, d)) / 86400000);
   }
+  // Link do roteiro: só https:// e endereço válido; devolve "" se não servir
+  function linkSeguro(url){
+    const u = String(url || "").trim();
+    if (!/^https:\/\//i.test(u) || u.length > 2000) return "";
+    try { new URL(u); return u; } catch (e) { return ""; }
+  }
+  const iconeRoteiro = (it) => {
+    const link = linkSeguro(it.link_roteiro);
+    return link ? `<a class="cron-link-roteiro" href="${esc(link)}" target="_blank" rel="noopener noreferrer" title="Abrir o roteiro (nova aba)">📄</a>` : "";
+  };
+
   const semMetricas = (it) => METRICAS.every(m => it[m.campo] === null || it[m.campo] === undefined);
   const metricasPendentes = (it) => it.lista === "Postados" && it.data_postagem && diasDesde(it.data_postagem) >= 2 && semMetricas(it);
   const normalizar = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -227,6 +238,7 @@
               <select class="cron-pilula" style="${estiloPilula(corStatus(it.status))}" data-cron="campo-select" data-campo="status" data-id="${it.id}" aria-label="Status">${opcoesHtml(STATUS, it.status)}</select>
               ${postados ? `<input type="date" class="cron-data" value="${esc(it.data_postagem || "")}" data-cron="data-postagem" data-id="${it.id}" aria-label="Data de postagem">` : ""}
               <span class="cron-obs-celula">
+                ${iconeRoteiro(it)}
                 <button type="button" class="cron-ver-mais" data-cron="alternar" data-id="${it.id}">${aberto ? "▾ fechar" : it.observacoes ? "▸ ver mais" : "▸ abrir"}</button>
                 ${metricasPendentes(it) ? `<span class="cron-badge-pendente" title="Já passaram 48h: preencha as métricas">⏳ métricas pendentes</span>` : ""}
               </span>
@@ -247,6 +259,7 @@
           <button type="button" class="cron-cartao-resumo" data-cron="alternar" data-id="${it.id}" aria-expanded="${aberto}">
             <span class="cron-pilula-fixa" style="${estiloPilula(corDia(it.dia))}">${esc(it.dia)}</span>
             <span class="cron-cartao-ideia">${esc(it.ideia) || "—"}</span>
+            ${linkSeguro(it.link_roteiro) ? `<span class="cron-tem-link" title="Tem link do roteiro">📄</span>` : ""}
             <span class="cron-pilula-fixa" style="${estiloPilula(corStatus(it.status))}">${esc(it.status)}</span>
             ${metricasPendentes(it) ? `<span class="cron-badge-pendente">⏳</span>` : ""}
           </button>
@@ -291,7 +304,15 @@
         <label class="cron-metricas-anotacao">Anotação<textarea rows="3" data-metrica="anotacao_metricas">${esc(it.anotacao_metricas || "")}</textarea></label>
         <div class="cron-botoes"><span class="cron-status-salvo" id="cronMetricasStatus-${it.id}"></span><button type="button" class="botao-add-tarefa" data-cron="metricas-salvar" data-id="${it.id}">Salvar métricas</button></div>
       </div>`;
-    return `<div class="cron-detalhes"><div class="cron-detalhes-rotulo">Observações</div>${obs}${metricas}</div>`;
+    const link = linkSeguro(it.link_roteiro);
+    const blocoLink = `
+      <div class="cron-link-bloco">
+        <label>Link do roteiro
+          <input type="url" inputmode="url" placeholder="https://…" value="${esc(it.link_roteiro || "")}" data-cron="campo-link" data-id="${it.id}">
+        </label>
+        ${link ? `<a class="btn-fantasma cron-link-abrir" href="${esc(link)}" target="_blank" rel="noopener noreferrer">📄 Abrir roteiro</a>` : ""}
+      </div>`;
+    return `<div class="cron-detalhes">${blocoLink}<div class="cron-detalhes-rotulo">Observações</div>${obs}${metricas}</div>`;
   }
 
   /* ------------------------------ Ações ------------------------------ */
@@ -390,7 +411,7 @@
   function abrirNova(){
     $("cronNovaDia").innerHTML = opcoesHtml(DIAS, estado.filtroDia || "A definir");
     $("cronNovaStatus").innerHTML = opcoesHtml(STATUS.filter(s => s.nome !== "Postado"), "Sugestão (aprovar)");
-    ["cronNovaTema", "cronNovaIdeia", "cronNovaFormato", "cronNovaObs"].forEach(id => { $(id).value = ""; });
+    ["cronNovaTema", "cronNovaIdeia", "cronNovaFormato", "cronNovaObs", "cronNovaLink"].forEach(id => { $(id).value = ""; });
     $("cronModalNova").classList.remove("oculto");
     $("cronNovaIdeia").focus();
   }
@@ -399,7 +420,10 @@
     const ideia = $("cronNovaIdeia").value;
     if (!ideia.trim()){ alert("Escreve a ideia."); $("cronNovaIdeia").focus(); return; }
     const vazioNulo = (v) => v.trim() === "" ? null : v;
+    const link = $("cronNovaLink").value.trim();
+    if (link && !linkSeguro(link)){ alert("O link do roteiro precisa começar com https://"); $("cronNovaLink").focus(); return; }
     const linha = {
+      link_roteiro: link || null,
       dia: $("cronNovaDia").value,
       tema: vazioNulo($("cronNovaTema").value),
       ideia,
@@ -467,6 +491,16 @@
       else if (acao === "data-postagem"){
         if (!el.value){ alert("A data de postagem não pode ficar vazia."); renderizarLista(); return; }
         salvar(el.dataset.id, { data_postagem: el.value });
+      }
+      else if (acao === "campo-link"){
+        const it = estado.itens.find(x => x.id === el.dataset.id);
+        const valor = el.value.trim();
+        if (valor && !linkSeguro(valor)){
+          alert("O link do roteiro precisa começar com https:// (copie o endereço completo do documento).");
+          el.value = (it && it.link_roteiro) || "";
+          return;
+        }
+        if (it && valor !== (it.link_roteiro || "")) salvar(el.dataset.id, { link_roteiro: valor || null });
       }
       else if (acao === "campo-texto"){
         const it = estado.itens.find(x => x.id === el.dataset.id);
