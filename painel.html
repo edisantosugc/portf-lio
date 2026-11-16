@@ -3864,6 +3864,80 @@
     .assist-grupo, .assist-historico{ padding:14px 16px; }
     .assist-passagem-botoes button{ flex:1; }
   }
+
+  /* ---------- Pendências em Matriz de Eisenhower ---------- */
+  .assist-matriz{
+    display:grid; grid-template-columns: 34px minmax(0,1fr) minmax(0,1fr); grid-template-rows: auto auto auto;
+    border:1.5px solid #111; border-radius:4px; overflow:hidden; background:#111; gap:1.5px;
+  }
+  .assist-matriz-canto{ background:var(--branco); }
+  .assist-matriz-coluna{
+    background:var(--branco); color:#111; font-weight:800; font-size:.95rem; letter-spacing:.06em;
+    text-align:center; padding:10px 8px;
+  }
+  .assist-matriz-linha{
+    background:var(--branco); color:#111; font-weight:800; font-size:.95rem; letter-spacing:.06em;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .assist-matriz-linha span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; padding:10px 0; }
+  .assist-quad{ min-height:240px; padding:14px; display:flex; flex-direction:column; gap:10px; min-width:0; transition:box-shadow .15s ease; }
+  .assist-quad.q1{ background:#B5E61D; }
+  .assist-quad.q2{ background:#FF9F1C; }
+  .assist-quad.q3{ background:#7FD0F5; }
+  .assist-quad.q4{ background:#EF4135; }
+  .assist-quad-cabecalho{
+    all:unset; display:flex; flex-direction:column; align-items:center; text-align:center; gap:2px; cursor:default; color:#111;
+  }
+  .assist-quad-titulo{ font-weight:800; font-size:1rem; letter-spacing:.03em; text-transform:uppercase; }
+  .assist-quad-frase{ font-weight:600; font-size:.88rem; }
+  .assist-quad-contagem{
+    display:inline-block; min-width:22px; padding:1px 7px; margin-left:4px; border-radius:999px; font-size:.75rem; font-weight:800;
+    background:rgba(255,255,255,.85); color:#111; vertical-align:middle;
+  }
+  .assist-quad-seta{ display:none; }
+  .assist-quad-corpo{ display:flex; flex-direction:column; gap:8px; }
+  .assist-quad-vazio{ font-size:.8rem; color:#111; opacity:.6; text-align:center; padding:8px 0; }
+  .assist-quad.soltar-aqui{ box-shadow: inset 0 0 0 3px #111; }
+
+  .assist-card-pend{ padding:10px 12px; gap:6px; border-color:rgba(0,0,0,.18); box-shadow:0 1px 2px rgba(0,0,0,.08); cursor:grab; }
+  .assist-card-pend.arrastando{ opacity:.4; }
+  .assist-card-pend .assist-card-titulo{ font-size:.88rem; }
+  .assist-uma-linha{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .assist-card-pend .assist-card-topo{ gap:4px; }
+  .assist-card-pend .assist-prio{ font-size:.66rem; padding:2px 8px; }
+  .assist-etiqueta{
+    font-size:.66rem; font-weight:700; padding:2px 8px; border-radius:999px; white-space:nowrap;
+    border:1px solid var(--borda); color:var(--texto-suave); background:var(--branco);
+  }
+  .assist-etiqueta.atrasado{ border-color:var(--vermelho); color:var(--vermelho); }
+  .assist-etiqueta.agendada{ border-color:var(--coral); color:var(--coral); }
+  .assist-card-pend .assist-card-rodape{ justify-content:flex-start; gap:6px; flex-wrap:wrap; }
+  .assist-card-pend .assist-card-rodape .marcas-botao-icone{ margin-left:auto; }
+  .assist-mini{ font-size:.72rem; padding:4px 6px; border-radius:8px; max-width:100%; }
+
+  .assist-sem-quadrante{
+    border:1.5px dashed var(--texto-suave); border-radius:14px; padding:12px 14px; margin-bottom:16px; background:var(--branco);
+    transition:box-shadow .15s ease;
+  }
+  .assist-sem-quadrante.soltar-aqui{ box-shadow: inset 0 0 0 3px var(--coral); }
+  .assist-sem-quadrante-topo{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; margin-bottom:10px; }
+  .assist-sem-quadrante-topo strong{ font-size:.9rem; letter-spacing:.04em; }
+  .assist-sem-quadrante .assist-quad-contagem{ background:var(--creme); }
+  .assist-sem-quadrante-lista{ display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:8px; }
+
+  /* Celular: quadrantes empilhados em sanfona (verde, laranja, azul, vermelho) */
+  @media (max-width: 700px){
+    .assist-matriz{ display:flex; flex-direction:column; gap:10px; background:none; border:none; border-radius:0; overflow:visible; }
+    .assist-matriz-canto, .assist-matriz-coluna, .assist-matriz-linha{ display:none; }
+    .assist-quad{ min-height:0; border:1.5px solid #111; border-radius:12px; padding:12px; }
+    .assist-quad-cabecalho{ cursor:pointer; position:relative; padding-right:26px; align-items:flex-start; text-align:left; }
+    .assist-quad-seta{ display:block; position:absolute; right:2px; top:50%; transform:translateY(-50%); font-size:1rem; transition:transform .15s ease; }
+    .assist-quad.aberto .assist-quad-seta{ transform:translateY(-50%) rotate(180deg); }
+    .assist-quad:not(.aberto) .assist-quad-corpo{ display:none; }
+    .assist-quad-titulo{ font-size:.9rem; }
+    .assist-sem-quadrante-lista{ grid-template-columns:1fr; }
+    .assist-card-pend{ cursor:default; }
+  }
 </style>
 </head>
 <body>

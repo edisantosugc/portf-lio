@@ -14,7 +14,16 @@
     3: "Conteúdo novo",
     4: "Pessoal / sem prioridade"
   };
-  const STATUS_PENDENCIA = ["Pendente", "Em andamento", "Feito"];
+  const PRIORIDADES_CURTAS = { 1: "Dinheiro", 2: "Destrava posts", 3: "Conteúdo novo", 4: "Pessoal" };
+  const STATUS_PENDENCIA = ["Pendente", "Em andamento", "Feito", "Descartado"];
+  const STATUS_ESCONDIDOS = ["Feito", "Descartado"];
+  // Matriz de Eisenhower (ordem = ordem na tela: verde, laranja, azul, vermelho)
+  const QUADRANTES = [
+    { nome: "Faça na hora",           titulo: "IMPORTANTE E URGENTE",         frase: "Faça na hora!",                  classe: "q1" },
+    { nome: "Programe-se",            titulo: "IMPORTANTE MAS NÃO URGENTE",   frase: "Programe-se",                    classe: "q2" },
+    { nome: "Delegue",                titulo: "URGENTE MAS NÃO IMPORTANTE",   frase: "Delegue",                        classe: "q3" },
+    { nome: "Tempo livre ou elimine", titulo: "NÃO URGENTE E NÃO IMPORTANTE", frase: "Faça no tempo livre ou elimine", classe: "q4" }
+  ];
   const STATUS_INDICACAO = ["Quero comprar", "Comprado", "Desisti"];
   const STATUS_LEMBRETE = ["Pendente", "Feito"];
 
@@ -32,7 +41,8 @@
     mostrarFeitosLembretes: false,
     abertos: new Set(),        // descrições/detalhes abertos (por id)
     gruposAbertos: new Set(),  // grupos de "quem indicou" abertos
-    modal: null                // { tipo, id }
+    quadAbertos: new Set(["Faça na hora"]), // sanfona do celular: só o verde começa aberto
+    modal: null               // { tipo, id }
   };
 
   const $ = (id) => document.getElementById(id);
@@ -141,20 +151,47 @@
     `;
   }
 
-  // ---------- Pendências ----------
-  function htmlPendencias(){
+  // ---------- Pendências (Matriz de Eisenhower) ----------
+  // Data usada pra ordenar: a mais próxima entre data limite e data agendada
+  function dataMaisProxima(p){
+    const datas = [p.data_limite, p.data_agendada].filter(Boolean).sort();
+    return datas[0] || "9999-12-31";
+  }
+
+  function pendenciasVisiveis(){
     let lista = estado.pendencias.slice();
     if (estado.filtroCategoria) lista = lista.filter(p => p.categoria === estado.filtroCategoria);
     if (estado.filtroStatus) lista = lista.filter(p => p.status === estado.filtroStatus);
-    else if (!estado.mostrarFeitosPendencias) lista = lista.filter(p => p.status !== "Feito");
-
-    lista.sort((a, b) =>
+    else if (!estado.mostrarFeitosPendencias) lista = lista.filter(p => !STATUS_ESCONDIDOS.includes(p.status));
+    return lista.sort((a, b) =>
       (a.prioridade - b.prioridade) ||
-      ((a.data_limite || "9999-12-31").localeCompare(b.data_limite || "9999-12-31")) ||
+      dataMaisProxima(a).localeCompare(dataMaisProxima(b)) ||
       String(b.created_at).localeCompare(String(a.created_at))
     );
+  }
 
-    const qtdFeitos = estado.pendencias.filter(p => p.status === "Feito").length;
+  function htmlPendencias(){
+    const lista = pendenciasVisiveis();
+    const nomesQuadrantes = QUADRANTES.map(q => q.nome);
+    const semQuadrante = lista.filter(p => !nomesQuadrantes.includes(p.quadrante));
+    const qtdEscondidos = estado.pendencias.filter(p => STATUS_ESCONDIDOS.includes(p.status)).length;
+
+    const quadrante = (q) => {
+      const itens = lista.filter(p => p.quadrante === q.nome);
+      const aberto = estado.quadAbertos.has(q.nome);
+      return `
+        <section class="assist-quad ${q.classe}${aberto ? " aberto" : ""}" data-soltar-quadrante="${esc(q.nome)}">
+          <button type="button" class="assist-quad-cabecalho" data-acao="assist-quad-alternar" data-quadrante="${esc(q.nome)}" aria-expanded="${aberto}">
+            <span class="assist-quad-titulo">${esc(q.titulo)} <span class="assist-quad-contagem">${itens.length}</span></span>
+            <span class="assist-quad-frase">${esc(q.frase)}</span>
+            <span class="assist-quad-seta" aria-hidden="true">▾</span>
+          </button>
+          <div class="assist-quad-corpo">
+            ${itens.length ? itens.map(cardPendencia).join("") : `<p class="assist-quad-vazio">Nenhuma pendência aqui.</p>`}
+          </div>
+        </section>
+      `;
+    };
 
     return `
       <button type="button" class="ugc-linha-add" data-acao="assist-novo" data-tipo="pendencia">+ Nova pendência</button>
@@ -170,28 +207,55 @@
           </select>
         </label>
         ${estado.filtroStatus ? "" : `
-          <label class="assist-check"><input type="checkbox" data-acao="assist-mostrar-feitos" data-lista="pendencias"${estado.mostrarFeitosPendencias ? " checked" : ""}> Mostrar feitos (${qtdFeitos})</label>`}
+          <label class="assist-check"><input type="checkbox" data-acao="assist-mostrar-feitos" data-lista="pendencias"${estado.mostrarFeitosPendencias ? " checked" : ""}> Mostrar feitos e descartados (${qtdEscondidos})</label>`}
       </div>
-      <div class="assist-lista">
-        ${lista.length ? lista.map(cardPendencia).join("") : `<p class="assist-vazio">Nenhuma pendência por aqui.</p>`}
+
+      ${semQuadrante.length ? `
+        <section class="assist-sem-quadrante" data-soltar-quadrante="">
+          <div class="assist-sem-quadrante-topo">
+            <strong>SEM QUADRANTE <span class="assist-quad-contagem">${semQuadrante.length}</span></strong>
+            <span class="assist-sub">Arraste pra um quadrante ou escolha no seletor do card.</span>
+          </div>
+          <div class="assist-sem-quadrante-lista">${semQuadrante.map(cardPendencia).join("")}</div>
+        </section>` : ""}
+
+      <div class="assist-matriz">
+        <div class="assist-matriz-canto"></div>
+        <div class="assist-matriz-coluna">URGENTE</div>
+        <div class="assist-matriz-coluna">NÃO URGENTE</div>
+        <div class="assist-matriz-linha"><span>IMPORTANTE</span></div>
+        ${quadrante(QUADRANTES[0])}
+        ${quadrante(QUADRANTES[1])}
+        <div class="assist-matriz-linha"><span>NÃO IMPORTANTE</span></div>
+        ${quadrante(QUADRANTES[2])}
+        ${quadrante(QUADRANTES[3])}
       </div>
     `;
   }
 
+  function dataCurta(iso){
+    const [a, m, d] = String(iso).slice(0, 10).split("-");
+    return Number(a) === new Date().getFullYear() ? `${d}/${m}` : `${d}/${m}/${a.slice(2)}`;
+  }
+
   function cardPendencia(p){
-    const prazo = p.data_limite ? rotuloPrazo(p.data_limite) : "";
-    const atrasado = p.data_limite && p.status !== "Feito" && diasAte(p.data_limite) < 0;
+    const escondido = STATUS_ESCONDIDOS.includes(p.status);
+    const atrasado = p.data_limite && !escondido && diasAte(p.data_limite) < 0;
+    const opcoesQuadrante = `<option value=""${p.quadrante ? "" : " selected"}>Sem quadrante</option>` +
+      QUADRANTES.map(q => `<option value="${esc(q.nome)}"${q.nome === p.quadrante ? " selected" : ""}>${esc(q.nome)}</option>`).join("");
     return `
-      <div class="assist-card${p.status === "Feito" ? " feito" : ""}">
+      <div class="assist-card assist-card-pend${escondido ? " feito" : ""}" draggable="true" data-arrastar-id="${p.id}">
+        <div class="assist-card-titulo assist-uma-linha" title="${esc(p.titulo)}">${esc(p.titulo)}</div>
         <div class="assist-card-topo">
-          <span class="assist-prio prio-${p.prioridade}" title="${esc(PRIORIDADES[p.prioridade])}">${p.prioridade} · ${esc(PRIORIDADES[p.prioridade])}</span>
-          <span class="links-pill-categoria">${esc(p.categoria)}</span>
-          ${prazo ? `<span class="assist-prazo${atrasado ? " atrasado" : ""}">📅 ${esc(prazo)}</span>` : ""}
+          <span class="assist-prio prio-${p.prioridade}" title="Prioridade ${p.prioridade}: ${esc(PRIORIDADES[p.prioridade])}">${p.prioridade} · ${esc(PRIORIDADES_CURTAS[p.prioridade])}</span>
+          <span class="assist-etiqueta">${esc(p.categoria)}</span>
+          ${p.data_limite ? `<span class="assist-etiqueta${atrasado ? " atrasado" : ""}" title="Data limite">⏰ ${esc(dataCurta(p.data_limite))}</span>` : ""}
+          ${p.data_agendada ? `<span class="assist-etiqueta agendada" title="Data agendada">📅 ${esc(dataCurta(p.data_agendada))}</span>` : ""}
         </div>
-        <div class="assist-card-titulo">${esc(p.titulo)}</div>
         ${blocoTextoLongo(p.id, p.descricao, "descrição")}
         <div class="assist-card-rodape">
-          <select class="assist-status" data-acao="assist-status" data-tabela="assistente_pendencias" data-id="${p.id}" aria-label="Status">${opcoes(STATUS_PENDENCIA, p.status)}</select>
+          <select class="assist-status assist-mini" data-acao="assist-status" data-tabela="assistente_pendencias" data-id="${p.id}" aria-label="Status">${opcoes(STATUS_PENDENCIA, p.status)}</select>
+          <select class="assist-status assist-mini" data-acao="assist-quadrante" data-id="${p.id}" aria-label="Quadrante">${opcoesQuadrante}</select>
           <button type="button" class="marcas-botao-icone" data-acao="assist-editar" data-tipo="pendencia" data-id="${p.id}" title="Editar">✎</button>
         </div>
       </div>
@@ -357,8 +421,10 @@
         { nome: "descricao", rotulo: "Descrição", tipo: "textarea" },
         { nome: "categoria", rotulo: "Categoria", tipo: "select", opcoes: CATEGORIAS, padrao: "Outros" },
         { nome: "prioridade", rotulo: "Prioridade", tipo: "select", opcoes: [1, 2, 3, 4].map(n => ({ valor: n, rotulo: `${n} · ${PRIORIDADES[n]}` })), padrao: 4, numero: true },
+        { nome: "quadrante", rotulo: "Quadrante", tipo: "select", opcoes: [{ valor: "", rotulo: "Sem quadrante" }].concat(QUADRANTES.map(q => ({ valor: q.nome, rotulo: `${q.nome} (${q.titulo.toLowerCase()})` }))), padrao: "" },
         { nome: "status", rotulo: "Status", tipo: "select", opcoes: STATUS_PENDENCIA, padrao: "Pendente" },
-        { nome: "data_limite", rotulo: "Data limite (opcional)", tipo: "date" }
+        { nome: "data_limite", rotulo: "Data limite (opcional)", tipo: "date" },
+        { nome: "data_agendada", rotulo: "Data agendada (opcional, usada no Programe-se)", tipo: "date" }
       ]
     },
     indicacao: {
@@ -462,23 +528,25 @@
     }
   }
 
-  async function mudarStatus(tabela, id, status, select){
+  // Atualiza um campo só (status ou quadrante) direto do card
+  async function mudarCampo(tabela, id, campo, valor, select){
     const nomeLista = { assistente_pendencias: "pendencias", assistente_indicacoes: "indicacoes", assistente_lembretes: "lembretes" }[tabela];
     const item = estado[nomeLista].find(x => x.id === id);
-    if (!item) return;
-    const anterior = item.status;
-    select.disabled = true;
-    const { data, error } = await Auth.client.from(tabela).update({ status }).eq("id", id).select();
+    if (!item || (item[campo] ?? null) === (valor ?? null)) return;
+    const anterior = item[campo];
+    if (select) select.disabled = true;
+    const { data, error } = await Auth.client.from(tabela).update({ [campo]: valor }).eq("id", id).select();
     if (error || !data || !data.length){
-      console.error("Assistente: erro ao mudar status", error);
-      alert("Não deu pra mudar o status. Tenta de novo.");
-      select.value = anterior;
-      select.disabled = false;
+      console.error("Assistente: erro ao atualizar " + campo, error);
+      alert("Não deu pra salvar a mudança. Tenta de novo.");
+      if (select){ select.value = anterior ?? ""; select.disabled = false; }
       return;
     }
     Object.assign(item, data[0]);
     renderizar();
   }
+  const mudarStatus = (tabela, id, status, select) => mudarCampo(tabela, id, "status", status, select);
+  const mudarQuadrante = (id, quadrante, select) => mudarCampo("assistente_pendencias", id, "quadrante", quadrante || null, select);
 
   /* ------------------------------ Eventos ------------------------------ */
 
@@ -503,12 +571,55 @@
         estado.abertos.has(id) ? estado.abertos.delete(id) : estado.abertos.add(id);
         renderizar();
       }
+      else if (acao === "assist-quad-alternar"){
+        // Sanfona: só faz diferença no celular (no computador os 4 ficam sempre abertos)
+        const nome = alvo.dataset.quadrante;
+        estado.quadAbertos.has(nome) ? estado.quadAbertos.delete(nome) : estado.quadAbertos.add(nome);
+        const secao = alvo.closest(".assist-quad");
+        secao.classList.toggle("aberto", estado.quadAbertos.has(nome));
+        alvo.setAttribute("aria-expanded", String(estado.quadAbertos.has(nome)));
+      }
+    });
+
+    // ---------- Arrastar card entre quadrantes (computador) ----------
+    let arrastandoId = null;
+    conteudo.addEventListener("dragstart", (e) => {
+      const card = e.target.closest && e.target.closest("[data-arrastar-id]");
+      if (!card) return;
+      arrastandoId = card.dataset.arrastarId;
+      e.dataTransfer.effectAllowed = "move";
+      try { e.dataTransfer.setData("text/plain", arrastandoId); } catch (erro) {}
+      card.classList.add("arrastando");
+    });
+    conteudo.addEventListener("dragend", (e) => {
+      const card = e.target.closest && e.target.closest("[data-arrastar-id]");
+      if (card) card.classList.remove("arrastando");
+      conteudo.querySelectorAll(".soltar-aqui").forEach(el => el.classList.remove("soltar-aqui"));
+      arrastandoId = null;
+    });
+    conteudo.addEventListener("dragover", (e) => {
+      const zona = e.target.closest && e.target.closest("[data-soltar-quadrante]");
+      if (!zona || !arrastandoId) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      conteudo.querySelectorAll(".soltar-aqui").forEach(el => { if (el !== zona) el.classList.remove("soltar-aqui"); });
+      zona.classList.add("soltar-aqui");
+    });
+    conteudo.addEventListener("drop", (e) => {
+      const zona = e.target.closest && e.target.closest("[data-soltar-quadrante]");
+      if (!zona || !arrastandoId) return;
+      e.preventDefault();
+      const id = arrastandoId;
+      arrastandoId = null;
+      zona.classList.remove("soltar-aqui");
+      mudarQuadrante(id, zona.dataset.soltarQuadrante, null);
     });
     conteudo.addEventListener("change", (e) => {
       const alvo = e.target.closest("[data-acao]");
       if (!alvo) return;
       const acao = alvo.dataset.acao;
       if (acao === "assist-status") mudarStatus(alvo.dataset.tabela, alvo.dataset.id, alvo.value, alvo);
+      else if (acao === "assist-quadrante") mudarQuadrante(alvo.dataset.id, alvo.value, alvo);
       else if (acao === "assist-filtro-categoria"){ estado.filtroCategoria = alvo.value; renderizar(); }
       else if (acao === "assist-filtro-status"){ estado.filtroStatus = alvo.value; renderizar(); }
       else if (acao === "assist-mostrar-feitos"){
