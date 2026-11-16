@@ -24,6 +24,10 @@
     { nome: "Delegue",                titulo: "URGENTE MAS NÃO IMPORTANTE",   frase: "Delegue",                        classe: "q3" },
     { nome: "Tempo livre ou elimine", titulo: "NÃO URGENTE E NÃO IMPORTANTE", frase: "Faça no tempo livre ou elimine", classe: "q4" }
   ];
+  // Cores da matriz (a Edi pode trocar pelo botão "Cores"; fica salvo em assistente_config)
+  const CORES_ORIGINAIS = { q1: "#B5E61D", q2: "#FF9F1C", q3: "#7FD0F5", q4: "#EF4135" };
+  const INTENSIDADE_MIN = 15, INTENSIDADE_PADRAO = 100;
+  const CHAVE_CORES = "cores_matriz";
   const STATUS_INDICACAO = ["Quero comprar", "Comprado", "Desisti"];
   const STATUS_LEMBRETE = ["Pendente", "Feito"];
 
@@ -42,6 +46,9 @@
     abertos: new Set(),        // descrições/detalhes abertos (por id)
     gruposAbertos: new Set(),  // grupos de "quem indicou" abertos
     quadAbertos: new Set(["Faça na hora"]), // sanfona do celular: só o verde começa aberto
+    cores: Object.assign({ intensidade: INTENSIDADE_PADRAO }, CORES_ORIGINAIS),
+    painelCoresAberto: false,
+    coresSalvas: "",          // "Salvo ✓" / "Salvando…" / erro
     modal: null               // { tipo, id }
   };
 
@@ -113,6 +120,7 @@
         buscar("assistente_passagens")
       ]);
       estado.pendencias = p; estado.indicacoes = i; estado.lembretes = l; estado.passagens = ps;
+      await carregarCores();
       estado.carregado = true;
       renderizar();
     } catch (erro) {
@@ -122,6 +130,105 @@
     } finally {
       estado.carregando = false;
     }
+  }
+
+  /* ---------------------------- Cores da matriz ---------------------------- */
+  const HEX = /^#[0-9a-f]{6}$/i;
+
+  function hexParaRgb(hex){
+    const n = parseInt(hex.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+
+  // Intensidade 100 = cor escolhida; quanto menor, mais "apagadinha" (misturada com branco)
+  function corFinal(hex, intensidade){
+    const t = intensidade / 100;
+    return hexParaRgb(hex).map(c => Math.round(255 + (c - 255) * t));
+  }
+
+  function luminancia([r, g, b]){
+    const canal = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * canal(r) + 0.7152 * canal(g) + 0.0722 * canal(b);
+  }
+
+  // Escolhe preto ou branco pro texto, o que tiver mais contraste com o fundo
+  function corDoTexto(rgb){
+    const L = luminancia(rgb);
+    const contrastePreto = (L + 0.05) / (0.0056 + 0.05);   // #111
+    const contrasteBranco = 1.05 / (L + 0.05);
+    return contrasteBranco > contrastePreto ? "#FFFFFF" : "#111111";
+  }
+
+  function aplicarCores(){
+    const alvo = $("assistenteConteudo");
+    if (!alvo) return;
+    ["q1", "q2", "q3", "q4"].forEach(q => {
+      const rgb = corFinal(estado.cores[q], estado.cores.intensidade);
+      alvo.style.setProperty(`--assist-${q}-fundo`, `rgb(${rgb.join(",")})`);
+      alvo.style.setProperty(`--assist-${q}-texto`, corDoTexto(rgb));
+    });
+  }
+
+  function coresValidas(v){
+    const ok = v && typeof v === "object" && ["q1", "q2", "q3", "q4"].every(q => HEX.test(v[q] || ""));
+    const i = Number(v && v.intensidade);
+    return ok && i >= INTENSIDADE_MIN && i <= 100;
+  }
+
+  async function carregarCores(){
+    try {
+      const { data, error } = await Auth.client.from("assistente_config").select("valor").eq("chave", CHAVE_CORES).maybeSingle();
+      if (!error && data && coresValidas(data.valor)){
+        estado.cores = { q1: data.valor.q1, q2: data.valor.q2, q3: data.valor.q3, q4: data.valor.q4, intensidade: Number(data.valor.intensidade) };
+      }
+    } catch (e) { /* sem preferência salva: fica com as cores originais */ }
+    aplicarCores();
+  }
+
+  let temporizadorCores = null;
+  function salvarCoresDepois(){
+    clearTimeout(temporizadorCores);
+    mostrarStatusCores("Salvando…");
+    temporizadorCores = setTimeout(async () => {
+      const valor = Object.assign({}, estado.cores);
+      const { error } = await Auth.client.from("assistente_config").upsert({ chave: CHAVE_CORES, valor }, { onConflict: "chave" });
+      if (error){ console.error("Assistente: erro ao salvar cores", error); mostrarStatusCores("Não deu pra salvar. Tenta de novo."); }
+      else mostrarStatusCores("Salvo ✓");
+    }, 600);
+  }
+
+  function mostrarStatusCores(texto){
+    estado.coresSalvas = texto;
+    const el = $("assistCoresStatus");
+    if (el) el.textContent = texto;
+  }
+
+  function htmlPainelCores(){
+    const linha = (q, nome) => `
+      <label class="assist-cores-linha">
+        <input type="color" value="${estado.cores[q]}" data-acao="assist-cor" data-q="${q}">
+        <span>${esc(nome)}</span>
+      </label>`;
+    return `
+      <div class="assist-cores-painel">
+        <div class="assist-cores-grade">
+          ${linha("q1", "Faça na hora (verde)")}
+          ${linha("q2", "Programe-se (laranja)")}
+          ${linha("q3", "Delegue (azul)")}
+          ${linha("q4", "Tempo livre ou elimine (vermelho)")}
+        </div>
+        <label class="assist-cores-intensidade">
+          <span>Intensidade (vale pros 4)</span>
+          <span class="assist-cores-slider"><small>apagadinho</small>
+            <input type="range" min="${INTENSIDADE_MIN}" max="100" step="1" value="${estado.cores.intensidade}" data-acao="assist-intensidade">
+          <small>forte</small></span>
+        </label>
+        <div class="assist-cores-botoes">
+          <span class="assist-sub" id="assistCoresStatus">${esc(estado.coresSalvas)}</span>
+          <button type="button" class="btn-fantasma" data-acao="assist-cores-original">Voltar às cores originais</button>
+          <button type="button" class="botao-add-tarefa" data-acao="assist-cores-alternar">Fechar</button>
+        </div>
+      </div>`;
   }
 
   /* ---------------------------- Renderização ---------------------------- */
@@ -208,7 +315,9 @@
         </label>
         ${estado.filtroStatus ? "" : `
           <label class="assist-check"><input type="checkbox" data-acao="assist-mostrar-feitos" data-lista="pendencias"${estado.mostrarFeitosPendencias ? " checked" : ""}> Mostrar feitos e descartados (${qtdEscondidos})</label>`}
+        <button type="button" class="assist-botao-cores" data-acao="assist-cores-alternar" aria-expanded="${estado.painelCoresAberto}" title="Mudar as cores da matriz">🎨 Cores</button>
       </div>
+      ${estado.painelCoresAberto ? htmlPainelCores() : ""}
 
       ${semQuadrante.length ? `
         <section class="assist-sem-quadrante" data-soltar-quadrante="">
@@ -571,6 +680,17 @@
         estado.abertos.has(id) ? estado.abertos.delete(id) : estado.abertos.add(id);
         renderizar();
       }
+      else if (acao === "assist-cores-alternar"){
+        estado.painelCoresAberto = !estado.painelCoresAberto;
+        if (!estado.painelCoresAberto) estado.coresSalvas = "";
+        renderizar();
+      }
+      else if (acao === "assist-cores-original"){
+        estado.cores = Object.assign({ intensidade: INTENSIDADE_PADRAO }, CORES_ORIGINAIS);
+        aplicarCores();
+        renderizar();
+        salvarCoresDepois();
+      }
       else if (acao === "assist-quad-alternar"){
         // Sanfona: só faz diferença no celular (no computador os 4 ficam sempre abertos)
         const nome = alvo.dataset.quadrante;
@@ -579,6 +699,18 @@
         secao.classList.toggle("aberto", estado.quadAbertos.has(nome));
         alvo.setAttribute("aria-expanded", String(estado.quadAbertos.has(nome)));
       }
+    });
+
+    // ---------- Cores: muda na hora enquanto mexe, salva sozinho logo depois ----------
+    conteudo.addEventListener("input", (e) => {
+      const alvo = e.target;
+      if (alvo.dataset.acao === "assist-cor" && HEX.test(alvo.value)){
+        estado.cores[alvo.dataset.q] = alvo.value;
+      } else if (alvo.dataset.acao === "assist-intensidade"){
+        estado.cores.intensidade = Math.min(100, Math.max(INTENSIDADE_MIN, Number(alvo.value) || INTENSIDADE_PADRAO));
+      } else return;
+      aplicarCores();
+      salvarCoresDepois();
     });
 
     // ---------- Arrastar card entre quadrantes (computador) ----------
