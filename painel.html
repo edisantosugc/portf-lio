@@ -23452,6 +23452,7 @@ ${corpo}
   const CHK_DIAS_SEMANA_ORDENADOS = ["SEGUNDA", "TERÇA", "QUARTA", "QUINTA", "SEXTA", "SÁBADO", "DOMINGO"];
 
   let chkTarefasCache = [];        // todas as linhas de painel_checklist_tarefas (todo dia da semana junto)
+  let chkOperacaoEmAndamento = false; // trava contra clique repetido em Salvar / Aplicar a todos os dias
   let chkProgressoCache = {};      // chave "AAAA-MM-DD|tarefaId" -> boolean
   let chkObservacoesCache = {};    // chave "AAAA-MM-DD" -> texto
   let chkSemanalCache = {};        // chave "SEGUNDA".."DOMINGO" -> texto
@@ -23541,10 +23542,28 @@ ${corpo}
         chkRascunhoTarefas.push({ id: null, hora: "", texto: "" });
         renderizarChecklistDia();
       });
-      document.getElementById("chkBotaoSalvarEdicaoDia").addEventListener("click", () => salvarEdicaoChecklistDia(diaSemana));
-      document.getElementById("chkBotaoCopiarTodos").addEventListener("click", async () => {
-        await salvarEdicaoChecklistDia(diaSemana);
-        await copiarDiaParaTodosChecklist(diaSemana);
+      // Trava contra clique repetido: salvar/aplicar levam alguns segundos e, sem isso,
+      // cada clique extra rodava tudo de novo em paralelo e duplicava as tarefas.
+      document.getElementById("chkBotaoSalvarEdicaoDia").addEventListener("click", async (e) => {
+        if (chkOperacaoEmAndamento) return;
+        chkOperacaoEmAndamento = true;
+        e.currentTarget.disabled = true;
+        e.currentTarget.textContent = "Salvando…";
+        try { await salvarEdicaoChecklistDia(diaSemana); }
+        finally { chkOperacaoEmAndamento = false; }
+      });
+      document.getElementById("chkBotaoCopiarTodos").addEventListener("click", async (e) => {
+        if (chkOperacaoEmAndamento) return;
+        if (!window.confirm(`Isso substitui as tarefas de TODOS os outros dias da semana pelas de ${diaSemana}. O progresso já marcado nos outros dias se perde. Continuar?`)) return;
+        chkOperacaoEmAndamento = true;
+        corpo.querySelectorAll("button, input").forEach(el => { el.disabled = true; });
+        e.currentTarget.textContent = "Aplicando…";
+        try {
+          await salvarEdicaoChecklistDia(diaSemana);
+          await copiarDiaParaTodosChecklist(diaSemana);
+        } finally {
+          chkOperacaoEmAndamento = false;
+        }
       });
       return;
     }
@@ -23670,19 +23689,32 @@ ${corpo}
   // pra virar o "padrão" que ela edita dia a dia depois, em vez de recomeçar do zero em
   // cada um. Apaga as tarefas antigas dos outros dias (o progresso marcado em datas
   // passadas some junto, por ON DELETE CASCADE) e recria com o mesmo texto/horário.
+  // (A confirmação "Continuar?" é feita no clique do botão, antes de travar a tela.)
+  // Apaga direto no banco TUDO dos outros dias (por dia da semana, não pela lista da
+  // tela, que podia estar desatualizada) e só depois recria — se o apagar falhar, para
+  // antes de criar, pra nunca acumular cópias.
   async function copiarDiaParaTodosChecklist(diaOrigem){
-    if (!window.confirm(`Isso substitui as tarefas de TODOS os outros dias da semana pelas de ${diaOrigem}. O progresso já marcado nos outros dias se perde. Continuar?`)) return;
-
     const tarefasOrigem = chkTarefasDoDia(diaOrigem);
     const outrosDias = CHK_DIAS_SEMANA_ORDENADOS.filter(d => d !== diaOrigem);
 
-    for (const dia of outrosDias){
-      for (const antiga of chkTarefasDoDia(dia)){
-        await Auth.client.from("painel_checklist_tarefas").delete().eq("id", antiga.id);
-      }
-      for (let i = 0; i < tarefasOrigem.length; i++){
-        const t = tarefasOrigem[i];
-        await Auth.client.from("painel_checklist_tarefas").insert({ dia_semana: dia, hora: t.hora, texto: t.texto, ordem: i });
+    const { error: erroApagar } = await Auth.client
+      .from("painel_checklist_tarefas")
+      .delete()
+      .in("dia_semana", outrosDias);
+    if (erroApagar){
+      console.error("Checklist: erro ao apagar os outros dias", erroApagar);
+      alert("Não deu pra aplicar agora (nada foi duplicado). Tenta de novo em instantes.");
+    } else {
+      const novas = [];
+      outrosDias.forEach(dia => tarefasOrigem.forEach((t, i) => {
+        novas.push({ dia_semana: dia, hora: t.hora, texto: t.texto, ordem: i });
+      }));
+      if (novas.length){
+        const { error: erroCriar } = await Auth.client.from("painel_checklist_tarefas").insert(novas);
+        if (erroCriar){
+          console.error("Checklist: erro ao recriar os outros dias", erroCriar);
+          alert("As tarefas dos outros dias não foram recriadas por um erro. Clique em \"Aplicar\" de novo.");
+        }
       }
     }
 
