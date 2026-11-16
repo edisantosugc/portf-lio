@@ -66,7 +66,8 @@ const INSTRUCOES =
   "\"Faça na hora\" = importante e urgente; \"Programe-se\" = importante mas não urgente (use data_agendada pra marcar quando fazer); " +
   "\"Delegue\" = urgente mas não importante; \"Tempo livre ou elimine\" = não urgente e não importante. " +
   "Pendência sem quadrante fica na faixa \"Sem quadrante\" até ser classificada — não classifique sozinho sem a Edi pedir ou aprovar. " +
-  "Para eliminar uma pendência, use o status Descartado (não existe apagar).";
+  "Para eliminar uma pendência, use o status Descartado (não existe apagar). " +
+  "Também há o Cronograma de Conteúdos do Instagram (ações *_cronograma): veja a descrição de listar_cronograma.";
 
 // ---------- Utilitários ----------
 function json(corpo: unknown, status = 200, extra: Record<string, string> = {}) {
@@ -326,6 +327,45 @@ function quadrante(v: unknown): string | null | undefined {
   if (v === null || v === "" || v === SEM_QUADRANTE) return null;
   return opcao(v, "quadrante", QUADRANTES);
 }
+// ---------- Cronograma de Conteúdos (tabela assistente_cronograma) ----------
+const CRON_DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo", "Extra", "Stories", "A definir"];
+const CRON_STATUS = ["Sugestão (aprovar)", "Ideia aprovada", "Roteiro pronto", "A gravar", "Em produção",
+  "Gravado (falta editar)", "Em teste", "Postado", "A confirmar", "Descartado"];
+const CRON_METRICAS_INT = ["visualizacoes", "alcance", "curtidas", "comentarios", "compartilhamentos", "salvamentos", "seguidores_ganhos"];
+const CRON_METRICAS_PCT = ["nao_seguidores_pct", "taxa_pulo_pct"];
+const CRON_METRICAS = [...CRON_METRICAS_INT, ...CRON_METRICAS_PCT, "tempo_medio_seg"];
+const CRON_EXPLICA =
+  "Cronograma de Conteúdos do Instagram da Edi. Duas listas: Grade (ideias em andamento, na ORDEM MANUAL que a Edi deixa — " +
+  "ela sobe pro topo o que escolheu pra semana seguinte) e Postados (o que já foi postado, mais recente primeiro). " +
+  "Colunas: dia (" + CRON_DIAS.join(", ") + "), tema, ideia (título), formato, status, observacoes (texto longo: roteiro, legenda, decisões, o que falta — sempre salvo INTEIRO). " +
+  "Status: " + CRON_STATUS.join(", ") + ". Regras automáticas: status Postado move pra Postados guardando data_postagem (hoje se não informada); " +
+  "sair do Postado volta pra Grade no fim do bloco do dia; ideia nova entra no fim do bloco do dia dela; a ordem NUNCA muda fora isso " +
+  "(não existe ação de reordenar: a Edi arrasta no painel). Não existe apagar: pra tirar uma ideia, status Descartado (fica escondida). " +
+  "Em Postados há métricas preenchidas 48h depois de postar: visualizacoes, alcance, nao_seguidores_pct (%), tempo_medio_seg (segundos), " +
+  "taxa_pulo_pct (%), curtidas, comentarios, compartilhamentos, salvamentos, seguidores_ganhos e anotacao_metricas.";
+
+function numeroMetrica(v: unknown, campo: string) {
+  if (v === undefined) return undefined;
+  if (v === null || v === "") return null;
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 0) throw new ErroUso(`"${campo}" precisa ser um número sem sinal negativo.`);
+  if (CRON_METRICAS_INT.includes(campo) && !Number.isInteger(n)) throw new ErroUso(`"${campo}" precisa ser número inteiro.`);
+  if (CRON_METRICAS_PCT.includes(campo) && n > 100) throw new ErroUso(`"${campo}" é porcentagem: de 0 a 100.`);
+  return n;
+}
+function metricasPendentesCron(it: any) {
+  if (it.lista !== "Postados" || !it.data_postagem) return false;
+  const hoje = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  hoje.setHours(0, 0, 0, 0);
+  const [a, m, d] = String(it.data_postagem).split("-").map(Number);
+  const dias = Math.round((hoje.getTime() - new Date(a, m - 1, d).getTime()) / 86400000);
+  return dias >= 2 && CRON_METRICAS.every((c) => it[c] === null || it[c] === undefined);
+}
+function itemCronParaSaida(it: any, ordem?: number) {
+  const { posicao: _p, ...resto } = it;
+  return { ...(ordem ? { ordem } : {}), ...resto, metricas_pendentes: metricasPendentesCron(it) };
+}
+
 function dataMaisProxima(p: any) {
   return [p.data_limite, p.data_agendada].filter(Boolean).sort()[0] ?? "9999-12-31";
 }
@@ -620,6 +660,104 @@ const FERRAMENTAS: { def: any; executar: (a: any) => Promise<unknown> }[] = [
     },
   },
 ];
+
+// ---------- Cronograma: 3 ações ----------
+const CAMPOS_TEXTO_CRON: Record<string, number> = { tema: 500, ideia: 5000, formato: 500, observacoes: 500000, anotacao_metricas: 20000 };
+const propsMetricas = Object.fromEntries(CRON_METRICAS.map((c) => [c, {
+  type: ["number", "null"], minimum: 0, ...(CRON_METRICAS_PCT.includes(c) ? { maximum: 100 } : {}),
+  description: c.endsWith("_pct") ? "porcentagem (0 a 100)" : c === "tempo_medio_seg" ? "segundos" : "número inteiro",
+}]));
+
+FERRAMENTAS.push(
+  {
+    def: {
+      name: "listar_cronograma", title: "Listar cronograma de conteúdos", annotations: ANOT_LEITURA,
+      description: "Lista o cronograma. Por padrão traz a Grade, sem Descartado, na ordem que a Edi deixou (campo ordem: 1 = topo). " +
+        "Com lista Postados, traz do mais recente pro mais antigo, com métricas e o aviso metricas_pendentes (48h passadas e métricas vazias). " + CRON_EXPLICA,
+      inputSchema: { type: "object", additionalProperties: false, properties: {
+        lista: S("Grade (padrão) ou Postados", { enum: ["Grade", "Postados"] }),
+        dia: S("Filtrar por dia", { enum: CRON_DIAS }),
+        status: S("Filtrar por status (inclusive Descartado)", { enum: CRON_STATUS }),
+      } },
+    },
+    executar: async (a) => {
+      const lista = opcao(a.lista, "lista", ["Grade", "Postados"]) ?? "Grade";
+      let q = db.from("assistente_cronograma").select("*").eq("lista", lista);
+      const dia = opcao(a.dia, "dia", CRON_DIAS); if (dia) q = q.eq("dia", dia);
+      const st = opcao(a.status, "status", CRON_STATUS);
+      q = st ? q.eq("status", st) : q.neq("status", "Descartado");
+      q = lista === "Grade" ? q.order("posicao", { ascending: true })
+        : q.order("data_postagem", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
+      const { data: linhas, error } = await q.limit(1000);
+      falha(error);
+      return { lista, total: linhas!.length, itens: linhas!.map((it, i) => itemCronParaSaida(it, lista === "Grade" ? i + 1 : undefined)) };
+    },
+  },
+  {
+    def: {
+      name: "adicionar_ideia_cronograma", title: "Adicionar ideia ao cronograma", annotations: ANOT_CRIAR,
+      description: "Cria uma ideia no cronograma. Ela entra no fim do bloco do dia dela na Grade (depois a Edi arrasta se quiser). " +
+        "Status padrão: Sugestão (aprovar). Observações são salvas inteiras. " + CRON_EXPLICA,
+      inputSchema: { type: "object", additionalProperties: false, required: ["ideia"], properties: {
+        dia: S("Dia (padrão: A definir)", { enum: CRON_DIAS }),
+        tema: S("Tema curto (ex.: Organização, Finanças)"),
+        ideia: S("Título da ideia"),
+        formato: S("Formato (ex.: Falado, Carrossel com fotos reais, Dublagem)"),
+        status: S("Status inicial", { enum: CRON_STATUS }),
+        observacoes: S("Texto longo, com quebras de linha se precisar (roteiro, legenda, decisões, o que falta)"),
+        data_postagem: S("Só se o status já for Postado: data AAAA-MM-DD (padrão hoje)"),
+      } },
+    },
+    executar: async (a) => {
+      const linha = semIndefinidos({
+        dia: opcao(a.dia, "dia", CRON_DIAS),
+        tema: texto(a.tema, "tema", CAMPOS_TEXTO_CRON.tema),
+        ideia: texto(a.ideia, "ideia", CAMPOS_TEXTO_CRON.ideia, true),
+        formato: texto(a.formato, "formato", CAMPOS_TEXTO_CRON.formato),
+        status: opcao(a.status, "status", CRON_STATUS),
+        observacoes: texto(a.observacoes, "observacoes", CAMPOS_TEXTO_CRON.observacoes),
+        data_postagem: data(a.data_postagem, "data_postagem"),
+      });
+      const { data: d, error } = await db.from("assistente_cronograma").insert(linha).select().single();
+      falha(error);
+      return { criada: itemCronParaSaida(d) };
+    },
+  },
+  {
+    def: {
+      name: "atualizar_ideia_cronograma", title: "Atualizar ideia do cronograma", annotations: ANOT_EDITAR,
+      description: "Muda qualquer campo de uma ideia (dia, tema, ideia, formato, status, observações, data de postagem e métricas). " +
+        "NUNCA muda a ordem — a única exceção é o status entrar/sair de Postado, que move entre Grade e Postados. " +
+        "Envie só os campos que quer mudar; texto ou métrica vazio/null limpa o campo. Observações: envie o texto COMPLETO (substitui o anterior). " + CRON_EXPLICA,
+      inputSchema: { type: "object", additionalProperties: false, required: ["id"], properties: {
+        id: S("id da ideia"),
+        dia: S("Novo dia", { enum: CRON_DIAS }),
+        tema: S("Novo tema"),
+        ideia: S("Novo título"),
+        formato: S("Novo formato"),
+        status: S("Novo status", { enum: CRON_STATUS }),
+        observacoes: S("Observações completas (substitui o texto anterior)"),
+        data_postagem: S("Data de postagem AAAA-MM-DD"),
+        ...propsMetricas,
+        anotacao_metricas: S("Anotação sobre as métricas"),
+      } },
+    },
+    executar: async (a) => {
+      const campos: Record<string, unknown> = {
+        dia: opcao(a.dia, "dia", CRON_DIAS),
+        tema: texto(a.tema, "tema", CAMPOS_TEXTO_CRON.tema),
+        ideia: a.ideia === undefined ? undefined : texto(a.ideia, "ideia", CAMPOS_TEXTO_CRON.ideia, true),
+        formato: texto(a.formato, "formato", CAMPOS_TEXTO_CRON.formato),
+        status: opcao(a.status, "status", CRON_STATUS),
+        observacoes: texto(a.observacoes, "observacoes", CAMPOS_TEXTO_CRON.observacoes),
+        data_postagem: data(a.data_postagem, "data_postagem"),
+        anotacao_metricas: texto(a.anotacao_metricas, "anotacao_metricas", CAMPOS_TEXTO_CRON.anotacao_metricas),
+      };
+      for (const c of CRON_METRICAS) campos[c] = numeroMetrica(a[c], c);
+      return { atualizada: itemCronParaSaida(await atualizar("assistente_cronograma", idObrigatorio(a.id), campos)) };
+    },
+  },
+);
 
 async function chamarFerramenta(params: any) {
   const f = FERRAMENTAS.find((x) => x.def.name === params?.name);
