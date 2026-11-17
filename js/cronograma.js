@@ -463,7 +463,9 @@
                 ${iconeRoteiro(it)}
                 ${avisosData(it)}
                 <button type="button" class="cron-ver-mais" data-cron="alternar" data-id="${it.id}">${aberto ? "▾ fechar" : it.observacoes ? "▸ ver mais" : "▸ abrir"}</button>
-                ${metricasPendentes(it) ? `<span class="cron-badge-pendente" title="${precisaLigarPost(it) ? "Ligue o post do Instagram pra puxar os números" : "Falta digitar o que o Instagram não entrega"}">${textoPendente(it)}</span>` : ""}
+                ${precisaLigarPost(it)
+                  ? `<button type="button" class="cron-badge-pendente cron-badge-botao" data-cron="ligar-post" data-id="${it.id}" title="Clique pra escolher o post do Instagram">🔗 ligar post</button>`
+                  : metricasPendentes(it) ? `<span class="cron-badge-pendente" title="Falta digitar o que o Instagram não entrega">${textoPendente(it)}</span>` : ""}
               </span>
             </div>
             ${aberto ? detalhes(it) : ""}
