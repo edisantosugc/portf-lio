@@ -338,7 +338,9 @@ const CRON_EXPLICA =
   "Cronograma de Conteúdos do Instagram da Edi. Duas listas: Grade (ideias em andamento, na ORDEM MANUAL que a Edi deixa — " +
   "ela sobe pro topo o que escolheu pra semana seguinte) e Postados (o que já foi postado, mais recente primeiro). " +
   "Colunas: dia (" + CRON_DIAS.join(", ") + "), tema, ideia (título), formato, status, observacoes (texto longo: roteiro, legenda, decisões, o que falta — sempre salvo INTEIRO), " +
-  "link_roteiro (opcional: link do documento do roteiro, sempre começando com https://). " +
+  "link_roteiro (opcional: link do documento do roteiro, sempre começando com https://), " +
+  "data_prevista (opcional, AAAA-MM-DD: a data exata planejada; ao gravar uma data, o dia vira o dia da semana dela, exceto se o dia for Extra ou Stories). " +
+  "Avisos devolvidos: atrasada (data prevista já passou e não foi postado) e dia_diferente_da_data. " +
   "Status: " + CRON_STATUS.join(", ") + ". Regras automáticas: status Postado move pra Postados guardando data_postagem (hoje se não informada); " +
   "sair do Postado volta pra Grade no fim do bloco do dia; ideia nova entra no fim do bloco do dia dela; a ordem NUNCA muda fora isso " +
   "(não existe ação de reordenar: a Edi arrasta no painel). Não existe apagar: pra tirar uma ideia, status Descartado (fica escondida). " +
@@ -366,6 +368,22 @@ function numeroMetrica(v: unknown, campo: string) {
   if (CRON_METRICAS_PCT.includes(campo) && n > 100) throw new ErroUso(`"${campo}" é porcentagem: de 0 a 100.`);
   return n;
 }
+// ---------- Data prevista ----------
+const CRON_DIAS_FIXOS = ["Extra", "Stories"];   // não mudam quando grava a data
+const NOMES_SEMANA = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+function diaDaData(iso: string) {
+  const [a, m, d] = iso.split("-").map(Number);
+  return NOMES_SEMANA[new Date(Date.UTC(a, m - 1, d)).getUTCDay()];
+}
+function hojeSP() {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });   // AAAA-MM-DD
+}
+function avisosDataCron(it: any) {
+  const atrasada = it.lista === "Grade" && !!it.data_prevista && it.data_prevista < hojeSP() && !["Postado", "Descartado"].includes(it.status);
+  const dia_diferente_da_data = it.lista === "Grade" && !!it.data_prevista && !CRON_DIAS_FIXOS.includes(it.dia) && it.dia !== diaDaData(it.data_prevista);
+  return { atrasada, dia_diferente_da_data };
+}
+
 function metricasPendentesCron(it: any) {
   if (it.lista !== "Postados" || !it.data_postagem) return false;
   const hoje = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
@@ -376,7 +394,7 @@ function metricasPendentesCron(it: any) {
 }
 function itemCronParaSaida(it: any, ordem?: number) {
   const { posicao: _p, ...resto } = it;
-  return { ...(ordem ? { ordem } : {}), ...resto, metricas_pendentes: metricasPendentesCron(it) };
+  return { ...(ordem ? { ordem } : {}), ...resto, metricas_pendentes: metricasPendentesCron(it), ...avisosDataCron(it) };
 }
 
 function dataMaisProxima(p: any) {
@@ -691,12 +709,23 @@ FERRAMENTAS.push(
         lista: S("Grade (padrão) ou Postados", { enum: ["Grade", "Postados"] }),
         dia: S("Filtrar por dia", { enum: CRON_DIAS }),
         status: S("Filtrar por status (inclusive Descartado)", { enum: CRON_STATUS }),
+        data_inicio: S("Período: data prevista a partir de (AAAA-MM-DD)"),
+        data_fim: S("Período: data prevista até (AAAA-MM-DD)"),
+        sem_data: { type: "boolean", description: "true = só as ideias sem data prevista" },
       } },
     },
     executar: async (a) => {
       const lista = opcao(a.lista, "lista", ["Grade", "Postados"]) ?? "Grade";
       let q = db.from("assistente_cronograma").select("*").eq("lista", lista);
       const dia = opcao(a.dia, "dia", CRON_DIAS); if (dia) q = q.eq("dia", dia);
+      const ini = data(a.data_inicio, "data_inicio"); if (ini) q = q.gte("data_prevista", ini);
+      const fimP = data(a.data_fim, "data_fim"); if (fimP) q = q.lte("data_prevista", fimP);
+      if (a.sem_data === true) {
+        if (ini || fimP) throw new ErroUso("Use sem_data OU o período (data_inicio/data_fim), não os dois.");
+        q = q.is("data_prevista", null);
+      } else if (a.sem_data !== undefined && a.sem_data !== false) {
+        throw new ErroUso(`"sem_data" precisa ser true ou false.`);
+      }
       const st = opcao(a.status, "status", CRON_STATUS);
       q = st ? q.eq("status", st) : q.neq("status", "Descartado");
       q = lista === "Grade" ? q.order("posicao", { ascending: true })
@@ -719,12 +748,17 @@ FERRAMENTAS.push(
         status: S("Status inicial", { enum: CRON_STATUS }),
         observacoes: S("Texto longo, com quebras de linha se precisar (roteiro, legenda, decisões, o que falta)"),
         link_roteiro: S("Link do documento do roteiro (opcional; precisa começar com https://)"),
+        data_prevista: S("Data prevista AAAA-MM-DD (opcional). O dia passa a ser o dia da semana dessa data, exceto Extra/Stories"),
         data_postagem: S("Só se o status já for Postado: data AAAA-MM-DD (padrão hoje)"),
       } },
     },
     executar: async (a) => {
+      const prevista = data(a.data_prevista, "data_prevista");
+      let diaNovo = opcao(a.dia, "dia", CRON_DIAS);
+      if (prevista && !CRON_DIAS_FIXOS.includes(diaNovo ?? "")) diaNovo = diaDaData(prevista);
       const linha = semIndefinidos({
-        dia: opcao(a.dia, "dia", CRON_DIAS),
+        data_prevista: prevista,
+        dia: diaNovo,
         tema: texto(a.tema, "tema", CAMPOS_TEXTO_CRON.tema),
         ideia: texto(a.ideia, "ideia", CAMPOS_TEXTO_CRON.ideia, true),
         formato: texto(a.formato, "formato", CAMPOS_TEXTO_CRON.formato),
@@ -753,14 +787,30 @@ FERRAMENTAS.push(
         status: S("Novo status", { enum: CRON_STATUS }),
         observacoes: S("Observações completas (substitui o texto anterior)"),
         link_roteiro: S("Link do documento do roteiro (https://...), ou vazio para remover"),
+        data_prevista: S("Data prevista AAAA-MM-DD, ou vazio para remover. Ao gravar uma data, o dia acompanha (exceto Extra/Stories)"),
         data_postagem: S("Data de postagem AAAA-MM-DD"),
         ...propsMetricas,
         anotacao_metricas: S("Anotação sobre as métricas"),
       } },
     },
     executar: async (a) => {
+      const id = idObrigatorio(a.id);
+      const prevista = data(a.data_prevista, "data_prevista");
+      let diaNovo = opcao(a.dia, "dia", CRON_DIAS);
+      if (prevista) {
+        // O dia acompanha a data (igual ao painel), a não ser que o dia efetivo seja Extra/Stories
+        let diaEfetivo = diaNovo;
+        if (diaEfetivo === undefined) {
+          const { data: atual, error } = await db.from("assistente_cronograma").select("dia").eq("id", id).maybeSingle();
+          falha(error);
+          if (!atual) throw new ErroUso("Nenhum item com esse id.");
+          diaEfetivo = atual.dia;
+        }
+        if (!CRON_DIAS_FIXOS.includes(diaEfetivo!)) diaNovo = diaDaData(prevista);
+      }
       const campos: Record<string, unknown> = {
-        dia: opcao(a.dia, "dia", CRON_DIAS),
+        data_prevista: prevista,
+        dia: diaNovo,
         tema: texto(a.tema, "tema", CAMPOS_TEXTO_CRON.tema),
         ideia: a.ideia === undefined ? undefined : texto(a.ideia, "ideia", CAMPOS_TEXTO_CRON.ideia, true),
         formato: texto(a.formato, "formato", CAMPOS_TEXTO_CRON.formato),
@@ -771,7 +821,7 @@ FERRAMENTAS.push(
         anotacao_metricas: texto(a.anotacao_metricas, "anotacao_metricas", CAMPOS_TEXTO_CRON.anotacao_metricas),
       };
       for (const c of CRON_METRICAS) campos[c] = numeroMetrica(a[c], c);
-      return { atualizada: itemCronParaSaida(await atualizar("assistente_cronograma", idObrigatorio(a.id), campos)) };
+      return { atualizada: itemCronParaSaida(await atualizar("assistente_cronograma", id, campos)) };
     },
   },
 );

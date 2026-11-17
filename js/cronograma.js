@@ -48,10 +48,19 @@
   ];
   const TABELA = "assistente_cronograma";
 
+  const DIAS_FIXOS = ["Extra", "Stories"];          // não mudam sozinhos quando escolhe a data
+  const NOMES_SEMANA = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+  const ABREV_SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+  const CHAVE_VISAO = "cronograma_visao";            // em assistente_config (vale no computador e no celular)
+
   const estado = {
     carregado: false, carregando: false,
     itens: [],
     lista: "Grade",
+    visao: "ordem",              // "ordem" (Minha ordem) ou "data" (Por data)
+    filtroPeriodo: "",           // "", "esta", "proxima", "sem"
+    semanasAbertas: null,        // sanfona do celular na visão Por data (null = só a semana atual)
+    semanaFoco: null,            // semana em que as setas ‹ › estão
     filtroDia: "", filtroStatus: "", busca: "",
     mostrarDescartados: false,
     abertos: new Set(),          // linhas/cartões com detalhes abertos
@@ -98,6 +107,28 @@
     return link ? `<a class="cron-link-roteiro" href="${esc(link)}" target="_blank" rel="noopener noreferrer" title="Abrir o roteiro (nova aba)">📄</a>` : "";
   };
 
+  // ---------- Datas ----------
+  function partesData(iso){ const [a, m, d] = String(iso).slice(0, 10).split("-").map(Number); return { a, m, d, data: new Date(a, m - 1, d) }; }
+  const isoDe = (dt) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+  const diaDaData = (iso) => NOMES_SEMANA[partesData(iso).data.getDay()];
+  // "23/11 · seg" (com o ano se não for o ano atual: "05/01/27 · ter")
+  function dataCurtaDia(iso){
+    if (!iso) return "";
+    const { a, m, d, data } = partesData(iso);
+    const ano = a === new Date().getFullYear() ? "" : `/${String(a).slice(2)}`;
+    return `${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}${ano} · ${ABREV_SEMANA[data.getDay()]}`;
+  }
+  function inicioSemana(iso){                         // segunda-feira da semana (seg a dom)
+    const { data } = partesData(iso);
+    const volta = (data.getDay() + 6) % 7;
+    data.setDate(data.getDate() - volta);
+    return isoDe(data);
+  }
+  function somarDias(iso, n){ const { data } = partesData(iso); data.setDate(data.getDate() + n); return isoDe(data); }
+  const ddmm = (iso) => { const { m, d } = partesData(iso); return `${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}`; };
+  const diaCombina = (it) => !it.data_prevista || DIAS_FIXOS.includes(it.dia) || it.dia === diaDaData(it.data_prevista);
+  const atrasada = (it) => it.lista === "Grade" && it.data_prevista && it.data_prevista < hojeISO() && !["Postado", "Descartado"].includes(it.status);
+
   const semMetricas = (it) => METRICAS.every(m => it[m.campo] === null || it[m.campo] === undefined);
   const metricasPendentes = (it) => it.lista === "Postados" && it.data_postagem && diasDesde(it.data_postagem) >= 2 && semMetricas(it);
   const normalizar = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -119,6 +150,7 @@
         inicio += 1000;
       }
       estado.itens = tudo;
+      await carregarVisao();
       estado.carregado = true;
       renderizar();
     } catch (erro) {
@@ -143,6 +175,27 @@
     return data[0];
   }
 
+  // Última visão usada (Minha ordem / Por data), salva em assistente_config
+  async function carregarVisao(){
+    try {
+      const { data, error } = await Auth.client.from("assistente_config").select("valor").eq("chave", CHAVE_VISAO).maybeSingle();
+      if (!error && data && data.valor && ["ordem", "data"].includes(data.valor.visao)) estado.visao = data.valor.visao;
+    } catch (e) { /* sem preferência: Minha ordem */ }
+  }
+  function salvarVisao(){
+    Auth.client.from("assistente_config").upsert({ chave: CHAVE_VISAO, valor: { visao: estado.visao } }, { onConflict: "chave" })
+      .then(({ error }) => { if (error) console.error("Cronograma: erro ao salvar visão", error); });
+  }
+
+  // Grava a data prevista; o Dia acompanha a data (menos Extra e Stories)
+  async function salvarDataPrevista(id, iso){
+    const it = estado.itens.find(x => x.id === id);
+    if (!it) return;
+    const campos = { data_prevista: iso || null };
+    if (iso && !DIAS_FIXOS.includes(it.dia)) campos.dia = diaDaData(iso);
+    await salvar(id, campos);
+  }
+
   /* --------------------------- Listas visíveis --------------------------- */
   const gradeOrdenada = () => estado.itens.filter(x => x.lista === "Grade").sort((a, b) => a.posicao - b.posicao);
 
@@ -154,6 +207,15 @@
     if (estado.filtroStatus) lista = lista.filter(x => x.status === estado.filtroStatus);
     else if (!estado.mostrarDescartados) lista = lista.filter(x => x.status !== "Descartado");
     if (estado.filtroDia) lista = lista.filter(x => x.dia === estado.filtroDia);
+    if (estado.filtroPeriodo){
+      // Na Grade vale a data prevista; em Postados, a data de postagem
+      const campo = estado.lista === "Grade" ? "data_prevista" : "data_postagem";
+      const seg = inicioSemana(hojeISO());
+      const [ini, fim] = estado.filtroPeriodo === "esta" ? [seg, somarDias(seg, 6)] : [somarDias(seg, 7), somarDias(seg, 13)];
+      lista = estado.filtroPeriodo === "sem"
+        ? lista.filter(x => !x[campo])
+        : lista.filter(x => x[campo] && x[campo] >= ini && x[campo] <= fim);
+    }
     if (estado.busca.trim()){
       const termo = normalizar(estado.busca.trim());
       lista = lista.filter(x => normalizar(x.ideia).includes(termo) || normalizar(x.observacoes).includes(termo));
@@ -181,9 +243,22 @@
           <button type="button" class="sub-aba-btn${estado.lista === "Grade" ? " ativo" : ""}" data-cron="lista" data-lista="Grade">Grade <span class="contagem-subaba">${nGrade}</span></button>
           <button type="button" class="sub-aba-btn${estado.lista === "Postados" ? " ativo" : ""}" data-cron="lista" data-lista="Postados">Postados <span class="contagem-subaba">${nPostados}</span>${nPendentes ? ` <span class="cron-badge-pendente" title="Itens com métricas pendentes">⏳ ${nPendentes}</span>` : ""}</button>
         </div>
+        ${estado.lista === "Grade" ? `
+        <div class="ig-subabas-mini cron-visoes" role="group" aria-label="Jeito de ver a Grade">
+          <button type="button" class="sub-aba-btn${estado.visao === "ordem" ? " ativo" : ""}" data-cron="visao" data-visao="ordem">Minha ordem</button>
+          <button type="button" class="sub-aba-btn${estado.visao === "data" ? " ativo" : ""}" data-cron="visao" data-visao="data">Por data</button>
+        </div>` : ""}
         <button type="button" class="botao-add-tarefa" data-cron="nova">+ Nova ideia</button>
       </div>
       <div class="cron-filtros">
+        <label>Período
+          <select data-cron="filtro-periodo">
+            <option value="">Todos</option>
+            <option value="esta"${estado.filtroPeriodo === "esta" ? " selected" : ""}>Esta semana</option>
+            <option value="proxima"${estado.filtroPeriodo === "proxima" ? " selected" : ""}>Próxima semana</option>
+            <option value="sem"${estado.filtroPeriodo === "sem" ? " selected" : ""}>Sem data</option>
+          </select>
+        </label>
         <label>Dia
           <select data-cron="filtro-dia"><option value="">Todos</option>${opcoesHtml(DIAS, estado.filtroDia)}</select>
         </label>
@@ -209,21 +284,135 @@
     const alvo = $("cronLista");
     if (!alvo) return;
     const lista = itensVisiveis();
-    if (!lista.length){
-      alvo.innerHTML = `<p class="cron-vazio">${estado.busca || estado.filtroDia || estado.filtroStatus ? "Nada encontrado com esses filtros." : estado.lista === "Grade" ? "Nenhuma ideia na Grade ainda." : "Nenhum post ainda."}</p>`;
+    const porData = estado.lista === "Grade" && estado.visao === "data";
+    if (!lista.length && !porData){
+      alvo.innerHTML = `<p class="cron-vazio">${estado.busca || estado.filtroDia || estado.filtroStatus || estado.filtroPeriodo ? "Nada encontrado com esses filtros." : estado.lista === "Grade" ? "Nenhuma ideia na Grade ainda." : "Nenhum post ainda."}</p>`;
       return;
     }
+    if (porData){ alvo.innerHTML = visaoPorData(lista); return; }
     alvo.innerHTML = celular() ? lista.map(cartaoCelular).join("") : tabelaComputador(lista);
+  }
+
+  // ---------- Visão "Por data": semanas empilhadas (seg a dom) + "Sem data" no fim ----------
+  function gruposPorSemana(lista){
+    const estaSemana = inicioSemana(hojeISO());
+    const mapa = new Map();
+    lista.filter(x => x.data_prevista).forEach(x => {
+      const k = inicioSemana(x.data_prevista);
+      if (!mapa.has(k)) mapa.set(k, []);
+      mapa.get(k).push(x);
+    });
+    if (!estado.filtroPeriodo && !mapa.has(estaSemana)) mapa.set(estaSemana, []);   // esta semana sempre aparece
+    const grupos = [...mapa.keys()].sort().map(k => ({
+      chave: k,
+      titulo: `Semana de ${ddmm(k)} a ${ddmm(somarDias(k, 6))}`,
+      etiqueta: k === estaSemana ? "esta semana" : k === somarDias(estaSemana, 7) ? "próxima semana" : k < estaSemana ? "passada" : "",
+      itens: mapa.get(k).sort((a, b) => a.data_prevista.localeCompare(b.data_prevista) || a.posicao - b.posicao)
+    }));
+    const semData = lista.filter(x => !x.data_prevista);
+    if (semData.length) grupos.push({ chave: "sem-data", titulo: "Sem data", etiqueta: "", itens: semData });
+    return grupos;
+  }
+
+  function visaoPorData(lista){
+    const grupos = gruposPorSemana(lista);
+    const estaSemana = inicioSemana(hojeISO());
+    if (!estado.semanasAbertas) estado.semanasAbertas = new Set([estaSemana]);
+    if (!estado.semanaFoco || !grupos.some(g => g.chave === estado.semanaFoco)) estado.semanaFoco = grupos.some(g => g.chave === estaSemana) ? estaSemana : (grupos[0] && grupos[0].chave);
+    const noCelular = celular();
+    const navegacao = `
+      <div class="cron-semanas-nav">
+        <button type="button" data-cron="semana-anterior" aria-label="Semana anterior">‹</button>
+        <button type="button" class="btn-fantasma" data-cron="semana-atual">Esta semana</button>
+        <button type="button" data-cron="semana-proxima" aria-label="Próxima semana">›</button>
+        <span class="cron-dica">Nesta visão a ordem é pela data. Pra arrastar, use "Minha ordem".</span>
+      </div>`;
+    if (!grupos.length) return navegacao + `<p class="cron-vazio">Nada encontrado com esses filtros.</p>`;
+    return navegacao + grupos.map(g => {
+      const aberto = !noCelular || estado.semanasAbertas.has(g.chave);
+      const corpo = g.itens.length
+        ? (noCelular ? g.itens.map(cartaoCelular).join("") : tabelaComputador(g.itens))
+        : `<p class="cron-vazio">Nenhuma ideia nesta semana.</p>`;
+      return `
+        <section class="cron-semana${aberto ? " aberta" : ""}${g.chave === estado.semanaFoco ? " foco" : ""}" id="cronSemana-${g.chave}">
+          <button type="button" class="cron-semana-titulo" data-cron="semana-alternar" data-semana="${g.chave}" aria-expanded="${aberto}">
+            <span>${esc(g.titulo)}</span>
+            <span class="contagem-subaba">${g.itens.length}</span>
+            ${g.etiqueta ? `<span class="cron-semana-etiqueta ${g.etiqueta === "passada" ? "passada" : ""}">${esc(g.etiqueta)}</span>` : ""}
+            <span class="cron-semana-seta" aria-hidden="true">▾</span>
+          </button>
+          ${aberto ? `<div class="cron-semana-corpo">${corpo}</div>` : ""}
+        </section>`;
+    }).join("");
+  }
+
+  function irParaSemana(direcao){
+    if (!estado.semanasAbertas) estado.semanasAbertas = new Set();
+    const grupos = gruposPorSemana(itensVisiveis());
+    if (!grupos.length) return;
+    let i = grupos.findIndex(g => g.chave === estado.semanaFoco);
+    if (direcao === "atual"){
+      const k = inicioSemana(hojeISO());
+      i = grupos.findIndex(g => g.chave === k);
+      if (i < 0) i = 0;
+    } else {
+      i = Math.min(grupos.length - 1, Math.max(0, i + (direcao === "proxima" ? 1 : -1)));
+    }
+    estado.semanaFoco = grupos[i].chave;
+    estado.semanasAbertas.add(estado.semanaFoco);
+    renderizarLista();
+    const el = $(`cronSemana-${estado.semanaFoco}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Célula de data (data prevista na Grade / data de postagem em Postados): "23/11 · seg"
+  function celulaData(it){
+    const campo = it.lista === "Postados" ? "data_postagem" : "data_prevista";
+    const valor = it[campo];
+    return `<button type="button" class="cron-data-btn${valor ? "" : " vazia"}" data-cron="editar-data" data-campo="${campo}" data-id="${it.id}" title="${campo === "data_postagem" ? "Data de postagem" : "Data prevista"} — clique pra escolher">${valor ? esc(dataCurtaDia(valor)) : "+ data"}</button>`;
+  }
+
+  function avisosData(it){
+    let h = "";
+    if (atrasada(it)) h += `<span class="cron-badge-atrasada" title="A data prevista já passou e ainda não foi postado">⏰ atrasada</span>`;
+    if (it.lista === "Grade" && !diaCombina(it)) h += `<span class="cron-badge-dia" title="O Dia escolhido não bate com a data prevista">⚠ dia ≠ data</span>`;
+    return h;
+  }
+
+  function editarData(btn){
+    const id = btn.dataset.id, campo = btn.dataset.campo;
+    const it = estado.itens.find(x => x.id === id);
+    if (!it) return;
+    const input = document.createElement("input");
+    input.type = "date"; input.className = "cron-data"; input.value = it[campo] || "";
+    btn.replaceWith(input);
+    input.focus();
+    try { input.showPicker(); } catch (e) { /* navegador sem calendário automático: a pessoa clica no campo */ }
+    let terminou = false;
+    const fim = async () => {
+      if (terminou) return; terminou = true;
+      const novo = input.value;
+      if (novo === (it[campo] || "")) { renderizarLista(); return; }
+      if (campo === "data_postagem"){
+        if (!novo){ alert("A data de postagem não pode ficar vazia."); renderizarLista(); return; }
+        await salvar(id, { data_postagem: novo });
+      } else {
+        await salvarDataPrevista(id, novo);
+      }
+    };
+    input.addEventListener("change", fim);
+    input.addEventListener("blur", () => setTimeout(fim, 150));
+    input.addEventListener("keydown", (e) => { if (e.key === "Escape"){ terminou = true; renderizarLista(); } });
   }
 
   // ---------- Computador: linhas finas ----------
   function tabelaComputador(lista){
     const postados = estado.lista === "Postados";
-    const podeArrastar = !postados;
+    const podeArrastar = !postados && estado.visao === "ordem";
     return `
       <div class="cron-tabela${postados ? " postados" : ""}">
         <div class="cron-linha cron-cabecalho">
-          <span></span><span>Dia</span><span>Tema</span><span>Ideia</span><span>Formato</span><span>Status</span>${postados ? "<span>Postado em</span>" : ""}<span>Observações</span>
+          <span></span><span>${postados ? "Postado em" : "Data"}</span><span>Dia</span><span>Tema</span><span>Ideia</span><span>Formato</span><span>Status</span><span>Observações</span>
         </div>
         ${lista.map(it => {
           const aberto = estado.abertos.has(it.id);
@@ -231,14 +420,15 @@
           <div class="cron-bloco${it.status === "Descartado" ? " descartado" : ""}${aberto ? " aberto" : ""}" data-id="${it.id}">
             <div class="cron-linha">
               <span class="cron-alca"${podeArrastar ? ` draggable="true" title="Arraste pra mudar a ordem"` : ""}>${podeArrastar ? "⋮⋮" : ""}</span>
+              ${celulaData(it)}
               <select class="cron-pilula" style="${estiloPilula(corDia(it.dia))}" data-cron="campo-select" data-campo="dia" data-id="${it.id}" aria-label="Dia">${opcoesHtml(DIAS, it.dia)}</select>
               <span class="cron-texto" data-cron="editar-texto" data-campo="tema" data-id="${it.id}" title="${esc(it.tema)}">${esc(it.tema) || '<span class="cron-placeholder">—</span>'}</span>
               <span class="cron-texto cron-ideia" data-cron="editar-texto" data-campo="ideia" data-id="${it.id}" title="${esc(it.ideia)}">${esc(it.ideia) || '<span class="cron-placeholder">—</span>'}</span>
               <span class="cron-texto" data-cron="editar-texto" data-campo="formato" data-id="${it.id}" title="${esc(it.formato)}">${esc(it.formato) || '<span class="cron-placeholder">—</span>'}</span>
               <select class="cron-pilula" style="${estiloPilula(corStatus(it.status))}" data-cron="campo-select" data-campo="status" data-id="${it.id}" aria-label="Status">${opcoesHtml(STATUS, it.status)}</select>
-              ${postados ? `<input type="date" class="cron-data" value="${esc(it.data_postagem || "")}" data-cron="data-postagem" data-id="${it.id}" aria-label="Data de postagem">` : ""}
               <span class="cron-obs-celula">
                 ${iconeRoteiro(it)}
+                ${avisosData(it)}
                 <button type="button" class="cron-ver-mais" data-cron="alternar" data-id="${it.id}">${aberto ? "▾ fechar" : it.observacoes ? "▸ ver mais" : "▸ abrir"}</button>
                 ${metricasPendentes(it) ? `<span class="cron-badge-pendente" title="Já passaram 48h: preencha as métricas">⏳ métricas pendentes</span>` : ""}
               </span>
@@ -253,23 +443,30 @@
   function cartaoCelular(it){
     const aberto = estado.abertos.has(it.id);
     const grade = estado.lista === "Grade";
+    const setas = grade && estado.visao === "ordem";
+    const dataItem = grade ? it.data_prevista : it.data_postagem;
     return `
       <div class="cron-cartao${it.status === "Descartado" ? " descartado" : ""}${aberto ? " aberto" : ""}" data-id="${it.id}">
         <div class="cron-cartao-topo">
           <button type="button" class="cron-cartao-resumo" data-cron="alternar" data-id="${it.id}" aria-expanded="${aberto}">
+            ${dataItem ? `<span class="cron-data-curta">${esc(ddmm(dataItem))}</span>` : ""}
             <span class="cron-pilula-fixa" style="${estiloPilula(corDia(it.dia))}">${esc(it.dia)}</span>
             <span class="cron-cartao-ideia">${esc(it.ideia) || "—"}</span>
             ${linkSeguro(it.link_roteiro) ? `<span class="cron-tem-link" title="Tem link do roteiro">📄</span>` : ""}
             <span class="cron-pilula-fixa" style="${estiloPilula(corStatus(it.status))}">${esc(it.status)}</span>
             ${metricasPendentes(it) ? `<span class="cron-badge-pendente">⏳</span>` : ""}
+            ${atrasada(it) ? `<span class="cron-badge-atrasada" title="Atrasada">⏰</span>` : ""}
+            ${grade && !diaCombina(it) ? `<span class="cron-badge-dia" title="Dia ≠ data">⚠</span>` : ""}
           </button>
-          ${grade ? `<span class="cron-setas">
+          ${setas ? `<span class="cron-setas">
             <button type="button" data-cron="subir" data-id="${it.id}" aria-label="Subir">↑</button>
             <button type="button" data-cron="descer" data-id="${it.id}" aria-label="Descer">↓</button>
           </span>` : ""}
         </div>
         ${aberto ? `
+          ${avisosData(it) ? `<div class="cron-cartao-avisos">${avisosData(it)}</div>` : ""}
           <div class="cron-cartao-campos">
+            ${grade ? `<label class="cron-campo-largo">Data prevista<input type="date" value="${esc(it.data_prevista || "")}" data-cron="data-prevista" data-id="${it.id}"></label>` : ""}
             <label>Dia<select class="cron-pilula" style="${estiloPilula(corDia(it.dia))}" data-cron="campo-select" data-campo="dia" data-id="${it.id}">${opcoesHtml(DIAS, it.dia)}</select></label>
             <label>Status<select class="cron-pilula" style="${estiloPilula(corStatus(it.status))}" data-cron="campo-select" data-campo="status" data-id="${it.id}">${opcoesHtml(STATUS, it.status)}</select></label>
             <label>Tema<input type="text" value="${esc(it.tema)}" data-cron="campo-texto" data-campo="tema" data-id="${it.id}"></label>
@@ -321,15 +518,22 @@
     const it = estado.itens.find(x => x.id === id);
     if (!it) return;
     if (campo === "status" && valor === "Postado" && it.status !== "Postado"){
-      // Pede a data de postagem antes (já com hoje)
+      // Pede a data de postagem antes (já com a data prevista, ou hoje)
       estado.pendentePostado = { id, sel, anterior: it.status };
-      $("cronDataPostagemCampo").value = hojeISO();
+      $("cronDataPostagemCampo").value = it.data_prevista || hojeISO();
       $("cronModalPostado").classList.remove("oculto");
       $("cronDataPostagemCampo").focus();
       return;
     }
     sel.disabled = true;
-    await salvar(id, { [campo]: valor });
+    const salvo = await salvar(id, { [campo]: valor });
+    // Mudou o Dia na mão e não bate com a data prevista: só pergunta, nada muda sozinho
+    if (salvo && campo === "dia" && !diaCombina(salvo)){
+      const diaData = diaDaData(salvo.data_prevista).toLowerCase();
+      if (window.confirm(`A data ${ddmm(salvo.data_prevista)} é ${diaData}, mas o Dia agora é ${valor}. Quer limpar a data?`)){
+        await salvar(id, { data_prevista: null });
+      }
+    }
   }
 
   function editarTexto(span){
@@ -411,7 +615,7 @@
   function abrirNova(){
     $("cronNovaDia").innerHTML = opcoesHtml(DIAS, estado.filtroDia || "A definir");
     $("cronNovaStatus").innerHTML = opcoesHtml(STATUS.filter(s => s.nome !== "Postado"), "Sugestão (aprovar)");
-    ["cronNovaTema", "cronNovaIdeia", "cronNovaFormato", "cronNovaObs", "cronNovaLink"].forEach(id => { $(id).value = ""; });
+    ["cronNovaTema", "cronNovaIdeia", "cronNovaFormato", "cronNovaObs", "cronNovaLink", "cronNovaData"].forEach(id => { $(id).value = ""; });
     $("cronModalNova").classList.remove("oculto");
     $("cronNovaIdeia").focus();
   }
@@ -422,9 +626,13 @@
     const vazioNulo = (v) => v.trim() === "" ? null : v;
     const link = $("cronNovaLink").value.trim();
     if (link && !linkSeguro(link)){ alert("O link do roteiro precisa começar com https://"); $("cronNovaLink").focus(); return; }
+    const dataPrevista = $("cronNovaData").value || null;
+    let dia = $("cronNovaDia").value;
+    if (dataPrevista && !DIAS_FIXOS.includes(dia)) dia = diaDaData(dataPrevista);
     const linha = {
       link_roteiro: link || null,
-      dia: $("cronNovaDia").value,
+      data_prevista: dataPrevista,
+      dia,
       tema: vazioNulo($("cronNovaTema").value),
       ideia,
       formato: vazioNulo($("cronNovaFormato").value),
@@ -456,6 +664,19 @@
       if (!el) return;
       const acao = el.dataset.cron, id = el.dataset.id;
       if (acao === "lista"){ estado.lista = el.dataset.lista; renderizar(); }
+      else if (acao === "visao"){
+        if (estado.visao !== el.dataset.visao){ estado.visao = el.dataset.visao; salvarVisao(); renderizar(); }
+      }
+      else if (acao === "editar-data") editarData(el);
+      else if (acao === "semana-anterior") irParaSemana("anterior");
+      else if (acao === "semana-proxima") irParaSemana("proxima");
+      else if (acao === "semana-atual") irParaSemana("atual");
+      else if (acao === "semana-alternar"){
+        if (!celular()) return;     // no computador as semanas ficam sempre abertas
+        const k = el.dataset.semana;
+        estado.semanasAbertas.has(k) ? estado.semanasAbertas.delete(k) : estado.semanasAbertas.add(k);
+        renderizarLista();
+      }
       else if (acao === "nova") abrirNova();
       else if (acao === "recarregar") carregar(true);
       else if (acao === "alternar"){
@@ -486,6 +707,8 @@
       const acao = el.dataset.cron;
       if (acao === "campo-select") mudarCampoSelect(el);
       else if (acao === "filtro-dia"){ estado.filtroDia = el.value; renderizar(); }
+      else if (acao === "filtro-periodo"){ estado.filtroPeriodo = el.value; renderizar(); }
+      else if (acao === "data-prevista") salvarDataPrevista(el.dataset.id, el.value);
       else if (acao === "filtro-status"){ estado.filtroStatus = el.value; renderizar(); }
       else if (acao === "mostrar-descartados"){ estado.mostrarDescartados = el.checked; renderizar(); }
       else if (acao === "data-postagem"){
@@ -579,6 +802,11 @@
     $("cronNovaFechar").addEventListener("click", fecharNova);
     $("cronNovaCancelar").addEventListener("click", fecharNova);
     $("cronNovaSalvar").addEventListener("click", salvarNova);
+    // Na janela de nova ideia, escolher a data já acerta o Dia (menos Extra e Stories)
+    $("cronNovaData").addEventListener("change", () => {
+      const v = $("cronNovaData").value;
+      if (v && !DIAS_FIXOS.includes($("cronNovaDia").value)) $("cronNovaDia").value = diaDaData(v);
+    });
 
     // Troca entre linhas (computador) e cartões (celular) quando a tela muda de tamanho
     window.matchMedia("(max-width: 700px)").addEventListener("change", () => { if (estado.carregado) renderizarLista(); });

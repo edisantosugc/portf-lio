@@ -3983,10 +3983,57 @@
   /* Computador: linhas finas */
   .cron-tabela{ background:var(--branco); border:1px solid var(--borda); border-radius:14px; overflow:hidden; }
   .cron-linha{
-    display:grid; grid-template-columns: 22px 118px minmax(0,.8fr) minmax(0,2fr) minmax(0,.9fr) 168px 128px;
+    display:grid; grid-template-columns: 22px 98px 112px minmax(0,.8fr) minmax(0,2fr) minmax(0,.9fr) 160px 138px;
     align-items:center; gap:10px; padding:5px 12px; min-height:38px; font-size:.84rem;
   }
-  .cron-tabela.postados .cron-linha{ grid-template-columns: 0 118px minmax(0,.8fr) minmax(0,2fr) minmax(0,.9fr) 168px 126px 128px; }
+  .cron-tabela.postados .cron-linha{ grid-template-columns: 0 98px 112px minmax(0,.8fr) minmax(0,2fr) minmax(0,.9fr) 160px 138px; }
+
+  /* Data prevista / data de postagem: "23/11 · seg" */
+  .cron-data-btn{
+    font-family:'Outfit', sans-serif; font-size:.8rem; font-weight:600; color:var(--grafite); background:none;
+    border:1px solid transparent; border-radius:8px; padding:4px 6px; cursor:pointer; text-align:left; white-space:nowrap;
+  }
+  .cron-data-btn:hover{ background:var(--creme); border-color:var(--borda); }
+  .cron-data-btn.vazia{ color:var(--texto-suave); font-weight:500; opacity:.75; }
+  .cron-badge-atrasada, .cron-badge-dia{
+    display:inline-block; font-size:.66rem; font-weight:700; padding:2px 7px; border-radius:999px; white-space:nowrap;
+  }
+  .cron-badge-atrasada{ background:rgba(196,69,60,.1); color:var(--vermelho); border:1px solid var(--vermelho); }
+  .cron-badge-dia{ background:#FFF4D6; color:#8A5A00; border:1px solid #F1C232; }
+  .cron-data-curta{ font-size:.74rem; font-weight:700; color:var(--grafite); flex-shrink:0; }
+  .cron-cartao-avisos{ display:flex; flex-wrap:wrap; gap:6px; padding:0 12px; }
+  .cron-cartao-campos label.cron-campo-largo{ grid-column:1 / -1; }
+
+  /* Visões e semanas */
+  .cron-visoes{ margin:0 0 0 auto; }
+  .cron-semanas-nav{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:12px; }
+  .cron-semanas-nav > button:not(.btn-fantasma){
+    width:34px; height:34px; border-radius:10px; border:1px solid var(--borda); background:var(--branco);
+    color:var(--coral); font-size:1.1rem; font-weight:700; cursor:pointer;
+  }
+  .cron-semanas-nav .btn-fantasma{ padding:8px 14px; }
+  .cron-semanas-nav .cron-dica{ margin:0 0 0 6px; }
+  .cron-semana{ margin-bottom:16px; scroll-margin-top:16px; }
+  .cron-semana-titulo{
+    all:unset; display:flex; align-items:center; gap:8px; width:100%; box-sizing:border-box; cursor:default;
+    font-family:'Fraunces', serif; font-weight:600; font-size:1rem; color:var(--grafite); padding:4px 2px 8px;
+  }
+  .cron-semana.foco .cron-semana-titulo{ color:var(--coral); }
+  .cron-semana-etiqueta{
+    font-family:'Outfit', sans-serif; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+    padding:2px 8px; border-radius:999px; background:rgba(0,0,128,.08); color:var(--coral);
+  }
+  .cron-semana-etiqueta.passada{ background:var(--creme); color:var(--texto-suave); }
+  .cron-semana-seta{ display:none; margin-left:auto; color:var(--texto-suave); transition:transform .15s ease; }
+  @media (max-width: 700px){
+    .cron-visoes{ margin:0; width:100%; }
+    .cron-semanas-nav .cron-dica{ flex-basis:100%; margin:0; }
+    .cron-semana{ background:var(--branco); border:1px solid var(--borda); border-radius:12px; padding:4px 10px; margin-bottom:10px; }
+    .cron-semana-titulo{ cursor:pointer; padding:10px 2px; font-size:.95rem; }
+    .cron-semana-seta{ display:inline-block; }
+    .cron-semana.aberta .cron-semana-seta{ transform:rotate(180deg); }
+    .cron-semana-corpo{ padding-bottom:8px; }
+  }
   .cron-cabecalho{ font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--texto-suave); border-bottom:1px solid var(--borda); background:var(--creme); }
   .cron-bloco{ border-bottom:1px solid var(--borda); }
   .cron-bloco:last-child{ border-bottom:none; }
@@ -4694,6 +4741,7 @@
             </div>
             <div class="cliente-modal-corpo">
               <div class="ugc-form-grade">
+                <div class="ugc-campo"><label for="cronNovaData">Data prevista (opcional)</label><input type="date" id="cronNovaData"></div>
                 <div class="ugc-campo"><label for="cronNovaDia">Dia</label><select id="cronNovaDia"></select></div>
                 <div class="ugc-campo"><label for="cronNovaStatus">Status</label><select id="cronNovaStatus"></select></div>
                 <div class="ugc-campo largo"><label for="cronNovaIdeia">Ideia</label><input type="text" id="cronNovaIdeia"></div>
