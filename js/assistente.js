@@ -413,8 +413,8 @@
           <label class="assist-gcampo">Status<select id="assistPendStatus">${opcoes(STATUS_PENDENCIA, v.status)}</select></label>
           <label class="assist-gcampo">Prioridade<select id="assistPendPrioridade">${[1, 2, 3, 4].map(n => `<option value="${n}"${n === Number(v.prioridade) ? " selected" : ""}>${n} · ${esc(PRIORIDADES[n])}</option>`).join("")}</select></label>
           <label class="assist-gcampo">Categoria<select id="assistPendCategoria">${opcoes(CATEGORIAS, v.categoria)}</select></label>
-          <label class="assist-gcampo">Data limite<input type="date" id="assistPendLimite" value="${esc(v.data_limite || "")}"></label>
-          <label class="assist-gcampo">Data agendada<input type="date" id="assistPendAgendada" value="${esc(v.data_agendada || "")}"></label>
+          <label class="assist-gcampo" title="O dia que você escolheu pra fazer">Data agendada<input type="date" id="assistPendAgendada" value="${esc(v.data_agendada || "")}"></label>
+          <label class="assist-gcampo" title="O prazo final: até quando precisa estar pronto">Data limite<input type="date" id="assistPendLimite" value="${esc(v.data_limite || "")}"></label>
         </div>
         <div class="assist-gaveta-rodape">
           ${p && p.status !== "Descartado" ? `<button type="button" class="btn-fantasma perigo" data-pend="descartar">Descartar</button>` : "<span></span>"}
