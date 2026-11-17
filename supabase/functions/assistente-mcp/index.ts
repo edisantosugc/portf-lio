@@ -408,6 +408,16 @@ function itemCronParaSaida(it: any, ordem?: number) {
 function dataMaisProxima(p: any) {
   return [p.data_limite, p.data_agendada].filter(Boolean).sort()[0] ?? "9999-12-31";
 }
+// Mesma ordem do painel (js/assistente.js > pendenciasVisiveis), agrupando por quadrante:
+// dentro de cada quadrante, COM data primeiro (mais próxima antes; empate pela prioridade),
+// SEM data depois (por prioridade); por fim, a mais nova primeiro.
+function ordemPendencias(x: any, y: any) {
+  const iq = (p: any) => { const i = QUADRANTES.indexOf(p.quadrante); return i < 0 ? QUADRANTES.length : i; };
+  return (iq(x) - iq(y)) ||
+    dataMaisProxima(x).localeCompare(dataMaisProxima(y)) ||
+    (x.prioridade - y.prioridade) ||
+    String(y.created_at).localeCompare(String(x.created_at));
+}
 const STATUS_IND = ["Quero comprar", "Comprado", "Desisti"];
 const STATUS_LEMB = ["Pendente", "Feito"];
 const LIMITE_LISTA = 300;
@@ -468,7 +478,9 @@ const FERRAMENTAS: { def: any; executar: (a: any) => Promise<unknown> }[] = [
   {
     def: {
       name: "listar_pendencias", title: "Listar pendências", annotations: ANOT_LEITURA,
-      description: "Lista as pendências (com quadrante e data_agendada), ordenadas por prioridade (1 primeiro) e depois pela data mais próxima entre data limite e data agendada. " +
+      description: "Lista as pendências (com quadrante e data_agendada) na MESMA ORDEM do painel: agrupadas por quadrante " +
+        "(Faça na hora, Programe-se, Delegue, Tempo livre ou elimine, e por último as sem quadrante); dentro de cada quadrante, primeiro as COM data " +
+        "(da mais próxima pra mais distante, usando a mais próxima entre data limite e data agendada; empate: prioridade), depois as SEM data, por prioridade (1 primeiro). " +
         "Sem filtro de status, devolve só as que NÃO estão Feito nem Descartado. Filtre por quadrante \"Sem quadrante\" pra ver as que ainda não foram classificadas. " + EXPLICA_QUADRANTES,
       inputSchema: { type: "object", additionalProperties: false, properties: {
         status: S("Filtrar por status", { enum: STATUS_PEND }),
@@ -489,9 +501,7 @@ const FERRAMENTAS: { def: any; executar: (a: any) => Promise<unknown> }[] = [
       }
       const { data: linhas, error } = await q.limit(LIMITE_LISTA);
       falha(error);
-      linhas!.sort((x: any, y: any) =>
-        (x.prioridade - y.prioridade) || dataMaisProxima(x).localeCompare(dataMaisProxima(y)) ||
-        String(y.created_at).localeCompare(String(x.created_at)));
+      linhas!.sort(ordemPendencias);
       return { total: linhas!.length, pendencias: linhas };
     },
   },
