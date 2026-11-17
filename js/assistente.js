@@ -270,11 +270,15 @@
     if (estado.filtroCategoria) lista = lista.filter(p => p.categoria === estado.filtroCategoria);
     if (estado.filtroStatus) lista = lista.filter(p => p.status === estado.filtroStatus);
     else if (!estado.mostrarFeitosPendencias) lista = lista.filter(p => !STATUS_ESCONDIDOS.includes(p.status));
-    return lista.sort((a, b) =>
-      (a.prioridade - b.prioridade) ||
-      dataMaisProxima(a).localeCompare(dataMaisProxima(b)) ||
-      String(b.created_at).localeCompare(String(a.created_at))
-    );
+    // Igual ao Cronograma: dentro de cada quadrante, as COM data vêm primeiro, da mais
+    // próxima pra mais distante (desempate pela prioridade); as SEM data vêm depois,
+    // por prioridade.
+    return lista.sort((a, b) => {
+      const da = dataMaisProxima(a), db = dataMaisProxima(b);
+      return da.localeCompare(db) ||
+        (a.prioridade - b.prioridade) ||
+        String(b.created_at).localeCompare(String(a.created_at));
+    });
   }
 
   function htmlPendencias(){
