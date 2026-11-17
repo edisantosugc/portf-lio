@@ -703,7 +703,8 @@ FERRAMENTAS.push(
   {
     def: {
       name: "listar_cronograma", title: "Listar cronograma de conteúdos", annotations: ANOT_LEITURA,
-      description: "Lista o cronograma. Por padrão traz a Grade, sem Descartado, na ordem que a Edi deixou (campo ordem: 1 = topo). " +
+      description: "Lista o cronograma. Por padrão traz a Grade, sem Descartado, na mesma ordem do painel (campo ordem: 1 = topo): " +
+        "primeiro as ideias COM data prevista, em ordem de data; depois as SEM data, na ordem manual que a Edi deixou. " +
         "Com lista Postados, traz do mais recente pro mais antigo, com métricas e o aviso metricas_pendentes (48h passadas e métricas vazias). " + CRON_EXPLICA,
       inputSchema: { type: "object", additionalProperties: false, properties: {
         lista: S("Grade (padrão) ou Postados", { enum: ["Grade", "Postados"] }),
@@ -732,6 +733,12 @@ FERRAMENTAS.push(
         : q.order("data_postagem", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
       const { data: linhas, error } = await q.limit(1000);
       falha(error);
+      // Mesma ordem do painel: ideias COM data no topo, por data; SEM data embaixo, na ordem manual
+      if (lista === "Grade") linhas!.sort((x: any, y: any) => {
+        if (!!x.data_prevista !== !!y.data_prevista) return x.data_prevista ? -1 : 1;
+        if (x.data_prevista) return x.data_prevista.localeCompare(y.data_prevista) || x.posicao - y.posicao;
+        return x.posicao - y.posicao;
+      });
       return { lista, total: linhas!.length, itens: linhas!.map((it, i) => itemCronParaSaida(it, lista === "Grade" ? i + 1 : undefined)) };
     },
   },

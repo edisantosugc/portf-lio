@@ -199,9 +199,18 @@
   /* --------------------------- Listas visíveis --------------------------- */
   const gradeOrdenada = () => estado.itens.filter(x => x.lista === "Grade").sort((a, b) => a.posicao - b.posicao);
 
+  // "Minha ordem": ideias COM data no topo, em ordem de data (se ajusta sozinho);
+  // ideias SEM data embaixo, na ordem que ela arrasta. Só muda a exibição — a posição
+  // salva (posicao) de nenhuma ideia é alterada por isso.
+  const gradeDatasPrimeiro = () => gradeOrdenada().sort((a, b) => {
+    if (!!a.data_prevista !== !!b.data_prevista) return a.data_prevista ? -1 : 1;
+    if (a.data_prevista) return a.data_prevista.localeCompare(b.data_prevista) || a.posicao - b.posicao;
+    return a.posicao - b.posicao;
+  });
+
   function itensVisiveis(){
     let lista = estado.lista === "Grade"
-      ? gradeOrdenada()
+      ? gradeDatasPrimeiro()
       : estado.itens.filter(x => x.lista === "Postados").sort((a, b) =>
           String(b.data_postagem || "").localeCompare(String(a.data_postagem || "")) || String(b.created_at).localeCompare(String(a.created_at)));
     if (estado.filtroStatus) lista = lista.filter(x => x.status === estado.filtroStatus);
@@ -290,7 +299,10 @@
       return;
     }
     if (porData){ alvo.innerHTML = visaoPorData(lista); return; }
-    alvo.innerHTML = celular() ? lista.map(cartaoCelular).join("") : tabelaComputador(lista);
+    alvo.innerHTML = celular()
+      ? lista.map((it, i) => (estado.lista === "Grade" && !it.data_prevista && i > 0 && lista[i - 1].data_prevista
+          ? `<div class="cron-divisoria-sem-data">Sem data · use ↑↓ pra organizar</div>` : "") + cartaoCelular(it)).join("")
+      : tabelaComputador(lista);
   }
 
   // ---------- Visão "Por data": semanas empilhadas (seg a dom) + "Sem data" no fim ----------
@@ -414,12 +426,16 @@
         <div class="cron-linha cron-cabecalho">
           <span></span><span>${postados ? "Postado em" : "Data"}</span><span>Dia</span><span>Tema</span><span>Ideia</span><span>Formato</span><span>Status</span><span>Observações</span>
         </div>
-        ${lista.map(it => {
+        ${lista.map((it, i) => {
           const aberto = estado.abertos.has(it.id);
-          return `
-          <div class="cron-bloco${it.status === "Descartado" ? " descartado" : ""}${aberto ? " aberto" : ""}" data-id="${it.id}">
+          // Na "Minha ordem", só as ideias SEM data são arrastáveis (as com data seguem a data)
+          const arrasta = podeArrastar && !it.data_prevista;
+          const divisoria = podeArrastar && !it.data_prevista && i > 0 && lista[i - 1].data_prevista
+            ? `<div class="cron-divisoria-sem-data">Sem data · arraste pra organizar</div>` : "";
+          return `${divisoria}
+          <div class="cron-bloco${it.status === "Descartado" ? " descartado" : ""}${aberto ? " aberto" : ""}" data-id="${it.id}"${arrasta ? ` data-arrastavel="1"` : ""}>
             <div class="cron-linha">
-              <span class="cron-alca"${podeArrastar ? ` draggable="true" title="Arraste pra mudar a ordem"` : ""}>${podeArrastar ? "⋮⋮" : ""}</span>
+              <span class="cron-alca"${arrasta ? ` draggable="true" title="Arraste pra mudar a ordem"` : (podeArrastar ? ` title="Ideias com data ficam em ordem de data"` : "")}>${arrasta ? "⋮⋮" : ""}</span>
               ${celulaData(it)}
               <select class="cron-pilula" style="${estiloPilula(corDia(it.dia))}" data-cron="campo-select" data-campo="dia" data-id="${it.id}" aria-label="Dia">${opcoesHtml(DIAS, it.dia)}</select>
               <span class="cron-texto" data-cron="editar-texto" data-campo="tema" data-id="${it.id}" title="${esc(it.tema)}">${esc(it.tema) || '<span class="cron-placeholder">—</span>'}</span>
@@ -443,7 +459,7 @@
   function cartaoCelular(it){
     const aberto = estado.abertos.has(it.id);
     const grade = estado.lista === "Grade";
-    const setas = grade && estado.visao === "ordem";
+    const setas = grade && estado.visao === "ordem" && !it.data_prevista;
     const dataItem = grade ? it.data_prevista : it.data_postagem;
     return `
       <div class="cron-cartao${it.status === "Descartado" ? " descartado" : ""}${aberto ? " aberto" : ""}" data-id="${it.id}">
@@ -582,7 +598,7 @@
   }
 
   function subirDescer(id, direcao){
-    const visiveis = itensVisiveis();
+    const visiveis = itensVisiveis().filter(x => !x.data_prevista);   // só entre as sem data
     const i = visiveis.findIndex(x => x.id === id);
     const vizinho = visiveis[direcao === "subir" ? i - 1 : i + 1];
     if (vizinho) moverPara(id, vizinho.id, direcao === "subir" ? "antes" : "depois");
@@ -753,8 +769,8 @@
     const limparMarcas = () => raiz.querySelectorAll(".solta-antes, .solta-depois").forEach(x => x.classList.remove("solta-antes", "solta-depois"));
     raiz.addEventListener("dragover", (e) => {
       if (!arrastando) return;
-      const bloco = e.target.closest(".cron-bloco");
-      if (!bloco || bloco.dataset.id === arrastando) return;
+      const bloco = e.target.closest(".cron-bloco[data-arrastavel]");   // só solta entre ideias sem data
+      if (!bloco || bloco.dataset.id === arrastando){ limparMarcas(); return; }
       e.preventDefault();
       const r = bloco.getBoundingClientRect();
       const antes = e.clientY < r.top + Math.min(r.height, 40) / 2;
@@ -763,7 +779,7 @@
     });
     raiz.addEventListener("drop", (e) => {
       if (!arrastando) return;
-      const bloco = e.target.closest(".cron-bloco");
+      const bloco = e.target.closest(".cron-bloco[data-arrastavel]");
       e.preventDefault();
       const id = arrastando;
       arrastando = null;
