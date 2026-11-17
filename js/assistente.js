@@ -323,7 +323,7 @@
         <section class="assist-sem-quadrante" data-soltar-quadrante="">
           <div class="assist-sem-quadrante-topo">
             <strong>SEM QUADRANTE <span class="assist-quad-contagem">${semQuadrante.length}</span></strong>
-            <span class="assist-sub">Arraste pra um quadrante ou escolha no seletor do card.</span>
+            <span class="assist-sub">Arraste pra um quadrante ou abra a linha pra escolher.</span>
           </div>
           <div class="assist-sem-quadrante-lista">${semQuadrante.map(cardPendencia).join("")}</div>
         </section>` : ""}
@@ -347,28 +347,108 @@
     return Number(a) === new Date().getFullYear() ? `${d}/${m}` : `${d}/${m}/${a.slice(2)}`;
   }
 
+  // Linha fina (modelo "agenda"): barrinha da prioridade, título numa linha só e, no fim,
+  // só 📅 com a data mais próxima e ◐ se estiver em andamento. Clicar abre o card.
   function cardPendencia(p){
     const escondido = STATUS_ESCONDIDOS.includes(p.status);
+    const datas = [p.data_limite, p.data_agendada].filter(Boolean).sort();
     const atrasado = p.data_limite && !escondido && diasAte(p.data_limite) < 0;
-    const opcoesQuadrante = `<option value=""${p.quadrante ? "" : " selected"}>Sem quadrante</option>` +
-      QUADRANTES.map(q => `<option value="${esc(q.nome)}"${q.nome === p.quadrante ? " selected" : ""}>${esc(q.nome)}</option>`).join("");
+    const dataTitulo = datas.length ? (datas[0] === p.data_limite ? "Data limite" : "Data agendada") : "";
     return `
-      <div class="assist-card assist-card-pend${escondido ? " feito" : ""}" draggable="true" data-arrastar-id="${p.id}">
-        <div class="assist-card-titulo assist-uma-linha" title="${esc(p.titulo)}">${esc(p.titulo)}</div>
-        <div class="assist-card-topo">
-          <span class="assist-prio prio-${p.prioridade}" title="Prioridade ${p.prioridade}: ${esc(PRIORIDADES[p.prioridade])}">${p.prioridade} · ${esc(PRIORIDADES_CURTAS[p.prioridade])}</span>
-          <span class="assist-etiqueta">${esc(p.categoria)}</span>
-          ${p.data_limite ? `<span class="assist-etiqueta${atrasado ? " atrasado" : ""}" title="Data limite">⏰ ${esc(dataCurta(p.data_limite))}</span>` : ""}
-          ${p.data_agendada ? `<span class="assist-etiqueta agendada" title="Data agendada">📅 ${esc(dataCurta(p.data_agendada))}</span>` : ""}
-        </div>
-        ${blocoTextoLongo(p.id, p.descricao, "descrição")}
-        <div class="assist-card-rodape">
-          <select class="assist-status assist-mini" data-acao="assist-status" data-tabela="assistente_pendencias" data-id="${p.id}" aria-label="Status">${opcoes(STATUS_PENDENCIA, p.status)}</select>
-          <select class="assist-status assist-mini" data-acao="assist-quadrante" data-id="${p.id}" aria-label="Quadrante">${opcoesQuadrante}</select>
-          <button type="button" class="marcas-botao-icone" data-acao="assist-editar" data-tipo="pendencia" data-id="${p.id}" title="Editar">✎</button>
-        </div>
-      </div>
+      <button type="button" class="assist-linha${escondido ? " feito" : ""}" draggable="true" data-arrastar-id="${p.id}"
+        data-acao="assist-pend-abrir" data-id="${p.id}" title="${esc(p.titulo)} — prioridade ${p.prioridade}: ${esc(PRIORIDADES[p.prioridade])}">
+        <span class="assist-linha-prio prio-${p.prioridade}" aria-hidden="true"></span>
+        <span class="assist-linha-titulo">${esc(p.titulo)}</span>
+        <span class="assist-linha-icones">
+          ${datas.length ? `<span class="${atrasado ? "atrasado" : ""}" title="${dataTitulo}${atrasado ? " (passou)" : ""}">📅 ${esc(dataCurta(datas[0]))}</span>` : ""}
+          ${p.status === "Em andamento" ? `<span title="Em andamento">◐</span>` : ""}
+          ${p.status === "Feito" ? `<span title="Feito">✓</span>` : ""}
+          ${p.status === "Descartado" ? `<span title="Descartado">✕</span>` : ""}
+        </span>
+      </button>
     `;
+  }
+
+  /* ---------------- Card da pendência (abre de lado; no celular, sobe de baixo) ---------------- */
+  function abrirCardPendencia(id){
+    const p = id ? estado.pendencias.find(x => x.id === id) : null;
+    if (id && !p) return;
+    estado.cardPend = { id: p ? p.id : null };
+    const v = p || { titulo: "", descricao: "", quadrante: "", status: "Pendente", prioridade: 4, categoria: "Outros", data_limite: "", data_agendada: "" };
+    const quadSel = `<option value=""${v.quadrante ? "" : " selected"}>Sem quadrante</option>` +
+      QUADRANTES.map(q => `<option value="${esc(q.nome)}"${q.nome === v.quadrante ? " selected" : ""}>${esc(q.nome)} — ${esc(q.titulo.toLowerCase())}</option>`).join("");
+    const caixa = $("assistPendCard");
+    caixa.innerHTML = `
+      <aside class="assist-gaveta" role="dialog" aria-modal="true" aria-labelledby="assistPendTitulo">
+        <div class="assist-gaveta-topo">
+          <div>
+            <div class="assist-gaveta-sobre">${p ? esc(p.quadrante || "Sem quadrante") : "Nova pendência"}</div>
+            <div class="assist-gaveta-titulo" id="assistPendTitulo">${p ? esc(p.titulo) : "Nova pendência"}</div>
+          </div>
+          <button type="button" class="assist-gaveta-x" data-pend="fechar" aria-label="Fechar">×</button>
+        </div>
+        <div class="assist-gaveta-corpo">
+          <label class="assist-gcampo largo">Título<input type="text" id="assistPendTituloCampo" value="${esc(v.titulo)}" maxlength="300"></label>
+          <label class="assist-gcampo largo">Descrição<textarea id="assistPendDescricao" rows="7">${esc(v.descricao || "")}</textarea></label>
+          <label class="assist-gcampo">Quadrante<select id="assistPendQuadrante">${quadSel}</select></label>
+          <label class="assist-gcampo">Status<select id="assistPendStatus">${opcoes(STATUS_PENDENCIA, v.status)}</select></label>
+          <label class="assist-gcampo">Prioridade<select id="assistPendPrioridade">${[1, 2, 3, 4].map(n => `<option value="${n}"${n === Number(v.prioridade) ? " selected" : ""}>${n} · ${esc(PRIORIDADES[n])}</option>`).join("")}</select></label>
+          <label class="assist-gcampo">Categoria<select id="assistPendCategoria">${opcoes(CATEGORIAS, v.categoria)}</select></label>
+          <label class="assist-gcampo">Data limite<input type="date" id="assistPendLimite" value="${esc(v.data_limite || "")}"></label>
+          <label class="assist-gcampo">Data agendada<input type="date" id="assistPendAgendada" value="${esc(v.data_agendada || "")}"></label>
+        </div>
+        <div class="assist-gaveta-rodape">
+          ${p && p.status !== "Descartado" ? `<button type="button" class="btn-fantasma perigo" data-pend="descartar">Descartar</button>` : "<span></span>"}
+          <span class="assist-gaveta-acoes">
+            <button type="button" class="btn-fantasma" data-pend="fechar">Fechar</button>
+            <button type="button" class="botao-add-tarefa" data-pend="salvar">Salvar</button>
+          </span>
+        </div>
+      </aside>`;
+    caixa.classList.remove("oculto");
+    document.body.classList.add("assist-gaveta-aberta");
+    setTimeout(() => { const t = $("assistPendTituloCampo"); if (t && !p) t.focus(); }, 30);
+  }
+
+  function fecharCardPendencia(){
+    const caixa = $("assistPendCard");
+    if (!caixa || caixa.classList.contains("oculto")) return;
+    caixa.classList.add("oculto");
+    caixa.innerHTML = "";
+    document.body.classList.remove("assist-gaveta-aberta");
+    estado.cardPend = null;
+  }
+
+  async function salvarCardPendencia(botao, extra){
+    const c = estado.cardPend;
+    if (!c) return;
+    const titulo = $("assistPendTituloCampo").value.trim();
+    if (!titulo){ alert("Escreve o título da pendência."); $("assistPendTituloCampo").focus(); return; }
+    const dados = Object.assign({
+      titulo,
+      descricao: $("assistPendDescricao").value.trim() === "" ? null : $("assistPendDescricao").value,
+      quadrante: $("assistPendQuadrante").value || null,
+      status: $("assistPendStatus").value,
+      prioridade: Number($("assistPendPrioridade").value),
+      categoria: $("assistPendCategoria").value,
+      data_limite: $("assistPendLimite").value || null,
+      data_agendada: $("assistPendAgendada").value || null
+    }, extra || {});
+    if (botao){ botao.disabled = true; botao.textContent = "Salvando…"; }
+    const resp = c.id
+      ? await Auth.client.from("assistente_pendencias").update(dados).eq("id", c.id).select()
+      : await Auth.client.from("assistente_pendencias").insert(dados).select();
+    if (resp.error || !resp.data || !resp.data.length){
+      console.error("Assistente: erro ao salvar pendência", resp.error);
+      alert("Não deu pra salvar agora. Tenta de novo — nada foi perdido.");
+      if (botao){ botao.disabled = false; botao.textContent = "Salvar"; }
+      return;
+    }
+    const salvo = resp.data[0];
+    const i = estado.pendencias.findIndex(x => x.id === salvo.id);
+    if (i >= 0) estado.pendencias[i] = salvo; else estado.pendencias.unshift(salvo);
+    fecharCardPendencia();
+    renderizar();
   }
 
   // ---------- Compras e indicações ----------
@@ -673,7 +753,9 @@
       const alvo = e.target.closest("[data-acao]");
       if (!alvo) return;
       const acao = alvo.dataset.acao;
-      if (acao === "assist-novo") abrirModal(alvo.dataset.tipo);
+      if (acao === "assist-novo" && alvo.dataset.tipo === "pendencia") abrirCardPendencia(null);
+      else if (acao === "assist-pend-abrir") abrirCardPendencia(alvo.dataset.id);
+      else if (acao === "assist-novo") abrirModal(alvo.dataset.tipo);
       else if (acao === "assist-editar") abrirModal(alvo.dataset.tipo, alvo.dataset.id);
       else if (acao === "assist-alternar"){
         const id = alvo.dataset.id;
@@ -760,6 +842,22 @@
         renderizar();
       }
     });
+    // ---------- Card da pendência: botões, clicar fora e Esc ----------
+    const caixaPend = $("assistPendCard");
+    caixaPend.addEventListener("click", (e) => {
+      if (e.target === caixaPend){ fecharCardPendencia(); return; }        // clicou fora do card
+      const b = e.target.closest("[data-pend]");
+      if (!b) return;
+      if (b.dataset.pend === "fechar") fecharCardPendencia();
+      else if (b.dataset.pend === "salvar") salvarCardPendencia(b);
+      else if (b.dataset.pend === "descartar"){
+        if (window.confirm("Descartar essa pendência? Ela some da matriz, mas não é apagada: aparece em \"Mostrar feitos e descartados\".")){
+          salvarCardPendencia(b, { status: "Descartado" });
+        }
+      }
+    });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharCardPendencia(); });
+
     // Lembra quais grupos de "quem indicou" estão abertos (sem isso fechariam a cada mudança)
     conteudo.addEventListener("toggle", (e) => {
       const grupo = e.target.closest && e.target.closest(".assist-grupo");
