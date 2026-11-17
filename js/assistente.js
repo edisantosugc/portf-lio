@@ -282,7 +282,12 @@
   }
 
   function htmlPendencias(){
-    const lista = pendenciasVisiveis();
+    // Feitas e descartadas ficam numa área só, separada, embaixo da matriz (nunca no meio
+    // das que faltam). Os quadrantes e a faixa "Sem quadrante" mostram só o que falta.
+    const todas = pendenciasVisiveis();
+    const finalizadas = todas.filter(p => STATUS_ESCONDIDOS.includes(p.status))
+      .sort((a, b) => String(b.updated_at || b.created_at).localeCompare(String(a.updated_at || a.created_at)));
+    const lista = todas.filter(p => !STATUS_ESCONDIDOS.includes(p.status));
     const nomesQuadrantes = QUADRANTES.map(q => q.nome);
     const semQuadrante = lista.filter(p => !nomesQuadrantes.includes(p.quadrante));
     const qtdEscondidos = estado.pendencias.filter(p => STATUS_ESCONDIDOS.includes(p.status)).length;
@@ -298,7 +303,7 @@
             <span class="assist-quad-seta" aria-hidden="true">▾</span>
           </button>
           <div class="assist-quad-corpo">
-            ${itens.length ? itens.map(cardPendencia).join("") : `<p class="assist-quad-vazio">Nenhuma pendência aqui.</p>`}
+            ${itens.length ? itens.map(p => cardPendencia(p)).join("") : `<p class="assist-quad-vazio">Nenhuma pendência aqui.</p>`}
           </div>
         </section>
       `;
@@ -329,7 +334,7 @@
             <strong>SEM QUADRANTE <span class="assist-quad-contagem">${semQuadrante.length}</span></strong>
             <span class="assist-sub">Arraste pra um quadrante ou abra a linha pra escolher.</span>
           </div>
-          <div class="assist-sem-quadrante-lista">${semQuadrante.map(cardPendencia).join("")}</div>
+          <div class="assist-sem-quadrante-lista">${semQuadrante.map(p => cardPendencia(p)).join("")}</div>
         </section>` : ""}
 
       <div class="assist-matriz">
@@ -343,6 +348,15 @@
         ${quadrante(QUADRANTES[2])}
         ${quadrante(QUADRANTES[3])}
       </div>
+
+      ${finalizadas.length ? `
+        <section class="assist-finalizadas">
+          <div class="assist-finalizadas-topo">
+            <strong>FEITOS E DESCARTADOS <span class="assist-quad-contagem">${finalizadas.length}</span></strong>
+            <span class="assist-sub">Clique numa linha pra reabrir, se precisar.</span>
+          </div>
+          <div class="assist-finalizadas-lista">${finalizadas.map(p => cardPendencia(p, true)).join("")}</div>
+        </section>` : ""}
     `;
   }
 
@@ -353,17 +367,18 @@
 
   // Linha fina (modelo "agenda"): barrinha da prioridade, título numa linha só e, no fim,
   // só 📅 com a data mais próxima e ◐ se estiver em andamento. Clicar abre o card.
-  function cardPendencia(p){
+  function cardPendencia(p, mostrarOrigem){
     const escondido = STATUS_ESCONDIDOS.includes(p.status);
     const datas = [p.data_limite, p.data_agendada].filter(Boolean).sort();
     const atrasado = p.data_limite && !escondido && diasAte(p.data_limite) < 0;
     const dataTitulo = datas.length ? (datas[0] === p.data_limite ? "Data limite" : "Data agendada") : "";
     return `
-      <button type="button" class="assist-linha${escondido ? " feito" : ""}" draggable="true" data-arrastar-id="${p.id}"
+      <button type="button" class="assist-linha${escondido ? " feito" : ""}"${escondido ? "" : ` draggable="true" data-arrastar-id="${p.id}"`}
         data-acao="assist-pend-abrir" data-id="${p.id}" title="${esc(p.titulo)} — prioridade ${p.prioridade}: ${esc(PRIORIDADES[p.prioridade])}">
         <span class="assist-linha-prio prio-${p.prioridade}" aria-hidden="true"></span>
         <span class="assist-linha-titulo">${esc(p.titulo)}</span>
         <span class="assist-linha-icones">
+          ${mostrarOrigem ? `<span class="assist-linha-origem">${esc(p.quadrante || "sem quadrante")}</span>` : ""}
           ${datas.length ? `<span class="${atrasado ? "atrasado" : ""}" title="${dataTitulo}${atrasado ? " (passou)" : ""}">📅 ${esc(dataCurta(datas[0]))}</span>` : ""}
           ${p.status === "Em andamento" ? `<span title="Em andamento">◐</span>` : ""}
           ${p.status === "Feito" ? `<span title="Feito">✓</span>` : ""}
