@@ -47,6 +47,11 @@
     { campo: "seguidores_ganhos",  rotulo: "Seguidores ganhos",       tipo: "int" }
   ];
   const TABELA = "assistente_cronograma";
+  const ROBO_IG = "ig-metricas-cronograma";
+  // O que o Instagram NÃO entrega (fica manual e conta como pendente até digitar)
+  const MANUAIS = { REELS: ["nao_seguidores_pct", "seguidores_ganhos"], FEED: ["nao_seguidores_pct"] };
+  // Não existe pra foto/carrossel (não conta como pendente)
+  const NAO_SE_APLICA = { REELS: [], FEED: ["tempo_medio_seg", "taxa_pulo_pct"] };
 
   const DIAS_FIXOS = ["Extra", "Stories"];          // não mudam sozinhos quando escolhe a data
   const NOMES_SEMANA = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
@@ -130,7 +135,16 @@
   const atrasada = (it) => it.lista === "Grade" && it.data_prevista && it.data_prevista < hojeISO() && !["Postado", "Descartado"].includes(it.status);
 
   const semMetricas = (it) => METRICAS.every(m => it[m.campo] === null || it[m.campo] === undefined);
-  const metricasPendentes = (it) => it.lista === "Postados" && it.data_postagem && diasDesde(it.data_postagem) >= 2 && semMetricas(it);
+  // Pendente (48h depois): sem post ligado, OU falta algo que o Instagram não entrega e ela ainda não digitou
+  const precisaLigarPost = (it) => it.lista === "Postados" && it.data_postagem && diasDesde(it.data_postagem) >= 2 && !it.ig_media_id;
+  const metricasPendentes = (it) => {
+    if (it.lista !== "Postados" || !it.data_postagem || diasDesde(it.data_postagem) < 2) return false;
+    if (!it.ig_media_id) return true;
+    return MANUAIS[it.ig_tipo || "REELS"].some(c => it[c] === null || it[c] === undefined);
+  };
+  const textoPendente = (it) => precisaLigarPost(it) ? "🔗 ligar post" : "⏳ métricas pendentes";
+  const origemDe = (it, campo) => (it.metricas_origem || {})[campo] || "";
+  const permalinkSeguro = (u) => /^https:\/\/(www\.)?instagram\.com\//i.test(String(u || "")) ? String(u) : "";
   const normalizar = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
   /* ------------------------------ Dados ------------------------------ */
@@ -246,7 +260,10 @@
     const nDescartados = estado.itens.filter(x => x.lista === estado.lista && x.status === "Descartado").length;
     const buscaComFoco = document.activeElement && document.activeElement.id === "cronBusca";
 
+    // Aviso geral se a conexão com o Instagram caiu (sem apagar nada do que já está preenchido)
+    const erroConexao = estado.itens.map(x => x.metricas_erro).find(m => m && /conexão/i.test(m));
     raiz.innerHTML = `
+      ${erroConexao ? `<div class="cron-aviso-conexao">⚠️ ${esc(erroConexao)} Os números novos voltam a chegar quando a conexão for refeita.</div>` : ""}
       <div class="cron-topo">
         <div class="ig-subabas-mini cron-listas">
           <button type="button" class="sub-aba-btn${estado.lista === "Grade" ? " ativo" : ""}" data-cron="lista" data-lista="Grade">Grade <span class="contagem-subaba">${nGrade}</span></button>
@@ -446,7 +463,7 @@
                 ${iconeRoteiro(it)}
                 ${avisosData(it)}
                 <button type="button" class="cron-ver-mais" data-cron="alternar" data-id="${it.id}">${aberto ? "▾ fechar" : it.observacoes ? "▸ ver mais" : "▸ abrir"}</button>
-                ${metricasPendentes(it) ? `<span class="cron-badge-pendente" title="Já passaram 48h: preencha as métricas">⏳ métricas pendentes</span>` : ""}
+                ${metricasPendentes(it) ? `<span class="cron-badge-pendente" title="${precisaLigarPost(it) ? "Ligue o post do Instagram pra puxar os números" : "Falta digitar o que o Instagram não entrega"}">${textoPendente(it)}</span>` : ""}
               </span>
             </div>
             ${aberto ? detalhes(it) : ""}
@@ -470,7 +487,7 @@
             <span class="cron-cartao-ideia">${esc(it.ideia) || "—"}</span>
             ${linkSeguro(it.link_roteiro) ? `<span class="cron-tem-link" title="Tem link do roteiro">📄</span>` : ""}
             <span class="cron-pilula-fixa" style="${estiloPilula(corStatus(it.status))}">${esc(it.status)}</span>
-            ${metricasPendentes(it) ? `<span class="cron-badge-pendente">⏳</span>` : ""}
+            ${metricasPendentes(it) ? `<span class="cron-badge-pendente">${precisaLigarPost(it) ? "🔗" : "⏳"}</span>` : ""}
             ${atrasada(it) ? `<span class="cron-badge-atrasada" title="Atrasada">⏰</span>` : ""}
             ${grade && !diaCombina(it) ? `<span class="cron-badge-dia" title="Dia ≠ data">⚠</span>` : ""}
           </button>
@@ -508,11 +525,42 @@
            ${it.observacoes ? `<button type="button" class="btn-fantasma" data-cron="obs-copiar" data-id="${it.id}">Copiar</button>` : ""}
            <button type="button" class="btn-fantasma" data-cron="obs-editar" data-id="${it.id}">Editar observações</button>
          </div>`;
+    const tipo = it.ig_tipo || "REELS";
+    const marca = (campo) => {
+      const o = origemDe(it, campo);
+      return o === "instagram" ? `<span class="cron-origem ig" title="Veio do Instagram">📷</span>`
+        : o === "manual" ? `<span class="cron-origem manual" title="Você digitou">✍️</span>` : "";
+    };
+    const permalink = permalinkSeguro(it.ig_permalink);
+    const blocoPost = it.lista !== "Postados" ? "" : `
+      <div class="cron-post-ig">
+        <div class="cron-detalhes-rotulo">Post do Instagram</div>
+        ${it.ig_media_id ? `
+          <div class="cron-post-ig-linha">
+            <span>✅ Post ligado${it.ig_tipo ? ` (${it.ig_tipo === "REELS" ? "Reels" : "foto/carrossel"})` : ""}</span>
+            ${permalink ? `<a class="btn-fantasma" href="${esc(permalink)}" target="_blank" rel="noopener noreferrer">Abrir no Instagram ↗</a>` : ""}
+            <button type="button" class="btn-fantasma" data-cron="ligar-post" data-id="${it.id}">Trocar post</button>
+            <button type="button" class="botao-add-tarefa" data-cron="metricas-ig-agora" data-id="${it.id}">📷 Atualizar métricas agora</button>
+          </div>
+          <div class="cron-sub-info">${it.metricas_atualizadas_em ? `Última atualização do Instagram: ${esc(new Date(it.metricas_atualizadas_em).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }))}` : "Ainda não buscou os números (busca sozinha 48h e 7 dias depois de postar, às 9h)."}</div>`
+        : `<div class="cron-post-ig-linha">
+            <span class="cron-placeholder">Nenhum post ligado ainda.</span>
+            <button type="button" class="botao-add-tarefa" data-cron="ligar-post" data-id="${it.id}">🔗 Ligar post do Instagram</button>
+          </div>`}
+        ${it.metricas_erro ? `<div class="cron-erro-ig">⚠️ ${esc(it.metricas_erro)}</div>` : ""}
+        <div class="cron-sub-info" id="cronIgStatus-${it.id}"></div>
+      </div>`;
     const metricas = it.lista !== "Postados" ? "" : `
+      ${blocoPost}
       <div class="cron-metricas">
-        <div class="cron-metricas-titulo">Métricas (48h depois de postar)${metricasPendentes(it) ? ` <span class="cron-badge-pendente">⏳ pendentes</span>` : ""}</div>
+        <div class="cron-metricas-titulo">Métricas (48h depois de postar)${metricasPendentes(it) ? ` <span class="cron-badge-pendente">${precisaLigarPost(it) ? "🔗 ligue o post" : "⏳ pendentes"}</span>` : ""}
+          <span class="cron-legenda-origem">📷 veio do Instagram · ✍️ você digitou</span></div>
         <div class="cron-metricas-grade">
-          ${METRICAS.map(m => `<label>${esc(m.rotulo)}<input type="number" inputmode="decimal" min="0"${m.tipo === "pct" ? ` max="100"` : ""} step="${m.tipo === "int" ? "1" : "0.01"}" value="${it[m.campo] ?? ""}" data-metrica="${m.campo}"></label>`).join("")}
+          ${METRICAS.map(m => {
+            const naoAplica = it.ig_media_id && NAO_SE_APLICA[tipo].includes(m.campo);
+            const manualPendente = it.ig_media_id && MANUAIS[tipo].includes(m.campo) && (it[m.campo] === null || it[m.campo] === undefined);
+            return `<label class="${manualPendente ? "cron-falta" : ""}"><span class="cron-rotulo-metrica">${esc(m.rotulo)} ${marca(m.campo)}</span><input type="number" inputmode="decimal" min="0"${m.tipo === "pct" ? ` max="100"` : ""} step="${m.tipo === "int" ? "1" : "0.01"}" value="${naoAplica ? "" : (it[m.campo] ?? "")}" data-metrica="${m.campo}"${naoAplica ? ` disabled placeholder="não se aplica"` : manualPendente ? ` placeholder="digite à mão" title="Esse número não vem do Instagram"` : ""}></label>`;
+          }).join("")}
         </div>
         <label class="cron-metricas-anotacao">Anotação<textarea rows="3" data-metrica="anotacao_metricas">${esc(it.anotacao_metricas || "")}</textarea></label>
         <div class="cron-botoes"><span class="cron-status-salvo" id="cronMetricasStatus-${it.id}"></span><button type="button" class="botao-add-tarefa" data-cron="metricas-salvar" data-id="${it.id}">Salvar métricas</button></div>
@@ -609,6 +657,7 @@
     const campos = {};
     for (const el of caixa.querySelectorAll("[data-metrica]")){
       const campo = el.dataset.metrica;
+      if (el.disabled) continue;                       // "não se aplica": não mexe
       if (campo === "anotacao_metricas"){ campos[campo] = el.value.trim() === "" ? null : el.value; continue; }
       const def = METRICAS.find(m => m.campo === campo);
       const bruto = el.value.trim().replace(",", ".");
@@ -621,10 +670,114 @@
       }
       campos[campo] = n;
     }
+    // O que ela mudou à mão vira "digitado" (✍️) e a busca automática nunca escreve por cima.
+    // Se ela apagar um número, tira a marca, e o Instagram pode preencher de novo.
+    const it = estado.itens.find(x => x.id === id);
+    const origem = { ...((it && it.metricas_origem) || {}) };
+    for (const m of METRICAS){
+      if (!(m.campo in campos)) continue;
+      const antes = it ? it[m.campo] : null;
+      const depois = campos[m.campo];
+      const igual = (antes === null || antes === undefined) ? depois === null : Number(antes) === depois;
+      if (igual) continue;
+      if (depois === null) delete origem[m.campo]; else origem[m.campo] = "manual";
+    }
+    campos.metricas_origem = origem;
     botao.disabled = true; botao.textContent = "Salvando…";
     const ok = await salvar(id, campos);
     const status = $(`cronMetricasStatus-${id}`);
     if (ok && status) status.textContent = "Salvo ✓";
+  }
+
+  /* ------------------------- Instagram: post e métricas ------------------------- */
+  async function chamarRobo(corpo){
+    const { data, error } = await Auth.client.functions.invoke(ROBO_IG, { body: corpo });
+    if (error){
+      let msg = "Não deu pra falar com o Instagram agora. Tenta de novo daqui a pouco.";
+      try { const j = await error.context.json(); if (j && j.error) msg = j.error; } catch (e) {}
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  async function recarregarItem(id){
+    const { data } = await Auth.client.from(TABELA).select("*").eq("id", id).maybeSingle();
+    if (data){ const i = estado.itens.findIndex(x => x.id === id); if (i >= 0) estado.itens[i] = data; }
+    renderizar();
+  }
+
+  const ROTULO_METRICA = Object.fromEntries(METRICAS.map(m => [m.campo, m.rotulo]));
+
+  async function atualizarMetricasIg(id, botao){
+    if (botao){ botao.disabled = true; botao.textContent = "Buscando no Instagram…"; }
+    try {
+      const r = await chamarRobo({ acao: "atualizar", id });
+      await recarregarItem(id);
+      const st = $(`cronIgStatus-${id}`);
+      if (st){
+        st.textContent = r && r.ok
+          ? (r.preenchidas && r.preenchidas.length ? `Vieram do Instagram: ${r.preenchidas.map(c => ROTULO_METRICA[c] || c).join(", ")}.` : "O Instagram ainda não entregou números novos (os digitados foram mantidos).")
+          : (r && r.aviso) || "";
+      }
+    } catch (erro) {
+      await recarregarItem(id);
+      const st = $(`cronIgStatus-${id}`);
+      if (st) st.textContent = "⚠️ " + erro.message;
+    }
+  }
+
+  // Janela "Qual é esse post?" (lista os posts recentes do Instagram)
+  let postsCache = null;
+  async function abrirEscolherPost(id){
+    const it = estado.itens.find(x => x.id === id);
+    if (!it) return;
+    estado.escolhendoPost = { id, selecionado: it.ig_media_id || null };
+    $("cronPostSub").textContent = it.data_postagem ? `Postado em ${dataCurtaDia(it.data_postagem)} · ${it.ideia || ""}` : (it.ideia || "");
+    $("cronPostLista").innerHTML = `<p class="cron-vazio">Carregando seus posts do Instagram…</p>`;
+    $("cronPostConfirmar").disabled = true;
+    $("cronModalPost").classList.remove("oculto");
+    try {
+      if (!postsCache){ const r = await chamarRobo({ acao: "listar_posts" }); postsCache = r.posts || []; }
+      const doDia = postsCache.filter(p => p.data_sp === it.data_postagem);
+      if (!estado.escolhendoPost.selecionado && doDia.length === 1) estado.escolhendoPost.selecionado = doDia[0].id;
+      renderizarPosts(it);
+    } catch (erro) {
+      $("cronPostLista").innerHTML = `<p class="cron-erro-ig">⚠️ ${esc(erro.message)}</p>`;
+    }
+  }
+
+  function renderizarPosts(it){
+    const sel = estado.escolhendoPost.selecionado;
+    const doDia = new Set(postsCache.filter(p => p.data_sp === it.data_postagem).map(p => p.id));
+    // os do dia da postagem primeiro
+    const ordenados = [...postsCache].sort((a, b) => (doDia.has(b.id) ? 1 : 0) - (doDia.has(a.id) ? 1 : 0));
+    $("cronPostLista").innerHTML = ordenados.length ? ordenados.map(p => `
+      <button type="button" class="cron-post-opcao${p.id === sel ? " selecionado" : ""}" data-post="${esc(p.id)}">
+        ${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : `<span class="cron-post-sem-img">${p.tipo === "REELS" ? "🎬" : "🖼️"}</span>`}
+        <span class="cron-post-info">
+          <strong>${esc(p.data_sp ? dataCurtaDia(p.data_sp) : "")}${p.hora_sp ? ` · ${esc(p.hora_sp)}` : ""} · ${p.tipo === "REELS" ? "Reels" : "foto/carrossel"}${doDia.has(p.id) ? ` <span class="cron-sugerido">${doDia.size === 1 ? "sugerido" : "mesma data"}</span>` : ""}</strong>
+          <span>${esc(p.legenda) || "(sem legenda)"}</span>
+        </span>
+      </button>`).join("") : `<p class="cron-vazio">Nenhum post encontrado no Instagram.</p>`;
+    $("cronPostConfirmar").disabled = !sel;
+  }
+
+  async function confirmarPost(){
+    const ep = estado.escolhendoPost;
+    if (!ep || !ep.selecionado) return;
+    const p = postsCache.find(x => x.id === ep.selecionado);
+    const it = estado.itens.find(x => x.id === ep.id);
+    $("cronModalPost").classList.add("oculto");
+    estado.escolhendoPost = null;
+    if (!p || !it) return;
+    const trocou = it.ig_media_id && it.ig_media_id !== p.id;
+    const campos = { ig_media_id: p.id, ig_tipo: p.tipo, ig_permalink: /^https:\/\//.test(p.link || "") ? p.link : null, metricas_erro: null };
+    if (trocou){ campos.metricas_atualizadas_em = null; }
+    const salvo = await salvar(it.id, campos);
+    estado.abertos.add(it.id);
+    renderizarLista();
+    // Já passou 48h (ex.: post antigo)? Busca os números na hora.
+    if (salvo && salvo.data_postagem && diasDesde(salvo.data_postagem) >= 2) atualizarMetricasIg(it.id, null);
   }
 
   /* ------------------------------ Nova ideia ------------------------------ */
@@ -684,6 +837,8 @@
         if (estado.visao !== el.dataset.visao){ estado.visao = el.dataset.visao; salvarVisao(); renderizar(); }
       }
       else if (acao === "editar-data") editarData(el);
+      else if (acao === "ligar-post") abrirEscolherPost(id);
+      else if (acao === "metricas-ig-agora") atualizarMetricasIg(id, el);
       else if (acao === "semana-anterior") irParaSemana("anterior");
       else if (acao === "semana-proxima") irParaSemana("proxima");
       else if (acao === "semana-atual") irParaSemana("atual");
@@ -810,8 +965,22 @@
       if (!data){ alert("Escolha a data em que foi postado."); return; }
       estado.pendentePostado = null;
       $("cronModalPostado").classList.add("oculto");
-      await salvar(p.id, { status: "Postado", data_postagem: data });
+      const salvo = await salvar(p.id, { status: "Postado", data_postagem: data });
+      if (salvo) abrirEscolherPost(p.id);      // em seguida: qual é esse post no Instagram?
     });
+
+    // ---------- Janela "Qual é esse post?" ----------
+    $("cronPostLista").addEventListener("click", (e) => {
+      const b = e.target.closest(".cron-post-opcao");
+      if (!b || !estado.escolhendoPost) return;
+      estado.escolhendoPost.selecionado = b.dataset.post;
+      const it = estado.itens.find(x => x.id === estado.escolhendoPost.id);
+      if (it) renderizarPosts(it);
+    });
+    const fecharPost = () => { $("cronModalPost").classList.add("oculto"); estado.escolhendoPost = null; };
+    $("cronPostCancelar").addEventListener("click", fecharPost);
+    $("cronPostFechar").addEventListener("click", fecharPost);
+    $("cronPostConfirmar").addEventListener("click", confirmarPost);
 
     // ---------- Janela de nova ideia ----------
     const fecharNova = () => $("cronModalNova").classList.add("oculto");

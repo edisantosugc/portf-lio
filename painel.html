@@ -4001,6 +4001,34 @@
   .cron-badge-atrasada{ background:rgba(196,69,60,.1); color:var(--vermelho); border:1px solid var(--vermelho); }
   .cron-badge-dia{ background:#FFF4D6; color:#8A5A00; border:1px solid #F1C232; }
   .cron-data-curta{ font-size:.74rem; font-weight:700; color:var(--grafite); flex-shrink:0; }
+  /* Instagram: post ligado, origem das métricas, avisos */
+  .cron-post-ig{ display:flex; flex-direction:column; gap:6px; border-top:1px dashed var(--borda); padding-top:12px; }
+  .cron-post-ig-linha{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:.85rem; }
+  .cron-post-ig-linha a.btn-fantasma{ text-decoration:none; }
+  .cron-sub-info{ font-size:.76rem; color:var(--texto-suave); }
+  .cron-erro-ig{ font-size:.8rem; color:var(--vermelho); background:rgba(196,69,60,.08); border-radius:8px; padding:6px 10px; }
+  .cron-aviso-conexao{
+    margin-bottom:12px; padding:10px 14px; border-radius:12px; font-size:.85rem; line-height:1.45;
+    background:rgba(196,69,60,.08); border:1px solid var(--vermelho); color:var(--vermelho);
+  }
+  .cron-origem{ font-size:.8rem; margin-left:2px; }
+  .cron-rotulo-metrica{ display:flex; align-items:center; gap:2px; white-space:nowrap; }
+  .cron-legenda-origem{ font-weight:500; text-transform:none; letter-spacing:0; margin-left:8px; color:var(--texto-suave); }
+  .cron-metricas label.cron-falta input{ border-color:#F1C232; background:#FFFBEA; }
+  .cron-metricas input:disabled{ opacity:.55; cursor:not-allowed; }
+  .cron-post-lista{ display:flex; flex-direction:column; gap:8px; max-height:52vh; overflow-y:auto; margin:8px 0; }
+  .cron-post-opcao{
+    all:unset; box-sizing:border-box; display:flex; gap:10px; align-items:center; padding:8px; border-radius:12px;
+    border:1.5px solid var(--borda); background:var(--branco); cursor:pointer; font-family:'Outfit', sans-serif;
+  }
+  .cron-post-opcao:hover{ border-color:var(--coral); }
+  .cron-post-opcao.selecionado{ border-color:var(--coral); box-shadow:0 0 0 2px rgba(0,0,128,.15); background:rgba(0,0,128,.03); }
+  .cron-post-opcao img, .cron-post-sem-img{ width:52px; height:52px; border-radius:8px; object-fit:cover; flex-shrink:0; background:var(--creme); display:flex; align-items:center; justify-content:center; font-size:1.3rem; }
+  .cron-post-info{ display:flex; flex-direction:column; gap:2px; min-width:0; font-size:.8rem; color:var(--texto-suave); }
+  .cron-post-info strong{ font-size:.82rem; color:var(--grafite); }
+  .cron-post-info > span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cron-sugerido{ font-size:.66rem; font-weight:700; padding:1px 7px; border-radius:999px; background:rgba(45,122,79,.12); color:var(--verde); margin-left:4px; }
+
   .cron-divisoria-sem-data{
     font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--texto-suave);
     background:var(--creme); padding:6px 14px; border-top:1px solid var(--borda); border-bottom:1px solid var(--borda);
@@ -4759,6 +4787,24 @@
               <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
                 <button type="button" class="btn-fantasma" id="cronNovaCancelar">Cancelar</button>
                 <button type="button" class="botao-add-tarefa" id="cronNovaSalvar">Salvar ideia</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ugc-modal-overlay oculto" id="cronModalPost" role="dialog" aria-modal="true" aria-labelledby="cronPostTitulo">
+          <div class="cliente-modal-cartao largo">
+            <div class="cliente-modal-topo">
+              <h2 id="cronPostTitulo">Qual é esse post no Instagram?</h2>
+              <button type="button" class="cliente-modal-fechar" id="cronPostFechar" aria-label="Fechar">&times;</button>
+            </div>
+            <div class="cliente-modal-corpo">
+              <p class="cron-dica" id="cronPostSub"></p>
+              <div class="cron-post-lista" id="cronPostLista"></div>
+              <p class="cron-dica">Ligando o post, as métricas vêm sozinhas do Instagram 48h e 7 dias depois de postar.</p>
+              <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
+                <button type="button" class="btn-fantasma" id="cronPostCancelar">Agora não</button>
+                <button type="button" class="botao-add-tarefa" id="cronPostConfirmar" disabled>Ligar este post</button>
               </div>
             </div>
           </div>

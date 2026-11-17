@@ -345,7 +345,11 @@ const CRON_EXPLICA =
   "sair do Postado volta pra Grade no fim do bloco do dia; ideia nova entra no fim do bloco do dia dela; a ordem NUNCA muda fora isso " +
   "(não existe ação de reordenar: a Edi arrasta no painel). Não existe apagar: pra tirar uma ideia, status Descartado (fica escondida). " +
   "Em Postados há métricas preenchidas 48h depois de postar: visualizacoes, alcance, nao_seguidores_pct (%), tempo_medio_seg (segundos), " +
-  "taxa_pulo_pct (%), curtidas, comentarios, compartilhamentos, salvamentos, seguidores_ganhos e anotacao_metricas.";
+  "taxa_pulo_pct (%), curtidas, comentarios, compartilhamentos, salvamentos, seguidores_ganhos e anotacao_metricas. " +
+  "Quando o post do Instagram está ligado (ig_media_id), a maioria das métricas vem SOZINHA do Instagram (48h e 7 dias depois de postar); " +
+  "metricas_origem diz de onde veio cada número (\"instagram\" ou \"manual\" = digitado) e metricas_atualizadas_em é a última busca. " +
+  "O Instagram NÃO entrega nao_seguidores_pct (nunca) nem seguidores_ganhos de Reels: esses são digitados. " +
+  "metricas_pendentes = true quando falta ligar o post ou falta um desses números digitados.";
 
 // Link do roteiro: opcional, só https:// (vazio/null limpa)
 function linkRoteiro(v: unknown): string | null | undefined {
@@ -384,13 +388,17 @@ function avisosDataCron(it: any) {
   return { atrasada, dia_diferente_da_data };
 }
 
+// O que o Instagram NÃO entrega por tipo de post (fica manual e conta como pendente)
+const CRON_MANUAIS: Record<string, string[]> = { REELS: ["nao_seguidores_pct", "seguidores_ganhos"], FEED: ["nao_seguidores_pct"] };
 function metricasPendentesCron(it: any) {
   if (it.lista !== "Postados" || !it.data_postagem) return false;
   const hoje = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
   hoje.setHours(0, 0, 0, 0);
   const [a, m, d] = String(it.data_postagem).split("-").map(Number);
   const dias = Math.round((hoje.getTime() - new Date(a, m - 1, d).getTime()) / 86400000);
-  return dias >= 2 && CRON_METRICAS.every((c) => it[c] === null || it[c] === undefined);
+  if (dias < 2) return false;
+  if (!it.ig_media_id) return true;                       // falta ligar o post do Instagram
+  return (CRON_MANUAIS[it.ig_tipo || "REELS"] ?? []).some((c) => it[c] === null || it[c] === undefined);
 }
 function itemCronParaSaida(it: any, ordem?: number) {
   const { posicao: _p, ...resto } = it;
@@ -828,6 +836,16 @@ FERRAMENTAS.push(
         anotacao_metricas: texto(a.anotacao_metricas, "anotacao_metricas", CAMPOS_TEXTO_CRON.anotacao_metricas),
       };
       for (const c of CRON_METRICAS) campos[c] = numeroMetrica(a[c], c);
+      // Métrica gravada por aqui conta como digitada (a busca do Instagram não escreve por cima)
+      const mexidas = CRON_METRICAS.filter((c) => campos[c] !== undefined);
+      if (mexidas.length) {
+        const { data: atual, error } = await db.from("assistente_cronograma").select("metricas_origem").eq("id", id).maybeSingle();
+        falha(error);
+        if (!atual) throw new ErroUso("Nenhum item com esse id.");
+        const origem: Record<string, string> = { ...(atual.metricas_origem ?? {}) };
+        for (const c of mexidas) { if (campos[c] === null) delete origem[c]; else origem[c] = "manual"; }
+        campos.metricas_origem = origem;
+      }
       return { atualizada: itemCronParaSaida(await atualizar("assistente_cronograma", id, campos)) };
     },
   },
