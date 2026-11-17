@@ -361,7 +361,7 @@
         <span class="assist-linha-titulo">${esc(p.titulo)}</span>
         <span class="assist-linha-icones">
           ${datas.length ? `<span class="${atrasado ? "atrasado" : ""}" title="${dataTitulo}${atrasado ? " (passou)" : ""}">📅 ${esc(dataCurta(datas[0]))}</span>` : ""}
-          ${p.status === "Em andamento" ? `<span class="assist-linha-andamento" title="Em andamento">⏳</span>` : ""}
+          ${p.status === "Em andamento" ? `<span title="Em andamento">◐</span>` : ""}
           ${p.status === "Feito" ? `<span title="Feito">✓</span>` : ""}
           ${p.status === "Descartado" ? `<span title="Descartado">✕</span>` : ""}
         </span>
