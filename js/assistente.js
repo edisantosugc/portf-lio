@@ -373,6 +373,7 @@
     const atrasado = p.data_limite && !escondido && diasAte(p.data_limite) < 0;
     const dataTitulo = datas.length ? (datas[0] === p.data_limite ? "Data limite" : "Data agendada") : "";
     return `
+      <div class="assist-linha-wrap">
       <button type="button" class="assist-linha${escondido ? " feito" : ""}"${escondido ? "" : ` draggable="true" data-arrastar-id="${p.id}"`}
         data-acao="assist-pend-abrir" data-id="${p.id}" title="${esc(p.titulo)} — prioridade ${p.prioridade}: ${esc(PRIORIDADES[p.prioridade])}">
         <span class="assist-linha-prio prio-${p.prioridade}" aria-hidden="true"></span>
@@ -385,7 +386,78 @@
           ${p.status === "Descartado" ? `<span title="Descartado">✕</span>` : ""}
         </span>
       </button>
+      ${botaoLixeira("assistente_pendencias", p.id)}
+      </div>
     `;
+  }
+
+  /* ---------------- Excluir de verdade (só pelo app; o conector não apaga) ---------------- */
+  const ICONE_LIXEIRA = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3h11V2h-11v1z"/></svg>`;
+  const botaoLixeira = (tabela, id) =>
+    `<button type="button" class="assist-lixeira" data-acao="assist-excluir" data-tabela="${tabela}" data-id="${id}" title="Excluir" aria-label="Excluir">${ICONE_LIXEIRA}</button>`;
+  const LISTA_DA_TABELA = { assistente_pendencias: "pendencias", assistente_lembretes: "lembretes", assistente_indicacoes: "indicacoes" };
+
+  function mostrarAviso(texto, erro){
+    let t = $("assistAviso");
+    if (!t){ t = document.createElement("div"); t.id = "assistAviso"; t.setAttribute("role", "status"); document.body.appendChild(t); }
+    t.textContent = texto;
+    t.className = "assist-aviso" + (erro ? " erro" : "") + " visivel";
+    clearTimeout(mostrarAviso._t);
+    mostrarAviso._t = setTimeout(() => { t.className = "assist-aviso" + (erro ? " erro" : ""); }, 2800);
+  }
+
+  function pedirConfirmacaoExcluir(tabela, id){
+    if (!LISTA_DA_TABELA[tabela]) return;
+    let caixa = $("assistConfirmarExcluir");
+    if (!caixa){
+      caixa = document.createElement("div");
+      caixa.id = "assistConfirmarExcluir";
+      caixa.className = "ugc-modal-overlay oculto";
+      caixa.setAttribute("role", "alertdialog");
+      caixa.setAttribute("aria-modal", "true");
+      caixa.innerHTML = `
+        <div class="cliente-modal-cartao assist-confirmar">
+          <p class="assist-confirmar-texto">Tem certeza que quer excluir este item? Essa ação não pode ser desfeita.</p>
+          <div class="assist-confirmar-botoes">
+            <button type="button" class="btn-fantasma" data-confirmar="cancelar">Cancelar</button>
+            <button type="button" class="assist-botao-excluir" data-confirmar="excluir">Excluir</button>
+          </div>
+        </div>`;
+      document.body.appendChild(caixa);
+      caixa.addEventListener("click", (e) => {
+        if (e.target === caixa || e.target.closest("[data-confirmar='cancelar']")){ fecharConfirmacao(); return; }
+        const b = e.target.closest("[data-confirmar='excluir']");
+        if (b && estado.excluindo) excluirDeVerdade(b);
+      });
+    }
+    estado.excluindo = { tabela, id };
+    caixa.classList.remove("oculto");
+    caixa.querySelector("[data-confirmar='cancelar']").focus();
+  }
+
+  function fecharConfirmacao(){
+    const caixa = $("assistConfirmarExcluir");
+    if (caixa) caixa.classList.add("oculto");
+    estado.excluindo = null;
+  }
+
+  async function excluirDeVerdade(botao){
+    const { tabela, id } = estado.excluindo;
+    botao.disabled = true; botao.textContent = "Excluindo…";
+    let ok = false;
+    try {
+      const { data, error } = await Auth.client.from(tabela).delete().eq("id", id).select("id");
+      ok = !error && Array.isArray(data) && data.length === 1;     // 0 linhas = o banco não deixou apagar
+      if (!ok) console.error("Assistente: exclusão recusada", error || "nenhuma linha apagada");
+    } catch (e) { console.error("Assistente: erro ao excluir", e); }
+    botao.disabled = false; botao.textContent = "Excluir";
+    fecharConfirmacao();
+    if (!ok){ mostrarAviso("Não foi possível excluir. Tente de novo.", true); return; }
+    const lista = LISTA_DA_TABELA[tabela];
+    estado[lista] = estado[lista].filter(x => x.id !== id);
+    if (tabela === "assistente_pendencias" && estado.cardPend && estado.cardPend.id === id) fecharCardPendencia();
+    renderizar();
+    mostrarAviso("Item excluído");
   }
 
   /* ---------------- Card da pendência (abre de lado; no celular, sobe de baixo) ---------------- */
@@ -513,7 +585,10 @@
         ${blocoTextoLongo(i.id, i.detalhes, "detalhes")}
         <div class="assist-card-rodape">
           <select class="assist-status" data-acao="assist-status" data-tabela="assistente_indicacoes" data-id="${i.id}" aria-label="Status">${opcoes(STATUS_INDICACAO, i.status)}</select>
-          <button type="button" class="marcas-botao-icone" data-acao="assist-editar" data-tipo="indicacao" data-id="${i.id}" title="Editar">✎</button>
+          <span class="assist-card-botoes">
+            <button type="button" class="marcas-botao-icone" data-acao="assist-editar" data-tipo="indicacao" data-id="${i.id}" title="Editar">✎</button>
+            ${botaoLixeira("assistente_indicacoes", i.id)}
+          </span>
         </div>
       </div>
     `;
@@ -546,7 +621,10 @@
         <div class="assist-card-titulo">${esc(l.texto)}</div>
         <div class="assist-card-rodape">
           <select class="assist-status" data-acao="assist-status" data-tabela="assistente_lembretes" data-id="${l.id}" aria-label="Status">${opcoes(STATUS_LEMBRETE, l.status)}</select>
-          <button type="button" class="marcas-botao-icone" data-acao="assist-editar" data-tipo="lembrete" data-id="${l.id}" title="Editar">✎</button>
+          <span class="assist-card-botoes">
+            <button type="button" class="marcas-botao-icone" data-acao="assist-editar" data-tipo="lembrete" data-id="${l.id}" title="Editar">✎</button>
+            ${botaoLixeira("assistente_lembretes", l.id)}
+          </span>
         </div>
       </div>
     `;
@@ -774,6 +852,7 @@
       const acao = alvo.dataset.acao;
       if (acao === "assist-novo" && alvo.dataset.tipo === "pendencia") abrirCardPendencia(null);
       else if (acao === "assist-pend-abrir") abrirCardPendencia(alvo.dataset.id);
+      else if (acao === "assist-excluir") pedirConfirmacaoExcluir(alvo.dataset.tabela, alvo.dataset.id);
       else if (acao === "assist-novo") abrirModal(alvo.dataset.tipo);
       else if (acao === "assist-editar") abrirModal(alvo.dataset.tipo, alvo.dataset.id);
       else if (acao === "assist-alternar"){
@@ -875,7 +954,11 @@
         }
       }
     });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharCardPendencia(); });
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      if (estado.excluindo){ fecharConfirmacao(); return; }   // primeiro fecha a confirmação, se estiver aberta
+      fecharCardPendencia();
+    });
 
     // Lembra quais grupos de "quem indicou" estão abertos (sem isso fechariam a cada mudança)
     conteudo.addEventListener("toggle", (e) => {

@@ -3974,6 +3974,39 @@
   .assist-gcampo input:focus, .assist-gcampo select:focus, .assist-gcampo textarea:focus{ outline:none; border-color:var(--coral); }
   .assist-gaveta-rodape{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 20px 16px; border-top:1px solid var(--borda); background:var(--branco); }
   .assist-gaveta-acoes{ display:flex; gap:8px; }
+
+  /* ---------- Excluir: lixeira discreta, confirmação e aviso ---------- */
+  .assist-linha-wrap{ display:flex; align-items:center; min-width:0; box-shadow:inset 0 -1px 0 rgba(0,0,0,.18); }
+  .assist-linha-wrap .assist-linha{ box-shadow:none; flex:1; width:auto; min-width:0; }
+  .assist-lixeira{
+    flex-shrink:0; width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center;
+    border:none; background:none; border-radius:6px; cursor:pointer; color:inherit; opacity:.4; padding:0;
+  }
+  .assist-lixeira svg{ width:13px; height:13px; fill:currentColor; }
+  .assist-lixeira:hover, .assist-lixeira:focus-visible{ opacity:1; color:var(--vermelho); background:rgba(255,255,255,.7); outline:none; }
+  .assist-card-botoes{ display:flex; align-items:center; gap:4px; margin-left:auto; }
+  .assist-card-botoes .assist-lixeira{ width:30px; height:30px; color:var(--texto-suave); opacity:.7; border:1px solid var(--borda); border-radius:8px; }
+  .assist-card-botoes .assist-lixeira:hover{ opacity:1; border-color:var(--vermelho); }
+  #assistConfirmarExcluir{ z-index:3500; }
+  .assist-confirmar{ max-width:380px; padding:22px 22px 18px; }
+  .assist-confirmar-texto{ font-size:.95rem; line-height:1.5; color:var(--grafite); margin-bottom:18px; }
+  .assist-confirmar-botoes{ display:flex; justify-content:flex-end; gap:10px; }
+  .assist-botao-excluir{
+    font-family:'Outfit', sans-serif; font-size:.85rem; font-weight:700; padding:10px 18px; border-radius:10px; border:none;
+    background:var(--vermelho); color:#fff; cursor:pointer;
+  }
+  .assist-botao-excluir:disabled{ opacity:.6; cursor:wait; }
+  .assist-aviso{
+    position:fixed; left:50%; bottom:24px; transform:translate(-50%, 20px); z-index:4000; pointer-events:none;
+    background:var(--grafite); color:#fff; font-family:'Outfit', sans-serif; font-size:.88rem; font-weight:600;
+    padding:10px 18px; border-radius:999px; box-shadow:0 10px 30px rgba(0,0,0,.25); opacity:0; transition:opacity .2s ease, transform .2s ease;
+  }
+  .assist-aviso.erro{ background:var(--vermelho); }
+  .assist-aviso.visivel{ opacity:1; transform:translate(-50%, 0); }
+  @media (max-width: 700px){
+    .assist-lixeira{ width:30px; height:30px; opacity:.55; }        /* no celular: um pouco maior pra acertar o dedo */
+    .assist-aviso{ bottom:max(20px, env(safe-area-inset-bottom)); }
+  }
   .assist-gaveta-rodape .perigo{ color:var(--vermelho); border-color:var(--vermelho); }
   body.assist-gaveta-aberta{ overflow:hidden; }
   @media (max-width: 700px){
