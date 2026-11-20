@@ -3098,6 +3098,47 @@
   .admin-subpainel{ display: none; }
   .admin-subpainel.ativo{ display: block; }
 
+  /* ---- Administrativo > Segurança (js/seguranca.js) ---- */
+  .seg-resumo{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; }
+  .seg-resumo-item{ background:var(--creme); border-radius:12px; padding:14px; }
+  .seg-resumo-item b{ display:block; font-family:'Fraunces', serif; font-size:1.6rem; line-height:1.2; }
+  .seg-resumo-item span{ font-size:.82rem; color:var(--texto-suave); }
+  .seg-resumo-item.alerta b{ color:var(--vermelho); }
+  .seg-config{ display:flex; justify-content:space-between; align-items:center; gap:10px 14px; flex-wrap:wrap; margin-top:14px; padding-top:14px; border-top:1px dashed var(--borda); font-size:.88rem; }
+  .seg-chave{ display:inline-flex; align-items:center; gap:10px; font-weight:500; cursor:pointer; background:none; border:none; padding:0; font:inherit; color:inherit; text-align:left; }
+  .seg-chave i{ width:38px; height:22px; border-radius:20px; background:var(--borda); position:relative; flex-shrink:0; transition:background .2s; }
+  .seg-chave i::after{ content:""; position:absolute; left:3px; top:3px; width:16px; height:16px; border-radius:50%; background:#fff; transition:left .2s; }
+  .seg-chave[aria-checked="true"] i{ background:var(--coral); }
+  .seg-chave[aria-checked="true"] i::after{ left:19px; }
+  .seg-config small{ color:var(--texto-suave); font-size:.8rem; }
+  .seg-topo-lista{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  .seg-filtros{ display:flex; gap:6px; flex-wrap:wrap; }
+  .seg-filtros button{ border:1px solid var(--borda); background:var(--branco); border-radius:20px; padding:5px 12px; font:inherit; font-size:.8rem; color:var(--grafite); cursor:pointer; }
+  .seg-filtros button.ativo{ border-color:var(--coral); color:var(--coral); font-weight:600; }
+  .seg-tabela{ width:100%; border-collapse:collapse; font-size:.86rem; }
+  .seg-tabela th{ text-align:left; font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:var(--texto-suave); padding:8px 10px; border-bottom:1px solid var(--borda); }
+  .seg-tabela td{ padding:11px 10px; border-bottom:1px solid #eee6e0; vertical-align:middle; }
+  .seg-tabela tr:last-child td{ border-bottom:none; }
+  .seg-etq{ display:inline-block; border-radius:20px; padding:3px 10px; font-size:.74rem; font-weight:600; white-space:nowrap; }
+  .seg-etq.fora{ background:#f6e1df; color:var(--vermelho); }
+  .seg-etq.voce{ background:#e3efe8; color:var(--verde); }
+  .seg-etq.tipo{ background:var(--creme); color:var(--grafite); }
+  .seg-email{ font-weight:500; word-break:break-all; }
+  .seg-cartoes{ display:none; }
+  .seg-cartao{ border:1px solid var(--borda); border-radius:14px; padding:12px; margin-bottom:8px; font-size:.86rem; }
+  .seg-cartao-topo{ display:flex; justify-content:space-between; gap:8px; align-items:center; margin-bottom:6px; }
+  .seg-cartao-data, .seg-cartao-aparelho{ color:var(--texto-suave); font-size:.78rem; }
+  .seg-cartao-aparelho{ margin-top:4px; }
+  .seg-mais{ margin-top:12px; text-align:center; }
+  @media (max-width: 700px){
+    .seg-resumo{ grid-template-columns:repeat(3, 1fr); gap:6px; }
+    .seg-resumo-item{ padding:10px 8px; text-align:center; }
+    .seg-resumo-item b{ font-size:1.15rem; }
+    .seg-resumo-item span{ font-size:.68rem; }
+    .seg-tabela{ display:none; }
+    .seg-cartoes{ display:block; }
+  }
+
   .doc-bloco{ margin-bottom: 18px; }
   .doc-bloco-topo{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; }
   .doc-bloco-topo h2{ font-size: 1.02rem; }
@@ -6816,6 +6857,7 @@
         <button type="button" class="sub-aba-btn ativo" data-subadmin="documentos">Meus Documentos</button>
         <button type="button" class="sub-aba-btn" data-subadmin="juridico">Jurídico</button>
         <button type="button" class="sub-aba-btn" data-subadmin="notasfiscais">Notas Fiscais</button>
+        <button type="button" class="sub-aba-btn" data-subadmin="seguranca">Segurança</button>
       </div>
 
       <!-- ---------- Sub-aba: Meus Documentos ---------- -->
@@ -6959,6 +7001,9 @@
           </div>
         </div>
       </div>
+
+      <!-- ---------- Sub-aba: Segurança (código em js/seguranca.js) ---------- -->
+      <div id="adminSeguranca" class="admin-subpainel"></div>
     </section>
   </main>
 </div>
@@ -14851,6 +14896,7 @@ ${MODELO_PROPOSTA_HTML}`;
   // mais urgente (abordagem/clientes/ugc-creator já tinham esse helper), reaproveita —
   // senão só troca de aba mesmo.
   function navegarParaGrupoLembrete(grupo, itemMaisUrgente){
+    if (grupo === "seguranca"){ trocarAba("administrativo"); return trocarSubAbaAdministrativo("seguranca"); }
     if (grupo === "abordagem") return abrirCardFollowUpsMarcas(3);
     if (grupo === "financas") return irParaConta(itemMaisUrgente);
     if (grupo === "clientes") return irParaCliente(itemMaisUrgente.id);
@@ -22219,6 +22265,8 @@ ${corpo}
     document.getElementById("adminDocumentos").classList.toggle("ativo", sub === "documentos");
     document.getElementById("adminJuridico").classList.toggle("ativo", sub === "juridico");
     document.getElementById("adminNotasFiscais").classList.toggle("ativo", sub === "notasfiscais");
+    document.getElementById("adminSeguranca").classList.toggle("ativo", sub === "seguranca");
+    if (sub === "seguranca" && window.carregarSeguranca) window.carregarSeguranca();
   }
 
   function trocarSubAbaJuridico(sub){
@@ -24025,5 +24073,6 @@ ${corpo}
 </script>
 <script src="js/assistente.js"></script>
 <script src="js/cronograma.js"></script>
+<script src="js/seguranca.js"></script>
 </body>
 </html>

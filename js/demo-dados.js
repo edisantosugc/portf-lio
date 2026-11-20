@@ -409,6 +409,18 @@
     add("assistente_passagens", { id: uuid(), texto: "Resumo da semana passada: fechei 2 trabalhos novos, falta enviar a proposta de skincare e editar o review.", atual: false, created_at: momento(-9) });
     add("assistente_passagens", { id: uuid(), texto: "Onde parei: proposta de skincare em andamento (pacote com 3 vídeos). Próximo passo: cobrar o pagamento do café e gravar os roteiros da semana.\n\nPrioridade: tudo que traz dinheiro primeiro.", atual: true, created_at: momento(-1) });
 
+    // ------------------------------------------------------------------ Administrativo > Segurança
+    add("seguranca_config", { id: true, avisos_ligados: true, created_at: momento(-30) });
+    [
+      [0, 14, 32, "fulano@exemplo.com", "login", "fora", "Android · Chrome", true],
+      [0, 13, 5, "teste@exemplo.com", "recuperar", "fora", "Windows · Edge", true],
+      [-1, 9, 14, "contato@biavalenca.com.br", "login", "voce", "iPhone · Safari", true],
+      [-3, 22, 40, "admin@exemplo.com", "login", "fora", "Linux · Firefox", true],
+      [-3, 22, 41, "admin@exemplo.com", "login", "fora", "Linux · Firefox", false],
+      [-3, 22, 43, "root@exemplo.com", "login", "fora", "Linux · Firefox", true],
+      [-12, 18, 2, "contato@exemplo.com", "recuperar", "fora", "Android · Samsung Internet", true]
+    ].forEach(([d, h, m, email, tipo, quem, aparelho, avisado]) => add("seguranca_tentativas", { id: uuid(), email, tipo, quem, aparelho, avisado, created_at: momento(d, h, m) }));
+
     // ------------------------------------------------------------------ Instagram > Cronograma de Conteúdos
     const ROTEIRO_EXEMPLO = [
       "ROTEIRO — 3 erros no skincare da manhã (Reels, ~35s)",

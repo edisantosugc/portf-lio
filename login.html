@@ -226,6 +226,24 @@
     faixaMensagem.textContent = "";
   }
 
+  // Aparelho de quem tentou (ex.: "Android · Chrome"), só pra lista de Segurança do painel
+  function descreverAparelho(){
+    const ua = navigator.userAgent || "";
+    const sistema = /iPhone/.test(ua) ? "iPhone" : /iPad/.test(ua) ? "iPad" : /Android/.test(ua) ? "Android"
+      : /Windows/.test(ua) ? "Windows" : /Mac OS X|Macintosh/.test(ua) ? "Mac" : /Linux/.test(ua) ? "Linux" : "Outro";
+    const navegador = /Edg\//.test(ua) ? "Edge" : /SamsungBrowser/.test(ua) ? "Samsung Internet" : /OPR\/|Opera/.test(ua) ? "Opera"
+      : /Firefox\/|FxiOS/.test(ua) ? "Firefox" : /Chrome\/|CriOS/.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : "Outro";
+    return `${sistema} · ${navegador}`;
+  }
+
+  // Avisa a dona (Administrativo > Segurança + notificação). Nunca trava a tela se falhar.
+  function registrarTentativa(email, tipo){
+    try {
+      Auth.client.rpc("registrar_tentativa_acesso", { p_email: email, p_tipo: tipo, p_aparelho: descreverAparelho() })
+        .then(() => {}, () => {});
+    } catch (e) {}
+  }
+
   // Envio do login
   formLogin.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -242,6 +260,7 @@
       window.location.href = "painel.html";
     } catch (erro) {
       mostrarMensagem(erro.message, "erro");
+      if (/^Você não tem acesso/.test(erro.message)) registrarTentativa(email, "login");
       botaoEntrar.disabled = false;
       botaoEntrar.textContent = "Entrar";
     }
@@ -273,6 +292,7 @@
     const EMAIL_COM_ACESSO = "edilainesantosugc@gmail.com";
     if (email.toLowerCase() !== EMAIL_COM_ACESSO){
       mostrarMensagem("Você não tem acesso a este painel. Confira seu e-mail e senha ou solicite acesso ao administrador.", "erro");
+      registrarTentativa(email, "recuperar");
       return;
     }
 
