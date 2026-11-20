@@ -524,6 +524,7 @@
          </div>`
       : `<div class="cron-obs-texto">${it.observacoes ? esc(it.observacoes) : '<span class="cron-placeholder">Sem observações.</span>'}</div>
          <div class="cron-botoes">
+           <button type="button" class="btn-fantasma cron-excluir" data-cron="excluir" data-id="${it.id}" title="Apagar essa ideia de vez">🗑 Excluir ideia</button>
            ${it.observacoes ? `<button type="button" class="btn-fantasma" data-cron="obs-copiar" data-id="${it.id}">Copiar</button>` : ""}
            <button type="button" class="btn-fantasma" data-cron="obs-editar" data-id="${it.id}">Editar observações</button>
          </div>`;
@@ -782,6 +783,32 @@
     if (salvo && salvo.data_postagem && diasDesde(salvo.data_postagem) >= 2) atualizarMetricasIg(it.id, null);
   }
 
+  /* ------------------------------ Excluir ideia ------------------------------ */
+  // Apaga de verdade (só pelo painel; o conector continua sem poder apagar).
+  // Pra só tirar da frente sem perder, o status "Descartado" continua existindo.
+  async function excluirIdeia(id, botao){
+    const it = estado.itens.find(x => x.id === id);
+    if (!it) return;
+    const nome = (it.ideia || it.tema || "essa ideia").slice(0, 80);
+    if (!confirm(`Excluir "${nome}" de vez?\n\nNão dá pra desfazer. Se quiser só tirar da frente, use o status "Descartado".`)) return;
+    botao.disabled = true; botao.textContent = "Excluindo…";
+    let ok = false;
+    try {
+      const { data, error } = await Auth.client.from(TABELA).delete().eq("id", id).select("id");
+      ok = !error && Array.isArray(data) && data.length === 1;   // 0 linhas = o banco não deixou apagar
+      if (!ok) console.error("Cronograma: exclusão recusada", error || "nenhuma linha apagada");
+    } catch (erro) { console.error("Cronograma: erro ao excluir", erro); }
+    if (!ok){
+      botao.disabled = false; botao.textContent = "🗑 Excluir ideia";
+      alert("Não foi possível excluir agora. Tenta de novo.");
+      return;
+    }
+    estado.itens = estado.itens.filter(x => x.id !== id);
+    estado.abertos.delete(id);
+    if (estado.editandoObs === id) estado.editandoObs = null;
+    renderizar();
+  }
+
   /* ------------------------------ Nova ideia ------------------------------ */
   function abrirNova(){
     $("cronNovaDia").innerHTML = opcoesHtml(DIAS, estado.filtroDia || "A definir");
@@ -873,6 +900,7 @@
         catch (erro) { alert("Não deu pra copiar sozinho. Abra \"Editar observações\" e copie com Ctrl+C."); }
       }
       else if (acao === "metricas-salvar") salvarMetricas(id, el);
+      else if (acao === "excluir") excluirIdeia(id, el);
     });
 
     raiz.addEventListener("change", (e) => {

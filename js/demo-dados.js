@@ -380,6 +380,66 @@
     add("ig_token_status", { id: "main", last_ok: true, expires_at: momento(50), last_refreshed_at: momento(-2), updated_at: momento(-2) });
     add("painel_ig_analises_ia", { id: uuid(), semana_inicio: dia(-HOJE.getDay()), ideias: [{ titulo: "Rotina de skincare em 15s", tipo: "Reel", nicho: "Beleza", origem: "Tendência", descricao: "Seus reels de rotina têm o dobro de salvamentos." }, { titulo: "Bastidores da gravação", tipo: "Carrossel", nicho: "UGC", origem: "Seus posts", descricao: "O público pede pra ver como você grava." }], oportunidades: [{ titulo: "Marcas de café estão contratando", descricao: "3 marcas do nicho postaram vagas de UGC esta semana." }], aviso: null, atualizado_em: momento(-1), created_at: momento(-1) });
 
+    // ------------------------------------------------------------------ Assistente
+    [
+      ["Enviar proposta pra marca de skincare", "Projetos", 1, "Em andamento", "Faça na hora", dia(1), null],
+      ["Cobrar pagamento do trabalho de café", "Projetos", 1, "Pendente", "Faça na hora", dia(0), null],
+      ["Editar vídeo do review de protetor", "Edição", 2, "Pendente", "Programe-se", null, dia(2)],
+      ["Escrever 3 roteiros da semana", "Roteiros", 2, "Pendente", "Programe-se", null, dia(3)],
+      ["Estudar ganchos de retenção", "Estudos", 3, "Pendente", "Programe-se", null, dia(6)],
+      ["Responder e-mails de plataformas", "Outros", 3, "Pendente", "Delegue", null, null],
+      ["Organizar pasta de referências", "Pessoal", 4, "Pendente", "Tempo livre ou elimine", null, null],
+      ["Testar luz nova pro cenário", "Projetos", 3, "Pendente", null, null, null],
+      ["Atualizar mídia kit", "Projetos", 2, "Feito", "Programe-se", null, null],
+      ["Curso de edição avançada", "Estudos", 4, "Descartado", "Tempo livre ou elimine", null, null]
+    ].forEach(([titulo, categoria, prioridade, status, quadrante, data_limite, data_agendada], i) => add("assistente_pendencias", {
+      id: uuid(), titulo, descricao: i === 0 ? "Mandar valores do pacote com 3 vídeos + uso de imagem 30 dias." : null,
+      categoria, prioridade, status, quadrante, data_limite, data_agendada, created_at: momento(-12 + i), updated_at: momento(-entre(0, 4))
+    }));
+    [
+      ["Ring light 18\"", "Marca exemplo", "Melhor custo-benefício pra gravar à noite.", "Comunidade de creators", "Quero comprar"],
+      ["Microfone de lapela sem fio", null, "Som mais limpo nos vídeos falados.", "Amiga creator", "Quero comprar"],
+      ["Tripé com braço articulado", null, "Pra gravar de cima (flat lay).", null, "Comprado"],
+      ["App de legenda automática", null, "Testar versão paga.", "Curso de roteiro", "Desisti"]
+    ].forEach(([produto, marca_modelo, detalhes, quem_indicou, status], i) => add("assistente_indicacoes", {
+      id: uuid(), produto, marca_modelo, detalhes, quem_indicou, link: "https://exemplo.com/produto", status, created_at: momento(-20 + i * 3), updated_at: momento(-entre(0, 6))
+    }));
+    [["Renovar contrato de tráfego pago com a marca de café", 1, "Pendente"], ["Postar o reels de bastidores", 0, "Pendente"], ["Enviar nota fiscal do mês", 4, "Pendente"], ["Separar produtos pra gravação", -2, "Feito"]]
+      .forEach(([texto, d, status]) => add("assistente_lembretes", { id: uuid(), texto, data: dia(d), status, created_at: momento(-5), updated_at: momento(-1) }));
+    add("assistente_passagens", { id: uuid(), texto: "Resumo da semana passada: fechei 2 trabalhos novos, falta enviar a proposta de skincare e editar o review.", atual: false, created_at: momento(-9) });
+    add("assistente_passagens", { id: uuid(), texto: "Onde parei: proposta de skincare em andamento (pacote com 3 vídeos). Próximo passo: cobrar o pagamento do café e gravar os roteiros da semana.\n\nPrioridade: tudo que traz dinheiro primeiro.", atual: true, created_at: momento(-1) });
+
+    // ------------------------------------------------------------------ Instagram > Cronograma de Conteúdos
+    const diaSemana = (desloc) => ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"][new Date(dia(desloc) + "T12:00:00").getDay()];
+    [
+      ["Rotina", "3 erros no skincare da manhã", "Falado", "Roteiro pronto", 1],
+      ["UGC", "Como eu gravo um vídeo pra marca", "Bastidores", "A gravar", 2],
+      ["Organização", "Minha planilha de trabalhos", "Tela + voz", "Ideia aprovada", 4],
+      ["Review", "Protetor solar: vale a pena?", "Review", "Em produção", 5],
+      ["Dicas", "Ganchos que seguram até o fim", "Carrossel", "Sugestão (aprovar)", null],
+      ["Bastidores", "Um dia de gravação comigo", "Vlog", "Sugestão (aprovar)", null]
+    ].forEach(([tema, ideia, formato, status, d], i) => add("assistente_cronograma", {
+      id: uuid(), lista: "Grade", posicao: i + 1, dia: d === null ? (i === 4 ? "Extra" : "A definir") : diaSemana(d), data_prevista: d === null ? null : dia(d),
+      tema, ideia, formato, status, observacoes: i === 0 ? "Gancho: \"Você está lavando o rosto errado?\"" : null, link_roteiro: i === 0 ? "https://exemplo.com/roteiro" : null,
+      metricas_origem: {}, created_at: momento(-10 + i), updated_at: momento(-1)
+    }));
+    [
+      ["Rotina de skincare em 15s", "REELS", -3, [18400, 12900, 61, 9.4, 38, 1320, 84, 210, 455, 96]],
+      ["3 ganchos que convertem", "FEED", -7, [9100, 7300, 44, null, null, 640, 52, 75, 390, 31]],
+      ["Bastidores da gravação", "REELS", -12, [26800, 19800, 72, 11.2, 33, 2150, 131, 388, 610, 174]]
+    ].forEach(([ideia, tipo, d, m], i) => {
+      const [visualizacoes, alcance, nao_seguidores_pct, tempo_medio_seg, taxa_pulo_pct, curtidas, comentarios, compartilhamentos, salvamentos, seguidores_ganhos] = m;
+      const origem = {};
+      ["visualizacoes", "alcance", "tempo_medio_seg", "taxa_pulo_pct", "curtidas", "comentarios", "compartilhamentos", "salvamentos"].forEach(c => { if ((({ visualizacoes, alcance, tempo_medio_seg, taxa_pulo_pct, curtidas, comentarios, compartilhamentos, salvamentos })[c]) !== null) origem[c] = "instagram"; });
+      origem.nao_seguidores_pct = "manual"; if (tipo === "REELS") origem.seguidores_ganhos = "manual";
+      add("assistente_cronograma", {
+        id: uuid(), lista: "Postados", posicao: 100 + i, dia: diaSemana(d), data_prevista: dia(d), data_postagem: dia(d), tema: "Conteúdo", ideia, formato: tipo === "REELS" ? "Reels" : "Carrossel", status: "Postado",
+        observacoes: null, link_roteiro: null, ig_media_id: "m" + i, ig_tipo: tipo, ig_permalink: null,
+        visualizacoes, alcance, nao_seguidores_pct, tempo_medio_seg, taxa_pulo_pct, curtidas, comentarios, compartilhamentos, salvamentos, seguidores_ganhos: tipo === "REELS" ? seguidores_ganhos : null,
+        metricas_origem: origem, metricas_atualizadas_em: momento(d + 2), metricas_erro: null, created_at: momento(d - 5), updated_at: momento(d + 2)
+      });
+    });
+
     return trocarNomesPorExemplo(T);
   };
 
@@ -413,9 +473,36 @@
     "send-push": () => ({ ok: true }),
     "send-briefing-email": () => ({ ok: true }),
     "send-roteiro-email": () => ({ ok: true }),
-    "instagram-oembed": () => ({ thumbnail_url: "" })
+    "instagram-oembed": () => ({ thumbnail_url: "" }),
+    // Robô que liga a ideia do Cronograma a um post e puxa as métricas (fictícias)
+    "ig-metricas-cronograma": (corpo, _nome, { tabela }) => {
+      if (corpo && corpo.acao === "listar_posts"){
+        return { posts: POSTS.map(([legenda, c1, c2, e], i) => ({ id: "m" + i, legenda, tipo: i % 3 === 1 ? "FEED" : "REELS", miniatura: miniatura(legenda.split(" ").slice(0, 2).join(" "), c1, c2, e), link: null, data_sp: dia(-i * 3), hora_sp: "18:30" })) };
+      }
+      if (corpo && corpo.acao === "atualizar"){
+        const item = tabela("assistente_cronograma").find(l => l.id === corpo.id);
+        if (!item) return { ok: false, aviso: "Ideia não encontrada." };
+        const reels = item.ig_tipo !== "FEED";
+        const valores = { visualizacoes: 15200, alcance: 11800, curtidas: 980, comentarios: 61, compartilhamentos: 142, salvamentos: 318 };
+        if (reels){ valores.tempo_medio_seg = 8.7; valores.taxa_pulo_pct = 36; }
+        const origem = { ...(item.metricas_origem || {}) };
+        const preenchidas = [];
+        Object.entries(valores).forEach(([c, v]) => { if (origem[c] !== "manual"){ item[c] = v; origem[c] = "instagram"; preenchidas.push(c); } });
+        item.metricas_origem = origem; item.metricas_atualizadas_em = new Date().toISOString(); item.metricas_erro = null;
+        return { id: item.id, ok: true, tipo: item.ig_tipo || "REELS", preenchidas, recusadas: [], valores };
+      }
+      return { ok: true };
+    }
   };
   window.EDI_DEMO_RPC = {
+    // Igual ao banco real: a passagem nova vira a atual e a anterior vai pro histórico
+    assistente_salvar_passagem: (args, { tabela }) => {
+      const lista = tabela("assistente_passagens");
+      lista.forEach(p => { p.atual = false; });
+      const nova = { id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()), texto: args && args.p_texto, atual: true, created_at: new Date().toISOString() };
+      lista.push(nova);
+      return nova;
+    },
     gustavo_nomes_fixos_atuais: (_args, { tabela }) => {
       const ultimo = {};
       tabela("financas_gastos_fixos").forEach(g => { const k = g.ano * 12 + g.mes; if (!ultimo[g.nome] || ultimo[g.nome].k < k) ultimo[g.nome] = { k, pessoa: g.pessoa }; });

@@ -300,7 +300,7 @@
   // 4. Banco de mentira (substitui o Supabase)
   // ---------------------------------------------------------------------------
   const CHAVE_BANCO = "banco";
-  const VERSAO_DADOS = "4";
+  const VERSAO_DADOS = "5";
   const hojeISO = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; })();
   let banco = null;
 
@@ -344,8 +344,42 @@
     painel_iara_sessoes: { favorito: false, status: "andamento" },
     painel_notas: { fechada: false, utilizada: false },
     painel_mantras: { fechada: false },
-    negocio_lancamentos: { recebido: true }
+    negocio_lancamentos: { recebido: true },
+    assistente_pendencias: { categoria: "Outros", prioridade: 4, status: "Pendente", quadrante: null, data_agendada: null, data_limite: null, descricao: null },
+    assistente_indicacoes: { status: "Quero comprar" },
+    assistente_lembretes: { status: "Pendente" },
+    assistente_passagens: { atual: true },
+    assistente_cronograma: { dia: "A definir", status: "Sugestão (aprovar)", metricas_origem: {} }
   };
+
+  // Regras automáticas que o banco real faz sozinho (gatilhos do Supabase).
+  // Sem isso a demo salva a linha mas ela não aparece (ex.: ideia nova sem lista/posição).
+  function regrasCronograma(nova, antiga){
+    const linhas = tabela("assistente_cronograma");
+    nova.lista = nova.status === "Postado" ? "Postados" : "Grade";
+    if (nova.lista === "Postados" && !nova.data_postagem) nova.data_postagem = hojeISO;
+    const precisaPosicao = antiga ? (antiga.lista === "Postados" && nova.lista === "Grade") : (nova.posicao === null || nova.posicao === undefined);
+    if (precisaPosicao){
+      const grade = linhas.filter(l => l.lista === "Grade" && l.id !== nova.id && typeof l.posicao === "number");
+      const doDia = grade.filter(l => l.dia === nova.dia).map(l => l.posicao);
+      if (doDia.length){
+        const ultima = Math.max(...doDia);
+        const depois = grade.map(l => l.posicao).filter(p => p > ultima);
+        nova.posicao = depois.length ? (ultima + Math.min(...depois)) / 2 : ultima + 1;
+      } else {
+        nova.posicao = (grade.length ? Math.max(...grade.map(l => l.posicao)) : 0) + 1;
+      }
+    } else if (nova.posicao === null || nova.posicao === undefined){
+      nova.posicao = antiga && typeof antiga.posicao === "number" ? antiga.posicao : 0;
+    }
+  }
+  function aplicarRegras(nomeTabela, nova, antiga){
+    if (nomeTabela.startsWith("assistente_") && nomeTabela !== "assistente_passagens"){
+      if (antiga || nova.updated_at === undefined) nova.updated_at = new Date().toISOString();
+    }
+    if (nomeTabela === "assistente_cronograma") regrasCronograma(nova, antiga);
+    return nova;
+  }
 
   function comPadroes(nomeTabela, linha){
     const agora = new Date().toISOString();
@@ -353,7 +387,7 @@
     const nova = { ...base, ...linha };
     if (nova.id === undefined && !["financas_contas_fixas_ocultas", "painel_lembretes_snooze", "painel_checklist_observacoes", "painel_checklist_semanal", "app_config", "portal_gustavo_pensao", "financas_meses_fechados"].includes(nomeTabela)) nova.id = uuid();
     if (nova.created_at === undefined) nova.created_at = agora;
-    return nova;
+    return aplicarRegras(nomeTabela, nova, null);
   }
 
   function comparar(a, b){
@@ -431,7 +465,7 @@
       }
       if (this.op === "update"){
         const alvo = this._filtrar(linhas);
-        alvo.forEach(l => Object.assign(l, copia(this.valores)));
+        alvo.forEach(l => { const antiga = copia(l); Object.assign(l, copia(this.valores)); aplicarRegras(this.t, l, antiga); });
         salvarBanco();
         return this._formatar(this.retornar ? copia(alvo) : null);
       }
@@ -440,7 +474,7 @@
         const saida = [];
         (Array.isArray(this.valores) ? this.valores : [this.valores]).forEach(v => {
           const existente = linhas.find(l => chaves.every(k => v[k] !== undefined && igual(l[k], v[k])));
-          if (existente){ Object.assign(existente, copia(v)); saida.push(existente); }
+          if (existente){ const antiga = copia(existente); Object.assign(existente, copia(v)); aplicarRegras(this.t, existente, antiga); saida.push(existente); }
           else { const n = comPadroes(this.t, v); linhas.push(n); saida.push(n); }
         });
         salvarBanco();
@@ -472,6 +506,7 @@
     const simular = window.EDI_DEMO_FUNCOES && window.EDI_DEMO_FUNCOES[n];
     const corpo = opcoes && opcoes.body;
     const resposta = simular ? simular(corpo, nome, { tabela, uuid, PERFIL }) : { ok: true };
+    if (simular) salvarBanco();
     return new Promise(ok => setTimeout(() => ok({ data: resposta, error: null }), n.startsWith("ia-") ? 900 : 250));
   }
 
@@ -501,7 +536,9 @@
       from: (t) => new Consulta(t),
       rpc: (nome, args) => {
         const simular = window.EDI_DEMO_RPC && window.EDI_DEMO_RPC[nome];
-        return Promise.resolve({ data: simular ? simular(args, { tabela }) : null, error: null });
+        const dados = simular ? simular(args, { tabela }) : null;
+        if (simular) salvarBanco();
+        return Promise.resolve({ data: dados, error: null });
       },
       functions: { invoke: funcaoSimulada },
       storage: { from: armazenamentoSimulado },
