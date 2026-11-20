@@ -124,7 +124,7 @@
   };
 
   window.EDI_DEMO.ajustarBiosite = function(perfil, secoes){
-    if (perfil){ perfil.nome = P.nome; perfil.email = P.email; perfil.tiktokUrl = "#"; perfil.instagramUrl = "#"; perfil.arroba = P.arroba; }
+    if (perfil){ perfil.nome = P.nome; perfil.email = P.email; perfil.tiktokUrl = "#"; perfil.instagramUrl = "#"; perfil.arroba = P.arroba; perfil.localizacao = "Creator morando no interior 📍"; }
     if (!Array.isArray(secoes)) return;
     const novas = [
       { secao: (secoes[0] && secoes[0].secao) || "Trabalhe comigo", itens: [
