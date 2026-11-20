@@ -410,6 +410,37 @@
     add("assistente_passagens", { id: uuid(), texto: "Onde parei: proposta de skincare em andamento (pacote com 3 vídeos). Próximo passo: cobrar o pagamento do café e gravar os roteiros da semana.\n\nPrioridade: tudo que traz dinheiro primeiro.", atual: true, created_at: momento(-1) });
 
     // ------------------------------------------------------------------ Instagram > Cronograma de Conteúdos
+    const ROTEIRO_EXEMPLO = [
+      "ROTEIRO — 3 erros no skincare da manhã (Reels, ~35s)",
+      "",
+      "GANCHO (0-3s)",
+      "Texto na tela: \"Você pode estar estragando sua pele antes das 8h\"",
+      "Fala: \"Se você faz isso de manhã, para agora.\"",
+      "",
+      "ERRO 1 (3-12s)",
+      "Mostrando a água saindo quente da torneira.",
+      "Fala: \"Lavar o rosto com água quente. Parece que limpa mais, mas resseca e deixa a pele mais oleosa depois. Morna ou fria já resolve.\"",
+      "",
+      "ERRO 2 (12-21s)",
+      "Esfregando a toalha no rosto, depois trocando por batidinhas.",
+      "Fala: \"Esfregar a toalha. Seca com batidinhas, sem arrastar.\"",
+      "",
+      "ERRO 3 (21-30s)",
+      "Pegando o protetor e mostrando a quantidade na mão.",
+      "Fala: \"E o maior de todos: pular o protetor porque vai ficar em casa. A luz da janela também conta. Dois dedos de produto, todo dia.\"",
+      "",
+      "CTA (30-35s)",
+      "Fala: \"Comenta ROTINA que eu te mando a minha ordem de produtos.\"",
+      "",
+      "LEGENDA",
+      "Qual desses você fazia? 👀 Eu fazia os três 🙈",
+      "Comenta ROTINA que te mando minha ordem de skincare da manhã no direct 💌",
+      "",
+      "GRAVAÇÃO",
+      "- Luz da janela, de manhã",
+      "- Cenário: pia do banheiro organizada",
+      "- Falta: gravar o B-roll da toalha"
+    ].join("\n");
     const diaSemana = (desloc) => ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"][new Date(dia(desloc) + "T12:00:00").getDay()];
     [
       ["Rotina", "3 erros no skincare da manhã", "Falado", "Roteiro pronto", 1],
@@ -420,7 +451,7 @@
       ["Bastidores", "Um dia de gravação comigo", "Vlog", "Sugestão (aprovar)", null]
     ].forEach(([tema, ideia, formato, status, d], i) => add("assistente_cronograma", {
       id: uuid(), lista: "Grade", posicao: i + 1, dia: d === null ? (i === 4 ? "Extra" : "A definir") : diaSemana(d), data_prevista: d === null ? null : dia(d),
-      tema, ideia, formato, status, observacoes: i === 0 ? "Gancho: \"Você está lavando o rosto errado?\"" : null, link_roteiro: i === 0 ? "https://exemplo.com/roteiro" : null,
+      tema, ideia, formato, status, observacoes: i === 0 ? ROTEIRO_EXEMPLO : null, link_roteiro: i === 0 ? "https://exemplo.com/roteiro" : null,
       metricas_origem: {}, created_at: momento(-10 + i), updated_at: momento(-1)
     }));
     [
