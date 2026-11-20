@@ -351,6 +351,7 @@ const SECOES_BIOSITE = [
   {
     secao: "Cursos e Mentorias Validados",
     recolhivel: true,
+    dataCtaAbrir: "cta_abrir_cursos",
     itens: [
       { titulo: "Profissão do Futuro ✨", link: "https://lp.rafaelachagas.com.br/embaixadoras-pf?sck=afiliadas-embaixadoras&ref=A106065864W&utm_source=direto", imagem: "imagens/biosite/profissao-futuro.jpg", dataCta: "cta_cursos" },
       { titulo: "Consultoria Marca e Essência", link: "https://pay.hub.la/o90RvETFsGZg8hEUh65N?ref=aX3iQFHMqNG7E73FrYeA", imagem: "imagens/biosite/consultoria-marca.jpg", dataCta: "cta_cursos" },
@@ -361,6 +362,7 @@ const SECOES_BIOSITE = [
   {
     secao: "Meus Cupons",
     recolhivel: true,
+    dataCtaAbrir: "cta_abrir_cupons",
     itens: [
       { titulo: "Saint Germain | 🏷️ A-EDILAINESGPA", link: "https://www.saintgermainbrand.com.br/", imagem: "imagens/biosite/saint-germain.jpg", dataCta: "cta_cupons" },
       { titulo: "Dr. Lava Tudo | 🏷️ EDILAINE-10", link: "https://drlavatudo.com/loja/?afiliado=EDILAINE", imagem: "imagens/biosite/dr-lava-tudo.png", dataCta: "cta_cupons" }
@@ -369,6 +371,7 @@ const SECOES_BIOSITE = [
   {
     secao: "Achadinhos",
     recolhivel: true,
+    dataCtaAbrir: "cta_abrir_achadinhos",
     itens: [
       { titulo: "Só os favoritos 💙", link: "https://collshp.com/ediindica", imagem: "imagens/biosite/achadinhos.jpg", dataCta: "cta_achadinhos" },
       { titulo: "Shein", link: "https://onelink.shein.com/45/5xgkqyl7hl37", imagem: "imagens/biosite/Shein.jpg", dataCta: "cta_achadinhos" }
@@ -403,7 +406,7 @@ document.getElementById("secoesBiosite").innerHTML = SECOES_BIOSITE.map(bloco =>
   if (bloco.recolhivel) {
     return `
       <div class="secao secao-gaveta">
-        <button type="button" class="gaveta-cabecalho" aria-expanded="false">
+        <button type="button" class="gaveta-cabecalho" aria-expanded="false" data-cta="${bloco.dataCtaAbrir}">
           <span>${bloco.secao}</span>
           <span class="cursor-clique" aria-hidden="true">
             <span class="onda"></span>
@@ -488,7 +491,9 @@ document.addEventListener("click", (e) => {
   const linkContato = e.target.closest("[data-contato]");
   if (linkContato) registrarEvento("button_click", linkContato.dataset.contato, null);
   const linkCta = e.target.closest("[data-cta]");
-  if (linkCta) registrarEvento("button_click", linkCta.dataset.cta, null);
+  // Gaveta: só conta quando ABRE (o clique que fecha não entra na contagem)
+  const fechouGaveta = linkCta && linkCta.classList.contains("gaveta-cabecalho") && linkCta.getAttribute("aria-expanded") !== "true";
+  if (linkCta && !fechouGaveta) registrarEvento("button_click", linkCta.dataset.cta, null);
 });
 </script>
 
