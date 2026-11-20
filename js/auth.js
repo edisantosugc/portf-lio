@@ -26,7 +26,7 @@ window.Auth = {
 
     if (error) {
       if (error.message === "Invalid login credentials") {
-        throw new Error("E-mail ou senha incorretos.");
+        throw new Error("Você não tem acesso a este painel. Confira seu e-mail e senha ou solicite acesso ao administrador.");
       }
       throw new Error(error.message);
     }
