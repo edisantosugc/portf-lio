@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Roteiro de exemplo</title>
+<style id="demoCortina">html{ visibility: hidden !important; }</style>
+<script src="/js/demo-passe.js"></script>
+<script>
+  // Só abre com o login da demo (ver js/demo-passe.js); sem login, volta pra entrada da demo
+  DemoPasse.validar().then(ok => { if (ok) document.getElementById("demoCortina").remove(); else location.replace("/demo/"); });
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
 <style>

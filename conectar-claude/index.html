@@ -159,6 +159,13 @@
     const { data, error } = await cliente.auth.signInWithPassword({ email: email.trim(), password: senha });
     if (error || !data.session) {
       if (error && error.message === "Invalid login credentials") {
+        // Avisa a dona (Administrativo > Segurança + notificação). Nunca trava a tela se falhar.
+        try {
+          const ua = navigator.userAgent || "";
+          const aparelho = (/iPhone/.test(ua) ? "iPhone" : /iPad/.test(ua) ? "iPad" : /Android/.test(ua) ? "Android" : /Windows/.test(ua) ? "Windows" : /Mac OS X|Macintosh/.test(ua) ? "Mac" : /Linux/.test(ua) ? "Linux" : "Outro")
+            + " · " + (/Edg\//.test(ua) ? "Edge" : /SamsungBrowser/.test(ua) ? "Samsung Internet" : /Firefox\/|FxiOS/.test(ua) ? "Firefox" : /Chrome\/|CriOS/.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : "Outro");
+          cliente.rpc("registrar_tentativa_acesso", { p_email: email, p_tipo: "conector", p_aparelho: aparelho }).then(() => {}, () => {});
+        } catch (e) {}
         const v = lerErros();
         const n = (v.ate && v.ate <= Date.now() ? 0 : v.n) + 1;
         if (n >= MAX_ERROS) { gravarErros({ n: 0, ate: Date.now() + BLOQUEIO_MS }); throw new Error("Muitas tentativas erradas. A página ficou bloqueada por 15 minutos."); }

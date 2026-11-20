@@ -29,6 +29,41 @@
   if (!ativo) return;
   window.name = NOME_MOLDURA; // continua em modo demo ao navegar dentro da moldura
 
+  // ---------------------------------------------------------------------------
+  // 0. Login da demo: nada aparece sem passe válido (conferido no servidor,
+  //    ver js/demo-passe.js e seguranca_demo_portais.sql). Sem passe, volta
+  //    pra entrada da demo (/demo/), que pede e-mail e senha.
+  // ---------------------------------------------------------------------------
+  const PASSE_URL = "https://dqtoxxngjqyoibdgmrjr.supabase.co/rest/v1/rpc/";
+  const PASSE_CHAVE_PUBLICA = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc";
+  const PASSE_LOCAL = "edi-demo-passe";
+  const fetchDoServidor = window.fetch.bind(window);
+  function chamarServidor(funcao, corpo){
+    return fetchDoServidor(PASSE_URL + funcao, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: PASSE_CHAVE_PUBLICA, Authorization: "Bearer " + PASSE_CHAVE_PUBLICA },
+      body: JSON.stringify(corpo)
+    }).then(r => r.ok ? r.json() : null);
+  }
+  function lerPasseReal(){ try { return window.localStorage.getItem(PASSE_LOCAL); } catch (e) { return null; } }
+  function gravarPasseReal(p){ try { p ? window.localStorage.setItem(PASSE_LOCAL, p) : window.localStorage.removeItem(PASSE_LOCAL); } catch (e) {} }
+  function irParaEntradaDaDemo(){
+    try { (window.top || window).location.replace("/demo/"); } catch (e) { location.replace("/demo/"); }
+  }
+  try {
+    const cortina = document.createElement("style");
+    cortina.id = "demoCortina";
+    cortina.textContent = "html{ visibility: hidden !important; }";
+    (document.head || document.documentElement).appendChild(cortina);
+    const passeAtual = lerPasseReal();
+    (passeAtual ? chamarServidor("validar_demo", { p_token: passeAtual }) : Promise.resolve(false))
+      .then(ok => {
+        if (ok === true){ const c = document.getElementById("demoCortina"); if (c) c.remove(); else cortina.remove(); }
+        else { gravarPasseReal(null); irParaEntradaDaDemo(); }
+      })
+      .catch(() => irParaEntradaDaDemo());
+  } catch (e) { irParaEntradaDaDemo(); }
+
   // Foto real nunca chega a aparecer: fica escondida até ser trocada pela ilustração
   try {
     const estilo = document.createElement("style");
@@ -557,8 +592,23 @@
         getSession: () => Promise.resolve({ data: { session: lsDemo.getItem(CHAVE_DESLOGADA) ? null : SESSAO }, error: null }),
         getUser: () => Promise.resolve({ data: { user: USUARIO }, error: null }),
         refreshSession: () => Promise.resolve({ data: { session: lsDemo.getItem(CHAVE_DESLOGADA) ? null : SESSAO, user: USUARIO }, error: null }),
-        signInWithPassword: () => { lsDemo.removeItem(CHAVE_DESLOGADA); return Promise.resolve({ data: { session: SESSAO, user: USUARIO }, error: null }); },
-        signOut: () => { lsDemo.setItem(CHAVE_DESLOGADA, "1"); return Promise.resolve({ error: null }); },
+        // Login do painel da demo: confere no servidor com o login da demo (igual ao painel real:
+        // errou = "Você não tem acesso" + aviso no celular da dona). O Portal segue com o código fictício.
+        signInWithPassword: async (cred) => {
+          if (!location.pathname.startsWith("/gustavo")){
+            const ua = navigator.userAgent || "";
+            const aparelho = (/iPhone/.test(ua) ? "iPhone" : /Android/.test(ua) ? "Android" : /Windows/.test(ua) ? "Windows" : /Mac/.test(ua) ? "Mac" : "Outro") + " · " +
+              (/Edg\//.test(ua) ? "Edge" : /Firefox\//.test(ua) ? "Firefox" : /Chrome\//.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : "Outro");
+            let passe = null;
+            try { passe = await chamarServidor("entrar_demo", { p_email: (cred && cred.email) || "", p_senha: (cred && cred.password) || "", p_aparelho: aparelho }); } catch (e) {}
+            if (passe === "bloqueado") return { data: { session: null, user: null }, error: { message: "Muitas tentativas erradas. O acesso à demonstração ficou bloqueado por 15 minutos." } };
+            if (typeof passe !== "string" || !passe) return { data: { session: null, user: null }, error: { message: "Invalid login credentials" } };
+            gravarPasseReal(passe);
+          }
+          lsDemo.removeItem(CHAVE_DESLOGADA);
+          return { data: { session: SESSAO, user: USUARIO }, error: null };
+        },
+        signOut: () => { lsDemo.setItem(CHAVE_DESLOGADA, "1"); if (!location.pathname.startsWith("/gustavo")) gravarPasseReal(null); return Promise.resolve({ error: null }); },
         resetPasswordForEmail: () => Promise.resolve({ data: {}, error: null }),
         updateUser: () => Promise.resolve({ data: { user: USUARIO }, error: null }),
         onAuthStateChange: (cb) => { setTimeout(() => cb && cb("SIGNED_IN", SESSAO), 0); return { data: { subscription: { unsubscribe(){} } } }; },

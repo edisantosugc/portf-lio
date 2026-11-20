@@ -466,6 +466,15 @@
 
     if (error){
       erroLogin.textContent = "Código incorreto. Confere com a Edilaine e tenta de novo.";
+      // Avisa a Edilaine (Administrativo > Segurança + notificação). Nunca trava a tela se falhar.
+      if (error.message === "Invalid login credentials"){
+        try {
+          const ua = navigator.userAgent || "";
+          const aparelho = (/iPhone/.test(ua) ? "iPhone" : /iPad/.test(ua) ? "iPad" : /Android/.test(ua) ? "Android" : /Windows/.test(ua) ? "Windows" : /Mac OS X|Macintosh/.test(ua) ? "Mac" : /Linux/.test(ua) ? "Linux" : "Outro")
+            + " · " + (/Edg\//.test(ua) ? "Edge" : /SamsungBrowser/.test(ua) ? "Samsung Internet" : /Firefox\/|FxiOS/.test(ua) ? "Firefox" : /Chrome\/|CriOS/.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : "Outro");
+          sb.rpc("registrar_tentativa_acesso", { p_email: "", p_tipo: "portal", p_aparelho: aparelho }).then(() => {}, () => {});
+        } catch (e) {}
+      }
       return;
     }
     mostrarPortal();

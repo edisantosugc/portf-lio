@@ -18,9 +18,10 @@
     const d = new Date(iso);
     return `${doisDig(d.getDate())}/${doisDig(d.getMonth() + 1)} · ${doisDig(d.getHours())}:${doisDig(d.getMinutes())}`;
   }
-  const rotuloTipo = (t) => t === "recuperar" ? "Recuperar senha" : "Login";
+  const ROTULOS_TIPO = { login: "Login do painel", recuperar: "Recuperar senha", portal: "Portal (código)", conector: "Conectar Claude", demo: "Demonstração" };
+  const rotuloTipo = (t) => ROTULOS_TIPO[t] || "Login";
   const etqQuem = (q) => q === "voce" ? `<span class="seg-etq voce">Seu e-mail</span>` : `<span class="seg-etq fora">De fora</span>`;
-  const emailExibido = (it) => it.quem === "voce" ? "seu e-mail" : (it.email || "(sem e-mail)");
+  const emailExibido = (it) => it.quem === "voce" ? "seu e-mail" : (it.email || (it.tipo === "portal" ? "código do Portal" : "(sem e-mail)"));
 
   async function carregar(forcar){
     const area = $("adminSeguranca");

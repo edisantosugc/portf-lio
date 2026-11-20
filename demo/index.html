@@ -38,16 +38,49 @@
     .rotulo-longo{ display: none; }
   }
   @media (min-width: 521px){ .rotulo-curto{ display: none; } }
+
+  /* ---- Login da demo (js/demo-passe.js): nada da demo aparece antes disso ---- */
+  .oculto{ display: none !important; }
+  .tela-entrada{ position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; background: var(--creme); z-index: 20; overflow: auto; }
+  .cartao-entrada{ width: 100%; max-width: 400px; background: var(--branco); border: 1px solid var(--borda); border-radius: 24px; padding: 36px 30px; box-shadow: 0 20px 50px rgba(26,24,22,.08); }
+  .cartao-entrada .logo{ font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.25rem; color: var(--grafite); margin-bottom: 22px; }
+  .cartao-entrada h1{ font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.6rem; color: var(--grafite); margin-bottom: 6px; }
+  .cartao-entrada .sub{ color: var(--suave); font-size: .9rem; margin-bottom: 22px; line-height: 1.45; }
+  .cartao-entrada label{ display: block; font-size: .85rem; font-weight: 600; color: var(--grafite); margin-bottom: 6px; }
+  .cartao-entrada input{ width: 100%; padding: 13px 14px; border-radius: 12px; border: 1px solid var(--borda); background: var(--creme); font-family: inherit; font-size: 1rem; color: var(--grafite); margin-bottom: 16px; }
+  .cartao-entrada input:focus{ outline: 2px solid var(--azul); outline-offset: 1px; }
+  .cartao-entrada button{ width: 100%; padding: 14px; border: none; border-radius: 12px; background: var(--azul); color: #fff; font-family: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; }
+  .cartao-entrada button:disabled{ opacity: .6; cursor: default; }
+  .faixa-erro{ background: rgba(196,69,60,.1); color: #C4453C; border-radius: 12px; padding: 12px 14px; font-size: .85rem; line-height: 1.4; margin-bottom: 18px; }
+  .verificando{ color: var(--suave); font-size: .95rem; }
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
 </head>
 <body>
+<div class="tela-entrada" id="telaEntrada">
+  <p class="verificando" id="verificando">Verificando acesso…</p>
+  <div class="cartao-entrada oculto" id="cartaoEntrada">
+    <p class="logo">app<span style="color:var(--azul)">.</span>example</p>
+    <h1>Acesso restrito</h1>
+    <p class="sub">Faça login para ver a demonstração.</p>
+    <div class="faixa-erro oculto" id="erroEntrada"></div>
+    <form id="formEntrada">
+      <label for="campoEmailDemo">E-mail</label>
+      <input type="email" id="campoEmailDemo" required autocomplete="username">
+      <label for="campoSenhaDemo">Senha</label>
+      <input type="password" id="campoSenhaDemo" required autocomplete="current-password">
+      <button type="submit" id="botaoEntrarDemo">Entrar</button>
+    </form>
+  </div>
+</div>
 <div class="telas" id="telas"></div>
-<nav class="abas" id="abas" aria-label="Alternar páginas">
+<nav class="abas oculto" id="abas" aria-label="Alternar páginas">
   <button type="button" data-aba="app" class="ativa"><span class="icone">📊</span><span>Aplicativo</span></button>
   <button type="button" data-aba="portfolio"><span class="icone">🎬</span><span>Portfólio</span></button>
   <button type="button" data-aba="biosite"><span class="icone">🔗</span><span>Biosite</span></button>
   <button type="button" data-aba="portal"><span class="icone">👥</span><span class="rotulo-longo">Portal do Colaborador</span><span class="rotulo-curto">Portal</span></button>
 </nav>
+<script src="/js/demo-passe.js"></script>
 <script>
   const PAGINAS = {
     app: "/painel.html?demo=1",
@@ -74,7 +107,37 @@
     try { history.replaceState(null, "", "#" + aba); } catch (e) {}
   }
   document.querySelectorAll("#abas button").forEach(b => b.addEventListener("click", () => abrir(b.dataset.aba)));
-  abrir(PAGINAS[location.hash.slice(1)] ? location.hash.slice(1) : "app");
+
+  // Só monta a demo depois do login (conferido no servidor, ver js/demo-passe.js)
+  function liberar(){
+    document.getElementById("telaEntrada").classList.add("oculto");
+    document.getElementById("abas").classList.remove("oculto");
+    abrir(PAGINAS[location.hash.slice(1)] ? location.hash.slice(1) : "app");
+  }
+  function pedirLogin(){
+    document.getElementById("verificando").classList.add("oculto");
+    document.getElementById("cartaoEntrada").classList.remove("oculto");
+    document.getElementById("campoEmailDemo").focus();
+  }
+  document.getElementById("formEntrada").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const erro = document.getElementById("erroEntrada");
+    const botao = document.getElementById("botaoEntrarDemo");
+    erro.classList.add("oculto");
+    botao.disabled = true; botao.textContent = "Entrando...";
+    try {
+      const ok = await DemoPasse.entrar(document.getElementById("campoEmailDemo").value.trim(), document.getElementById("campoSenhaDemo").value);
+      if (ok){ liberar(); return; }
+      erro.textContent = "Você não tem acesso a esta demonstração. Confira seu e-mail e senha ou solicite acesso ao administrador.";
+    } catch (falha) {
+      erro.textContent = falha && falha.message === "bloqueado"
+        ? "Muitas tentativas erradas. O acesso à demonstração ficou bloqueado por 15 minutos."
+        : "Não foi possível entrar agora. Tente novamente em instantes.";
+    }
+    erro.classList.remove("oculto");
+    botao.disabled = false; botao.textContent = "Entrar";
+  });
+  DemoPasse.validar().then(ok => ok ? liberar() : pedirLogin());
 </script>
 </body>
 </html>

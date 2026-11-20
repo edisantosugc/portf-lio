@@ -1,2 +1,7 @@
 desktop.ini
 supabase/.temp/
+
+# Anotações internas: ficam só no computador, nunca vão pro site
+*.md
+LEIA-ME*.txt
+pendencias/
