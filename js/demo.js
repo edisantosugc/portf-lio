@@ -281,6 +281,12 @@
     if (/^(mailto:|tel:|whatsapp:)/i.test(href)){ ev.preventDefault(); return; }
     try {
       const u = new URL(href, location.href);
+      // Link de roteiro dos dados fictícios: abre a página de exemplo do próprio site
+      if (u.hostname === "exemplo.com" && u.pathname.startsWith("/roteiro")){
+        ev.preventDefault();
+        abrirReal.call(window, "/demo/roteiro-exemplo.html", "_blank", "noopener");
+        return;
+      }
       if (u.origin !== location.origin){ ev.preventDefault(); }
     } catch (e) {}
   }, true);
