@@ -341,7 +341,7 @@
   // 4. Banco de mentira (substitui o Supabase)
   // ---------------------------------------------------------------------------
   const CHAVE_BANCO = "banco";
-  const VERSAO_DADOS = "7";
+  const VERSAO_DADOS = "8";
   const hojeISO = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; })();
   let banco = null;
 

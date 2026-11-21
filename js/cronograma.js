@@ -317,9 +317,77 @@
     }
     if (porData){ alvo.innerHTML = visaoPorData(lista); return; }
     alvo.innerHTML = celular()
-      ? lista.map((it, i) => (estado.lista === "Grade" && !it.data_prevista && i > 0 && lista[i - 1].data_prevista
-          ? `<div class="cron-divisoria-sem-data">Sem data · use ↑↓ pra organizar</div>` : "") + cartaoCelular(it)).join("")
+      ? (usaGavetas() ? baloesCelular(lista) : lista.map(cartaoCelular).join(""))
       : tabelaComputador(lista);
+  }
+
+  // ---------- Gavetas por semana (Grade em "Minha ordem" e Postados) ----------
+  // Só visual: o título não é ideia, não arrasta, não edita, não apaga e não muda a ordem nem os dados.
+  // Semana de domingo a sábado: na Grade pela data prevista, em Postados pela data de postagem.
+  // Sem data: bloco "Sem data" no fim. Gavetas nascem fechadas; as que ela abre ficam
+  // lembradas neste aparelho. Com busca/filtro ligado, tudo aparece aberto (pra achar o resultado).
+  const NOMES_MES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+  const CHAVE_GRUPOS_ABERTOS = "cronGruposAbertos";
+  const gruposAbertos = (() => { try { return new Set(JSON.parse(localStorage.getItem(CHAVE_GRUPOS_ABERTOS)) || []); } catch (e) { return new Set(); } })();
+  function salvarGruposAbertos(){ try { localStorage.setItem(CHAVE_GRUPOS_ABERTOS, JSON.stringify([...gruposAbertos])); } catch (e) {} }
+
+  function domingoDaSemana(iso){
+    const { data } = partesData(iso);
+    data.setDate(data.getDate() - data.getDay());
+    return isoDe(data);
+  }
+  const usaGavetas = () => estado.lista === "Postados" || (estado.lista === "Grade" && estado.visao === "ordem");
+  const campoDaSemana = () => estado.lista === "Postados" ? "data_postagem" : "data_prevista";
+  const filtroLigado = () => !!(estado.busca.trim() || estado.filtroDia || estado.filtroStatus || estado.filtroPeriodo);
+  function chaveGrupo(it){
+    const data = it[campoDaSemana()];
+    return `${estado.lista}:${data ? domingoDaSemana(data) : "sem"}`;
+  }
+  const grupoFechado = (it) => usaGavetas() && !filtroLigado() && !gruposAbertos.has(chaveGrupo(it));
+
+  function tituloGrupo(lista, i, dicaSemData){
+    if (!usaGavetas()) return "";
+    const it = lista[i], anterior = lista[i - 1];
+    const chave = chaveGrupo(it);
+    if (anterior && chaveGrupo(anterior) === chave) return "";
+    const qtd = lista.filter(x => chaveGrupo(x) === chave).length;
+    const data = it[campoDaSemana()];
+    if (!data) return htmlTituloGrupo(chave, "Sem data", "", "", qtd, estado.lista === "Grade" ? dicaSemData : "");
+    const semana = domingoDaSemana(data);
+    const fim = somarDias(semana, 6);
+    const mesIni = NOMES_MES[partesData(semana).m - 1], mesFim = NOMES_MES[partesData(fim).m - 1];
+    const meses = mesIni === mesFim ? mesIni : `${mesIni}/${mesFim}`;
+    const hoje = domingoDaSemana(hojeISO());
+    const etiqueta = semana === hoje ? "esta semana"
+      : estado.lista === "Grade" && semana === somarDias(hoje, 7) ? "próxima semana"
+      : estado.lista === "Grade" && semana < hoje ? "passou" : "";
+    return htmlTituloGrupo(chave, meses, `Semana de ${ddmm(semana)} a ${ddmm(fim)}`, etiqueta, qtd, "");
+  }
+
+  function htmlTituloGrupo(chave, principal, periodo, etiqueta, qtd, dica){
+    const aberto = filtroLigado() || gruposAbertos.has(chave);
+    const textoQtd = `${qtd} ${estado.lista === "Postados" ? (qtd === 1 ? "post" : "posts") : (qtd === 1 ? "ideia" : "ideias")}`;
+    const etq = etiqueta ? `<span class="cron-grupo-etiqueta${etiqueta === "passou" ? " passou" : ""}">${esc(etiqueta)}</span>` : "";
+    return `<button type="button" class="cron-grupo-titulo${aberto ? " aberto" : ""}" data-cron="grupo" data-grupo="${esc(chave)}" aria-expanded="${aberto}"${filtroLigado() ? " disabled title=\"Com busca ou filtro, todas as semanas ficam abertas\"" : ""}>
+      <span class="cron-grupo-seta" aria-hidden="true">▸</span>
+      <span class="cron-grupo-texto"><strong>${esc(principal)}</strong>${periodo ? `<span class="cron-grupo-sep">·</span><span class="cron-grupo-periodo">${esc(periodo)}</span>` : ""}${etq}</span>
+      <span class="cron-grupo-qtd">${textoQtd}${dica && aberto ? ` · ${esc(dica)}` : ""}</span>
+    </button>`;
+  }
+
+  // Celular: cada semana num balão (título + cartões das ideias)
+  function baloesCelular(lista){
+    let html = "";
+    paraCadaGrupo(lista, (titulo, itens, fechado) => {
+      html += `<div class="cron-balao-celular${fechado ? " fechado" : ""}">${titulo}${fechado ? "" : `<div class="cron-balao-itens">${itens.map(cartaoCelular).join("")}</div>`}</div>`;
+    }, "use ↑↓ pra organizar");
+    return html;
+  }
+
+  function alternarGrupo(chave){
+    if (gruposAbertos.has(chave)) gruposAbertos.delete(chave); else gruposAbertos.add(chave);
+    salvarGruposAbertos();
+    renderizarLista();
   }
 
   // ---------- Visão "Por data": semanas empilhadas (seg a dom) + "Sem data" no fim ----------
@@ -435,21 +503,41 @@
   }
 
   // ---------- Computador: linhas finas ----------
+  // Cada semana vira um balão: título (gaveta) + cabeçalho das colunas + ideias.
+  // Fechado: só o título. Fora das gavetas (não acontece hoje), volta a ser uma tabela única.
   function tabelaComputador(lista){
     const postados = estado.lista === "Postados";
     const podeArrastar = !postados && estado.visao === "ordem";
-    return `
-      <div class="cron-tabela${postados ? " postados" : ""}">
+    const cabecalho = `
         <div class="cron-linha cron-cabecalho">
           <span></span><span>${postados ? "Postado em" : "Data"}</span><span>Dia</span><span>Tema</span><span>Ideia</span><span>Formato</span><span>Status</span><span>Observações</span>
-        </div>
-        ${lista.map((it, i) => {
+        </div>`;
+    const classeTabela = `cron-tabela${postados ? " postados" : ""}`;
+    if (!usaGavetas()) return `<div class="${classeTabela}">${cabecalho}${lista.map(it => linhaComputador(it, podeArrastar)).join("")}</div>`;
+    let html = "";
+    paraCadaGrupo(lista, (titulo, itens, fechado) => {
+      html += `<div class="${classeTabela} cron-balao${fechado ? " fechado" : ""}">${titulo}${fechado ? "" : cabecalho + itens.map(it => linhaComputador(it, podeArrastar)).join("")}</div>`;
+    }, "arraste pra organizar");
+    return `<div class="cron-baloes">${html}</div>`;
+  }
+
+  // Percorre a lista (já ordenada) em blocos de semana seguidos
+  function paraCadaGrupo(lista, fazer, dica){
+    let i = 0;
+    while (i < lista.length){
+      const chave = chaveGrupo(lista[i]);
+      let j = i;
+      while (j < lista.length && chaveGrupo(lista[j]) === chave) j++;
+      fazer(tituloGrupo(lista, i, dica), lista.slice(i, j), grupoFechado(lista[i]));
+      i = j;
+    }
+  }
+
+  function linhaComputador(it, podeArrastar){
           const aberto = estado.abertos.has(it.id);
           // Na "Minha ordem", só as ideias SEM data são arrastáveis (as com data seguem a data)
           const arrasta = podeArrastar && !it.data_prevista;
-          const divisoria = podeArrastar && !it.data_prevista && i > 0 && lista[i - 1].data_prevista
-            ? `<div class="cron-divisoria-sem-data">Sem data · arraste pra organizar</div>` : "";
-          return `${divisoria}
+          return `
           <div class="cron-bloco${it.status === "Descartado" ? " descartado" : ""}${aberto ? " aberto" : ""}" data-id="${it.id}"${arrasta ? ` data-arrastavel="1"` : ""}>
             <div class="cron-linha">
               <span class="cron-alca"${arrasta ? ` draggable="true" title="Arraste pra mudar a ordem"` : (podeArrastar ? ` title="Ideias com data ficam em ordem de data"` : "")}>${arrasta ? "⋮⋮" : ""}</span>
@@ -470,8 +558,6 @@
             </div>
             ${aberto ? detalhes(it) : ""}
           </div>`;
-        }).join("")}
-      </div>`;
   }
 
   // ---------- Celular: cartões compactos ----------
@@ -862,6 +948,7 @@
       if (!el) return;
       const acao = el.dataset.cron, id = el.dataset.id;
       if (acao === "lista"){ estado.lista = el.dataset.lista; renderizar(); }
+      else if (acao === "grupo") alternarGrupo(el.dataset.grupo);
       else if (acao === "visao"){
         if (estado.visao !== el.dataset.visao){ estado.visao = el.dataset.visao; salvarVisao(); renderizar(); }
       }

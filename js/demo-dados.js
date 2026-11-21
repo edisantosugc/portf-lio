@@ -455,10 +455,10 @@
     ].join("\n");
     const diaSemana = (desloc) => ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"][new Date(dia(desloc) + "T12:00:00").getDay()];
     [
-      ["Rotina", "3 erros no skincare da manhã", "Falado", "Roteiro pronto", 1],
-      ["UGC", "Como eu gravo um vídeo pra marca", "Bastidores", "A gravar", 2],
-      ["Organização", "Minha planilha de trabalhos", "Tela + voz", "Ideia aprovada", 4],
-      ["Review", "Protetor solar: vale a pena?", "Review", "Em produção", 5],
+      ["Rotina", "3 erros no skincare da manhã", "Falado", "Roteiro pronto", 0],
+      ["UGC", "Como eu gravo um vídeo pra marca", "Bastidores", "A gravar", 3],
+      ["Organização", "Minha planilha de trabalhos", "Tela + voz", "Ideia aprovada", 8],
+      ["Review", "Protetor solar: vale a pena?", "Review", "Em produção", 10],
       ["Dicas", "Ganchos que seguram até o fim", "Carrossel", "Sugestão (aprovar)", null],
       ["Bastidores", "Um dia de gravação comigo", "Vlog", "Sugestão (aprovar)", null]
     ].forEach(([tema, ideia, formato, status, d], i) => add("assistente_cronograma", {

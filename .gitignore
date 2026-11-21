@@ -5,3 +5,4 @@ supabase/.temp/
 *.md
 LEIA-ME*.txt
 pendencias/
+_editor-*.html

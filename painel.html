@@ -4178,6 +4178,48 @@
     background:var(--creme); padding:6px 14px; border-top:1px solid var(--borda); border-bottom:1px solid var(--borda);
   }
   #cronLista > .cron-divisoria-sem-data{ border:none; background:none; padding:10px 4px 6px; }
+
+  /* Gavetas por semana na Grade e em Postados (js/cronograma.js → tituloGrupo). Só visual. */
+  :root{
+    --grupo-mes-tam:18.5px; --grupo-periodo-tam:15px; --grupo-etq-tam:11px; --grupo-qtd-tam:12px; --grupo-seta-tam:17.5px;
+    --grupo-altura:7px; --grupo-alinhar:center; --grupo-colunas:minmax(70px, 1fr) auto minmax(70px, 1fr);
+  }
+  .cron-grupo-titulo{
+    appearance:none; -webkit-appearance:none; font:inherit; color:inherit; text-align:center; cursor:pointer; user-select:none;
+    display:grid; grid-template-columns:var(--grupo-colunas); align-items:center; gap:10px;
+    width:100%; box-sizing:border-box; margin:0; padding:var(--grupo-altura) 14px;
+    background:rgba(0,0,128,.06); border:none; border-top:1px solid var(--borda); border-bottom:1px solid var(--borda);
+  }
+  .cron-grupo-titulo:hover{ background:rgba(0,0,128,.1); }
+  .cron-grupo-titulo:focus-visible{ outline:2px solid var(--coral); outline-offset:-2px; }
+  .cron-grupo-titulo:disabled{ cursor:default; }
+  .cron-grupo-titulo:disabled .cron-grupo-seta{ visibility:hidden; }
+  .cron-grupo-seta{ justify-self:start; color:var(--coral); font-size:var(--grupo-seta-tam); line-height:1; transition:transform .15s ease; }
+  .cron-grupo-titulo.aberto .cron-grupo-seta{ transform:rotate(90deg); }
+  .cron-grupo-texto{ display:inline-flex; align-items:center; justify-content:var(--grupo-alinhar); justify-self:var(--grupo-alinhar); flex-wrap:wrap; gap:2px 8px; min-width:0; font-size:var(--grupo-periodo-tam); color:var(--grafite); }
+  .cron-grupo-texto strong{ font-family:'Fraunces', serif; font-weight:600; color:var(--coral); font-size:var(--grupo-mes-tam); }
+  .cron-grupo-sep{ color:var(--texto-suave); }
+  .cron-grupo-qtd{ justify-self:end; font-size:var(--grupo-qtd-tam); color:var(--texto-suave); white-space:nowrap; }
+  .cron-grupo-etiqueta{
+    font-size:var(--grupo-etq-tam); font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+    padding:2px 8px; border-radius:999px; background:rgba(0,0,128,.1); color:var(--coral);
+  }
+  .cron-grupo-etiqueta.passou{ background:var(--creme); color:var(--texto-suave); }
+  /* Balões por semana: cada semana é um card separado (título + colunas + ideias) */
+  .cron-baloes{ display:flex; flex-direction:column; gap:14px; }
+  .cron-balao .cron-grupo-titulo{ border-top:none; }
+  .cron-balao.fechado .cron-grupo-titulo{ border-bottom:none; }
+  .cron-balao .cron-bloco:last-child{ border-bottom:none; }
+  .cron-balao-celular{ background:var(--branco); border:1px solid var(--borda); border-radius:14px; overflow:hidden; margin-bottom:12px; }
+  .cron-balao-celular .cron-grupo-titulo{ border-top:none; }
+  .cron-balao-celular.fechado .cron-grupo-titulo{ border-bottom:none; }
+  .cron-balao-itens{ padding:10px 10px 2px; }
+  @media (max-width: 700px){
+    .cron-grupo-titulo{ grid-template-columns:18px 1fr auto; gap:8px; }
+    .cron-grupo-qtd{ font-size:.7rem; white-space:normal; text-align:right; max-width:90px; }
+    .cron-grupo-sep{ display:none; }
+    .cron-grupo-texto{ flex-direction:column; gap:2px; }
+  }
   .cron-cartao-avisos{ display:flex; flex-wrap:wrap; gap:6px; padding:0 12px; }
   .cron-cartao-campos label.cron-campo-largo{ grid-column:1 / -1; }
 
@@ -24072,7 +24114,7 @@ ${corpo}
   configurarEventosChecklistDiario();
 </script>
 <script src="js/assistente.js"></script>
-<script src="js/cronograma.js"></script>
+<script src="js/cronograma.js?v=20261121c"></script>
 <script src="js/seguranca.js"></script>
 </body>
 </html>
