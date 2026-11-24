@@ -181,6 +181,8 @@
     font-weight: 600;
     line-height: 1.3;
   }
+  /* Botão de texto longo: no celular encolhe só o necessário pra caber em 1 linha (no computador fica igual aos outros) */
+  .link-item.compacto .titulo{ font-size: min(.93rem, calc((100vw - 130px) * .055)); }
   .rodape{
     text-align: center;
     margin-top: 50px;
@@ -328,6 +330,8 @@
    - "titulo": texto do botão
    - "link": endereço pra onde o botão leva
    - "imagem": caminho da miniatura (arquivos ficam em imagens/biosite/)
+   - "mesmaAba: true": abre o link na mesma aba (sem isso, abre em aba nova)
+   - "compacto: true": no celular a letra diminui só o necessário pro texto caber em 1 linha
    Pra adicionar um botão novo, copie um bloco { titulo, link, imagem }
    inteiro e cole dentro da seção desejada. Pra criar uma seção nova,
    copie um bloco { secao, itens } inteiro.
@@ -345,6 +349,7 @@ const SECOES_BIOSITE = [
     secao: "Parcerias",
     itens: [
       { titulo: "Quero te contratar como creator", link: "https://api.whatsapp.com/send?phone=551993842684", imagem: "imagens/biosite/creator.jpg", dataContato: "contact_whatsapp" },
+      { titulo: "Quero meu app de gestão personalizado", link: "/formularioadmin/", imagem: "imagens/biosite/app-gestao.png", mesmaAba: true, compacto: true },
       { titulo: "Solicite meu portfólio 🦋", link: "https://api.whatsapp.com/send?phone=551993842684", imagem: "imagens/biosite/portfolio.jpg", dataContato: "contact_whatsapp_portfolio" }
     ]
   },
@@ -397,7 +402,7 @@ document.getElementById("perfilContatos").innerHTML = `
 
 document.getElementById("secoesBiosite").innerHTML = SECOES_BIOSITE.map(bloco => {
   const itensHtml = bloco.itens.map(item => `
-    <a class="link-item" href="${item.link}" target="_blank" rel="noopener"${item.dataContato ? ` data-contato="${item.dataContato}"` : ""}${item.dataCta ? ` data-cta="${item.dataCta}"` : ""}>
+    <a class="link-item${item.compacto ? " compacto" : ""}" href="${item.link}"${item.mesmaAba ? "" : ` target="_blank" rel="noopener"`}${item.dataContato ? ` data-contato="${item.dataContato}"` : ""}${item.dataCta ? ` data-cta="${item.dataCta}"` : ""}>
       <img src="${item.imagem}" alt="">
       <span class="titulo">${item.titulo}</span>
     </a>
