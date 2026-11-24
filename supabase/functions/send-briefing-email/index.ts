@@ -24,7 +24,7 @@ const EMAIL_DESTINO = Deno.env.get("BRIEFING_EMAIL_DESTINO") ?? "edilainesantosu
 type Campo = {
   nome: string;
   pergunta: string;
-  tipo: "radio" | "sim_nao" | "texto_curto" | "texto_livre";
+  tipo: "radio" | "sim_nao" | "texto_curto" | "texto_livre" | "checkbox";
   opcoes?: string[];
   outro?: boolean;
   detalheSe?: string;
@@ -139,6 +139,59 @@ const SECOES: { secao: string; campos: Campo[] }[] = [
   },
 ];
 
+// Formulário de interesse do app de gestão (versão 2, desde 2026-11-24).
+// Respostas com respostas.versao_formulario = 2 usam esta lista; as antigas
+// continuam usando SECOES acima. Espelha a ETAPAS do formulário.
+const SECOES_V2: { secao: string; campos: Campo[] }[] = [
+  {
+    secao: "Seus dados",
+    campos: [
+      { nome: "area_trabalho", pergunta: "Com o que você trabalha?", tipo: "radio",
+        opcoes: ["Criação de conteúdo", "Prestação de serviços", "Loja ou comércio", "Consultório ou escritório", "Produção sob medida, como marcenaria", "Outro"], outro: true, detalhePergunta: "Qual" },
+    ],
+  },
+  {
+    secao: "Como está hoje",
+    campos: [
+      { nome: "organizacao_atual", pergunta: "Como você se organiza hoje?", tipo: "checkbox",
+        opcoes: ["Planilha", "Papel ou caderno", "Vários aplicativos", "WhatsApp", "Não me organizo", "Outro"], outro: true, detalhePergunta: "Outro" },
+      { nome: "maior_dor", pergunta: "O que mais te dá dor de cabeça hoje?", tipo: "texto_livre" },
+    ],
+  },
+  {
+    secao: "O que quer no app",
+    campos: [
+      { nome: "itens_essenciais", pergunta: "O que não pode faltar?", tipo: "checkbox",
+        opcoes: ["Agenda", "Clientes", "Orçamentos", "Pedidos ou projetos com prazo", "Tarefas e lembretes", "Financeiro", "Notas fiscais", "Contratos e documentos", "Página ou portfólio", "Formulário pra receber clientes", "E-mails automáticos", "Outro"], outro: true, detalhePergunta: "Outro" },
+      { nome: "quem_vai_usar", pergunta: "Quem vai usar?", tipo: "radio", opcoes: ["Só eu", "Eu + equipe"] },
+      { nome: "app_no_celular", pergunta: "Quer que funcione como aplicativo no celular?", tipo: "radio", opcoes: ["Sim", "Não", "Tanto faz"] },
+      { nome: "tem_logo", pergunta: "Você já tem logo?", tipo: "radio", opcoes: ["Já tenho", "Preciso de ajuda pra criar", "Ainda não pensei"] },
+    ],
+  },
+  {
+    secao: "Orçamento e prazo",
+    campos: [
+      { nome: "investimento", pergunta: "Quanto pretende investir?", tipo: "radio",
+        opcoes: ["Prefiro ver as opções primeiro", "Até R$ ___"], detalheSe: "Até R$ ___", detalhePergunta: "Valor" },
+      { nome: "prazo_necessidade", pergunta: "Pra quando você precisa?", tipo: "radio",
+        opcoes: ["O quanto antes", "Nos próximos 30 dias", "Em 2 a 3 meses", "Estou só planejando"] },
+    ],
+  },
+  {
+    secao: "Fechamento",
+    campos: [
+      { nome: "observacoes_finais", pergunta: "Tem mais alguma coisa que eu precise saber?", tipo: "texto_livre" },
+    ],
+  },
+];
+
+// deno-lint-ignore no-explicit-any
+type Respostas = Record<string, any>;
+
+function marcou(valor: unknown, opcao: string | undefined): boolean {
+  return Array.isArray(valor) ? valor.includes(opcao) : valor === opcao;
+}
+
 function escapeHtml(texto: string): string {
   return texto
     .replace(/&/g, "&amp;")
@@ -147,12 +200,12 @@ function escapeHtml(texto: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function renderPerguntaRadioOuSimNao(campo: Campo, respostas: Record<string, string>): string {
+function renderPerguntaRadioOuSimNao(campo: Campo, respostas: Respostas): string {
   const valorMarcado = respostas[campo.nome] ?? "";
   const opcoes = campo.tipo === "sim_nao" ? ["Sim", "Não"] : (campo.opcoes ?? []);
 
   const listaHtml = opcoes.map(op => {
-    const marcada = op === valorMarcado;
+    const marcada = marcou(valorMarcado, op);
     return `
       <div style="display:flex;align-items:center;gap:10px;${marcada ? "" : "opacity:.55;"}">
         <span style="width:16px;height:16px;border-radius:5px;border:1.5px solid ${marcada ? "#000080" : "rgba(0,0,128,.35)"};background:${marcada ? "#000080" : "#ffffff"};flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:11px;line-height:1;color:#ffffff;">${marcada ? "&#10003;" : ""}</span>
@@ -164,11 +217,11 @@ function renderPerguntaRadioOuSimNao(campo: Campo, respostas: Record<string, str
   return `<div style="display:flex;flex-direction:column;gap:7px;">${listaHtml}</div>`;
 }
 
-function renderDetalhe(campo: Campo, respostas: Record<string, string>): string {
+function renderDetalhe(campo: Campo, respostas: Respostas): string {
   const valorMarcado = respostas[campo.nome] ?? "";
   if (!campo.detalheSe && !campo.outro) return "";
   const gatilho = campo.outro ? "Outro" : campo.detalheSe;
-  if (valorMarcado !== gatilho) return "";
+  if (!marcou(valorMarcado, gatilho)) return "";
 
   const rotulo = campo.detalhePergunta || "Detalhe";
 
@@ -180,20 +233,20 @@ function renderDetalhe(campo: Campo, respostas: Record<string, string>): string 
 
   const detalheTexto = respostas[`${campo.nome}_detalhe`];
   if (!detalheTexto) return "";
-  return `<div style="margin-top:10px;margin-left:4px;padding-left:14px;border-left:2px solid rgba(0,0,128,.18);font-size:13px;color:rgba(0,0,128,.7);"><strong style="color:#000080;">${escapeHtml(rotulo)}:</strong> ${escapeHtml(detalheTexto)}</div>`;
+  return `<div style="margin-top:10px;margin-left:4px;padding-left:14px;border-left:2px solid rgba(0,0,128,.18);font-size:13px;color:rgba(0,0,128,.7);"><strong style="color:#000080;">${escapeHtml(rotulo)}:</strong> ${escapeHtml(String(detalheTexto))}</div>`;
 }
 
-function renderCampo(campo: Campo, respostas: Record<string, string>): string {
+function renderCampo(campo: Campo, respostas: Respostas): string {
   const valor = respostas[campo.nome];
   if (!valor) return ""; // pergunta condicional que não apareceu pra essa pessoa
 
   const perguntaHtml = `<span style="display:block;font-weight:700;font-size:14px;line-height:1.4;margin-bottom:12px;color:#1a1a1a;">${escapeHtml(campo.pergunta)}</span>`;
 
   let respostaHtml = "";
-  if (campo.tipo === "radio" || campo.tipo === "sim_nao") {
+  if (campo.tipo === "radio" || campo.tipo === "sim_nao" || campo.tipo === "checkbox") {
     respostaHtml = renderPerguntaRadioOuSimNao(campo, respostas);
   } else {
-    respostaHtml = `<div style="background:#fbfbfe;border:1.5px solid rgba(0,0,128,.09);border-radius:12px;padding:12px 14px;font-size:14px;color:#1a1a1a;line-height:1.55;white-space:pre-wrap;">${escapeHtml(valor)}</div>`;
+    respostaHtml = `<div style="background:#fbfbfe;border:1.5px solid rgba(0,0,128,.09);border-radius:12px;padding:12px 14px;font-size:14px;color:#1a1a1a;line-height:1.55;white-space:pre-wrap;">${escapeHtml(String(valor))}</div>`;
   }
 
   const detalheHtml = renderDetalhe(campo, respostas);
@@ -201,8 +254,9 @@ function renderCampo(campo: Campo, respostas: Record<string, string>): string {
   return `<div style="margin-bottom:22px;">${perguntaHtml}${respostaHtml}${detalheHtml}</div>`;
 }
 
-function renderPagina(nome: string, contato: string, respostas: Record<string, string>): string {
-  const secoesHtml = SECOES.map(secao => {
+function renderPagina(nome: string, contato: string, respostas: Respostas): string {
+  const secoes = Number(respostas.versao_formulario) === 2 ? SECOES_V2 : SECOES;
+  const secoesHtml = secoes.map(secao => {
     const camposHtml = secao.campos.map(c => renderCampo(c, respostas)).join("");
     if (!camposHtml.trim()) return ""; // seção inteira sem resposta (não deveria acontecer, é rede de segurança)
     return `

@@ -10855,6 +10855,43 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     ]}
   ];
 
+  // Formulário de interesse do app de gestão (versão 2, desde 2026-11-24).
+  // Respostas novas chegam com respostas.versao_formulario = 2 e usam esta
+  // lista; as antigas (sem essa marca) continuam usando SECOES_BRIEFING acima.
+  // Espelha a ETAPAS do formulário e a SECOES_V2 da send-briefing-email.
+  const SECOES_BRIEFING_V2 = [
+    { secao: "Seus dados", campos: [
+      { nome: "area_trabalho", pergunta: "Com o que você trabalha?", tipo: "radio",
+        opcoes: ["Criação de conteúdo", "Prestação de serviços", "Loja ou comércio", "Consultório ou escritório", "Produção sob medida, como marcenaria", "Outro"], outro: true, detalhePergunta: "Qual" }
+    ]},
+    { secao: "Como está hoje", campos: [
+      { nome: "organizacao_atual", pergunta: "Como você se organiza hoje?", tipo: "checkbox",
+        opcoes: ["Planilha", "Papel ou caderno", "Vários aplicativos", "WhatsApp", "Não me organizo", "Outro"], outro: true, detalhePergunta: "Outro" },
+      { nome: "maior_dor", pergunta: "O que mais te dá dor de cabeça hoje?", tipo: "texto_livre" }
+    ]},
+    { secao: "O que quer no app", campos: [
+      { nome: "itens_essenciais", pergunta: "O que não pode faltar?", tipo: "checkbox",
+        opcoes: ["Agenda", "Clientes", "Orçamentos", "Pedidos ou projetos com prazo", "Tarefas e lembretes", "Financeiro", "Notas fiscais", "Contratos e documentos", "Página ou portfólio", "Formulário pra receber clientes", "E-mails automáticos", "Outro"], outro: true, detalhePergunta: "Outro" },
+      { nome: "quem_vai_usar", pergunta: "Quem vai usar?", tipo: "radio", opcoes: ["Só eu", "Eu + equipe"] },
+      { nome: "app_no_celular", pergunta: "Quer que funcione como aplicativo no celular?", tipo: "radio", opcoes: ["Sim", "Não", "Tanto faz"] },
+      { nome: "tem_logo", pergunta: "Você já tem logo?", tipo: "radio", opcoes: ["Já tenho", "Preciso de ajuda pra criar", "Ainda não pensei"] }
+    ]},
+    { secao: "Orçamento e prazo", campos: [
+      { nome: "investimento", pergunta: "Quanto pretende investir?", tipo: "radio",
+        opcoes: ["Prefiro ver as opções primeiro", "Até R$ ___"], detalheSe: "Até R$ ___", detalhePergunta: "Valor" },
+      { nome: "prazo_necessidade", pergunta: "Pra quando você precisa?", tipo: "radio",
+        opcoes: ["O quanto antes", "Nos próximos 30 dias", "Em 2 a 3 meses", "Estou só planejando"] }
+    ]},
+    { secao: "Fechamento", campos: [
+      { nome: "observacoes_finais", pergunta: "Tem mais alguma coisa que eu precise saber?", tipo: "texto_livre" }
+    ]}
+  ];
+
+  // Escolhe a lista de perguntas certa pra cada resposta (antiga ou nova)
+  function secoesDoBriefing(respostas){
+    return respostas && Number(respostas.versao_formulario) === 2 ? SECOES_BRIEFING_V2 : SECOES_BRIEFING;
+  }
+
   const ROTULOS_BRIEFING = {
     organizacao_hoje: "Como organiza hoje",
     organizacao_hoje_detalhe: "Detalhe (Outro)",
@@ -10944,7 +10981,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     const valorMarcado = respostas[campo.nome] || "";
     const opcoes = campo.tipo === "sim_nao" ? ["Sim", "Não"] : (campo.opcoes || []);
     const itens = opcoes.map(op => {
-      const marcada = op === valorMarcado;
+      const marcada = Array.isArray(valorMarcado) ? valorMarcado.includes(op) : op === valorMarcado;
       const textoHtml = marcada
         ? `<span class="dado-sensivel"><span class="brf-destaque">${igEscaparHtml(op)}</span></span>`
         : igEscaparHtml(op);
@@ -10957,7 +10994,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     const valorMarcado = respostas[campo.nome] || "";
     if (!campo.detalheSe && !campo.outro) return "";
     const gatilho = campo.outro ? "Outro" : campo.detalheSe;
-    if (valorMarcado !== gatilho) return "";
+    const ativou = Array.isArray(valorMarcado) ? valorMarcado.includes(gatilho) : valorMarcado === gatilho;
+    if (!ativou) return "";
     const rotulo = campo.detalhePergunta || "Detalhe";
     if (campo.arquivo){
       const url = respostas[`${campo.nome}_arquivo_url`];
@@ -10973,7 +11011,7 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     const valor = respostas[campo.nome];
     if (!valor) return ""; // pergunta condicional que não apareceu pra essa pessoa
     const perguntaHtml = `<span class="brf-pergunta">${igEscaparHtml(campo.pergunta)}</span>`;
-    const respostaHtml = (campo.tipo === "radio" || campo.tipo === "sim_nao")
+    const respostaHtml = (campo.tipo === "radio" || campo.tipo === "sim_nao" || campo.tipo === "checkbox")
       ? brfRenderOpcoes(campo, respostas)
       : `<div class="brf-texto-livre dado-sensivel">${igEscaparHtml(String(valor))}</div>`;
     return `<div class="brf-pergunta-bloco">${perguntaHtml}${respostaHtml}${brfRenderDetalhe(campo, respostas)}</div>`;
@@ -10981,8 +11019,8 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
 
   function renderizarRespostasBriefing(respostas){
     respostas = respostas || {};
-    const chavesCobertas = new Set();
-    const secoesHtml = SECOES_BRIEFING.map(secao => {
+    const chavesCobertas = new Set(["versao_formulario"]);
+    const secoesHtml = secoesDoBriefing(respostas).map(secao => {
       const camposHtml = secao.campos.map(c => {
         chavesCobertas.add(c.nome);
         chavesCobertas.add(`${c.nome}_detalhe`);
@@ -11481,13 +11519,15 @@ Me entregue como CSV (separado por vírgula), pronto pra eu baixar.`;
     const contato = item.contato || "não informado";
     const respostas = item.respostas || {};
 
-    const blocos = SECOES_BRIEFING.map(secao => {
+    const blocos = secoesDoBriefing(respostas).map(secao => {
       const linhas = secao.campos
         .map(campo => {
           const valor = respostas[campo.nome];
           if (!valor) return null;
           const rotulo = ROTULOS_BRIEFING[campo.nome] || campo.pergunta;
-          return `${rotulo}: ${valor}`;
+          const valorTexto = Array.isArray(valor) ? valor.join(", ") : valor;
+          const detalhe = secoesDoBriefing(respostas) === SECOES_BRIEFING_V2 ? respostas[`${campo.nome}_detalhe`] : null;
+          return `${rotulo}: ${valorTexto}${detalhe ? ` (${detalhe})` : ""}`;
         })
         .filter(Boolean);
       if (!linhas.length) return null;

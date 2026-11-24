@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Briefing do Painel | Edilaine Santos</title>
-<meta name="description" content="Formulário de briefing/diagnóstico pra entender sua rotina antes do orçamento do painel personalizado.">
+<title>Seu app de gestão | Edilaine Santos</title>
+<meta name="description" content="Me conta um pouco da sua rotina pra eu montar uma proposta do seu app de gestão personalizado.">
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦋</text></svg>">
 
@@ -154,6 +154,17 @@
     transition: transform .12s ease;
   }
   .opcao input:checked + .marcador::after{ transform: scale(1); }
+  /* Caixa de seleção (pode marcar várias): quadradinho com ✓ em vez da bolinha */
+  .opcao.multi .marcador{ border-radius: 5px; }
+  .opcao.multi .marcador::after{
+    content: '✓';
+    width: auto; height: auto;
+    border-radius: 0;
+    background: none;
+    color: var(--branco);
+    font-size: 12px; font-weight: 900; line-height: 1;
+  }
+  .opcao.multi input:checked + .marcador{ background: var(--coral); border-color: var(--coral); }
   .opcao:has(input:checked){
     border-color: var(--coral);
     background: var(--coral-suave);
@@ -263,7 +274,7 @@
   <div class="cabecalho">
     <div class="selo">🦋</div>
     <h1>Vamos entender seu momento</h1>
-    <p>Antes de eu te apresentar o orçamento do painel, me conta como funciona sua rotina hoje. Leva uns 5 minutinhos.</p>
+    <p>Me conta um pouco da sua rotina pra eu montar uma proposta do seu app. Leva uns 3 minutinhos.</p>
   </div>
 
   <div class="progresso-wrap">
@@ -281,7 +292,7 @@
   <div class="tela-final" id="telaFinal">
     <div class="selo">🦋</div>
     <h2>Oiee, recebi suas respostas!</h2>
-    <p>Em breve te mando uma proposta personalizada.</p>
+    <p>Em breve te chamo com uma proposta personalizada.</p>
   </div>
 
 </div>
@@ -297,130 +308,61 @@
 const SUPABASE_URL = "https://dqtoxxngjqyoibdgmrjr.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxdG94eG5nanF5b2liZGdtcmpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NzYyNDMsImV4cCI6MjA5OTM1MjI0M30.sC16nHTB5f_cieiuIGOd86qb3186m4pnC2J2IWODPSc";
 
+// versao_formulario: 2 = formulário de interesse do app de gestão (desde
+// 2026-11-24). Respostas antigas (sem essa marca) usam as perguntas antigas
+// lá no painel e no e-mail — por isso os nomes dos campos novos são todos
+// diferentes dos antigos, pra nunca misturar.
+const VERSAO_FORMULARIO = 2;
+
 const ETAPAS = [
   {
     secao: "Seus dados",
     obrigatoria: true,
     campos: [
       { tipo: "texto_curto", nome: "nome", pergunta: "Como posso te chamar?", obrigatorio: true, placeholder: "Seu nome" },
-      { tipo: "texto_curto", nome: "contato", pergunta: "Melhor e-mail ou WhatsApp pra te responder", obrigatorio: true, placeholder: "seu@email.com ou (11) 99999-9999" }
+      { tipo: "texto_curto", nome: "contato", pergunta: "Melhor WhatsApp ou e-mail pra te responder", obrigatorio: true, placeholder: "(11) 99999-9999 ou seu@email.com" },
+      { tipo: "radio", nome: "area_trabalho", pergunta: "Com o que você trabalha?", obrigatorio: true,
+        opcoes: ["Criação de conteúdo", "Prestação de serviços", "Loja ou comércio", "Consultório ou escritório", "Produção sob medida, como marcenaria", "Outro"], outro: true }
     ]
   },
   {
-    secao: "Situação atual",
+    secao: "Como está hoje",
     obrigatoria: true,
     campos: [
-      { tipo: "radio", nome: "organizacao_hoje", pergunta: "Como você organiza isso hoje?", obrigatorio: true,
-        opcoes: ["Planilha", "Papel", "Espalhado em vários aplicativos", "Outro"], outro: true },
-      { tipo: "texto_livre", nome: "tentou_antes", pergunta: "Você já tentou resolver isso antes? O que não funcionou?", obrigatorio: true }
+      { tipo: "checkbox", nome: "organizacao_atual", pergunta: "Como você se organiza hoje?", ajuda: "Pode marcar várias", obrigatorio: true,
+        opcoes: ["Planilha", "Papel ou caderno", "Vários aplicativos", "WhatsApp", "Não me organizo", "Outro"], outro: true },
+      { tipo: "texto_livre", nome: "maior_dor", pergunta: "O que mais te dá dor de cabeça hoje?", opcional: true }
     ]
   },
   {
-    secao: "Site (parte pública)",
+    secao: "O que você quer no seu app",
     obrigatoria: true,
     campos: [
-      { tipo: "radio", nome: "tipo_site", pergunta: "O site vai ter um mini-portfólio/perfil de cada criadora, ou é só institucional?", obrigatorio: true,
-        opcoes: ["Mini-portfólio por pessoa", "Só institucional (apresentação da agência/negócio)", "Não preciso de site público"] },
-      { tipo: "radio", nome: "login_equipe", pergunta: "As pessoas envolvidas vão ter login pra acompanhar algo, ou o acesso logado é só pra você no admin?", obrigatorio: true,
-        opcoes: ["Só eu", "Também para a equipe"] }
-    ]
-  },
-  {
-    secao: "Leads",
-    obrigatoria: true,
-    campos: [
-      { tipo: "radio", nome: "tipo_leads", pergunta: "Os leads que chegam são:", obrigatorio: true,
-        opcoes: ["Marcas/clientes querendo contratar", "Pessoas querendo entrar pro time", "Os dois", "Não se aplica"] },
-      { tipo: "radio", nome: "resposta_leads", pergunta: "Hoje, quando chega um lead, alguém responde na mão, ou você imagina algo mais automático?", obrigatorio: true,
-        opcoes: ["Resposta manual", "Automação (sequência de e-mails)", "Não sei ainda"] }
-    ]
-  },
-  {
-    secao: "Disparo de e-mail",
-    obrigatoria: true,
-    campos: [
-      { tipo: "radio", nome: "objetivo_email", pergunta: "O disparo de e-mail é mais pra:", obrigatorio: true,
-        opcoes: ["Nutrir lead (sequência automática)", "Comunicação pontual com sua rede/equipe", "Os dois"] },
-      { tipo: "radio", nome: "ferramenta_email", pergunta: "Você já usa alguma ferramenta de e-mail hoje, ou quer isso nativo dentro do painel?", obrigatorio: true,
-        opcoes: ["Já uso uma ferramenta", "Quero nativo no painel", "Não uso nada ainda"], detalheSe: "Já uso uma ferramenta", detalhePergunta: "Qual ferramenta?" }
-    ]
-  },
-  {
-    secao: "Financeiro",
-    obrigatoria: true,
-    campos: [
-      { tipo: "radio", nome: "escopo_financeiro", pergunta: "Financeiro pra você é:", obrigatorio: true,
-        opcoes: ["Controlar repasse/comissão pra terceiros", "Faturamento do seu negócio", "Tudo junto"] },
-      { tipo: "sim_nao", nome: "emite_nf_financeiro", pergunta: "Você emite nota fiscal? Isso deve entrar no financeiro do painel?", obrigatorio: true }
-    ]
-  },
-  {
-    secao: "Organizacional",
-    obrigatoria: true,
-    campos: [
-      { tipo: "radio", nome: "estilo_organizacional", pergunta: "É mais gestão de projeto/campanha por pessoa, ou rotina interna da equipe?", obrigatorio: true,
-        opcoes: ["Gestão de campanha (prazo, briefing, aprovação)", "Rotina interna (tarefas, checklist)", "Os dois"] }
-    ]
-  },
-  {
-    secao: "Uso e equipe",
-    obrigatoria: true,
-    campos: [
-      { tipo: "radio", nome: "quem_usa", pergunta: "O painel será usado só por você, ou mais pessoas também vão utilizá-lo?", obrigatorio: true,
-        opcoes: ["Só eu", "Eu + equipe"], detalheSe: "Eu + equipe", detalhePergunta: "Quantas pessoas?", detalheTipo: "number" },
-      { tipo: "radio", nome: "rotina_uso", pergunta: "Como seria a rotina de uso?", obrigatorio: true,
-        opcoes: ["Diário", "Semanal", "Uso pontual"] }
-    ]
-  },
-  {
-    secao: "Infraestrutura",
-    obrigatoria: true,
-    campos: [
-      { tipo: "radio", nome: "dominio", pergunta: "Você prefere ter um domínio próprio, ou começar com um modelo gratuito pra testar antes de investir?", obrigatorio: true,
-        opcoes: ["Domínio próprio", "Modelo gratuito", "Não sei, quero orientação"] },
-      { tipo: "sim_nao", nome: "cnpj_nf", pergunta: "Você tem CNPJ e emite nota fiscal?", obrigatorio: true }
-    ]
-  },
-  {
-    secao: "App e identidade visual",
-    obrigatoria: true,
-    campos: [
-      { tipo: "sim_nao", nome: "quer_app", pergunta: "Você quer que o painel funcione como um aplicativo no celular (ícone na tela inicial, abre em tela cheia, tipo um app de verdade)?", obrigatorio: true },
-      { tipo: "radio", nome: "logo_status", pergunta: "Se sim, você já tem uma logo/ícone pronto pra esse aplicativo, ou vai precisar que eu ajude a criar?", obrigatorio: true,
-        opcoes: ["Já tenho pronto", "Preciso de ajuda pra criar", "Ainda não pensei nisso"],
-        detalheSe: "Já tenho pronto", detalhePergunta: "Anexe o arquivo da logo/ícone", detalheTipo: "arquivo",
-        mostrarSe: { campo: "quer_app", valor: "Sim" } },
-      { tipo: "sim_nao", nome: "quer_notificacoes", pergunta: "Você quer notificações/alertas no painel?", obrigatorio: true,
-        detalheSe: "Sim", detalhePergunta: "Do que seriam essas notificações? (ex: novo lead, prazo vencendo, pagamento recebido...)" }
-    ]
-  },
-  {
-    secao: "Visão de futuro",
-    obrigatoria: true,
-    campos: [
-      { tipo: "radio", nome: "visao_crescimento", pergunta: "A longo prazo, você imagina o painel crescendo, ou prefere algo mais enxuto mesmo?", obrigatorio: true,
-        opcoes: ["Crescer com o tempo (mais abas, mais automações)", "Enxuto e direto ao ponto"] },
-      { tipo: "radio", nome: "suporte_pos_entrega", pergunta: "Depois de entregue, você mesma fará pequenos ajustes, ou vai preferir que eu continue dando suporte?", obrigatorio: true,
-        opcoes: ["Eu mesma ajusto", "Prefiro suporte contínuo", "Não sei ainda"] }
+      { tipo: "checkbox", nome: "itens_essenciais", pergunta: "O que não pode faltar?", ajuda: "Pode marcar várias", obrigatorio: true,
+        opcoes: ["Agenda", "Clientes", "Orçamentos", "Pedidos ou projetos com prazo", "Tarefas e lembretes", "Financeiro", "Notas fiscais", "Contratos e documentos", "Página ou portfólio", "Formulário pra receber clientes", "E-mails automáticos", "Outro"], outro: true },
+      { tipo: "radio", nome: "quem_vai_usar", pergunta: "Quem vai usar?", obrigatorio: true,
+        opcoes: ["Só eu", "Eu + equipe"] },
+      { tipo: "radio", nome: "app_no_celular", pergunta: "Quer que funcione como aplicativo no celular?", obrigatorio: true,
+        opcoes: ["Sim", "Não", "Tanto faz"] },
+      { tipo: "radio", nome: "tem_logo", pergunta: "Você já tem logo?", opcional: true,
+        opcoes: ["Já tenho", "Preciso de ajuda pra criar", "Ainda não pensei"] }
     ]
   },
   {
     secao: "Orçamento e prazo",
     obrigatoria: true,
     campos: [
-      { tipo: "radio", nome: "faixa_valor", pergunta: "Você já tem uma ideia de quanto pretende investir, ou prefere que eu apresente as opções primeiro?", obrigatorio: true,
-        opcoes: ["Já tenho um valor em mente", "Prefiro ver as opções"], detalheSe: "Já tenho um valor em mente", detalhePergunta: "Qual faixa de valor?" },
-      { tipo: "radio", nome: "urgencia", pergunta: "Isso é uma prioridade pra resolver logo, ou você está mais numa fase de planejamento?", obrigatorio: true,
-        opcoes: ["Preciso resolver logo", "Estou planejando, sem pressa"] },
-      { tipo: "texto_curto", nome: "prazo_desejado", pergunta: "Quando você gostaria de ter isso em mãos?", obrigatorio: true, placeholder: "Ex: em 1 mês, até dezembro..." }
+      { tipo: "radio", nome: "investimento", pergunta: "Quanto pretende investir?", obrigatorio: true,
+        opcoes: ["Prefiro ver as opções primeiro", "Até R$ ___"], detalheSe: "Até R$ ___", detalhePergunta: "Até quanto? (só números)", detalheTipo: "valor" },
+      { tipo: "radio", nome: "prazo_necessidade", pergunta: "Pra quando você precisa?", obrigatorio: true,
+        opcoes: ["O quanto antes", "Nos próximos 30 dias", "Em 2 a 3 meses", "Estou só planejando"] }
     ]
   },
   {
-    secao: "Resultado esperado",
-    obrigatoria: true,
+    secao: "Fechamento",
+    obrigatoria: false,
     campos: [
-      { tipo: "texto_livre", nome: "referencia_visual", pergunta: "Existe algum painel ou ferramenta que você já viu e gostou que eu possa usar como referência?", obrigatorio: true },
-      { tipo: "texto_livre", nome: "definicao_sucesso", pergunta: "O que seria, pra você, o painel \"funcionando bem\"? O que te faria sentir que valeu o investimento?", obrigatorio: true }
+      { tipo: "texto_livre", nome: "observacoes_finais", pergunta: "Tem mais alguma coisa que eu precise saber?", opcional: true }
     ]
   }
 ];
@@ -445,6 +387,12 @@ function extraHtml(campo, valorQueRevela){
         <input type="file" accept="image/*" data-extra-arquivo="${campo.nome}_arquivo">
       </div>`;
     }
+    if (campo.detalheTipo === "valor"){
+      return `<div class="campo-extra" data-extra-de="${campo.nome}" data-extra-valor="${campo.detalheSe}">
+        <label>${campo.detalhePergunta}</label>
+        <input type="text" inputmode="numeric" placeholder="Ex: 3000" data-extra-campo="${campo.nome}_detalhe" data-so-numeros>
+      </div>`;
+    }
     const tipoInput = campo.detalheTipo === "number" ? "number" : "text";
     return `<div class="campo-extra" data-extra-de="${campo.nome}" data-extra-valor="${campo.detalheSe}">
       <label>${campo.detalhePergunta}</label>
@@ -457,7 +405,8 @@ function extraHtml(campo, valorQueRevela){
 function campoHtml(campo, idxEtapa, idxCampo){
   const id = `c_${idxEtapa}_${idxCampo}`;
   const req = campo.obrigatorio ? ' <span class="obrigatorio">*</span>' : '';
-  const ajuda = campo.opcional ? '<p class="campo-ajuda">Opcional</p>' : '';
+  const ajuda = campo.opcional ? '<p class="campo-ajuda">Opcional</p>'
+    : (campo.ajuda ? `<p class="campo-ajuda">${campo.ajuda}</p>` : '');
 
   // Uma pergunta pode depender de outra ter sido respondida de um jeito
   // específico (ex: só pergunta da logo se "quer app" = Sim) — nesse caso a
@@ -471,6 +420,24 @@ function campoHtml(campo, idxEtapa, idxCampo){
     const opcoesHtml = campo.opcoes.map(op => `
       <label class="opcao">
         <input type="radio" name="${campo.nome}" value="${op}" data-campo="${id}">
+        <span class="marcador"></span>
+        <span>${op}</span>
+      </label>
+    `).join("");
+    return `<div class="campo${classeCondicional}"${atributosCondicionais}>
+      <label class="campo-pergunta">${campo.pergunta}${req}</label>
+      ${ajuda}
+      <div class="opcoes">${opcoesHtml}</div>
+      ${extraHtml(campo)}
+    </div>`;
+  }
+
+  // Caixas de seleção (pode marcar várias) — mesmo cartão das opções,
+  // só com o quadradinho no lugar da bolinha.
+  if (campo.tipo === "checkbox"){
+    const opcoesHtml = campo.opcoes.map(op => `
+      <label class="opcao multi">
+        <input type="checkbox" name="${campo.nome}" value="${op}">
         <span class="marcador"></span>
         <span>${op}</span>
       </label>
@@ -542,6 +509,15 @@ wrap.addEventListener("change", (e) => {
     }
     return;
   }
+  // Caixa de seleção: o campinho do "Outro" aparece enquanto ele estiver marcado
+  if (e.target.type === "checkbox"){
+    const nomeCheck = e.target.name;
+    document.querySelectorAll(`.campo-extra[data-extra-de="${nomeCheck}"]`).forEach(el => {
+      const gatilho = wrap.querySelector(`input[name="${nomeCheck}"][value="${el.dataset.extraValor}"]`);
+      el.classList.toggle("visivel", !!gatilho && gatilho.checked);
+    });
+    return;
+  }
   if (e.target.type !== "radio") return;
   const nome = e.target.name;
   const valor = e.target.value;
@@ -557,6 +533,14 @@ wrap.addEventListener("change", (e) => {
       el.querySelectorAll(".campo-extra").forEach(extra => extra.classList.remove("visivel"));
     }
   });
+});
+
+// Campo de valor (orçamento): só aceita números
+wrap.addEventListener("input", (e) => {
+  if (e.target.matches("[data-so-numeros]")){
+    const limpo = e.target.value.replace(/\D/g, "");
+    if (limpo !== e.target.value) e.target.value = limpo;
+  }
 });
 
 function irPara(idx){
@@ -599,6 +583,14 @@ function etapaValida(idx){
           const detalhe = el.querySelector(`[data-extra-campo="${campo.nome}_detalhe"]`);
           if (!detalhe || !detalhe.value.trim()) return false;
         }
+      }
+    }
+    if (campo.tipo === "checkbox"){
+      const marcados = [...el.querySelectorAll(`input[name="${campo.nome}"]:checked`)];
+      if (!marcados.length) return false;
+      if (campo.outro && marcados.some(m => m.value === "Outro")){
+        const detalhe = el.querySelector(`[data-extra-campo="${campo.nome}_detalhe"]`);
+        if (!detalhe || !detalhe.value.trim()) return false;
       }
     }
     if (campo.tipo === "texto_curto"){
@@ -648,9 +640,19 @@ async function enviarArquivoBriefing(arquivo){
 const TAMANHO_MAXIMO_ANEXO_BRIEFING = 8 * 1024 * 1024;
 
 async function coletarRespostas(){
-  const dados = { nome: "", contato: "", respostas: {} };
+  const dados = { nome: "", contato: "", respostas: { versao_formulario: VERSAO_FORMULARIO } };
   for (const etapa of ETAPAS){
     for (const campo of etapa.campos){
+      // Caixas de seleção viram uma lista (ex: ["Planilha", "WhatsApp"])
+      if (campo.tipo === "checkbox"){
+        const marcados = [...wrap.querySelectorAll(`input[name="${campo.nome}"]:checked`)].map(m => m.value);
+        if (marcados.length) dados.respostas[campo.nome] = marcados;
+        if (campo.outro && marcados.includes("Outro")){
+          const detalhe = wrap.querySelector(`[data-extra-campo="${campo.nome}_detalhe"]`);
+          if (detalhe && detalhe.value.trim()) dados.respostas[`${campo.nome}_detalhe`] = detalhe.value.trim();
+        }
+        continue;
+      }
       if (campo.tipo === "radio" || campo.tipo === "sim_nao"){
         const marcado = wrap.querySelector(`input[name="${campo.nome}"]:checked`);
         const valor = marcado ? marcado.value : "";
@@ -658,7 +660,12 @@ async function coletarRespostas(){
         else dados.respostas[campo.nome] = valor;
         if (campo.detalheSe || campo.outro){
           const detalhe = wrap.querySelector(`[data-extra-campo="${campo.nome}_detalhe"]`);
-          if (detalhe && detalhe.value.trim()) dados.respostas[`${campo.nome}_detalhe`] = detalhe.value.trim();
+          if (detalhe && detalhe.value.trim()){
+            // Valor do orçamento já vai salvo legível: "R$ 3.000"
+            dados.respostas[`${campo.nome}_detalhe`] = campo.detalheTipo === "valor"
+              ? "R$ " + Number(detalhe.value.replace(/\D/g, "")).toLocaleString("pt-BR")
+              : detalhe.value.trim();
+          }
 
           const arquivoInput = wrap.querySelector(`[data-extra-arquivo="${campo.nome}_arquivo"]`);
           const arquivo = arquivoInput && arquivoInput.files[0];
