@@ -244,6 +244,15 @@
     display: none;
   }
   .aviso-obrigatorio.visivel{ display: block; }
+
+  /* Destaque do que ficou sem resposta ao tentar continuar */
+  .campo.faltando .opcao{ border-color: #f2b8b8; }
+  .campo.faltando input[type="text"], .campo.faltando input[type="number"], .campo.faltando textarea,
+  input.faltando, textarea.faltando{ border-color: #f2b8b8; background: #fff8f8; }
+  .campo.faltando .campo-extra input{ border-color: var(--coral-suave); background: #fbfbfe; }
+  .campo.faltando .campo-extra input.faltando{ border-color: #f2b8b8; background: #fff8f8; }
+  .aviso-campo{ font-size: .78rem; color: #9a1f1f; margin: 6px 0 0; display: none; }
+  .aviso-campo.visivel{ display: block; }
   .aviso-envio{
     font-size: .82rem;
     color: #9a1f1f;
@@ -376,8 +385,9 @@ const wrap = document.getElementById("etapasWrap");
 function extraHtml(campo, valorQueRevela){
   if (campo.outro){
     return `<div class="campo-extra" data-extra-de="${campo.nome}" data-extra-valor="Outro">
-      <label>Conta pra mim como é</label>
+      <label>Conta pra mim o que é</label>
       <input type="text" data-extra-campo="${campo.nome}_detalhe">
+      <p class="aviso-campo">Conta pra mim o que é 🙂</p>
     </div>`;
   }
   if (campo.detalheSe){
@@ -424,7 +434,7 @@ function campoHtml(campo, idxEtapa, idxCampo){
         <span>${op}</span>
       </label>
     `).join("");
-    return `<div class="campo${classeCondicional}"${atributosCondicionais}>
+    return `<div class="campo${classeCondicional}" data-campo-nome="${campo.nome}"${atributosCondicionais}>
       <label class="campo-pergunta">${campo.pergunta}${req}</label>
       ${ajuda}
       <div class="opcoes">${opcoesHtml}</div>
@@ -442,7 +452,7 @@ function campoHtml(campo, idxEtapa, idxCampo){
         <span>${op}</span>
       </label>
     `).join("");
-    return `<div class="campo${classeCondicional}"${atributosCondicionais}>
+    return `<div class="campo${classeCondicional}" data-campo-nome="${campo.nome}"${atributosCondicionais}>
       <label class="campo-pergunta">${campo.pergunta}${req}</label>
       ${ajuda}
       <div class="opcoes">${opcoesHtml}</div>
@@ -451,7 +461,7 @@ function campoHtml(campo, idxEtapa, idxCampo){
   }
 
   if (campo.tipo === "sim_nao"){
-    return `<div class="campo${classeCondicional}"${atributosCondicionais}>
+    return `<div class="campo${classeCondicional}" data-campo-nome="${campo.nome}"${atributosCondicionais}>
       <label class="campo-pergunta">${campo.pergunta}${req}</label>
       <div class="linha-sim-nao">
         <label class="opcao sim-nao"><input type="radio" name="${campo.nome}" value="Sim"><span class="marcador"></span><span>Sim</span></label>
@@ -462,7 +472,7 @@ function campoHtml(campo, idxEtapa, idxCampo){
   }
 
   if (campo.tipo === "texto_livre"){
-    return `<div class="campo${classeCondicional}"${atributosCondicionais}>
+    return `<div class="campo${classeCondicional}" data-campo-nome="${campo.nome}"${atributosCondicionais}>
       <label class="campo-pergunta">${campo.pergunta}${req}</label>
       ${ajuda}
       <textarea name="${campo.nome}" placeholder="Escreva aqui..."></textarea>
@@ -470,7 +480,7 @@ function campoHtml(campo, idxEtapa, idxCampo){
   }
 
   if (campo.tipo === "texto_curto"){
-    return `<div class="campo${classeCondicional}"${atributosCondicionais}>
+    return `<div class="campo${classeCondicional}" data-campo-nome="${campo.nome}"${atributosCondicionais}>
       <label class="campo-pergunta">${campo.pergunta}${req}</label>
       <input type="text" name="${campo.nome}" placeholder="${campo.placeholder || ''}">
     </div>`;
@@ -563,47 +573,92 @@ function campoVisivel(campo, el){
   return !!marcado && marcado.value === campo.mostrarSe.valor;
 }
 
-function etapaValida(idx){
+// Lista o que ficou faltando na etapa: a pergunta sem resposta (campoEl)
+// e, quando for o caso, o campinho extra vazio (detalheEl) — ex: marcou
+// "Outro" e não escreveu nada. Usado pra destacar e rolar até o que falta.
+function pendenciasEtapa(idx){
   const etapa = ETAPAS[idx];
   const el = wrap.querySelector(`.etapa[data-etapa="${idx}"]`);
+  const faltando = [];
   for (const campo of etapa.campos){
     if (!campo.obrigatorio) continue;
     if (!campoVisivel(campo, el)) continue;
+    const campoEl = el.querySelector(`.campo[data-campo-nome="${campo.nome}"]`);
+    const falta = (detalheEl) => faltando.push({ campoEl, detalheEl: detalheEl || null, outro: !!detalheEl && !!campo.outro });
 
     if (campo.tipo === "radio" || campo.tipo === "sim_nao"){
       const marcado = el.querySelector(`input[name="${campo.nome}"]:checked`);
-      if (!marcado) return false;
+      if (!marcado){ falta(); continue; }
 
-      const detalheAtivo = (campo.outro && marcado.value === "Outro") || (campo.detalheSe && marcado.value === campo.detalheSe);
+      const ehOutro = campo.outro && marcado.value === "Outro";
+      const detalheAtivo = ehOutro || (campo.detalheSe && marcado.value === campo.detalheSe);
       if (detalheAtivo){
         if (campo.detalheTipo === "arquivo"){
           const arquivoInput = el.querySelector(`[data-extra-arquivo="${campo.nome}_arquivo"]`);
-          if (!arquivoInput || !arquivoInput.files[0]) return false;
+          if (!arquivoInput || !arquivoInput.files[0]) falta(arquivoInput);
         } else {
           const detalhe = el.querySelector(`[data-extra-campo="${campo.nome}_detalhe"]`);
-          if (!detalhe || !detalhe.value.trim()) return false;
+          if (!detalhe || !detalhe.value.trim()) faltando.push({ campoEl, detalheEl: detalhe, outro: ehOutro });
         }
       }
     }
     if (campo.tipo === "checkbox"){
       const marcados = [...el.querySelectorAll(`input[name="${campo.nome}"]:checked`)];
-      if (!marcados.length) return false;
+      if (!marcados.length){ falta(); continue; }
       if (campo.outro && marcados.some(m => m.value === "Outro")){
         const detalhe = el.querySelector(`[data-extra-campo="${campo.nome}_detalhe"]`);
-        if (!detalhe || !detalhe.value.trim()) return false;
+        if (!detalhe || !detalhe.value.trim()) faltando.push({ campoEl, detalheEl: detalhe, outro: true });
       }
     }
     if (campo.tipo === "texto_curto"){
       const input = el.querySelector(`input[name="${campo.nome}"]`);
-      if (!input.value.trim()) return false;
+      if (!input.value.trim()) falta();
     }
     if (campo.tipo === "texto_livre"){
       const textarea = el.querySelector(`textarea[name="${campo.nome}"]`);
-      if (!textarea.value.trim()) return false;
+      if (!textarea.value.trim()) falta();
     }
   }
-  return true;
+  return faltando;
 }
+
+function etapaValida(idx){
+  return pendenciasEtapa(idx).length === 0;
+}
+
+// Destaca (borda vermelha clarinha) tudo que falta e rola até o primeiro
+function destacarPendencias(lista){
+  lista.forEach(({ campoEl, detalheEl, outro }) => {
+    if (detalheEl){
+      detalheEl.classList.add("faltando");
+      if (outro){
+        const aviso = detalheEl.parentElement.querySelector(".aviso-campo");
+        if (aviso) aviso.classList.add("visivel");
+      }
+    } else if (campoEl){
+      campoEl.classList.add("faltando");
+    }
+  });
+  const primeiro = lista[0];
+  const alvo = primeiro && (primeiro.detalheEl || primeiro.campoEl);
+  if (alvo){
+    alvo.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (primeiro.detalheEl && primeiro.detalheEl.focus) primeiro.detalheEl.focus({ preventScroll: true });
+  }
+}
+
+// Assim que a pessoa responde, o destaque daquela pergunta some
+function limparDestaque(alvo){
+  const campoEl = alvo.closest(".campo");
+  if (campoEl) campoEl.classList.remove("faltando");
+  if (alvo.classList.contains("faltando") && alvo.value.trim()){
+    alvo.classList.remove("faltando");
+    const aviso = alvo.parentElement.querySelector(".aviso-campo");
+    if (aviso) aviso.classList.remove("visivel");
+  }
+}
+wrap.addEventListener("input", (e) => limparDestaque(e.target));
+wrap.addEventListener("change", (e) => limparDestaque(e.target));
 
 // Tenta de novo uma vez sozinho antes de desistir — rede de celular (o caso mais comum
 // de quem preenche esse formulário) sofre bastante com uma instabilidade passageira.
@@ -749,8 +804,10 @@ async function enviarBriefing(){
 wrap.addEventListener("click", (e) => {
   if (e.target.matches("[data-avancar]")){
     const el = wrap.querySelector(`.etapa[data-etapa="${etapaAtual}"]`);
-    if (!etapaValida(etapaAtual)){
+    const faltando = pendenciasEtapa(etapaAtual);
+    if (faltando.length){
       el.querySelector(".aviso-obrigatorio").classList.add("visivel");
+      destacarPendencias(faltando);
       return;
     }
     el.querySelector(".aviso-obrigatorio").classList.remove("visivel");
