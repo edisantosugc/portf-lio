@@ -350,7 +350,7 @@ const ETAPAS = [
       { tipo: "checkbox", nome: "itens_essenciais", pergunta: "O que não pode faltar?", ajuda: "Pode marcar várias", obrigatorio: true,
         opcoes: ["Agenda", "Clientes", "Orçamentos", "Pedidos ou projetos com prazo", "Tarefas e lembretes", "Financeiro", "Notas fiscais", "Contratos e documentos", "Página ou portfólio", "Formulário pra receber clientes", "E-mails automáticos", "Outro"], outro: true },
       { tipo: "radio", nome: "quem_vai_usar", pergunta: "Quem vai usar?", obrigatorio: true,
-        opcoes: ["Só eu", "Eu + equipe"] },
+        opcoes: ["Só eu", "Eu + equipe"], detalheSe: "Eu + equipe", detalhePergunta: "Quantas pessoas no total, contando você e a equipe?", detalheTipo: "quantidade" },
       { tipo: "radio", nome: "app_no_celular", pergunta: "Quer que funcione como aplicativo no celular?", obrigatorio: true,
         opcoes: ["Sim", "Não", "Tanto faz"] },
       { tipo: "radio", nome: "tem_logo", pergunta: "Você já tem logo?", opcional: true,
@@ -397,10 +397,10 @@ function extraHtml(campo, valorQueRevela){
         <input type="file" accept="image/*" data-extra-arquivo="${campo.nome}_arquivo">
       </div>`;
     }
-    if (campo.detalheTipo === "valor"){
+    if (campo.detalheTipo === "valor" || campo.detalheTipo === "quantidade"){
       return `<div class="campo-extra" data-extra-de="${campo.nome}" data-extra-valor="${campo.detalheSe}">
         <label>${campo.detalhePergunta}</label>
-        <input type="text" inputmode="numeric" placeholder="Ex: 3000" data-extra-campo="${campo.nome}_detalhe" data-so-numeros>
+        <input type="text" inputmode="numeric" placeholder="${campo.detalheTipo === "valor" ? "Ex: 3000" : "Ex: 4"}" data-extra-campo="${campo.nome}_detalhe" data-so-numeros>
       </div>`;
     }
     const tipoInput = campo.detalheTipo === "number" ? "number" : "text";
