@@ -207,21 +207,37 @@ function escapeHtml(texto: string): string {
     .replace(/"/g, "&quot;");
 }
 
+// Visual igual ao painel (Mensagens recebidas): um cartão branco só, seções
+// com título pequeno em maiúsculo separadas por linha, uma opção por linha
+// com quadradinho. Tudo em <table> + estilo inline porque o Gmail ignora
+// display:flex/opacity — era isso que deixava as opções espremidas lado a lado.
+const COR_AZUL = "#000080";
+const COR_TEXTO = "#1a1a1a";
+const COR_APAGADO = "#8a8a99";
+const COR_LINHA = "#e6e6ef";
+
+function quadradinho(marcada: boolean): string {
+  return marcada
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="16" height="16" align="center" valign="middle" style="width:16px;height:16px;background:${COR_AZUL};border:1.5px solid ${COR_AZUL};border-radius:4px;color:#ffffff;font-size:11px;line-height:16px;font-family:Arial,Helvetica,sans-serif;">&#10003;</td></tr></table>`
+    : `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="16" height="16" style="width:16px;height:16px;background:#ffffff;border:1.5px solid #c9c9d6;border-radius:4px;font-size:1px;line-height:16px;">&nbsp;</td></tr></table>`;
+}
+
 function renderPerguntaRadioOuSimNao(campo: Campo, respostas: Respostas): string {
   const valorMarcado = respostas[campo.nome] ?? "";
   const opcoes = campo.tipo === "sim_nao" ? ["Sim", "Não"] : (campo.opcoes ?? []);
 
-  const listaHtml = opcoes.map(op => {
+  const linhas = opcoes.map(op => {
     const marcada = marcou(valorMarcado, op);
-    return `
-      <div style="display:flex;align-items:center;gap:10px;${marcada ? "" : "opacity:.55;"}">
-        <span style="width:16px;height:16px;border-radius:5px;border:1.5px solid ${marcada ? "#000080" : "rgba(0,0,128,.35)"};background:${marcada ? "#000080" : "#ffffff"};flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:11px;line-height:1;color:#ffffff;">${marcada ? "&#10003;" : ""}</span>
-        <span style="font-size:14px;${marcada ? "font-weight:700;color:#1a1a1a;" : "font-weight:400;color:rgba(26,26,26,.5);"}">${marcada ? `<span style="background:rgba(45,122,79,.28);border-radius:3px;-webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 3px;">${escapeHtml(op)}</span>` : escapeHtml(op)}</span>
-      </div>
-    `;
+    const texto = marcada
+      ? `<span style="background:#cfe6d9;border-radius:3px;padding:1px 4px;font-weight:700;color:${COR_TEXTO};">${escapeHtml(op)}</span>`
+      : `<span style="color:${COR_APAGADO};">${escapeHtml(op)}</span>`;
+    return `<tr>
+        <td width="26" valign="top" style="width:26px;padding:4px 0;">${quadradinho(marcada)}</td>
+        <td valign="top" style="padding:4px 0;font-size:13px;line-height:18px;font-family:Arial,Helvetica,sans-serif;">${texto}</td>
+      </tr>`;
   }).join("");
 
-  return `<div style="display:flex;flex-direction:column;gap:7px;">${listaHtml}</div>`;
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${linhas}</table>`;
 }
 
 function renderDetalhe(campo: Campo, respostas: Respostas): string {
@@ -231,69 +247,69 @@ function renderDetalhe(campo: Campo, respostas: Respostas): string {
   if (!marcou(valorMarcado, gatilho)) return "";
 
   const rotulo = campo.detalhePergunta || "Detalhe";
+  const estilo = `margin-top:8px;padding-left:12px;border-left:2px solid #c9c9e6;font-size:13px;line-height:18px;color:${COR_TEXTO};font-family:Arial,Helvetica,sans-serif;`;
 
   if (campo.arquivo) {
     const url = respostas[`${campo.nome}_arquivo_url`];
     if (!url) return "";
-    return `<div style="margin-top:10px;margin-left:4px;padding-left:14px;border-left:2px solid rgba(0,0,128,.18);font-size:13px;color:rgba(0,0,128,.7);"><strong style="color:#000080;">${escapeHtml(rotulo)}:</strong> <a href="${escapeHtml(url)}" style="color:#000080;">Ver arquivo</a></div>`;
+    return `<div style="${estilo}"><strong style="color:${COR_AZUL};">${escapeHtml(rotulo)}:</strong> <a href="${escapeHtml(url)}" style="color:${COR_AZUL};">Ver arquivo</a></div>`;
   }
 
   const detalheTexto = respostas[`${campo.nome}_detalhe`];
   if (!detalheTexto) return "";
-  return `<div style="margin-top:10px;margin-left:4px;padding-left:14px;border-left:2px solid rgba(0,0,128,.18);font-size:13px;color:rgba(0,0,128,.7);"><strong style="color:#000080;">${escapeHtml(rotulo)}:</strong> ${escapeHtml(String(detalheTexto))}</div>`;
+  return `<div style="${estilo}"><strong style="color:${COR_AZUL};">${escapeHtml(rotulo)}:</strong> ${escapeHtml(String(detalheTexto))}</div>`;
 }
 
 function renderCampo(campo: Campo, respostas: Respostas): string {
   const valor = respostas[campo.nome];
   if (!valor) return ""; // pergunta condicional que não apareceu pra essa pessoa
 
-  const perguntaHtml = `<span style="display:block;font-weight:700;font-size:14px;line-height:1.4;margin-bottom:12px;color:#1a1a1a;">${escapeHtml(campo.pergunta)}</span>`;
+  const perguntaHtml = `<div style="font-weight:700;font-size:13px;line-height:18px;margin:0 0 8px;color:${COR_TEXTO};font-family:Arial,Helvetica,sans-serif;">${escapeHtml(campo.pergunta)}</div>`;
 
   let respostaHtml = "";
   if (campo.tipo === "radio" || campo.tipo === "sim_nao" || campo.tipo === "checkbox") {
     respostaHtml = renderPerguntaRadioOuSimNao(campo, respostas);
   } else {
-    respostaHtml = `<div style="background:#fbfbfe;border:1.5px solid rgba(0,0,128,.09);border-radius:12px;padding:12px 14px;font-size:14px;color:#1a1a1a;line-height:1.55;white-space:pre-wrap;">${escapeHtml(String(valor))}</div>`;
+    respostaHtml = `<div style="background:#f7f7fb;border:1px solid ${COR_LINHA};border-radius:8px;padding:10px 12px;font-size:13px;color:${COR_TEXTO};line-height:19px;white-space:pre-wrap;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(String(valor))}</div>`;
   }
 
-  const detalheHtml = renderDetalhe(campo, respostas);
-
-  return `<div style="margin-bottom:22px;">${perguntaHtml}${respostaHtml}${detalheHtml}</div>`;
+  return `<div style="margin-bottom:18px;">${perguntaHtml}${respostaHtml}${renderDetalhe(campo, respostas)}</div>`;
 }
 
 function renderPagina(nome: string, contato: string, respostas: Respostas): string {
   const secoes = Number(respostas.versao_formulario) === 2 ? SECOES_V2 : SECOES;
   const secoesHtml = secoes.map(secao => {
     const camposHtml = secao.campos.map(c => renderCampo(c, respostas)).join("");
-    if (!camposHtml.trim()) return ""; // seção inteira sem resposta (não deveria acontecer, é rede de segurança)
-    return `
-      <div style="background:#ffffff;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,128,.10);padding:26px 24px;margin-bottom:18px;">
-        <h2 style="font-family:Georgia,'Playfair Display',serif;font-size:18px;font-weight:600;margin:0 0 20px;padding-bottom:12px;border-bottom:1.5px solid rgba(0,0,128,.09);color:#000080;">${escapeHtml(secao.secao)}</h2>
+    if (!camposHtml.trim()) return ""; // seção inteira sem resposta (rede de segurança)
+    return `<tr><td style="border-top:1px solid ${COR_LINHA};padding:18px 22px 4px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b6b7b;margin:0 0 14px;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(secao.secao)}</div>
         ${camposHtml}
-      </div>
-    `;
+      </td></tr>`;
   }).join("");
 
-  return `
-    <!DOCTYPE html>
-    <html><head><meta charset="utf-8"></head>
-    <body style="margin:0;background:#eef0f8;font-family:Arial,Helvetica,sans-serif;">
-      <div style="max-width:640px;margin:0 auto;padding:36px 18px 60px;">
-        <div style="text-align:center;margin-bottom:26px;">
-          <div style="font-size:32px;margin-bottom:8px;">&#129419;</div>
-          <h1 style="font-family:Georgia,'Playfair Display',serif;font-weight:600;font-size:24px;margin:0 0 14px;color:#000080;">Novo briefing preenchido</h1>
-          <div style="display:inline-block;background:#ffffff;border-radius:14px;padding:14px 22px;box-shadow:0 8px 22px rgba(0,0,128,.10);">
-            <strong style="display:block;font-size:16px;color:#000080;">${escapeHtml(nome || "")}</strong>
-            <span style="color:rgba(0,0,128,.65);font-size:14px;">${escapeHtml(contato || "")}</span>
-          </div>
-        </div>
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#eef0f8;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef0f8;">
+    <tr><td align="center" style="padding:28px 12px 48px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#ffffff;border:1px solid ${COR_LINHA};border-radius:14px;">
+        <tr><td style="padding:20px 22px 18px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td valign="middle" style="padding-right:12px;"><span style="display:inline-block;background:#f0f0f4;color:#6b6b7b;font-size:10px;font-weight:700;letter-spacing:.06em;border-radius:20px;padding:4px 10px;font-family:Arial,Helvetica,sans-serif;">BRIEFING</span></td>
+            <td valign="middle" style="font-family:Arial,Helvetica,sans-serif;">
+              <div style="font-size:14px;font-weight:700;text-transform:uppercase;color:${COR_TEXTO};">${escapeHtml(nome || "")}</div>
+              <div style="font-size:12px;color:#6b6b7b;margin-top:2px;">${escapeHtml(contato || "")}</div>
+            </td>
+          </tr></table>
+        </td></tr>
         ${secoesHtml}
-        <div style="text-align:center;margin-top:30px;">
-          <a href="https://edilainesantos.com/painel.html" style="display:inline-block;background:#000080;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:14px 26px;border-radius:14px;">Abrir o painel</a>
-        </div>
-      </div>
-    </body></html>
-  `;
+        <tr><td align="center" style="border-top:1px solid ${COR_LINHA};padding:20px 22px 24px;">
+          <a href="https://edilainesantos.com/painel.html" style="display:inline-block;background:${COR_AZUL};color:#ffffff;text-decoration:none;font-weight:700;font-size:13px;padding:12px 24px;border-radius:8px;font-family:Arial,Helvetica,sans-serif;">Abrir no painel</a>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
 }
 
 Deno.serve(async (req: Request) => {
