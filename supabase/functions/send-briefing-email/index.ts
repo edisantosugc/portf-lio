@@ -151,6 +151,13 @@ const SECOES_V2: { secao: string; campos: Campo[] }[] = [
     ],
   },
   {
+    secao: "Como quer o app",
+    campos: [
+      { nome: "formato_desejado", pergunta: "Como você prefere ter o seu app?", tipo: "radio",
+        opcoes: ["Quero o app pronto, feito por você", "Quero aprender a montar o meu", "Quero pronto e também aprender a mexer nele depois", "Ainda não sei, quero conversar primeiro em uma reunião"] },
+    ],
+  },
+  {
     secao: "Como está hoje",
     campos: [
       { nome: "organizacao_atual", pergunta: "Como você se organiza hoje?", tipo: "checkbox",
